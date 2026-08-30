@@ -1,0 +1,77 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "eris",
+  "version": "0.1.0",
+  "identifier": "com.eris.app",
+  "build": {
+    "frontendDist": "../build",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "bun run dev",
+    "beforeBuildCommand": "bun run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Eris",
+        "width": 640,
+        "height": 380,
+        "resizable": false,
+        "transparent": true,
+        "decorations": false,
+        "shadow": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "center": true,
+        "visible": true,
+        "focus": true
+      },
+      {
+        "label": "taskbar",
+        "url": "/taskbar",
+        "title": "Eris Taskbar",
+        "width": 900,
+        "height": 52,
+        "resizable": false,
+        "transparent": true,
+        "decorations": false,
+        "shadow": false,
+        "alwaysOnTop": false,
+        "skipTaskbar": true,
+        "focus": false
+      },
+      {
+        "label": "settings",
+        "url": "/settings",
+        "title": "Eris Settings",
+        "width": 520,
+        "height": 560,
+        "resizable": true,
+        "transparent": true,
+        "decorations": false,
+        "shadow": false,
+        "center": true,
+        "visible": false,
+        "skipTaskbar": true
+      }
+    ],
+    "security": {
+      "csp": null
+    },
+    "macOSPrivateApi": true
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "android": {
+      "debugApplicationIdSuffix": ".debug"
+    }
+  }
+}

@@ -1,0 +1,194 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+@plugin "daisyui/theme" {
+  name: "eris";
+  default: true;
+  prefersdark: true;
+  color-scheme: "dark";
+  --color-base-100: oklch(22% 0.015 285);
+  --color-base-200: oklch(19% 0.015 285);
+  --color-base-300: oklch(16% 0.015 285);
+  --color-base-content: oklch(93% 0.008 285);
+  --color-primary: oklch(70% 0.12 240);
+  --color-primary-content: oklch(16% 0.03 240);
+  --color-secondary: oklch(72% 0.06 250);
+  --color-secondary-content: oklch(16% 0.04 310);
+  --color-accent: oklch(78% 0.06 230);
+  --color-accent-content: oklch(18% 0.04 85);
+  --color-neutral: oklch(28% 0.015 285);
+  --color-neutral-content: oklch(92% 0.008 285);
+  --color-info: oklch(74% 0.13 232);
+  --color-info-content: oklch(18% 0.05 232);
+  --color-success: oklch(74% 0.16 152);
+  --color-success-content: oklch(18% 0.05 152);
+  --color-warning: oklch(80% 0.16 75);
+  --color-warning-content: oklch(18% 0.05 75);
+  --color-error: oklch(66% 0.2 20);
+  --color-error-content: oklch(16% 0.05 20);
+  --radius-selector: 0.75rem;
+  --radius-field: 0.5rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+@layer base {
+  :root,
+  [data-theme],
+  body {
+    --root-bg: transparent;
+    --shell-radius: 1.75rem;
+    --accent-hue: 215;
+    --accent-spread: 14;
+    --vividness: 0.06;
+    --texture: 0.3;
+    background-color: transparent;
+  }
+}
+
+@layer components {
+  :root[data-dock="windows"] .siri-shell {
+    border-radius: 0;
+  }
+
+  .siri-shell {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    height: 100vh;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--shell-radius);
+  }
+
+  .siri-aura {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    overflow: hidden;
+    perspective: 56rem;
+    background: radial-gradient(
+      75% 65% at 50% 45%,
+      oklch(26% 0.012 var(--accent-hue) / 0.82),
+      oklch(19% 0.01 var(--accent-hue) / 0.62) 70%,
+      oklch(15% 0.008 var(--accent-hue) / 0.45) 100%
+    );
+    backdrop-filter: blur(1.6rem) saturate(1.5);
+    mask-image: radial-gradient(
+      82% 78% at 50% 50%,
+      black 55%,
+      oklch(0% 0 0 / 0.85) 82%,
+      transparent 100%
+    );
+    animation: siri-breathe 11s ease-in-out infinite alternate;
+  }
+
+  .siri-orb {
+    position: absolute;
+    top: var(--y);
+    left: var(--x);
+    width: var(--size);
+    aspect-ratio: 1;
+    margin: calc(var(--size) / -2);
+    border-radius: 50%;
+    opacity: var(--glow);
+    --hue: calc(var(--accent-hue) + var(--offset) * var(--accent-spread) / 120);
+    filter: blur(calc(var(--size) / 3.2));
+    background: radial-gradient(
+      circle at 38% 34%,
+      oklch(82% calc(var(--vividness) * 0.7) var(--hue) / 0.5),
+      oklch(60% var(--vividness) var(--hue) / 0.42) 45%,
+      oklch(45% var(--vividness) var(--hue) / 0) 72%
+    );
+    animation: siri-orbit var(--dur) ease-in-out var(--delay) infinite alternate,
+      siri-pulse calc(var(--dur) / 2.7) ease-in-out var(--delay) infinite alternate;
+  }
+
+  .siri-grain {
+    position: absolute;
+    inset: 0;
+    opacity: var(--texture);
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 12rem 12rem;
+  }
+
+  .siri-veil {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(120% 90% at 50% -20%, oklch(100% 0 0 / 0.1), transparent 60%),
+      radial-gradient(100% 80% at 50% 120%, oklch(0% 0 0 / 0.45), transparent 65%);
+    backdrop-filter: blur(1.125rem) saturate(1.3);
+    mask-image: radial-gradient(78% 70% at 50% 50%, black 55%, transparent 100%);
+    animation: siri-sheen 14s ease-in-out infinite alternate;
+  }
+
+  @keyframes siri-orbit {
+    from {
+      transform: translate3d(calc(var(--travel) * -1), calc(var(--travel) * 0.6), 0)
+        translateZ(var(--depth)) scale(0.88);
+    }
+    to {
+      transform: translate3d(var(--travel), calc(var(--travel) * -0.7), 0)
+        translateZ(calc(var(--depth) + 3rem)) scale(1.18);
+    }
+  }
+
+  @keyframes siri-pulse {
+    from {
+      opacity: calc(var(--glow) * 0.55);
+    }
+    to {
+      opacity: var(--glow);
+    }
+  }
+
+  @keyframes siri-breathe {
+    from {
+      transform: scale(1);
+      opacity: 0.92;
+    }
+    to {
+      transform: scale(1.05);
+      opacity: 1;
+    }
+  }
+
+  @keyframes siri-sheen {
+    from {
+      opacity: 0.7;
+      transform: translate3d(-2%, -1%, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(2%, 1%, 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .siri-orb {
+      animation-duration: calc(var(--dur) * 2.5);
+    }
+
+    .siri-aura,
+    .siri-grain {
+    position: absolute;
+    inset: 0;
+    opacity: var(--texture);
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 12rem 12rem;
+  }
+
+  .siri-veil {
+      animation-duration: 40s;
+    }
+  }
+}
