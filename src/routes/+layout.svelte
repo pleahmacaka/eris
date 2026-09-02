@@ -1,9 +1,19 @@
 <script lang="ts">
+  import { addCollection } from "@iconify/svelte"
   import favicon from "$lib/assets/favicon.svg"
-  import { applyAppearance, loadSettings, onSettings } from "$lib/settings"
+  import { lucideSubset } from "$lib/icons"
+  import {
+    type Appearance,
+    defaultAppearance,
+    loadProfile,
+    onProfile,
+  } from "$lib/settings"
+  import { applyAppearance } from "$lib/theme"
   import "./layout.css"
 
   let { children } = $props()
+
+  addCollection(lucideSubset)
 
   const orbs = [
     { x: "18%", y: "24%", size: "46vmax", offset: 0, depth: "-9rem", glow: 0.85, travel: "7%", dur: "19s", delay: "0s" },
@@ -14,12 +24,29 @@
   ]
 
   $effect(() => {
-    loadSettings().then(applyAppearance)
+    let current: Appearance = defaultAppearance
+    const scheme = window.matchMedia("(prefers-color-scheme: dark)")
 
-    const stop = onSettings(applyAppearance)
+    const apply = (appearance: Appearance) => {
+      current = appearance
+      applyAppearance(current)
+    }
+
+    const onScheme = () => {
+      if (current.mode === "system") {
+        applyAppearance(current)
+      }
+    }
+
+    loadProfile().then(p => apply(p.appearance))
+
+    const stop = onProfile(p => apply(p.appearance))
+
+    scheme.addEventListener("change", onScheme)
 
     return () => {
       stop.then(unlisten => unlisten())
+      scheme.removeEventListener("change", onScheme)
     }
   })
 </script>
