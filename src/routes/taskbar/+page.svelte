@@ -1,101 +1,385 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { invoke } from "@tauri-apps/api/core"
-  import { Window } from "@tauri-apps/api/window"
-  import { type AppEntry, appIcon, launchApp } from "$lib/apps"
-  import { applyDock, loadSettings, onSettings, type Settings } from "$lib/settings"
+  import { listen } from "@tauri-apps/api/event"
+  import { untrack } from "svelte"
+  import {
+    getCurrentWindow,
+    PhysicalPosition,
+    PhysicalSize,
+    Window,
+  } from "@tauri-apps/api/window"
+  import { live } from "$lib/data/live.svelte"
+  import { scheduleReminders } from "$lib/data/reminders"
+  import { events } from "$lib/data/store"
+  import { ensureDevice } from "$lib/device"
+  import {
+    dock,
+    dockAwake,
+    groupWindows,
+    resolvePins,
+    startDock,
+  } from "$lib/dock/dock.svelte"
+  import DockItem from "$lib/dock/DockItem.svelte"
+  import Tray from "$lib/dock/Tray.svelte"
+  import { startTimerWatch } from "$lib/launcher/timers"
+  import * as native from "$lib/native"
+  import {
+    type DeviceSettings,
+    defaultDevice,
+    defaultProfile,
+    loadProfile,
+    onDevice,
+    onProfile,
+    type Profile,
+  } from "$lib/settings"
+  import { startAutoSync } from "$lib/sync/engine"
 
-  let pinned = $state<AppEntry[]>([])
-  let settings = $state<Settings>()
-  let now = $state(new Date())
+  const STRIP = 6
+  const HIDE_DELAY = 1_200
+  const VISIBILITY_POLL = 2_000
+  const REOPEN_GUARD = 400
 
-  invoke<AppEntry[]>("pinned_apps").then(list => (pinned = list))
+  let device = $state<DeviceSettings>(defaultDevice)
+  let profile = $state<Profile>(defaultProfile)
+  let ready = $state(false)
+  let hovered = $state(false)
+  let edgeHover = $state(false)
+  let held = $state(false)
+  let panelOpen = $state(false)
+  let collapsed = $state(false)
+  let dockHidden = $state(false)
+  let pageHidden = $state(false)
+  let menuHeight = $state(0)
+  let hiddenAt = 0
 
-  const apply = (value: Settings) => {
-    settings = value
-    document.documentElement.dataset.dock = value.dockStyle
-    applyDock(value)
+  const eventLive = live(events)
+
+  const mac = $derived(device.dockStyle === "mac")
+
+  const foreground = $derived(dock.windows[0]?.hwnd)
+
+  const hotkey = $derived(
+    `${device.launcherTrigger}|${device.launcherShortcut}`,
+  )
+
+  const layoutKey = $derived(
+    [
+      device.dockStyle,
+      device.dockEdge,
+      device.dockHeight,
+      device.dockWidth,
+      device.dockAutoHide,
+      device.hideSystemTaskbar,
+      device.dockMonitor,
+      collapsed,
+    ].join("|"),
+  )
+
+  const groups = $derived(
+    groupWindows(
+      dock.pinned,
+      resolvePins(device.pinnedApps, dock.apps),
+      dock.windows,
+    ).filter(g => g.pinned || device.showRunningApps),
+  )
+
+  const applyLayout = () => {
+    if (dockHidden) {
+      return Promise.resolve(undefined)
+    }
+
+    const root = document.documentElement
+
+    root.dataset.dock = device.dockStyle
+    root.dataset.edge = device.dockEdge
+    root.style.setProperty("--dock-height", `${device.dockHeight}px`)
+
+    return native
+      .applyTaskbar({
+        edge: device.dockEdge,
+        height: collapsed ? STRIP : device.dockHeight,
+        width: device.dockWidth,
+        floating: mac,
+        autoHide: device.dockAutoHide,
+        hideSystemTaskbar: device.hideSystemTaskbar,
+        monitor: device.dockMonitor,
+      })
+      .catch(() => undefined)
+  }
+
+  const extend = async (px: number) => {
+    menuHeight = px
+
+    if (px === 0) {
+      return applyLayout()
+    }
+
+    const win = getCurrentWindow()
+    const [scale, position, size] = await Promise.all([
+      win.scaleFactor(),
+      win.outerPosition(),
+      win.outerSize(),
+    ])
+    const extra = Math.round(px * scale)
+    const y = device.dockEdge === "top" ? position.y : position.y - extra
+
+    await win.setPosition(new PhysicalPosition(position.x, y))
+    await win.setSize(new PhysicalSize(size.width, size.height + extra))
+  }
+
+  const refreshVisibility = async () => {
+    const [panel, launcher] = await Promise.all(
+      (["panel", "main"] as const).map(async label => {
+        const win = await Window.getByLabel(label)
+
+        return (await win?.isVisible().catch(() => false)) ?? false
+      }),
+    )
+
+    panelOpen = panel
+    held = panel || launcher
+  }
+
+  const togglePanel = async () => {
+    if (Date.now() - hiddenAt < REOPEN_GUARD) {
+      return
+    }
+
+    await applyLayout()
+
+    if (panelOpen) {
+      panelOpen = false
+      await native.hideWindow("panel")
+    } else {
+      panelOpen = true
+      await native.showWindow("panel")
+    }
   }
 
   $effect(() => {
-    loadSettings().then(apply)
+    ensureDevice().then(d => {
+      device = d
+      ready = true
+    })
+    loadProfile().then(p => {
+      profile = p
+    })
 
-    const stop = onSettings(apply)
+    const stops = [
+      onDevice(d => {
+        device = d
+      }),
+      onProfile(p => {
+        profile = p
+      }),
+      native.onWindowShown("panel", refreshVisibility),
+      native.onWindowShown("main", refreshVisibility),
+      listen<string>("window-hidden", e => {
+        if (e.payload === "panel") {
+          hiddenAt = Date.now()
+        }
+
+        refreshVisibility()
+      }),
+      native.onDockEdge(atEdge => {
+        edgeHover = atEdge
+      }),
+      listen<{ visible: boolean }>("dock-visible", e => {
+        dockHidden = !e.payload.visible
+
+        if (dockHidden) {
+          hovered = false
+          edgeHover = false
+          menuHeight = 0
+        } else {
+          untrack(applyLayout)
+        }
+      }),
+      native.onDockFullscreen(fullscreen => {
+        if (fullscreen) {
+          menuHeight = 0
+        }
+      }),
+    ]
+    const stopSync = startAutoSync()
+    const stopDock = startDock()
+    const stopTimers = startTimerWatch()
+    const poll = setInterval(refreshVisibility, VISIBILITY_POLL)
+
+    refreshVisibility()
 
     return () => {
-      stop.then(unlisten => unlisten())
+      stopSync()
+      stopDock()
+      stopTimers()
+      clearInterval(poll)
+
+      for (const stop of stops) {
+        stop.then(fn => fn())
+      }
+
+      eventLive.stop()
     }
   })
 
   $effect(() => {
-    const timer = setInterval(() => (now = new Date()), 1000)
+    void layoutKey
 
-    return () => clearInterval(timer)
+    if (ready) {
+      untrack(applyLayout)
+    }
   })
 
-  const clock = $derived(now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }))
+  $effect(() => {
+    if (!ready) {
+      return
+    }
 
-  const day = $derived(now.toLocaleDateString([], { month: "short", day: "numeric" }))
+    const [trigger, shortcut] = hotkey.split("|")
 
-  const mac = $derived(settings?.dockStyle === "mac")
+    native
+      .setLauncherShortcut(trigger === "win" ? null : shortcut)
+      .catch(() => undefined)
+    native.setWinKeyCapture(trigger !== "shortcut").catch(() => undefined)
+  })
 
-  const openWindow = async (label: string) => {
-    const window = await Window.getByLabel(label)
+  $effect(() => {
+    if (!ready || dockHidden) {
+      return
+    }
 
-    await window?.show()
-    await window?.setFocus()
-  }
+    if (
+      !device.dockAutoHide ||
+      hovered ||
+      edgeHover ||
+      held ||
+      menuHeight > 0
+    ) {
+      collapsed = false
+
+      return
+    }
+
+    const timer = setTimeout(() => {
+      collapsed = true
+    }, HIDE_DELAY)
+
+    return () => clearTimeout(timer)
+  })
+
+  $effect(() => {
+    dockAwake.visible = !dockHidden && !pageHidden
+  })
+
+  $effect(() =>
+    scheduleReminders(
+      $state.snapshot(eventLive.items),
+      $state.snapshot(profile),
+    ),
+  )
 </script>
 
-<nav
-  data-tauri-drag-region
-  class="flex h-full items-center gap-1 px-2"
-  class:justify-center={mac}
+<svelte:document
+  onmouseenter={() => {
+    hovered = true
+  }}
+  onmouseleave={() => {
+    hovered = false
+  }}
+  onvisibilitychange={() => {
+    pageHidden = document.visibilityState !== "visible"
+  }}
+/>
+
+<div
+  class={[
+    "flex h-full flex-col",
+    device.dockEdge === "top" ? "justify-start" : "justify-end",
+  ]}
 >
-  <button
-    class="btn btn-ghost btn-circle btn-sm"
-    aria-label="Open launcher"
-    onclick={() => openWindow("main")}
-  >
-    <Icon icon="lucide:sparkles" class="size-4 text-primary" />
-  </button>
+  {#if collapsed || dockHidden}
+    <div class="h-full w-full" aria-hidden="true"></div>
+  {:else}
+    <nav
+      class={[
+        "shrink-0 items-center gap-1 border-base-content/10",
+        mac
+          ? "flex justify-center rounded-[var(--shell-radius)] border px-3"
+          : device.dockAlign === "start"
+            ? "grid grid-cols-[auto_1fr_auto] px-2"
+            : "grid grid-cols-[1fr_auto_1fr] px-2",
+        !mac && (device.dockEdge === "top" ? "border-b" : "border-t"),
+      ]}
+      style:height="{device.dockHeight}px"
+      aria-label="Dock"
+    >
+      <div class="flex items-center justify-self-start">
+        <button
+          class="btn btn-ghost btn-square btn-sm"
+          title="Launcher"
+          aria-label="Open launcher"
+          onclick={() => native.toggleWindow("main")}
+        >
+          <Icon icon="lucide:sparkles" class="size-4 text-primary" />
+        </button>
 
-  <div class="divider divider-horizontal mx-0 h-6 self-center"></div>
+        {#if mac}
+          <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
+        {/if}
+      </div>
 
-  <div class="flex items-center gap-1" class:grow={!mac}>
-    {#each pinned as app (app.path)}
-      <button
-        class="btn btn-ghost btn-sm btn-square"
-        title={app.name}
-        aria-label={app.name}
-        onclick={() => launchApp(app.path)}
+      <div
+        class={[
+          "flex min-w-0 items-center gap-0.5 overflow-hidden",
+          mac ? "justify-center" : "justify-self-start",
+        ]}
       >
-        {#await appIcon(app.path) then icon}
-          {#if icon}
-            <img src={icon} alt="" class="size-5" />
-          {:else}
-            <Icon icon="lucide:app-window" class="size-4 opacity-70" />
-          {/if}
-        {/await}
-      </button>
-    {/each}
-  </div>
+        {#each groups as group, index (group.key)}
+          <DockItem
+            {group}
+            size={device.dockIconSize}
+            edge={device.dockEdge}
+            {mac}
+            {foreground}
+            alignEnd={index >= groups.length / 2}
+            onmenu={extend}
+          />
+        {/each}
+      </div>
 
-  <div class="divider divider-horizontal mx-0 h-6 self-center"></div>
+      <div class="flex items-center justify-self-end">
+        {#if mac}
+          <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
+        {/if}
 
-  <button
-    class="btn btn-ghost btn-circle btn-sm"
-    aria-label="Open settings"
-    onclick={() => openWindow("settings")}
-  >
-    <Icon icon="lucide:settings" class="size-4 opacity-70" />
-  </button>
-
-  {#if !mac}
-    <div class="flex flex-col items-end px-2 leading-tight">
-      <span class="text-xs font-medium tabular-nums">{clock}</span>
-
-      <span class="text-xs text-base-content/60">{day}</span>
-    </div>
+        <Tray {device} {panelOpen} onclock={togglePanel} onmenu={extend} />
+      </div>
+    </nav>
   {/if}
-</nav>
+</div>
+
+<style>
+  :global(.siri-aura) {
+    mask-image: none;
+  }
+
+  :global(:root[data-edge="bottom"] .siri-aura) {
+    top: auto;
+    height: var(--dock-height);
+  }
+
+  :global(:root[data-edge="top"] .siri-aura) {
+    bottom: auto;
+    height: var(--dock-height);
+  }
+
+  :global(:root[data-background="solid"] .siri-shell),
+  :global(:root[data-background="glass"] .siri-shell) {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  :global(:root[data-background="solid"]) nav {
+    background: var(--color-base-100);
+  }
+</style>
