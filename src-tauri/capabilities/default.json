@@ -5,16 +5,39 @@
   "windows": [
     "main",
     "taskbar",
-    "settings"
+    "settings",
+    "panel",
+    "onboarding"
   ],
   "permissions": [
     "core:default",
     "core:event:default",
+    "core:window:default",
     "core:window:allow-hide",
-    "core:window:allow-set-focus",
     "core:window:allow-show",
+    "core:window:allow-set-focus",
     "core:window:allow-start-dragging",
+    "core:window:allow-set-size",
+    "core:window:allow-set-position",
+    "core:window:allow-center",
+    "core:window:allow-is-visible",
+    "core:window:allow-close",
+    "core:window:allow-minimize",
+    "core:webview:default",
     "global-shortcut:default",
-    "store:default"
+    "store:default",
+    "notification:default",
+    "autostart:allow-enable",
+    "autostart:allow-disable",
+    "autostart:allow-is-enabled",
+    "process:allow-exit",
+    "process:allow-restart",
+    {
+      "identifier": "http:default",
+      "allow": [
+        { "url": "http://*:*" },
+        { "url": "https://*:*" }
+      ]
+    }
   ]
 }

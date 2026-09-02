@@ -13,9 +13,10 @@
     "windows": [
       {
         "label": "main",
+        "url": "/",
         "title": "Eris",
-        "width": 640,
-        "height": 380,
+        "width": 680,
+        "height": 420,
         "resizable": false,
         "transparent": true,
         "decorations": false,
@@ -23,36 +24,65 @@
         "alwaysOnTop": true,
         "skipTaskbar": true,
         "center": true,
-        "visible": true,
+        "visible": false,
         "focus": true
       },
       {
         "label": "taskbar",
         "url": "/taskbar",
         "title": "Eris Taskbar",
-        "width": 900,
-        "height": 52,
+        "width": 720,
+        "height": 48,
         "resizable": false,
         "transparent": true,
         "decorations": false,
         "shadow": false,
-        "alwaysOnTop": false,
+        "alwaysOnTop": true,
         "skipTaskbar": true,
-        "focus": false
+        "focus": false,
+        "focusable": false
       },
       {
         "label": "settings",
         "url": "/settings",
         "title": "Eris Settings",
-        "width": 520,
-        "height": 560,
+        "width": 760,
+        "height": 640,
         "resizable": true,
         "transparent": true,
         "decorations": false,
         "shadow": false,
+        "skipTaskbar": true,
         "center": true,
-        "visible": false,
-        "skipTaskbar": true
+        "visible": false
+      },
+      {
+        "label": "panel",
+        "url": "/panel",
+        "title": "Eris Panel",
+        "width": 400,
+        "height": 640,
+        "resizable": false,
+        "transparent": true,
+        "decorations": false,
+        "shadow": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "visible": false
+      },
+      {
+        "label": "onboarding",
+        "url": "/onboarding",
+        "title": "Eris Setup",
+        "width": 880,
+        "height": 620,
+        "resizable": false,
+        "transparent": true,
+        "decorations": false,
+        "shadow": false,
+        "skipTaskbar": true,
+        "center": true,
+        "visible": false
       }
     ],
     "security": {
