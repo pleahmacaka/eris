@@ -1,0 +1,14 @@
+services:
+  eris:
+    build:
+      context: ..
+      dockerfile: server/Dockerfile
+    ports:
+      - "${PORT:-8787}:8787"
+    environment:
+      ERIS_TOKEN: ${ERIS_TOKEN:?set ERIS_TOKEN in server/.env}
+      PORT: 8787
+      ERIS_DB: /app/server/data/eris.db
+    volumes:
+      - ./data:/app/server/data
+    restart: unless-stopped
