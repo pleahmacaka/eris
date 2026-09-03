@@ -10,7 +10,7 @@ if (!existsSync(gradleFile)) {
 const signingConfigs = `    signingConfigs {
         create("release") {
             val propertiesFile = rootProject.file("keystore.properties")
-            val properties = java.util.Properties()
+            val properties = Properties()
 
             if (propertiesFile.exists()) {
                 propertiesFile.inputStream().use { properties.load(it) }
@@ -25,11 +25,16 @@ const signingConfigs = `    signingConfigs {
 
 `
 
-const source = readFileSync(gradleFile, "utf8")
+let source = readFileSync(gradleFile, "utf8")
 
 if (source.includes("signingConfigs {")) {
   console.log("android signing already configured")
   process.exit(0)
+}
+
+if (!source.includes("import java.util.Properties")) {
+  source = `import java.util.Properties
+${source}`
 }
 
 const androidBlock = source.indexOf("android {")
