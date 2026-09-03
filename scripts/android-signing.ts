@@ -7,17 +7,13 @@ if (!existsSync(gradleFile)) {
   throw new Error(`missing ${gradleFile}; run tauri android init first`)
 }
 
-const imports = `import java.io.FileInputStream
-import java.util.Properties
-`
-
 const signingConfigs = `    signingConfigs {
         create("release") {
             val propertiesFile = rootProject.file("keystore.properties")
-            val properties = Properties()
+            val properties = java.util.Properties()
 
             if (propertiesFile.exists()) {
-                properties.load(FileInputStream(propertiesFile))
+                propertiesFile.inputStream().use { properties.load(it) }
             }
 
             keyAlias = properties["keyAlias"] as String
@@ -29,15 +25,11 @@ const signingConfigs = `    signingConfigs {
 
 `
 
-let source = readFileSync(gradleFile, "utf8")
+const source = readFileSync(gradleFile, "utf8")
 
-if (source.includes(`signingConfigs {`)) {
+if (source.includes("signingConfigs {")) {
   console.log("android signing already configured")
   process.exit(0)
-}
-
-if (!source.includes("import java.util.Properties")) {
-  source = imports + source
 }
 
 const androidBlock = source.indexOf("android {")
@@ -47,21 +39,22 @@ if (androidBlock === -1) {
 }
 
 const insertAt = source.indexOf("\n", androidBlock) + 1
+const withConfigs =
+  source.slice(0, insertAt) + signingConfigs + source.slice(insertAt)
 
-source = source.slice(0, insertAt) + signingConfigs + source.slice(insertAt)
-
-const releaseBlock = source.indexOf(`getByName("release") {`)
+const releaseBlock = withConfigs.indexOf(`getByName("release") {`)
 
 if (releaseBlock === -1) {
   throw new Error("no release build type in build.gradle.kts")
 }
 
-const releaseAt = source.indexOf("\n", releaseBlock) + 1
+const releaseAt = withConfigs.indexOf("\n", releaseBlock) + 1
 
-source =
-  source.slice(0, releaseAt) +
-  `            signingConfig = signingConfigs.getByName("release")\n` +
-  source.slice(releaseAt)
+writeFileSync(
+  gradleFile,
+  withConfigs.slice(0, releaseAt) +
+    `            signingConfig = signingConfigs.getByName("release")\n` +
+    withConfigs.slice(releaseAt),
+)
 
-writeFileSync(gradleFile, source)
 console.log("android release signing wired into build.gradle.kts")
