@@ -62,7 +62,7 @@
       <span>노드 주소</span>
       <input
         class="input w-full"
-        placeholder="http://192.168.0.194:47821"
+        placeholder="http://pmc-desktop.daeeun.vpn:47821"
         inputmode="url"
         autocapitalize="none"
         autocorrect="off"

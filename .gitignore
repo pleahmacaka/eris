@@ -8,4 +8,4 @@ node_modules
 server/data
 *.keystore
 *.jks
-.secrets
+.keys

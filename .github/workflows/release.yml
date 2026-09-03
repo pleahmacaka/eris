@@ -110,12 +110,6 @@ jobs:
 
       - run: bun run scripts/set-version.ts "$VERSION"
 
-      - run: bun run tauri android init --ci
-
-      - run: bun run scripts/android-signing.ts
-
-      - run: sed -n '1,60p' src-tauri/gen/android/app/build.gradle.kts
-
       - name: Write signing keystore
         env:
           KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -124,7 +118,7 @@ jobs:
         run: |
           test -n "$KEYSTORE" || { echo "ANDROID_KEYSTORE_BASE64 is empty"; exit 1; }
           store="$PWD/src-tauri/gen/android/release.p12"
-          printf '%s' "$KEYSTORE" | base64 -d > "$store"
+          printf '%s' "$KEYSTORE" | base64 --decode > "$store"
           cat > src-tauri/gen/android/keystore.properties <<PROPERTIES
           storeFile=$store
           storePassword=$KEYSTORE_PASSWORD
