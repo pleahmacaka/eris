@@ -217,9 +217,30 @@ export type Meters = {
 
 export const systemMeters = () => invoke<Meters>("system_meters")
 
+export type UsageWindow = {
+  used: number
+  resetsAt: string | null
+}
+
+export type ClaudeUsage = {
+  source: string
+  updatedAt: string | null
+  fiveHour: UsageWindow | null
+  sevenDay: UsageWindow | null
+}
+
 export const spectrumStart = () => invoke<void>("spectrum_start")
 
 export const spectrumStop = () => invoke<void>("spectrum_stop")
+
+export const claudeUsage = (path: string | null) =>
+  invoke<ClaudeUsage | null>("claude_usage", { path })
+
+export const usageBridgeInstalled = () =>
+  invoke<boolean>("usage_bridge_installed")
+
+export const installUsageBridge = (enable: boolean) =>
+  invoke<void>("install_usage_bridge", { enable })
 
 export type TrayIcon = {
   id: string

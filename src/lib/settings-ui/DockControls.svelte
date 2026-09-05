@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { listMonitors, type MonitorInfo } from "$lib/native"
+  import {
+    installUsageBridge,
+    listMonitors,
+    type MonitorInfo,
+    usageBridgeInstalled,
+  } from "$lib/native"
   import type { DeviceSettings, DockStyle } from "$lib/settings"
   import Row from "./Row.svelte"
   import Segmented from "./Segmented.svelte"
@@ -18,6 +23,7 @@
     | "showRunningApps"
     | "showTrayIcons"
     | "showKeymap"
+    | "showClaudeUsage"
     | "showSpectrum"
     | "showBattery"
     | "showVolume"
@@ -38,6 +44,11 @@
         key: "showTrayIcons",
         label: "Show tray icons",
         hint: "Notification icons from background programs",
+      },
+      {
+        key: "showClaudeUsage",
+        label: "Show Claude usage",
+        hint: "5-hour and weekly session limits",
       },
       {
         key: "showKeymap",
@@ -93,6 +104,28 @@
   $effect(() => {
     loadMonitors()
   })
+
+  let bridged = $state(false)
+  let bridging = $state(false)
+
+  const readBridge = () => {
+    usageBridgeInstalled()
+      .then(value => {
+        bridged = value
+      })
+      .catch(() => undefined)
+  }
+
+  $effect(() => {
+    readBridge()
+  })
+
+  const toggleBridge = async () => {
+    bridging = true
+    await installUsageBridge(!bridged).catch(() => undefined)
+    readBridge()
+    bridging = false
+  }
 
   const describe = (m: MonitorInfo) =>
     `${m.name} (${m.primary ? "Primary, " : ""}${m.width}×${m.height})`
@@ -203,6 +236,45 @@
         { value: "wave", label: "Wave" },
         { value: "dots", label: "Dots" },
       ]}
+    />
+  </Row>
+{/if}
+
+{#if !subset}
+  <Row label="Claude usage" hint="Which end of the bar it sits on">
+    <Segmented
+      label="Claude usage"
+      bind:value={device.claudeUsageSide}
+      options={[
+        { value: "left", label: "Left", icon: "lucide:align-start-horizontal" },
+        { value: "right", label: "Right", icon: "lucide:align-end-horizontal" },
+      ]}
+    />
+  </Row>
+
+  <Row
+    label="Claude statusline bridge"
+    hint="Writes the 5-hour and weekly windows Claude Code reports"
+  >
+    <button
+      class={["btn btn-sm", bridged ? "btn-ghost" : "btn-primary"]}
+      disabled={bridging}
+      onclick={toggleBridge}
+    >
+      {bridged ? "Disconnect" : "Connect"}
+    </button>
+  </Row>
+
+  <Row
+    label="Usage snapshot"
+    hint="File written by the bridge, or a URL"
+    stacked
+  >
+    <input
+      class="input input-sm w-full"
+      type="text"
+      placeholder="~/.claude/eris-usage.json"
+      bind:value={device.claudeUsageSource}
     />
   </Row>
 {/if}

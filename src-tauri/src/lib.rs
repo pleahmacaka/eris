@@ -19,10 +19,15 @@ mod notify;
 mod preview;
 mod spectrum;
 mod system;
+mod usage;
 mod windowing;
 mod winkey;
 
 static LAUNCHER_SHORTCUT: Mutex<Option<String>> = Mutex::new(None);
+
+pub fn usage_bridge(chain: Option<String>) {
+    usage::bridge(chain);
+}
 
 pub fn trace(message: &str) {
     use std::io::Write;
@@ -125,6 +130,9 @@ pub fn run() {
             meters::system_meters,
             spectrum::spectrum_start,
             spectrum::spectrum_stop,
+            usage::claude_usage,
+            usage::usage_bridge_installed,
+            usage::install_usage_bridge,
             notify::notify_icons,
             notify::notify_icon_click,
             winkey::set_win_key_capture,

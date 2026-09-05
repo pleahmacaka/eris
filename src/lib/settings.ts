@@ -39,6 +39,9 @@ export type DeviceSettings = {
   showRunningApps: boolean
   showTrayIcons: boolean
   showKeymap: boolean
+  showClaudeUsage: boolean
+  claudeUsageSource: string
+  claudeUsageSide: DockSide
   mediaSide: DockSide
   showSpectrum: boolean
   spectrumStyle: SpectrumStyle
@@ -165,6 +168,9 @@ export const defaultDevice: DeviceSettings = {
   showRunningApps: true,
   showTrayIcons: true,
   showKeymap: false,
+  showClaudeUsage: true,
+  claudeUsageSource: "",
+  claudeUsageSide: "left",
   mediaSide: "left",
   showSpectrum: true,
   spectrumStyle: "bars",
