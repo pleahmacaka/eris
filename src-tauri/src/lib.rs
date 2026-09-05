@@ -16,6 +16,7 @@ mod media;
 mod meters;
 mod monitors;
 mod notify;
+mod preview;
 mod spectrum;
 mod system;
 mod windowing;
@@ -101,6 +102,9 @@ pub fn run() {
             desktop::list_windows,
             desktop::activate_window,
             desktop::close_window,
+            desktop::minimize_window,
+            preview::preview_show,
+            preview::preview_hide,
             system::system_accent,
             system::system_info,
             system::power_action,

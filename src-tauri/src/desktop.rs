@@ -25,6 +25,11 @@ pub fn close_window(hwnd: isize) {
     win::close(hwnd);
 }
 
+#[tauri::command]
+pub fn minimize_window(hwnd: isize) {
+    win::minimize(hwnd);
+}
+
 #[cfg(target_os = "windows")]
 pub fn force_foreground(window: &WebviewWindow) {
     if let Ok(hwnd) = window.hwnd() {
@@ -48,8 +53,8 @@ mod win {
     use windows::Win32::UI::WindowsAndMessaging::{
         BringWindowToTop, EnumWindows, GetClassNameW, GetForegroundWindow, GetWindowLongPtrW,
         GetWindowTextW, GetWindowThreadProcessId, IsHungAppWindow, IsIconic, IsWindowVisible,
-        PostMessageW, SetForegroundWindow, ShowWindowAsync, GWL_EXSTYLE, SW_RESTORE, WM_CLOSE,
-        WS_EX_TOOLWINDOW,
+        PostMessageW, SetForegroundWindow, ShowWindowAsync, GWL_EXSTYLE, SW_MINIMIZE, SW_RESTORE,
+        WM_CLOSE, WS_EX_TOOLWINDOW,
     };
 
     use super::WindowEntry;
@@ -166,6 +171,12 @@ mod win {
         }
 
         force_foreground(raw);
+    }
+
+    pub fn minimize(raw: isize) {
+        unsafe {
+            let _ = ShowWindowAsync(HWND(raw as _), SW_MINIMIZE);
+        }
     }
 
     pub fn close(raw: isize) {

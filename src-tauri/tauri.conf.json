@@ -83,6 +83,21 @@
         "skipTaskbar": true,
         "center": true,
         "visible": false
+      },
+      {
+        "label": "preview",
+        "url": "/preview",
+        "title": "Eris Preview",
+        "width": 240,
+        "height": 150,
+        "resizable": false,
+        "transparent": true,
+        "decorations": false,
+        "shadow": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "focusable": false,
+        "visible": false
       }
     ],
     "security": {

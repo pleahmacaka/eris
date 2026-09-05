@@ -74,6 +74,14 @@ export const activateWindow = (hwnd: number) =>
 export const closeWindow = (hwnd: number) =>
   invoke<void>("close_window", { hwnd })
 
+export const minimizeWindow = (hwnd: number) =>
+  invoke<void>("minimize_window", { hwnd })
+
+export const previewShow = (windows: number[], center: number) =>
+  invoke<void>("preview_show", { windows, center })
+
+export const previewHide = () => invoke<void>("preview_hide")
+
 export const systemAccent = () => invoke<string | null>("system_accent")
 
 export const systemInfo = () => invoke<SystemInfo>("system_info")

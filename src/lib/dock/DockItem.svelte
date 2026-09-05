@@ -3,6 +3,7 @@
   import * as native from "$lib/native"
   import type { DockEdge } from "$lib/settings"
   import ContextMenu from "$lib/ui/ContextMenu.svelte"
+  import { closePreview, dismissPreview, openPreview } from "./preview.svelte"
   import type { MenuItem } from "$lib/ui/menu"
   import {
     type DockGroup,
@@ -52,15 +53,21 @@
   const launch = () => native.launchApp(group.path).catch(() => undefined)
 
   const activate = () => {
-    const [first, second] = group.windows
+    const [first] = group.windows
 
     if (!first) {
       return launch()
     }
 
-    const target = first.hwnd === foreground && second ? second : first
+    dismissPreview()
 
-    return native.activateWindow(target.hwnd).catch(() => undefined)
+    if (active) {
+      const current = group.windows.find(w => w.hwnd === foreground) ?? first
+
+      return native.minimizeWindow(current.hwnd).catch(() => undefined)
+    }
+
+    return native.activateWindow(first.hwnd).catch(() => undefined)
   }
 
   const closeAll = async () => {
@@ -68,6 +75,21 @@
       await native.closeWindow(w.hwnd).catch(() => undefined)
     }
   }
+
+  const onmouseenter = () => {
+    const box = root?.getBoundingClientRect()
+
+    if (!running || open || !box) {
+      return
+    }
+
+    openPreview(
+      group.windows.map(w => w.hwnd),
+      box.left + box.width / 2,
+    )
+  }
+
+  $effect(() => dismissPreview)
 
   const setOpen = (next: boolean) => {
     if (open === next) {
@@ -87,6 +109,7 @@
 
   const oncontextmenu = (e: MouseEvent) => {
     e.preventDefault()
+    dismissPreview()
     setOpen(true)
   }
 
@@ -166,6 +189,8 @@
     onclick={activate}
     {onauxclick}
     {oncontextmenu}
+    {onmouseenter}
+    onmouseleave={closePreview}
   >
     {#if icon}
       <img
