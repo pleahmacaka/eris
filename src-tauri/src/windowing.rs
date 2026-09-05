@@ -6,8 +6,10 @@ use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, WebviewWindow};
 use crate::{appbar, desktop};
 
 const BLUR_TOGGLE_GUARD: Duration = Duration::from_millis(250);
+const SHOW_SETTLE: Duration = Duration::from_millis(400);
 
 static BLUR_HIDDEN_AT: Mutex<Option<Instant>> = Mutex::new(None);
+static SHOWN_AT: Mutex<Option<Instant>> = Mutex::new(None);
 
 #[tauri::command]
 pub fn show_window(app: AppHandle, label: String) {
@@ -35,10 +37,20 @@ pub fn hide(app: &AppHandle, label: &str) {
 }
 
 pub fn hide_on_blur(window: &WebviewWindow) {
-    if window.is_visible().unwrap_or(false) {
-        let _ = window.hide();
-        *BLUR_HIDDEN_AT.lock().unwrap() = Some(Instant::now());
+    if settling() || !window.is_visible().unwrap_or(false) {
+        return;
     }
+
+    let _ = window.hide();
+    *BLUR_HIDDEN_AT.lock().unwrap() = Some(Instant::now());
+}
+
+// the shell steals focus back for a beat after show, so an early blur is not the user leaving
+fn settling() -> bool {
+    SHOWN_AT
+        .lock()
+        .unwrap()
+        .is_some_and(|at| at.elapsed() < SHOW_SETTLE)
 }
 
 pub fn toggle(app: &AppHandle, label: &str) {
@@ -84,6 +96,10 @@ fn show_now(app: &AppHandle, label: &str) {
     };
 
     let _ = window.show();
+
+    if label == "main" {
+        *SHOWN_AT.lock().unwrap() = Some(Instant::now());
+    }
 
     if label != "taskbar" {
         let _ = window.set_focus();

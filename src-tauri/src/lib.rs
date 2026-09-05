@@ -170,7 +170,7 @@ pub fn run() {
                     let main = main.clone();
 
                     move |event| {
-                        if matches!(event, WindowEvent::Focused(false)) && !cfg!(debug_assertions) {
+                        if matches!(event, WindowEvent::Focused(false)) {
                             windowing::hide_on_blur(&main);
                         }
                     }

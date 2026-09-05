@@ -123,12 +123,22 @@
     over && "ring-1 ring-primary/50",
     todo.done && "opacity-60",
   ]}
-  {draggable}
-  ondragstart={dragStart}
   ondragover={dragOver}
+  ondragenter={dragOver}
   ondrop={drop}
   {ondragend}
 >
+  {#if draggable}
+    <span
+      class="mt-0.5 shrink-0 cursor-grab text-base-content/0 transition-colors duration-150 group-hover:text-base-content/40"
+      aria-hidden="true"
+      draggable="true"
+      ondragstart={dragStart}
+    >
+      <Icon icon="lucide:grip-vertical" class="size-4" />
+    </span>
+  {/if}
+
   <input
     type="checkbox"
     class="checkbox checkbox-sm checkbox-primary mt-0.5 rounded-full"
@@ -189,13 +199,6 @@
       </div>
     {/if}
   </div>
-
-  {#if draggable}
-    <Icon
-      icon="lucide:grip-vertical"
-      class="mt-1 size-4 shrink-0 cursor-grab text-base-content/0 transition-colors duration-150 group-hover:text-base-content/40"
-    />
-  {/if}
 
   <button
     class="btn btn-ghost btn-square btn-xs shrink-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100 focus-visible:opacity-100"

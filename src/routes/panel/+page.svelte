@@ -34,15 +34,6 @@
   } from "$lib/settings"
   import Toasts from "$lib/settings-ui/Toasts.svelte"
 
-  type Tab = "today" | "calendar" | "todo" | "notes"
-
-  const TABS: { id: Tab; label: string; icon: string }[] = [
-    { id: "today", label: "Today", icon: "lucide:sun" },
-    { id: "calendar", label: "Calendar", icon: "lucide:calendar" },
-    { id: "todo", label: "Todo", icon: "lucide:check-square" },
-    { id: "notes", label: "Notes", icon: "lucide:notebook-pen" },
-  ]
-
   const LOOKAHEAD_DAYS = 7
   const HOUR = 3_600_000
   const DEFAULT_MINUTES = 9 * 60
@@ -52,12 +43,12 @@
   const todoLive = live(todos)
   const eventLive = live(events)
 
-  let tab = $state<Tab>("today")
   let profile = $state<Profile>(defaultProfile)
   let now = $state(new Date())
   let selected = $state(startOfDay(new Date()))
   let editing = $state<{ event: CalendarEvent; isNew: boolean } | null>(null)
   let quickAdd = $state<ReturnType<typeof QuickAdd>>()
+  let notesCard = $state<HTMLElement>()
   let search = $state<ReturnType<typeof PanelSearch>>()
   let field = $state<HTMLInputElement>()
   let query = $state("")
@@ -114,11 +105,17 @@
     return parts.join(" · ")
   })
 
+  let focusLanded = false
+  let shownAt = 0
+
+  const BLUR_GRACE = 400
+
   const isPicker = (el: Element | null) =>
     el instanceof HTMLSelectElement ||
     (el instanceof HTMLInputElement && PICKER_TYPES.includes(el.type))
 
   const hide = () => {
+    focusLanded = false
     editing = null
     emit("window-hidden", "panel")
     appWindow.hide()
@@ -149,33 +146,15 @@
   const newNote = async () => {
     const note = await notes.put(blankNote())
 
-    tab = "notes"
     query = ""
     openNoteId = note.id
+    notesCard?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
   const editEvent = async (occurrence: CalendarEvent) => {
     const original = await events.get(occurrence.id)
 
     editing = { isNew: false, event: original ?? occurrence }
-  }
-
-  const onTabKey = (e: KeyboardEvent) => {
-    const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0
-
-    if (step === 0) {
-      return
-    }
-
-    e.preventDefault()
-
-    const index = TABS.findIndex(t => t.id === tab)
-    const next = TABS[(index + step + TABS.length) % TABS.length]
-
-    tab = next.id
-    ;(e.currentTarget as HTMLElement)
-      .querySelector<HTMLButtonElement>(`[data-tab="${next.id}"]`)
-      ?.focus()
   }
 
   const typing = (target: EventTarget | null) =>
@@ -229,7 +208,18 @@
         profile = p
       }),
       appWindow.onFocusChanged(({ payload: focused }) => {
-        if (!focused && !isPicker(document.activeElement)) {
+        if (focused) {
+          if (!focusLanded) {
+            focusLanded = true
+            shownAt = Date.now()
+          }
+
+          return
+        }
+
+        const settling = Date.now() - shownAt < BLUR_GRACE
+
+        if (focusLanded && !settling && !isPicker(document.activeElement)) {
           hide()
         }
       }),
@@ -237,6 +227,8 @@
         newNote()
       }),
       native.onWindowShown("panel", () => {
+        focusLanded = false
+        shownAt = Date.now()
         now = new Date()
         selected = startOfDay(now)
         query = ""
@@ -313,40 +305,10 @@
       {/if}
     </label>
 
-    <div
-      class="tabs tabs-box tabs-sm w-full bg-base-100/50 p-1"
-      role="tablist"
-      aria-label="Panel"
-      tabindex="-1"
-      onkeydown={onTabKey}
-    >
-      {#each TABS as item (item.id)}
-        <button
-          class={["tab grow gap-1.5", tab === item.id && "tab-active"]}
-          role="tab"
-          data-tab={item.id}
-          aria-selected={tab === item.id}
-          aria-controls="panel-{item.id}"
-          tabindex={tab === item.id ? 0 : -1}
-          onclick={() => {
-            tab = item.id
-            query = ""
-          }}
-        >
-          <Icon icon={item.icon} class="size-3.5" />
-
-          {item.label}
-        </button>
-      {/each}
-    </div>
   </header>
 
-  <section
-    id="panel-{tab}"
-    class="flex min-h-0 grow flex-col gap-4 overflow-y-auto px-4 pb-5"
-    role="tabpanel"
-  >
-    {#if searching}
+  {#if searching}
+    <section class="min-h-0 grow overflow-y-auto px-4 pb-5">
       <PanelSearch
         bind:this={search}
         events={eventLive.items}
@@ -355,68 +317,92 @@
         {now}
         onedit={editEvent}
       />
-    {:else if tab === "today"}
-      <div class="flex flex-col gap-0.5 px-1">
-        <p class="text-base font-medium">{greeting}</p>
-
-        <p class="text-xs text-base-content/55">{summary}</p>
-      </div>
-
-      <QuickAdd
-        bind:this={quickAdd}
-        defaultReminder={profile.calendar.reminderMinutes || null}
-      />
-
-      {#each eventDays as day (day.key)}
-        <Agenda
-          title={day.label}
-          events={day.events}
+    </section>
+  {:else}
+    <div class="flex min-h-0 grow gap-3 px-4 pb-4">
+      <section class="min-w-0 grow overflow-y-auto" aria-label="Calendar">
+        <Calendar
+          events={eventLive.items}
+          todos={todoLive.items}
+          weekStartsOn={profile.calendar.weekStartsOn}
+          showWeekNumbers={profile.calendar.showWeekNumbers}
           {now}
+          bind:selected
+          onadd={newEvent}
           onedit={editEvent}
         />
-      {:else}
-        <Agenda
-          title="Next 7 days"
-          events={[]}
-          empty="No upcoming events"
-          onedit={editEvent}
-        />
-      {/each}
-
-      <section class="flex flex-col gap-1">
-        <h3
-          class="px-2 text-[11px] font-semibold tracking-wide text-base-content/50"
-        >
-          Due
-        </h3>
-
-        {#if dueTodos.length > 0}
-          <ul class="flex flex-col gap-0.5">
-            {#each dueTodos as todo (todo.id)}
-              <TodoItem {todo} {now} />
-            {/each}
-          </ul>
-        {:else}
-          <p class="px-2 py-2 text-sm text-base-content/45">Nothing due</p>
-        {/if}
       </section>
-    {:else if tab === "calendar"}
-      <Calendar
-        events={eventLive.items}
-        todos={todoLive.items}
-        weekStartsOn={profile.calendar.weekStartsOn}
-        showWeekNumbers={profile.calendar.showWeekNumbers}
-        {now}
-        bind:selected
-        onadd={newEvent}
-        onedit={editEvent}
-      />
-    {:else if tab === "todo"}
-      <TodoList items={todoLive.items} {profile} {now} />
-    {:else}
-      <Notes openId={openNoteId} />
-    {/if}
-  </section>
+
+      <aside
+        class="flex w-[22rem] shrink-0 flex-col gap-3 overflow-y-auto pr-0.5"
+        aria-label="Panel cards"
+      >
+        <section
+          class="flex flex-col gap-3 rounded-box border border-base-content/10 bg-base-100/50 p-3"
+        >
+          <div class="flex flex-col gap-0.5 px-1">
+            <p class="text-sm font-medium">{greeting}</p>
+
+            <p class="text-xs text-base-content/55">{summary}</p>
+          </div>
+
+          <QuickAdd
+            bind:this={quickAdd}
+            defaultReminder={profile.calendar.reminderMinutes || null}
+          />
+
+          {#each eventDays as day (day.key)}
+            <Agenda
+              title={day.label}
+              events={day.events}
+              {now}
+              onedit={editEvent}
+            />
+          {:else}
+            <Agenda
+              title="Next 7 days"
+              events={[]}
+              empty="No upcoming events"
+              onedit={editEvent}
+            />
+          {/each}
+
+          <div class="flex flex-col gap-1">
+            <h3
+              class="px-2 text-[11px] font-semibold tracking-wide text-base-content/50"
+            >
+              Due
+            </h3>
+
+            {#if dueTodos.length > 0}
+              <ul class="flex flex-col gap-0.5">
+                {#each dueTodos as todo (todo.id)}
+                  <TodoItem {todo} {now} />
+                {/each}
+              </ul>
+            {:else}
+              <p class="px-2 py-2 text-sm text-base-content/45">Nothing due</p>
+            {/if}
+          </div>
+        </section>
+
+        <section
+          class="rounded-box border border-base-content/10 bg-base-100/50 p-3"
+          aria-label="Todo"
+        >
+          <TodoList items={todoLive.items} {profile} {now} />
+        </section>
+
+        <section
+          bind:this={notesCard}
+          class="rounded-box border border-base-content/10 bg-base-100/50 p-3"
+          aria-label="Notes"
+        >
+          <Notes openId={openNoteId} />
+        </section>
+      </aside>
+    </div>
+  {/if}
 
   {#if editing}
     <EventEditor
