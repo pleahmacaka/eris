@@ -2,11 +2,16 @@
   import Icon from "@iconify/svelte"
   import { exit } from "@tauri-apps/plugin-process"
   import * as native from "$lib/native"
-  import type { DeviceSettings } from "$lib/settings"
+  import { type DeviceSettings, saveDevice } from "$lib/settings"
   import { syncStatus } from "$lib/sync/status.svelte"
+  import ContextMenu from "$lib/ui/ContextMenu.svelte"
+  import type { MenuItem } from "$lib/ui/menu"
+  import ClaudeUsage from "./ClaudeUsage.svelte"
   import Clock from "./Clock.svelte"
   import Media from "./Media.svelte"
+  import VolumeControl from "./VolumeControl.svelte"
   import Meters from "./Meters.svelte"
+  import NotifyIcons from "./NotifyIcons.svelte"
 
   type Props = {
     device: DeviceSettings
@@ -18,13 +23,8 @@
   let { device, panelOpen, onclock, onmenu }: Props = $props()
 
   const INFO_POLL = 5_000
-  const VOLUME_STEP = 0.05
   const MENU_HEIGHT = 284
   const MENU_GRACE = 600
-
-  type MenuItem =
-    | { label: string; icon: string; action: () => unknown }
-    | "separator"
 
   const MENU: MenuItem[] = [
     {
@@ -76,12 +76,6 @@
     onmenu?.(next ? MENU_HEIGHT : 0)
   }
 
-  const outside = (e: MouseEvent) => {
-    if (menuOpen && menuRoot && !menuRoot.contains(e.target as Node)) {
-      setMenu(false)
-    }
-  }
-
   let leaveTimer: ReturnType<typeof setTimeout> | undefined
 
   const cancelClose = () => {
@@ -98,11 +92,6 @@
   }
 
   $effect(() => cancelClose)
-
-  const run = (action: () => unknown) => {
-    setMenu(false)
-    Promise.resolve(action()).catch(() => undefined)
-  }
 
   let info = $state<native.SystemInfo>({ battery: null, volume: null })
 
@@ -144,56 +133,6 @@
     return "lucide:battery-warning"
   })
 
-  const volumeIcon = $derived.by(() => {
-    const volume = info.volume
-
-    if (!volume || volume.muted) {
-      return "lucide:volume-x"
-    }
-
-    if (volume.level <= 0) {
-      return "lucide:volume"
-    }
-
-    return volume.level < 0.5 ? "lucide:volume-1" : "lucide:volume-2"
-  })
-
-  const volumeLabel = $derived(
-    !info.volume
-      ? "Volume"
-      : info.volume.muted
-        ? "Muted"
-        : `Volume ${Math.round(info.volume.level * 100)}%`,
-  )
-
-  const toggleMute = async () => {
-    if (!info.volume) {
-      return
-    }
-
-    info.volume.muted = !info.volume.muted
-    await native.toggleMute().catch(() => undefined)
-    await refresh()
-  }
-
-  const nudgeVolume = async (e: WheelEvent) => {
-    if (!info.volume) {
-      return
-    }
-
-    e.preventDefault()
-
-    const direction = e.deltaY < 0 ? 1 : -1
-    const level = Math.min(
-      1,
-      Math.max(0, info.volume.level + direction * VOLUME_STEP),
-    )
-
-    info.volume.level = Math.round(level * 100) / 100
-    info.volume.muted = false
-    await native.setVolume(info.volume.level).catch(() => undefined)
-  }
-
   const syncTone = $derived(
     syncStatus.state === "error"
       ? "bg-error"
@@ -223,13 +162,29 @@
   })
 </script>
 
-<svelte:window onmousedown={outside} />
-
 <svelte:document onmouseleave={closeSoon} onmouseenter={cancelClose} />
 
 <div class="flex items-center gap-0.5">
-  {#if device.showMedia}
-    <Media {compact} />
+  {#if device.showClaudeUsage && device.claudeUsageSide === "right"}
+    <ClaudeUsage source={device.claudeUsageSource} {compact} />
+  {/if}
+
+  {#if device.showTrayIcons}
+    <NotifyIcons
+      {compact}
+      order={device.trayOrder}
+      onreorder={order => saveDevice({ ...device, trayOrder: order })}
+    />
+  {/if}
+
+  {#if device.showMedia && device.mediaSide === "right"}
+    <Media
+      {compact}
+      edge={device.dockEdge}
+      spectrum={device.showSpectrum}
+      spectrumStyle={device.spectrumStyle}
+      {onmenu}
+    />
   {/if}
 
   {#if device.showMeters || device.showNetwork}
@@ -237,6 +192,8 @@
       showMeters={device.showMeters}
       showNetwork={device.showNetwork}
       {compact}
+      edge={device.dockEdge}
+      {onmenu}
     />
   {/if}
 
@@ -252,18 +209,12 @@
   {/if}
 
   {#if device.showVolume && info.volume}
-    <button
-      class={[
-        "btn btn-ghost btn-square btn-sm",
-        info.volume.muted && "text-base-content/50",
-      ]}
-      title={volumeLabel}
-      aria-label={volumeLabel}
-      onclick={toggleMute}
-      onwheel={nudgeVolume}
-    >
-      <Icon icon={volumeIcon} class="size-4" />
-    </button>
+    <VolumeControl
+      volume={info.volume}
+      edge={device.dockEdge}
+      {onmenu}
+      onchange={next => (info.volume = next)}
+    />
   {/if}
 
   {#if device.sync.enabled}
@@ -282,53 +233,32 @@
     onclick={onclock}
   />
 
-  <div
-    bind:this={menuRoot}
-    class={[
-      "dropdown dropdown-end",
-      device.dockEdge === "top" ? "dropdown-bottom" : "dropdown-top",
-      menuOpen && "dropdown-open",
-    ]}
-  >
-    <button
-      class="btn btn-ghost btn-square btn-sm"
-      title="Settings"
-      aria-label="Open settings"
-      aria-haspopup="menu"
-      aria-expanded={menuOpen}
-      onclick={() => native.showWindow("settings")}
-      oncontextmenu={e => {
-        e.preventDefault()
-        setMenu(true)
-      }}
-    >
-      <Icon icon="lucide:settings" class="size-4 text-base-content/70" />
-    </button>
-
-    {#if menuOpen}
-      <ul
-        class="menu dropdown-content z-10 mb-2 w-48 rounded-box border border-base-content/10 bg-base-100/90 p-1.5 shadow-lg backdrop-blur-xl"
-        class:mt-2={device.dockEdge === "top"}
-        role="menu"
+  {#if device.showSettingsButton}
+    <div bind:this={menuRoot} class="relative">
+      <button
+        class="btn btn-ghost btn-square btn-sm"
+        title="Settings"
+        aria-label="Open settings"
+        aria-haspopup="menu"
+        aria-expanded={menuOpen}
+        onclick={() => native.showWindow("settings")}
+        oncontextmenu={e => {
+          e.preventDefault()
+          setMenu(true)
+        }}
       >
-        {#each MENU as item}
-          {#if item === "separator"}
-            <li class="my-1 border-t border-base-content/10" role="separator"></li>
-          {:else}
-            <li role="none">
-              <button
-                role="menuitem"
-                class="gap-2"
-                onclick={() => run(item.action)}
-              >
-                <Icon icon={item.icon} class="size-4 text-base-content/60" />
+        <Icon icon="lucide:settings" class="size-4 text-base-content/70" />
+      </button>
 
-                {item.label}
-              </button>
-            </li>
-          {/if}
-        {/each}
-      </ul>
-    {/if}
-  </div>
+      <ContextMenu
+        bind:open={menuOpen}
+        items={MENU}
+        placement={device.dockEdge === "top" ? "down" : "up"}
+        align="end"
+        width={192}
+        label="Eris menu"
+        onclose={() => onmenu?.(0)}
+      />
+    </div>
+  {/if}
 </div>

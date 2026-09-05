@@ -15,8 +15,8 @@ mod icons;
 mod media;
 mod meters;
 mod monitors;
+mod notify;
 mod system;
-mod tray;
 mod windowing;
 mod winkey;
 
@@ -116,6 +116,8 @@ pub fn run() {
             media::media_status,
             media::media_command,
             meters::system_meters,
+            notify::notify_icons,
+            notify::notify_icon_click,
             winkey::set_win_key_capture,
             set_launcher_shortcut,
             windowing::show_window,
@@ -139,7 +141,7 @@ pub fn run() {
 
             let handle = app.handle().clone();
 
-            tray::install(&handle)?;
+            notify::host(handle.clone());
             winkey::install(handle.clone());
             clipboard::watch(handle.clone());
 
@@ -179,6 +181,8 @@ pub fn run() {
                 if let Some(taskbar) = app.get_webview_window("taskbar") {
                     appbar::release(&taskbar);
                 }
+
+                notify::release();
             }
         });
 }

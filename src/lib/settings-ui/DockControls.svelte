@@ -16,6 +16,7 @@
 
   type ToggleKey =
     | "showRunningApps"
+    | "showTrayIcons"
     | "showKeymap"
     | "showBattery"
     | "showVolume"
@@ -31,6 +32,11 @@
         key: "showRunningApps",
         label: "Show running apps",
         hint: "Open windows appear next to pinned apps",
+      },
+      {
+        key: "showTrayIcons",
+        label: "Show tray icons",
+        hint: "Notification icons from background programs",
       },
       {
         key: "showKeymap",

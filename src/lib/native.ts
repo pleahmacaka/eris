@@ -197,3 +197,18 @@ export type Meters = {
 }
 
 export const systemMeters = () => invoke<Meters>("system_meters")
+
+export type TrayIcon = {
+  id: string
+  tooltip: string
+  icon: string | null
+  hidden: boolean
+}
+
+export const notifyIcons = () => invoke<TrayIcon[]>("notify_icons")
+
+export const notifyIconClick = (id: string, button: "left" | "right") =>
+  invoke<void>("notify_icon_click", { id, button })
+
+export const onTrayIcons = (handler: () => void) =>
+  listen("tray-icons", () => handler())

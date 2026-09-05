@@ -27,6 +27,23 @@ pub fn render_png(path: &str) -> Option<Vec<u8>> {
     Some(png.into_inner())
 }
 
+fn data_url(png: Vec<u8>) -> String {
+    format!(
+        "data:image/png;base64,{}",
+        base64::engine::general_purpose::STANDARD.encode(png)
+    )
+}
+
+pub fn icon_url(handle: isize) -> Option<String> {
+    let (width, height, pixels) = win::icon_pixels(handle)?;
+    let image = image::RgbaImage::from_raw(width, height, pixels)?;
+    let mut png = std::io::Cursor::new(Vec::new());
+
+    image.write_to(&mut png, image::ImageFormat::Png).ok()?;
+
+    Some(data_url(png.into_inner()))
+}
+
 #[tauri::command(async)]
 pub fn app_icon(app: AppHandle, path: String) -> Option<String> {
     let key = crate::apps::stable_id(&path);
@@ -51,10 +68,7 @@ pub fn app_icon(app: AppHandle, path: String) -> Option<String> {
             Some(png)
         })?;
 
-    let url = format!(
-        "data:image/png;base64,{}",
-        base64::engine::general_purpose::STANDARD.encode(png)
-    );
+    let url = data_url(png);
 
     memory().lock().unwrap().insert(key, url.clone());
 
@@ -83,15 +97,18 @@ mod win {
     use windows::core::HSTRING;
     use windows::Win32::Foundation::SIZE;
     use windows::Win32::Graphics::Gdi::{
-        DeleteObject, GetDC, GetDIBits, GetObjectW, ReleaseDC, BITMAP, BITMAPINFO,
-        BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS, HBITMAP, HGDIOBJ,
+        CreateCompatibleDC, CreateDIBSection, DeleteDC, DeleteObject, GetDC, GetDIBits, GetObjectW,
+        ReleaseDC, SelectObject, BITMAP, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS,
+        HBITMAP, HGDIOBJ,
     };
+    use windows::Win32::UI::WindowsAndMessaging::{DrawIconEx, DI_NORMAL, HICON};
     use windows::Win32::System::Com::{CoInitializeEx, COINIT_APARTMENTTHREADED};
     use windows::Win32::UI::Shell::{
         IShellItemImageFactory, SHCreateItemFromParsingName, SIIGBF_BIGGERSIZEOK, SIIGBF_ICONONLY,
     };
 
     const ICON_SIZE: i32 = 64;
+    const TRAY_SIZE: i32 = 32;
 
     unsafe fn image_of(path: &str) -> Option<HBITMAP> {
         let factory: IShellItemImageFactory =
@@ -176,6 +193,62 @@ mod win {
         Some((width, height, buffer))
     }
 
+    pub fn icon_pixels(handle: isize) -> Option<(u32, u32, Vec<u8>)> {
+        if handle == 0 {
+            return None;
+        }
+
+        unsafe {
+            let icon = HICON(handle as _);
+            let screen = GetDC(None);
+            let canvas = CreateCompatibleDC(Some(screen));
+
+            let header = BITMAPINFO {
+                bmiHeader: BITMAPINFOHEADER {
+                    biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
+                    biWidth: TRAY_SIZE,
+                    biHeight: -TRAY_SIZE,
+                    biPlanes: 1,
+                    biBitCount: 32,
+                    biCompression: BI_RGB.0,
+                    ..Default::default()
+                },
+                ..Default::default()
+            };
+
+            let mut bits = std::ptr::null_mut();
+            let bitmap = CreateDIBSection(Some(canvas), &header, DIB_RGB_COLORS, &mut bits, None, 0);
+
+            let pixels = bitmap.ok().and_then(|bitmap| {
+                let previous = SelectObject(canvas, HGDIOBJ(bitmap.0));
+                let drawn = DrawIconEx(
+                    canvas,
+                    0,
+                    0,
+                    icon,
+                    TRAY_SIZE,
+                    TRAY_SIZE,
+                    0,
+                    None,
+                    DI_NORMAL,
+                );
+
+                SelectObject(canvas, previous);
+
+                let result = drawn.is_ok().then(|| rgba(bitmap)).flatten();
+
+                let _ = DeleteObject(HGDIOBJ(bitmap.0));
+
+                result
+            });
+
+            let _ = DeleteDC(canvas);
+            ReleaseDC(None, screen);
+
+            pixels
+        }
+    }
+
     pub fn pixels(path: &str) -> Option<(u32, u32, Vec<u8>)> {
         unsafe {
             let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
@@ -197,6 +270,10 @@ mod win {
 #[cfg(not(target_os = "windows"))]
 mod win {
     pub fn pixels(_path: &str) -> Option<(u32, u32, Vec<u8>)> {
+        None
+    }
+
+    pub fn icon_pixels(_handle: isize) -> Option<(u32, u32, Vec<u8>)> {
         None
     }
 }

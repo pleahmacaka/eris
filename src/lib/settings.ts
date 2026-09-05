@@ -35,6 +35,7 @@ export type DeviceSettings = {
   dockMonitor: string | null
   hideSystemTaskbar: boolean
   showRunningApps: boolean
+  showTrayIcons: boolean
   showKeymap: boolean
   showBattery: boolean
   showVolume: boolean
@@ -47,6 +48,7 @@ export type DeviceSettings = {
   launcherShortcut: string
   autostart: boolean
   pinnedApps: string[]
+  trayOrder: string[]
   sync: SyncSettings
 }
 
@@ -156,6 +158,7 @@ export const defaultDevice: DeviceSettings = {
   dockMonitor: null,
   hideSystemTaskbar: true,
   showRunningApps: true,
+  showTrayIcons: true,
   showKeymap: false,
   showBattery: true,
   showVolume: true,
@@ -168,6 +171,7 @@ export const defaultDevice: DeviceSettings = {
   launcherShortcut: "Alt+Space",
   autostart: false,
   pinnedApps: [],
+  trayOrder: [],
   sync: defaultSync,
 }
 

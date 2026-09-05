@@ -115,6 +115,11 @@ pub fn release(window: &WebviewWindow) {
 }
 
 #[cfg(target_os = "windows")]
+pub fn shell_tray() -> Option<isize> {
+    win::tray_window().map(|hwnd| hwnd.0 as isize)
+}
+
+#[cfg(target_os = "windows")]
 mod win {
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::mpsc::{channel, RecvTimeoutError, Sender};
@@ -131,8 +136,10 @@ mod win {
         ABM_NEW, ABM_QUERYPOS, ABM_REMOVE, ABM_SETAUTOHIDEBAR, ABM_SETPOS, ABM_SETSTATE,
         ABN_POSCHANGED, ABS_AUTOHIDE, APPBARDATA,
     };
+    use windows::Win32::System::Threading::GetCurrentProcessId;
     use windows::Win32::UI::WindowsAndMessaging::{
-        FindWindowExW, FindWindowW, RegisterWindowMessageW, SetWindowPos, ShowWindow, HWND_TOPMOST,
+        FindWindowExW, GetWindowThreadProcessId, RegisterWindowMessageW, SetWindowPos, ShowWindow,
+        HWND_TOPMOST, SWP_NOZORDER,
         MA_NOACTIVATE, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SW_HIDE, SW_SHOW, WM_DISPLAYCHANGE,
         WM_DPICHANGED, WM_MOUSEACTIVATE,
     };
@@ -339,6 +346,14 @@ mod win {
         keep_system_taskbar_hidden(false);
     }
 
+    fn ours(hwnd: HWND) -> bool {
+        let mut owner = 0;
+
+        unsafe { GetWindowThreadProcessId(hwnd, Some(&mut owner)) };
+
+        owner == unsafe { GetCurrentProcessId() }
+    }
+
     fn tray_windows() -> Vec<HWND> {
         let mut found = Vec::new();
 
@@ -346,8 +361,11 @@ mod win {
             let mut previous = None;
 
             while let Ok(hwnd) = unsafe { FindWindowExW(None, previous, class, None) } {
-                found.push(hwnd);
                 previous = Some(hwnd);
+
+                if !ours(hwnd) {
+                    found.push(hwnd);
+                }
             }
         }
 
@@ -364,8 +382,8 @@ mod win {
         }
     }
 
-    fn tray_window() -> Option<HWND> {
-        unsafe { FindWindowW(w!("Shell_TrayWnd"), None) }.ok()
+    pub fn tray_window() -> Option<HWND> {
+        tray_windows().into_iter().next()
     }
 
     fn set_shell_state(state: usize) -> bool {
