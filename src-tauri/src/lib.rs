@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 
-use tauri::{AppHandle, Manager, WindowEvent};
+use tauri::{AppHandle, DeviceEventFilter, Manager, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 use tauri_plugin_store::StoreExt;
@@ -158,6 +158,9 @@ pub fn run() {
             }
 
             let handle = app.handle().clone();
+
+            // windows skips a low level keyboard hook whose process registered for raw input
+            handle.set_device_event_filter(DeviceEventFilter::Always);
 
             notify::host(handle.clone());
             winkey::install(handle.clone());

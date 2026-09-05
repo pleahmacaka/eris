@@ -17,14 +17,22 @@ static LAST_LONE: AtomicU64 = AtomicU64::new(0);
 struct Keys {
     mask: u8,
     since: u64,
-    combined: bool,
+    combo: bool,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum WinUp {
+    Pass,
+    Swallow,
+    Lone,
+    Release,
 }
 
 impl Keys {
     const IDLE: Self = Self {
         mask: 0,
         since: 0,
-        combined: false,
+        combo: false,
     };
 
     fn stale(self, now: u64) -> bool {
@@ -32,11 +40,11 @@ impl Keys {
     }
 
     fn win_down(self, bit: u8, now: u64) -> Self {
-        if self.mask == 0 || self.stale(now) {
+        if self.mask == 0 || (self.stale(now) && !self.combo) {
             return Self {
                 mask: bit,
                 since: now,
-                combined: false,
+                combo: false,
             };
         }
 
@@ -46,34 +54,38 @@ impl Keys {
         }
     }
 
-    fn other_down(self, now: u64, win_down: bool) -> Self {
-        if self.mask == 0 {
-            return self;
+    fn other_down(self, now: u64) -> (Self, bool) {
+        if self.mask == 0 || self.combo || self.stale(now) {
+            return (self, false);
         }
 
-        if self.stale(now) || !win_down {
-            return Self::IDLE;
-        }
-
-        Self {
-            combined: true,
-            ..self
-        }
+        (Self { combo: true, ..self }, true)
     }
 
-    fn win_up(self, bit: u8, now: u64) -> (Self, bool) {
-        let lone =
-            self.mask & bit != 0 && self.mask & !bit == 0 && !self.combined && !self.stale(now);
+    fn win_up(self, bit: u8, now: u64) -> (Self, WinUp) {
+        if self.mask & bit == 0 {
+            return (self, WinUp::Pass);
+        }
 
         let mask = self.mask & !bit;
+
+        let action = if mask != 0 {
+            WinUp::Swallow
+        } else if self.combo {
+            WinUp::Release
+        } else if self.stale(now) {
+            WinUp::Swallow
+        } else {
+            WinUp::Lone
+        };
 
         let next = Self {
             mask,
             since: self.since,
-            combined: self.combined && mask != 0,
+            combo: self.combo && mask != 0,
         };
 
-        (next, lone)
+        (next, action)
     }
 }
 
@@ -110,7 +122,7 @@ pub fn chord<T>(_keys: &[T]) {}
 
 #[cfg(target_os = "windows")]
 mod win {
-    use std::sync::atomic::Ordering;
+    use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::mpsc::{sync_channel, SyncSender};
     use std::sync::OnceLock;
 
@@ -124,8 +136,8 @@ mod win {
     use windows::Win32::UI::Accessibility::{SetWinEventHook, HWINEVENTHOOK};
     use windows::Win32::UI::Input::KeyboardAndMouse::{
         GetAsyncKeyState, SendInput, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT, KEYBD_EVENT_FLAGS,
-        KEYEVENTF_EXTENDEDKEY, KEYEVENTF_KEYUP, VIRTUAL_KEY, VK_CONTROL, VK_ESCAPE, VK_F24,
-        VK_LWIN, VK_RWIN,
+        KEYEVENTF_EXTENDEDKEY, KEYEVENTF_KEYUP, VIRTUAL_KEY, VK_CONTROL, VK_ESCAPE, VK_LWIN,
+        VK_RWIN,
     };
     use windows::Win32::UI::WindowsAndMessaging::{
         CallNextHookEx, DispatchMessageW, GetForegroundWindow, GetMessageW,
@@ -135,12 +147,12 @@ mod win {
         WM_SYSKEYUP,
     };
 
-    use super::{fallback_due, now, CAPTURE, KEYS, LAST_COMBO, LAST_LONE, LWIN_BIT, RWIN_BIT};
+    use super::{fallback_due, now, WinUp, CAPTURE, KEYS, LAST_COMBO, LAST_LONE, LWIN_BIT, RWIN_BIT};
 
     const TAG: usize = 0x4552_4953;
-    // ponytail: f24 still reaches the foreground app and other hooks; nothing binds it, ctrl did
-    const MASK_KEY: VIRTUAL_KEY = VK_F24;
     const SHELL_UI: [&str; 2] = ["StartMenuExperienceHost.exe", "SearchHost.exe"];
+
+    static PRESSED: [AtomicBool; 256] = [const { AtomicBool::new(false) }; 256];
 
     #[derive(Clone, Copy)]
     enum Event {
@@ -205,24 +217,46 @@ mod win {
         }
     }
 
-    fn replay_win_up(event: &KBDLLHOOKSTRUCT) -> bool {
-        let mut flags = KEYEVENTF_KEYUP;
+    fn repeated(vk: u32) -> bool {
+        PRESSED
+            .get(vk as usize)
+            .is_some_and(|slot| slot.swap(true, Ordering::Relaxed))
+    }
 
-        if event.flags.0 & LLKHF_EXTENDED.0 != 0 {
-            flags |= KEYEVENTF_EXTENDEDKEY;
+    fn released(vk: u32) {
+        if let Some(slot) = PRESSED.get(vk as usize) {
+            slot.store(false, Ordering::Relaxed);
         }
+    }
 
+    fn event_flags(event: &KBDLLHOOKSTRUCT, base: KEYBD_EVENT_FLAGS) -> KEYBD_EVENT_FLAGS {
+        if event.flags.0 & LLKHF_EXTENDED.0 == 0 {
+            base
+        } else {
+            base | KEYEVENTF_EXTENDEDKEY
+        }
+    }
+
+    // the shell opens Start on a win key it saw go down, so hand it the down only once a combo needs it
+    fn open_combo(event: &KBDLLHOOKSTRUCT) -> bool {
         let inputs = [
-            stroke(MASK_KEY, 0, KEYBD_EVENT_FLAGS(0)),
-            stroke(MASK_KEY, 0, KEYEVENTF_KEYUP),
+            stroke(VK_LWIN, 0, KEYEVENTF_EXTENDEDKEY),
             stroke(
                 VIRTUAL_KEY(event.vkCode as u16),
                 event.scanCode as u16,
-                flags,
+                event_flags(event, KEYBD_EVENT_FLAGS(0)),
             ),
         ];
 
         send(&inputs) == inputs.len() as u32
+    }
+
+    fn close_combo() {
+        send(&[stroke(
+            VK_LWIN,
+            0,
+            KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP,
+        )]);
     }
 
     // ponytail: hook callbacks must return within LowLevelHooksTimeout, so only hand off here
@@ -238,52 +272,68 @@ mod win {
         }
 
         let event = unsafe { &*(lparam.0 as *const KBDLLHOOKSTRUCT) };
+
+        if event.dwExtraInfo == TAG {
+            return unsafe { CallNextHookEx(None, code, wparam, lparam) };
+        }
+
         let key = VIRTUAL_KEY(event.vkCode as u16);
         let bit = win_bit(key);
+        let stamp = now();
 
-        if event.dwExtraInfo != TAG {
-            let stamp = now();
+        match wparam.0 as u32 {
+            WM_KEYDOWN | WM_SYSKEYDOWN if bit != 0 => {
+                let mut keys = KEYS.lock().unwrap();
 
-            match wparam.0 as u32 {
-                WM_KEYDOWN | WM_SYSKEYDOWN if bit != 0 => {
-                    let mut keys = KEYS.lock().unwrap();
-                    let next = keys.win_down(bit, stamp);
+                *keys = keys.win_down(bit, stamp);
 
-                    *keys = next;
-                }
-                WM_KEYDOWN | WM_SYSKEYDOWN => {
-                    let mut keys = KEYS.lock().unwrap();
-
-                    if keys.mask != 0 {
-                        let next = keys.other_down(stamp, key_down(VK_LWIN) || key_down(VK_RWIN));
-
-                        *keys = next;
-                    }
-
-                    if keys.combined || (key == VK_ESCAPE && key_down(VK_CONTROL)) {
-                        LAST_COMBO.store(stamp, Ordering::Relaxed);
-                    }
-                }
-                WM_KEYUP | WM_SYSKEYUP if bit != 0 => {
-                    let mut keys = KEYS.lock().unwrap();
-                    let (next, lone) = keys.win_up(bit, stamp);
-
-                    *keys = next;
-                    drop(keys);
-
-                    if lone {
-                        arm_fallback();
-
-                        if replay_win_up(event) {
-                            LAST_LONE.store(stamp, Ordering::Relaxed);
-                            notify(Event::Toggle);
-
-                            return LRESULT(1);
-                        }
-                    }
-                }
-                _ => {}
+                return LRESULT(1);
             }
+            WM_KEYDOWN | WM_SYSKEYDOWN => {
+                if repeated(event.vkCode) {
+                    return unsafe { CallNextHookEx(None, code, wparam, lparam) };
+                }
+
+                let mut keys = KEYS.lock().unwrap();
+                let (next, opening) = keys.other_down(stamp);
+
+                *keys = next;
+                drop(keys);
+
+                if next.combo || (key == VK_ESCAPE && key_down(VK_CONTROL)) {
+                    LAST_COMBO.store(stamp, Ordering::Relaxed);
+                }
+
+                if opening && open_combo(event) {
+                    return LRESULT(1);
+                }
+            }
+            WM_KEYUP | WM_SYSKEYUP if bit != 0 => {
+                let mut keys = KEYS.lock().unwrap();
+                let (next, action) = keys.win_up(bit, stamp);
+
+                *keys = next;
+                drop(keys);
+
+                match action {
+                    WinUp::Pass => {}
+                    WinUp::Swallow => return LRESULT(1),
+                    WinUp::Release => {
+                        close_combo();
+
+                        return LRESULT(1);
+                    }
+                    WinUp::Lone => {
+                        arm_fallback();
+                        LAST_LONE.store(stamp, Ordering::Relaxed);
+                        notify(Event::Toggle);
+
+                        return LRESULT(1);
+                    }
+                }
+            }
+            WM_KEYUP | WM_SYSKEYUP => released(event.vkCode),
+            _ => {}
         }
 
         unsafe { CallNextHookEx(None, code, wparam, lparam) }
@@ -353,7 +403,7 @@ mod win {
         };
     }
 
-    // ponytail: the shell still wins the race on some builds, so foreground changes are the fallback
+    // ponytail: a tap the hook never sees still reaches the shell, so foreground changes are the fallback
     unsafe extern "system" fn foreground_hook(
         _hook: HWINEVENTHOOK,
         _event: u32,
@@ -434,61 +484,70 @@ mod win {
 
 #[cfg(test)]
 mod tests {
-    use super::{fallback_due, Keys, COMBO_GUARD, HELD_TIMEOUT, LONE_WINDOW, LWIN_BIT, RWIN_BIT};
+    use super::{fallback_due, Keys, WinUp, COMBO_GUARD, HELD_TIMEOUT, LONE_WINDOW, LWIN_BIT, RWIN_BIT};
 
     #[test]
     fn a_lone_win_tap_is_lone() {
         let keys = Keys::IDLE.win_down(LWIN_BIT, 100);
-        let (next, lone) = keys.win_up(LWIN_BIT, 180);
+        let (next, action) = keys.win_up(LWIN_BIT, 180);
 
-        assert!(lone);
-        assert_eq!(
-            next,
-            Keys {
-                mask: 0,
-                since: 100,
-                combined: false
-            }
-        );
+        assert_eq!(action, WinUp::Lone);
+        assert_eq!(next.mask, 0);
+        assert!(!next.combo);
     }
 
     #[test]
-    fn a_key_while_win_is_held_makes_the_up_a_combo() {
-        let keys = Keys::IDLE.win_down(LWIN_BIT, 100).other_down(120, true);
+    fn a_key_while_win_is_held_opens_the_combo_once() {
+        let keys = Keys::IDLE.win_down(LWIN_BIT, 100);
+        let (keys, opening) = keys.other_down(120);
 
-        assert!(keys.combined);
+        assert!(opening);
+        assert!(keys.combo);
 
-        let (next, lone) = keys.win_up(LWIN_BIT, 180);
+        let (keys, again) = keys.other_down(140);
 
-        assert!(!lone);
-        assert!(!next.combined);
+        assert!(!again);
+
+        let (next, action) = keys.win_up(LWIN_BIT, 180);
+
+        assert_eq!(action, WinUp::Release);
+        assert!(!next.combo);
     }
 
     #[test]
-    fn a_win_up_we_never_saw_the_down_for_is_not_lone() {
-        let (_, lone) = Keys::IDLE.win_up(LWIN_BIT, 100);
+    fn a_key_without_win_never_opens_a_combo() {
+        let (keys, opening) = Keys::IDLE.other_down(120);
 
-        assert!(!lone);
+        assert!(!opening);
+        assert_eq!(keys, Keys::IDLE);
     }
 
     #[test]
-    fn held_state_expires_so_a_later_key_is_not_combined() {
+    fn a_win_up_we_never_saw_the_down_for_passes_through() {
+        let (_, action) = Keys::IDLE.win_up(LWIN_BIT, 100);
+
+        assert_eq!(action, WinUp::Pass);
+    }
+
+    #[test]
+    fn held_state_expires_so_a_later_key_is_not_a_combo() {
         let keys = Keys::IDLE.win_down(LWIN_BIT, 0);
 
-        assert_eq!(keys.other_down(HELD_TIMEOUT, true), Keys::IDLE);
+        assert!(!keys.other_down(HELD_TIMEOUT).1);
         assert_eq!(keys.win_down(LWIN_BIT, HELD_TIMEOUT).since, HELD_TIMEOUT);
 
-        let (_, lone) = keys.win_up(LWIN_BIT, HELD_TIMEOUT);
+        let (_, action) = keys.win_up(LWIN_BIT, HELD_TIMEOUT);
 
-        assert!(!lone);
+        assert_eq!(action, WinUp::Swallow);
     }
 
     #[test]
-    fn the_os_denying_a_held_win_key_clears_the_state() {
-        let keys = Keys::IDLE.win_down(LWIN_BIT, 100);
+    fn an_open_combo_outlives_the_timeout_so_the_win_key_is_released() {
+        let keys = Keys::IDLE.win_down(LWIN_BIT, 0);
+        let (keys, _) = keys.other_down(120);
+        let (_, action) = keys.win_up(LWIN_BIT, HELD_TIMEOUT * 2);
 
-        assert_eq!(keys.other_down(120, false), Keys::IDLE);
-        assert!(!Keys::IDLE.other_down(120, false).combined);
+        assert_eq!(action, WinUp::Release);
     }
 
     #[test]
@@ -497,8 +556,8 @@ mod tests {
         let (keys, first) = keys.win_up(LWIN_BIT, 200);
         let (keys, second) = keys.win_up(RWIN_BIT, 220);
 
-        assert!(!first);
-        assert!(second);
+        assert_eq!(first, WinUp::Swallow);
+        assert_eq!(second, WinUp::Lone);
         assert_eq!(keys.mask, 0);
     }
 
