@@ -18,6 +18,7 @@
     | "showRunningApps"
     | "showTrayIcons"
     | "showKeymap"
+    | "showSpectrum"
     | "showBattery"
     | "showVolume"
     | "showMedia"
@@ -53,6 +54,11 @@
         key: "showMedia",
         label: "Show media controls",
         hint: "Play, pause, and skip the current track",
+      },
+      {
+        key: "showSpectrum",
+        label: "Show sound spectrum",
+        hint: "Live output levels next to the media controls",
       },
       {
         key: "showMeters",
@@ -185,6 +191,34 @@
     ]}
   />
 </Row>
+
+{#if !subset && device.showSpectrum}
+  <Row label="Spectrum style" hint="How the bands are drawn">
+    <Segmented
+      label="Spectrum style"
+      bind:value={device.spectrumStyle}
+      options={[
+        { value: "bars", label: "Bars" },
+        { value: "mirror", label: "Mirror" },
+        { value: "wave", label: "Wave" },
+        { value: "dots", label: "Dots" },
+      ]}
+    />
+  </Row>
+{/if}
+
+{#if !subset}
+  <Row label="Media controls" hint="Which end of the bar they sit on">
+    <Segmented
+      label="Media controls"
+      bind:value={device.mediaSide}
+      options={[
+        { value: "left", label: "Left", icon: "lucide:align-start-horizontal" },
+        { value: "right", label: "Right", icon: "lucide:align-end-horizontal" },
+      ]}
+    />
+  </Row>
+{/if}
 
 {#if !subset && !mac}
   <Row label="Alignment" hint="Where the apps sit along the bar">

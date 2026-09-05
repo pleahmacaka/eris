@@ -6,6 +6,8 @@ import type { SyncedCollection } from "./sync/protocol"
 export type DockStyle = "windows" | "mac"
 export type DockEdge = "bottom" | "top"
 export type DockAlign = "start" | "center"
+export type DockSide = "left" | "right"
+export type SpectrumStyle = "bars" | "mirror" | "wave" | "dots"
 export type LauncherTrigger = "win" | "shortcut" | "both"
 export type ThemeMode = "dark" | "light" | "system"
 export type Background = "aura" | "glass" | "solid"
@@ -37,6 +39,9 @@ export type DeviceSettings = {
   showRunningApps: boolean
   showTrayIcons: boolean
   showKeymap: boolean
+  mediaSide: DockSide
+  showSpectrum: boolean
+  spectrumStyle: SpectrumStyle
   showBattery: boolean
   showVolume: boolean
   showMedia: boolean
@@ -160,6 +165,9 @@ export const defaultDevice: DeviceSettings = {
   showRunningApps: true,
   showTrayIcons: true,
   showKeymap: false,
+  mediaSide: "left",
+  showSpectrum: true,
+  spectrumStyle: "bars",
   showBattery: true,
   showVolume: true,
   showMedia: true,

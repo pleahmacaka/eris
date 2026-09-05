@@ -83,6 +83,17 @@ export const setVolume = (level: number) =>
 
 export const toggleMute = () => invoke<void>("toggle_mute")
 
+export type AudioDevice = {
+  id: string
+  name: string
+  default: boolean
+}
+
+export const audioDevices = () => invoke<AudioDevice[]>("audio_devices")
+
+export const setAudioDevice = (id: string) =>
+  invoke<void>("set_audio_device", { id })
+
 export const powerAction = (action: PowerAction) =>
   invoke<void>("power_action", { action })
 
@@ -197,6 +208,10 @@ export type Meters = {
 }
 
 export const systemMeters = () => invoke<Meters>("system_meters")
+
+export const spectrumStart = () => invoke<void>("spectrum_start")
+
+export const spectrumStop = () => invoke<void>("spectrum_stop")
 
 export type TrayIcon = {
   id: string

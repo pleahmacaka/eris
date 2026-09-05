@@ -25,7 +25,7 @@ tauri = { version = "2.11.3", features = ["image-png", "macos-private-api", "tra
 tauri-plugin-log = "2"
 tauri-plugin-global-shortcut = "2.3.2"
 walkdir = "2.5.0"
-windows = { version = "0.61.3", features = ["Win32_UI_Shell", "Win32_Foundation", "Win32_UI_WindowsAndMessaging", "Win32_Graphics_Gdi", "Win32_System_Com", "Win32_Storage_FileSystem", "Win32_UI_Input_KeyboardAndMouse", "Win32_System_Registry", "Win32_System_Threading", "Win32_System_Power", "Win32_System_Shutdown", "Win32_Graphics_Dwm", "Win32_UI_Shell_Common", "Win32_UI_Shell_PropertiesSystem", "Win32_System_Ole", "Win32_System_Variant", "Win32_Media_Audio", "Win32_System_SystemServices", "Win32_Media_Audio_Endpoints", "Win32_System_Com_StructuredStorage", "Win32_System_DataExchange", "Win32_System_Memory", "Win32_UI_Accessibility", "Media_Control", "Networking_Connectivity"] }
+windows = { version = "0.61.3", features = ["Win32_UI_Shell", "Win32_Foundation", "Win32_UI_WindowsAndMessaging", "Win32_Graphics_Gdi", "Win32_System_Com", "Win32_Storage_FileSystem", "Win32_UI_Input_KeyboardAndMouse", "Win32_System_Registry", "Win32_System_Threading", "Win32_System_Power", "Win32_System_Shutdown", "Win32_Graphics_Dwm", "Win32_UI_Shell_Common", "Win32_UI_Shell_PropertiesSystem", "Win32_System_Ole", "Win32_System_Variant", "Win32_Media_Audio", "Win32_System_SystemServices", "Win32_Media_Audio_Endpoints", "Win32_System_Com_StructuredStorage", "Win32_System_DataExchange", "Win32_System_Memory", "Win32_UI_Accessibility", "Media_Control", "Networking_Connectivity", "Win32_System_LibraryLoader", "Win32_Devices_FunctionDiscovery"] }
 image = { version = "0.25.6", default-features = false, features = ["png"] }
 base64 = "0.23.1"
 tauri-plugin-store = "2.4.4"
@@ -35,3 +35,5 @@ tauri-plugin-autostart = "2.5.1"
 tauri-plugin-single-instance = "2.4.4"
 tauri-plugin-process = "2.3.1"
 tauri-plugin-clipboard-manager = "2.3.3"
+windows-core = "0.61"
+rustfft = "6.4.1"

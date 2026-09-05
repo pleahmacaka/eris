@@ -16,6 +16,7 @@ mod media;
 mod meters;
 mod monitors;
 mod notify;
+mod spectrum;
 mod system;
 mod windowing;
 mod winkey;
@@ -111,11 +112,15 @@ pub fn run() {
             icons::clear_icon_cache,
             audio::set_volume,
             audio::toggle_mute,
+            audio::audio_devices,
+            audio::set_audio_device,
             appbar::apply_taskbar,
             monitors::list_monitors,
             media::media_status,
             media::media_command,
             meters::system_meters,
+            spectrum::spectrum_start,
+            spectrum::spectrum_stop,
             notify::notify_icons,
             notify::notify_icon_click,
             winkey::set_win_key_capture,
