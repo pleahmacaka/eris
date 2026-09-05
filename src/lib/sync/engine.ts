@@ -1,4 +1,4 @@
-import { fetch } from "@tauri-apps/plugin-http"
+import { isAxiosError } from "axios"
 import {
   advanceCursors,
   applyRemote,
@@ -12,6 +12,7 @@ import {
   updateSyncMeta,
 } from "../data/store"
 import { ensureDevice } from "../device"
+import { http } from "../http"
 import {
   type DeviceSettings,
   defaultSync,
@@ -47,22 +48,28 @@ const request = async <T>(
   path: string,
   body?: unknown,
 ): Promise<T> => {
-  const response = await fetch(`${url.trim().replace(/\/+$/, "")}${path}`, {
-    method,
-    headers: {
-      Authorization: `Bearer ${token.trim()}`,
-      "Content-Type": "application/json",
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  })
+  try {
+    const response = await http.request<T>({
+      url: `${url.trim().replace(/\/+$/, "")}${path}`,
+      method,
+      headers: {
+        Authorization: `Bearer ${token.trim()}`,
+        "Content-Type": "application/json",
+      },
+      data: body,
+    })
 
-  if (!response.ok) {
-    const detail = (await response.text().catch(() => "")).slice(0, 200)
+    return response.data
+  } catch (error) {
+    if (!isAxiosError(error) || !error.response) {
+      throw error
+    }
 
-    throw new Error(`${response.status} ${detail || response.statusText}`)
+    const { status, statusText, data } = error.response
+    const detail = typeof data === "string" ? data : JSON.stringify(data ?? "")
+
+    throw new Error(`${status} ${detail.slice(0, 200) || statusText}`)
   }
-
-  return response.status === 204 ? (undefined as T) : response.json()
 }
 
 const configured = (device: DeviceSettings) =>
