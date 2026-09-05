@@ -107,6 +107,9 @@ export const powerAction = (action: PowerAction) =>
 
 export const emptyRecycleBin = () => invoke<void>("empty_recycle_bin")
 
+export const extendTaskbar = (px: number) =>
+  invoke<void>("extend_taskbar", { px })
+
 export const applyTaskbar = (layout: TaskbarLayout) =>
   invoke<void>("apply_taskbar", { layout })
 

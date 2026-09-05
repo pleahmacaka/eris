@@ -106,14 +106,22 @@
     --veil-sheen: oklch(100% 0 0 / 0.6);
   }
 
-  html {
-    font-family: var(--font-sans);
-    font-size: calc(100% * var(--font-scale));
+  :root,
+  :root[data-theme],
+  body {
     background-color: transparent;
   }
 
+  html,
   body {
-    background-color: transparent;
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    font-size: calc(100% * var(--font-scale));
   }
 
   :root[data-density="compact"] {
@@ -130,6 +138,10 @@
 @layer components {
   :root[data-dock="windows"] .siri-shell {
     border-radius: 0;
+  }
+
+  :root[data-surface="dock"] .siri-shell {
+    overflow: visible;
   }
 
   :root[data-dock] .siri-shell {
@@ -156,6 +168,10 @@
     flex-direction: column;
     overflow: hidden;
     border-radius: var(--shell-radius);
+  }
+
+  :root:not([data-surface]) .siri-shell {
+    background-color: var(--color-base-100);
   }
 
   :root[data-background="solid"] .siri-shell {

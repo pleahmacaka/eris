@@ -76,6 +76,15 @@ pub fn stored_layout(app: &AppHandle) -> TaskbarLayout {
 }
 
 #[tauri::command]
+pub fn extend_taskbar(app: AppHandle, px: f64) -> Result<(), String> {
+    let window = app
+        .get_webview_window("taskbar")
+        .ok_or("taskbar window is missing")?;
+
+    win::extend(&window, px).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 pub fn apply_taskbar(app: AppHandle, layout: TaskbarLayout) -> Result<(), String> {
     let window = app
         .get_webview_window("taskbar")
@@ -155,6 +164,17 @@ mod win {
     static REAPPLY_PENDING: AtomicBool = AtomicBool::new(false);
     static APP: OnceLock<AppHandle> = OnceLock::new();
     static HIDER: Mutex<Option<(Sender<()>, JoinHandle<()>)>> = Mutex::new(None);
+    static BASE: Mutex<Option<Frame>> = Mutex::new(None);
+
+    #[derive(Clone, Copy)]
+    struct Frame {
+        left: i32,
+        top: i32,
+        width: i32,
+        height: i32,
+        scale: f64,
+        top_edge: bool,
+    }
 
     fn payload(hwnd: HWND, edge: u32) -> APPBARDATA {
         APPBARDATA {
@@ -244,8 +264,45 @@ mod win {
         let (left, width) = span(&data.rc, layout.floating, width);
         let top = offset(&data.rc, edge == ABE_TOP, margin, height);
 
+        *BASE.lock().unwrap() = Some(Frame {
+            left,
+            top,
+            width,
+            height,
+            scale,
+            top_edge: edge == ABE_TOP,
+        });
+
         window.set_position(PhysicalPosition::new(left, top))?;
         window.set_size(PhysicalSize::new(width as u32, height as u32))?;
+
+        Ok(())
+    }
+
+    pub fn extend(window: &WebviewWindow, px: f64) -> tauri::Result<()> {
+        let Some(frame) = *BASE.lock().unwrap() else {
+            return Ok(());
+        };
+
+        let extra = (px.max(0.0) * frame.scale).round() as i32;
+
+        let top = if frame.top_edge {
+            frame.top
+        } else {
+            frame.top - extra
+        };
+
+        unsafe {
+            let _ = SetWindowPos(
+                window.hwnd()?,
+                None,
+                frame.left,
+                top,
+                frame.width,
+                frame.height + extra,
+                SWP_NOZORDER | SWP_NOACTIVATE,
+            );
+        }
 
         Ok(())
     }

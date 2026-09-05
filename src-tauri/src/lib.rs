@@ -124,6 +124,7 @@ pub fn run() {
             audio::audio_devices,
             audio::set_audio_device,
             appbar::apply_taskbar,
+            appbar::extend_taskbar,
             monitors::list_monitors,
             media::media_status,
             media::media_command,

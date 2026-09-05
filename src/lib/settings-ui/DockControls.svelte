@@ -24,6 +24,7 @@
     | "showTrayIcons"
     | "showKeymap"
     | "showClaudeUsage"
+    | "showSettingsButton"
     | "showSpectrum"
     | "showBattery"
     | "showVolume"
@@ -49,6 +50,11 @@
         key: "showClaudeUsage",
         label: "Show Claude usage",
         hint: "5-hour and weekly session limits",
+      },
+      {
+        key: "showSettingsButton",
+        label: "Show settings button",
+        hint: "Right-click the bar for the same menu",
       },
       {
         key: "showKeymap",

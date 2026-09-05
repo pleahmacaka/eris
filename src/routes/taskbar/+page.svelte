@@ -2,12 +2,8 @@
   import Icon from "@iconify/svelte"
   import { listen } from "@tauri-apps/api/event"
   import { untrack } from "svelte"
-  import {
-    getCurrentWindow,
-    PhysicalPosition,
-    PhysicalSize,
-    Window,
-  } from "@tauri-apps/api/window"
+  import { flip } from "svelte/animate"
+  import { Window } from "@tauri-apps/api/window"
   import { live } from "$lib/data/live.svelte"
   import { scheduleReminders } from "$lib/data/reminders"
   import { events } from "$lib/data/store"
@@ -15,11 +11,16 @@
   import {
     dock,
     dockAwake,
+    type DockGroup,
     groupWindows,
     resolvePins,
     startDock,
   } from "$lib/dock/dock.svelte"
   import DockItem from "$lib/dock/DockItem.svelte"
+  import ContextMenu from "$lib/ui/ContextMenu.svelte"
+  import type { MenuItem } from "$lib/ui/menu"
+  import ClaudeUsage from "$lib/dock/ClaudeUsage.svelte"
+  import Media from "$lib/dock/Media.svelte"
   import Tray from "$lib/dock/Tray.svelte"
   import { startTimerWatch } from "$lib/launcher/timers"
   import * as native from "$lib/native"
@@ -31,6 +32,7 @@
     onDevice,
     onProfile,
     type Profile,
+    saveDevice,
   } from "$lib/settings"
   import { startAutoSync } from "$lib/sync/engine"
 
@@ -62,25 +64,116 @@
     `${device.launcherTrigger}|${device.launcherShortcut}`,
   )
 
+  const hidden = $derived(new Set(device.hiddenApps))
+
+  let dragPath = $state<string | null>(null)
+  let dropPath = $state<string | null>(null)
+  let dropBefore = $state(true)
+
+  const ordered = (list: DockGroup[]) => {
+    const rank = new Map(device.dockOrder.map((path, index) => [path, index]))
+
+    return [...list].sort(
+      (a, b) =>
+        (rank.get(a.path) ?? Number.MAX_SAFE_INTEGER) -
+        (rank.get(b.path) ?? Number.MAX_SAFE_INTEGER),
+    )
+  }
+
+  const commitDrop = async () => {
+    const from = dragPath
+    const onto = dropPath
+    const before = dropBefore
+
+    dragPath = null
+    dropPath = null
+
+    if (!from || !onto || from === onto) {
+      return
+    }
+
+    const paths = groups.map(group => group.path).filter(path => path !== from)
+    const at = paths.indexOf(onto)
+
+    if (at < 0) {
+      return
+    }
+
+    paths.splice(before ? at : at + 1, 0, from)
+
+    await saveDevice({ ...device, dockOrder: paths })
+  }
+
+  let navWidth = $state(0)
+  let leadWidth = $state(0)
+  let trailWidth = $state(0)
+  let overflowOpen = $state(false)
+
+  const slotWidth = $derived(device.dockIconSize + 20)
+
+
+  const roomForIcons = $derived(
+    Math.max(0, navWidth - leadWidth - trailWidth - slotWidth - 24),
+  )
+
+  const fits = $derived(
+    navWidth === 0 ? Number.POSITIVE_INFINITY : Math.floor(roomForIcons / slotWidth),
+  )
+
+  const groups = $derived(
+    ordered(
+      groupWindows(
+        dock.pinned,
+        resolvePins(device.pinnedApps, dock.apps),
+        dock.windows,
+      ).filter(
+        g =>
+          (g.pinned || device.showRunningApps) &&
+          !(hidden.has(g.path) && g.windows.length === 0),
+      ),
+    ),
+  )
+
+  const maxDockWidth = $derived(
+    Math.max(360, (typeof window === "undefined" ? 1920 : window.screen.width) - 160),
+  )
+
+  const naturalWidth = $derived(
+    leadWidth + trailWidth + groups.length * slotWidth + 56,
+  )
+
+  const dockWidth = $derived(
+    mac
+      ? Math.min(maxDockWidth, Math.max(360, naturalWidth))
+      : device.dockWidth,
+  )
+
+  const shown = $derived(groups.length <= fits ? groups : groups.slice(0, Math.max(1, fits - 1)))
+
+  const spilled = $derived(groups.slice(shown.length))
+
+  const overflowItems = $derived.by((): MenuItem[] =>
+    spilled.map(group => ({
+      label: group.name,
+      icon: group.windows.length > 0 ? "lucide:app-window" : "lucide:box",
+      action: () =>
+        group.windows[0]
+          ? native.activateWindow(group.windows[0].hwnd)
+          : native.launchApp(group.path),
+    })),
+  )
+
   const layoutKey = $derived(
     [
       device.dockStyle,
       device.dockEdge,
       device.dockHeight,
-      device.dockWidth,
+      dockWidth,
       device.dockAutoHide,
       device.hideSystemTaskbar,
       device.dockMonitor,
       collapsed,
     ].join("|"),
-  )
-
-  const groups = $derived(
-    groupWindows(
-      dock.pinned,
-      resolvePins(device.pinnedApps, dock.apps),
-      dock.windows,
-    ).filter(g => g.pinned || device.showRunningApps),
   )
 
   const applyLayout = () => {
@@ -90,6 +183,7 @@
 
     const root = document.documentElement
 
+    root.dataset.surface = "dock"
     root.dataset.dock = device.dockStyle
     root.dataset.edge = device.dockEdge
     root.style.setProperty("--dock-height", `${device.dockHeight}px`)
@@ -98,7 +192,7 @@
       .applyTaskbar({
         edge: device.dockEdge,
         height: collapsed ? STRIP : device.dockHeight,
-        width: device.dockWidth,
+        width: dockWidth,
         floating: mac,
         autoHide: device.dockAutoHide,
         hideSystemTaskbar: device.hideSystemTaskbar,
@@ -107,24 +201,82 @@
       .catch(() => undefined)
   }
 
-  const extend = async (px: number) => {
-    menuHeight = px
+  const MAGNIFY_BOOST = 0.55
+  const MAGNIFY_SPREAD = 78
 
-    if (px === 0) {
-      return applyLayout()
+  let pointerX = $state<number | null>(null)
+  let iconRow = $state<HTMLElement>()
+
+  const lift = $derived(
+    mac && pointerX !== null
+      ? Math.round(device.dockIconSize * MAGNIFY_BOOST) + 16
+      : 0,
+  )
+
+  const extend = (px: number) => {
+    menuHeight = px
+  }
+
+  $effect(() => {
+    native.extendTaskbar(Math.max(menuHeight, lift)).catch(() => undefined)
+  })
+
+  let barMenu = $state(false)
+  let barMenuX = $state(0)
+
+  const barMenuItems = $derived.by((): MenuItem[] => [
+    {
+      label: "Task Manager",
+      icon: "lucide:activity",
+      action: () => native.runCommand("taskmgr"),
+    },
+    {
+      label: device.showRunningApps ? "Hide running apps" : "Show running apps",
+      icon: device.showRunningApps ? "lucide:eye-off" : "lucide:eye",
+      action: () => saveDevice({ ...device, showRunningApps: !device.showRunningApps }),
+    },
+    {
+      label: device.showSettingsButton
+        ? "Hide settings button"
+        : "Show settings button",
+      icon: "lucide:settings-2",
+      action: () =>
+        saveDevice({ ...device, showSettingsButton: !device.showSettingsButton }),
+    },
+    "separator",
+    {
+      label: "Eris 설정",
+      icon: "lucide:settings",
+      action: () => native.showWindow("settings"),
+    },
+  ])
+
+  const openBarMenu = (e: MouseEvent) => {
+    if ((e.target as Element).closest("button, [role=menu], input, a")) {
+      return
     }
 
-    const win = getCurrentWindow()
-    const [scale, position, size] = await Promise.all([
-      win.scaleFactor(),
-      win.outerPosition(),
-      win.outerSize(),
-    ])
-    const extra = Math.round(px * scale)
-    const y = device.dockEdge === "top" ? position.y : position.y - extra
+    e.preventDefault()
+    barMenuX = e.clientX
+    barMenu = true
+  }
 
-    await win.setPosition(new PhysicalPosition(position.x, y))
-    await win.setSize(new PhysicalSize(size.width, size.height + extra))
+  const magnifyOf = (index: number) => {
+    if (!mac || pointerX === null || !iconRow) {
+      return 1
+    }
+
+    const slot = iconRow.children[index] as HTMLElement | undefined
+
+    if (!slot) {
+      return 1
+    }
+
+    const box = slot.getBoundingClientRect()
+    const distance = Math.abs(box.left + box.width / 2 - pointerX)
+    const falloff = Math.exp(-((distance / MAGNIFY_SPREAD) ** 2))
+
+    return 1 + MAGNIFY_BOOST * falloff
   }
 
   const refreshVisibility = async () => {
@@ -141,19 +293,24 @@
   }
 
   const togglePanel = async () => {
+    const panel = await Window.getByLabel("panel")
+    const visible = (await panel?.isVisible().catch(() => false)) ?? false
+
+    await applyLayout()
+
+    if (visible) {
+      panelOpen = false
+      await native.hideWindow("panel")
+
+      return
+    }
+
     if (Date.now() - hiddenAt < REOPEN_GUARD) {
       return
     }
 
-    await applyLayout()
-
-    if (panelOpen) {
-      panelOpen = false
-      await native.hideWindow("panel")
-    } else {
-      panelOpen = true
-      await native.showWindow("panel")
-    }
+    panelOpen = true
+    await native.showWindow("panel")
   }
 
   $effect(() => {
@@ -312,8 +469,37 @@
       ]}
       style:height="{device.dockHeight}px"
       aria-label="Dock"
+      bind:clientWidth={navWidth}
+      oncontextmenu={openBarMenu}
     >
-      <div class="flex items-center justify-self-start">
+      <div
+        class="flex items-center justify-self-start"
+        bind:clientWidth={leadWidth}
+      >
+        {#if device.showClaudeUsage && device.claudeUsageSide === "left"}
+          <ClaudeUsage
+            source={device.claudeUsageSource}
+            compact={device.dockHeight < 40}
+          />
+        {/if}
+
+        {#if device.showMedia && device.mediaSide === "left"}
+          <Media
+            compact={device.dockHeight < 40}
+            edge={device.dockEdge}
+            spectrum={device.showSpectrum}
+            spectrumStyle={device.spectrumStyle}
+            onmenu={extend}
+          />
+        {/if}
+      </div>
+
+      <div
+        class={[
+          "flex min-w-0 items-center gap-0.5",
+          mac ? "justify-center" : "justify-self-start",
+        ]}
+      >
         <button
           class="btn btn-ghost btn-square btn-sm"
           title="Launcher"
@@ -326,34 +512,95 @@
         {#if mac}
           <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
         {/if}
+
+        <div
+          bind:this={iconRow}
+          role="toolbar"
+          tabindex="-1"
+          aria-label="Apps"
+          class="flex min-w-0 items-center gap-0.5"
+          onpointermove={e => (pointerX = e.clientX)}
+          onpointerleave={() => (pointerX = null)}
+        >
+          {#each shown as group, index (group.key)}
+            <div animate:flip={{ duration: 180 }} class="flex">
+              <DockItem
+              {group}
+              size={device.dockIconSize}
+              edge={device.dockEdge}
+              {mac}
+              {foreground}
+              alignEnd={index >= groups.length / 2}
+              hiddenHere={hidden.has(group.path)}
+              magnify={pointerX === null ? 1 : magnifyOf(index)}
+              dragging={dragPath === group.path}
+              dropBefore={dropPath === group.path && dropBefore}
+              dropAfter={dropPath === group.path && !dropBefore}
+              ondragstart={() => (dragPath = group.path)}
+              ondragover={before => {
+                dropPath = group.path
+                dropBefore = before
+              }}
+              ondrop={commitDrop}
+              ondragend={() => {
+                dragPath = null
+                dropPath = null
+              }}
+              onmenu={extend}
+              />
+            </div>
+          {/each}
+
+          {#if spilled.length > 0}
+            <div class="relative">
+              <button
+                class="btn btn-ghost btn-square"
+                style:--size="{device.dockIconSize + 16}px"
+                title="{spilled.length} more"
+                aria-label="{spilled.length} more apps"
+                aria-haspopup="menu"
+                aria-expanded={overflowOpen}
+                onclick={() => {
+                  overflowOpen = !overflowOpen
+                  extend(overflowOpen ? Math.min(9, spilled.length) * 40 + 40 : 0)
+                }}
+              >
+                <Icon icon="lucide:ellipsis" class="size-5 text-base-content/70" />
+              </button>
+
+              <ContextMenu
+                bind:open={overflowOpen}
+                items={overflowItems}
+                placement={device.dockEdge === "top" ? "down" : "up"}
+                label="More apps"
+                onclose={() => extend(0)}
+              />
+            </div>
+          {/if}
+        </div>
       </div>
 
       <div
-        class={[
-          "flex min-w-0 items-center gap-0.5 overflow-hidden",
-          mac ? "justify-center" : "justify-self-start",
-        ]}
+        class="flex items-center justify-self-end"
+        bind:clientWidth={trailWidth}
       >
-        {#each groups as group, index (group.key)}
-          <DockItem
-            {group}
-            size={device.dockIconSize}
-            edge={device.dockEdge}
-            {mac}
-            {foreground}
-            alignEnd={index >= groups.length / 2}
-            onmenu={extend}
-          />
-        {/each}
-      </div>
-
-      <div class="flex items-center justify-self-end">
         {#if mac}
           <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
         {/if}
 
         <Tray {device} {panelOpen} onclock={togglePanel} onmenu={extend} />
       </div>
+
+      <ContextMenu
+        bind:open={barMenu}
+        items={barMenuItems}
+        x={barMenuX}
+        bottom={device.dockHeight + 8}
+        width={224}
+        label="Dock menu"
+        onsize={height => extend(barMenu ? height + 24 : 0)}
+        onclose={() => extend(0)}
+      />
     </nav>
   {/if}
 </div>

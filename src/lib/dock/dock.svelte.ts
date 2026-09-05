@@ -57,6 +57,15 @@ export const resolvePins = (paths: string[], apps: AppEntry[]): AppEntry[] => {
   )
 }
 
+export const toggleDockHidden = async (path: string) => {
+  const device = await loadDevice()
+  const hiddenApps = device.hiddenApps.includes(path)
+    ? device.hiddenApps.filter(p => p !== path)
+    : [...device.hiddenApps, path]
+
+  await saveDevice({ ...device, hiddenApps })
+}
+
 export const toggleDockPin = async (path: string) => {
   const device = await loadDevice()
   const pinnedApps = device.pinnedApps.includes(path)

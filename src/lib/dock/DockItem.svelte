@@ -8,6 +8,7 @@
   import {
     type DockGroup,
     iconFor,
+    toggleDockHidden,
     toggleDockPin,
   } from "./dock.svelte"
 
@@ -18,11 +19,60 @@
     mac: boolean
     foreground: number | undefined
     alignEnd: boolean
+    hiddenHere?: boolean
+    magnify?: number
+    dragging?: boolean
+    dropBefore?: boolean
+    dropAfter?: boolean
+    ondragstart?: () => void
+    ondragover?: (before: boolean) => void
+    ondrop?: () => void
+    ondragend?: () => void
     onmenu: (height: number) => void
   }
 
-  let { group, size, edge, mac, foreground, alignEnd, onmenu }: Props =
-    $props()
+  let {
+    group,
+    size,
+    edge,
+    mac,
+    foreground,
+    alignEnd,
+    hiddenHere = false,
+    magnify = 1,
+    dragging = false,
+    dropBefore = false,
+    dropAfter = false,
+    ondragstart,
+    ondragover,
+    ondrop,
+    ondragend,
+    onmenu,
+  }: Props = $props()
+
+  const dragStart = (e: DragEvent) => {
+    e.dataTransfer?.setData("text/plain", group.path)
+
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = "move"
+    }
+
+    dismissPreview()
+    ondragstart?.()
+  }
+
+  const dragOver = (e: DragEvent) => {
+    e.preventDefault()
+
+    const box = (e.currentTarget as HTMLElement).getBoundingClientRect()
+
+    ondragover?.(e.clientX < box.left + box.width / 2)
+  }
+
+  const drop = (e: DragEvent) => {
+    e.preventDefault()
+    ondrop?.()
+  }
 
   const MENU_ROW = 40
   const MENU_PAD = 40
@@ -168,21 +218,35 @@
 
 <div
   bind:this={root}
-  class={[
-    "dropdown",
-    edge === "top" ? "dropdown-bottom" : "dropdown-top",
-    alignEnd && "dropdown-end",
-    open && "dropdown-open",
-  ]}
+  role="listitem"
+  class={["relative transition-opacity duration-150", dragging && "opacity-30"]}
+  ondragover={dragOver}
+  ondrop={drop}
+  {ondragend}
 >
+  {#if dropBefore}
+    <span
+      class="pointer-events-none absolute inset-y-1 -left-1 w-0.5 rounded-full bg-primary"
+    ></span>
+  {/if}
+
+  {#if dropAfter}
+    <span
+      class="pointer-events-none absolute inset-y-1 -right-1 w-0.5 rounded-full bg-primary"
+    ></span>
+  {/if}
+
   <button
+    draggable="true"
+    ondragstart={dragStart}
     class={[
-      "btn btn-ghost btn-square relative transition-transform duration-150",
-      mac && "hover:scale-[1.15] active:scale-95",
+      "btn btn-ghost btn-square relative origin-bottom will-change-transform active:scale-90",
+      mac ? "transition-transform duration-100" : "transition-transform duration-150",
       active && "bg-base-content/10",
     ]}
     style:--size="{size + 16}px"
-    title={group.name}
+    style:transform={magnify === 1 ? undefined : `scale(${magnify})`}
+    title={running ? undefined : group.name}
     aria-label={group.name}
     aria-haspopup="menu"
     aria-expanded={open}

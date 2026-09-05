@@ -39,6 +39,7 @@ export type DeviceSettings = {
   showRunningApps: boolean
   showTrayIcons: boolean
   showKeymap: boolean
+  showSettingsButton: boolean
   showClaudeUsage: boolean
   claudeUsageSource: string
   claudeUsageSide: DockSide
@@ -56,6 +57,8 @@ export type DeviceSettings = {
   launcherShortcut: string
   autostart: boolean
   pinnedApps: string[]
+  hiddenApps: string[]
+  dockOrder: string[]
   trayOrder: string[]
   sync: SyncSettings
 }
@@ -161,13 +164,14 @@ export const defaultDevice: DeviceSettings = {
   dockAlign: "center",
   dockHeight: 48,
   dockWidth: 720,
-  dockIconSize: 20,
+  dockIconSize: 24,
   dockAutoHide: false,
   dockMonitor: null,
   hideSystemTaskbar: true,
   showRunningApps: true,
   showTrayIcons: true,
   showKeymap: false,
+  showSettingsButton: false,
   showClaudeUsage: true,
   claudeUsageSource: "",
   claudeUsageSide: "left",
@@ -185,6 +189,8 @@ export const defaultDevice: DeviceSettings = {
   launcherShortcut: "Alt+Space",
   autostart: false,
   pinnedApps: [],
+  hiddenApps: [],
+  dockOrder: [],
   trayOrder: [],
   sync: defaultSync,
 }

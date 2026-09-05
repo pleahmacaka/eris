@@ -25,7 +25,8 @@
         "skipTaskbar": true,
         "center": true,
         "visible": false,
-        "focus": true
+        "focus": true,
+        "dragDropEnabled": false
       },
       {
         "label": "taskbar",
@@ -40,7 +41,8 @@
         "alwaysOnTop": true,
         "skipTaskbar": true,
         "focus": false,
-        "focusable": false
+        "focusable": false,
+        "dragDropEnabled": false
       },
       {
         "label": "settings",
@@ -54,7 +56,8 @@
         "shadow": false,
         "skipTaskbar": true,
         "center": true,
-        "visible": false
+        "visible": false,
+        "dragDropEnabled": false
       },
       {
         "label": "panel",
@@ -68,7 +71,8 @@
         "shadow": false,
         "alwaysOnTop": true,
         "skipTaskbar": true,
-        "visible": false
+        "visible": false,
+        "dragDropEnabled": false
       },
       {
         "label": "onboarding",
