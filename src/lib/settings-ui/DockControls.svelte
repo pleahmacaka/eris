@@ -16,6 +16,7 @@
 
   type ToggleKey =
     | "showRunningApps"
+    | "showKeymap"
     | "showBattery"
     | "showVolume"
     | "showMedia"
@@ -30,6 +31,11 @@
         key: "showRunningApps",
         label: "Show running apps",
         hint: "Open windows appear next to pinned apps",
+      },
+      {
+        key: "showKeymap",
+        label: "Show keyboard hints",
+        hint: "Shortcut keys in the launcher footer and result rows",
       },
       { key: "showBattery", label: "Show battery", hint: "Only on laptops" },
       {

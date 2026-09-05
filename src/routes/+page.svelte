@@ -50,12 +50,16 @@
     type AppEntry,
     type ClipEntry,
     clipboardHistory,
+    hideWindow,
     listApps,
     listWindows,
     onWindowShown,
     pinnedApps,
+    showWindow,
     type WindowEntry,
   } from "$lib/native"
+  import ContextMenu from "$lib/ui/ContextMenu.svelte"
+  import type { MenuItem } from "$lib/ui/menu"
   import {
     type DeviceSettings,
     defaultDevice,
@@ -64,6 +68,7 @@
     onDevice,
     onProfile,
     type Profile,
+    saveDevice,
   } from "$lib/settings"
 
   const appWindow = getCurrentWindow()
@@ -657,9 +662,59 @@
   }
 
   const onmousedown = (e: MouseEvent) => {
-    if (menu && !(e.target as Element).closest("[data-menu]")) {
+    const target = e.target as Element
+
+    if (menu && !target.closest("[data-menu]")) {
       menu = null
+
+      return
     }
+
+    if (backdropMenu) {
+      return
+    }
+
+    if (e.button === 0 && !target.closest("[data-launcher]")) {
+      hideWindow("main").catch(() => undefined)
+    }
+  }
+
+  let backdropMenu = $state(false)
+  let backdropMenuX = $state(0)
+  let backdropMenuY = $state(0)
+
+  const backdropItems = $derived.by((): MenuItem[] => [
+    {
+      label: query ? "Clear search" : "Focus search",
+      icon: query ? "lucide:eraser" : "lucide:search",
+      action: () => {
+        setQuery("")
+        input?.focus()
+      },
+    },
+    {
+      label: device.showKeymap ? "Hide keyboard hints" : "Show keyboard hints",
+      icon: device.showKeymap ? "lucide:eye-off" : "lucide:eye",
+      action: () => saveDevice({ ...device, showKeymap: !device.showKeymap }),
+    },
+    "separator",
+    {
+      label: "Eris 설정",
+      icon: "lucide:settings",
+      action: () => showWindow("settings"),
+    },
+  ])
+
+  const openBackdropMenu = (e: MouseEvent) => {
+    if ((e.target as Element).closest("[data-launcher]")) {
+      return
+    }
+
+    e.preventDefault()
+    e.stopPropagation()
+    backdropMenuX = e.clientX
+    backdropMenuY = e.clientY
+    backdropMenu = true
   }
 
   const HINTS: [string, string][] = [
@@ -679,8 +734,12 @@
 
 <svelte:window {onkeydown} {onmousedown} onfocus={() => input?.focus()} />
 
-<main class="relative flex min-h-0 grow select-none flex-col gap-3 p-4">
+<main
+  class="relative flex min-h-0 grow select-none flex-col gap-3 p-4"
+  oncontextmenu={openBackdropMenu}
+>
   <label
+    data-launcher
     class="input input-lg flex h-14 w-full items-center gap-3 rounded-box border border-base-content/10 bg-base-100/60 px-4 shadow-lg outline-none backdrop-blur-xl transition-[border-color,box-shadow] duration-150 focus-within:border-primary/40 focus-within:outline-none focus-within:ring-2 focus-within:ring-primary/20"
   >
     <Icon icon="lucide:search" class="size-5 shrink-0 text-base-content/60" />
@@ -715,6 +774,7 @@
   </label>
 
   <div
+    data-launcher
     class="flex min-h-0 grow flex-col overflow-hidden rounded-box border border-base-content/10 bg-base-100/60 shadow-lg backdrop-blur-xl"
   >
     <div
@@ -790,7 +850,7 @@
               </span>
             </button>
 
-            {#if i < 9}
+            {#if i < 9 && device.showKeymap}
               <kbd
                 class={[
                   "kbd kbd-xs shrink-0 transition-opacity duration-150",
@@ -843,7 +903,11 @@
   </div>
 
   <footer
-    class="flex items-center justify-between gap-3 px-2 text-xs text-base-content/50"
+    data-launcher
+    class={[
+      "items-center justify-between gap-3 px-2 text-xs text-base-content/50",
+      device.showKeymap || error || query ? "flex" : "hidden",
+    ]}
   >
     {#if error}
       <span class="truncate text-error">{error}</span>
@@ -852,7 +916,7 @@
         {flat.length}
         {flat.length === 1 ? "result" : "results"}
       </span>
-    {:else}
+    {:else if device.showKeymap}
       <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
         {#each HINTS as [key, label] (key)}
           <button
@@ -868,7 +932,7 @@
       </div>
     {/if}
 
-    {#if query}
+    {#if query && device.showKeymap}
       <div class="flex shrink-0 items-center gap-3">
         <span class="flex items-center gap-1">
           <kbd class="kbd kbd-xs">↵</kbd>
@@ -887,12 +951,22 @@
           </span>
         {/if}
       </div>
-    {:else if groups.length > 1}
+    {:else if groups.length > 1 && device.showKeymap}
       <span class="flex shrink-0 items-center gap-1">
         <kbd class="kbd kbd-xs">Tab</kbd> Groups
       </span>
     {/if}
   </footer>
+
+  <ContextMenu
+    bind:open={backdropMenu}
+    items={backdropItems}
+    x={backdropMenuX}
+    y={backdropMenuY}
+    placement="down"
+    width={224}
+    label="Launcher menu"
+  />
 
   {#if menu}
     <ul

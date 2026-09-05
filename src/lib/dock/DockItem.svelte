@@ -2,7 +2,13 @@
   import Icon from "@iconify/svelte"
   import * as native from "$lib/native"
   import type { DockEdge } from "$lib/settings"
-  import { type DockGroup, iconFor, toggleDockPin } from "./dock.svelte"
+  import ContextMenu from "$lib/ui/ContextMenu.svelte"
+  import type { MenuItem } from "$lib/ui/menu"
+  import {
+    type DockGroup,
+    iconFor,
+    toggleDockPin,
+  } from "./dock.svelte"
 
   type Props = {
     group: DockGroup
@@ -17,8 +23,8 @@
   let { group, size, edge, mac, foreground, alignEnd, onmenu }: Props =
     $props()
 
-  const MENU_ROW = 34
-  const MENU_PAD = 28
+  const MENU_ROW = 40
+  const MENU_PAD = 40
   const MENU_MAX_ROWS = 9
 
   let open = $state(false)
@@ -84,25 +90,58 @@
     setOpen(true)
   }
 
-  const outside = (e: MouseEvent) => {
-    if (open && root && !root.contains(e.target as Node)) {
-      setOpen(false)
-    }
-  }
+  const menuItems = $derived.by((): MenuItem[] => {
+    const windows: MenuItem[] = group.windows
+      .slice(0, MENU_MAX_ROWS - 4)
+      .map(w => ({
+        label: w.title,
+        icon:
+          w.hwnd === foreground ? "lucide:square-dot" : "lucide:app-window",
+        action: () => native.activateWindow(w.hwnd),
+      }))
 
-  const onkeydown = (e: KeyboardEvent) => {
-    if (open && e.key === "Escape") {
-      setOpen(false)
-    }
-  }
+    const pin: MenuItem =
+      group.pinned === "windows"
+        ? {
+            label: hiddenHere ? "Show in dock" : "Hide from dock",
+            icon: hiddenHere ? "lucide:eye" : "lucide:eye-off",
+            hint: "Windows pin",
+            action: () => toggleDockHidden(group.path),
+          }
+        : {
+            label: group.pinned ? "Unpin from dock" : "Pin to dock",
+            icon: group.pinned ? "lucide:pin-off" : "lucide:pin",
+            action: () => toggleDockPin(group.path),
+          }
 
-  const run = (action: () => unknown) => {
-    setOpen(false)
-    action()
-  }
+    return [
+      ...windows,
+      ...(running ? (["separator"] as MenuItem[]) : []),
+      {
+        label: "Open new window",
+        icon: "lucide:plus",
+        action: launch,
+      },
+      ...(running
+        ? ([
+            {
+              label: "Close all",
+              icon: "lucide:x",
+              action: closeAll,
+            },
+          ] as MenuItem[])
+        : []),
+      {
+        label: "Open file location",
+        icon: "lucide:folder-open",
+        action: () => native.openLocation(group.path),
+      },
+      pin,
+    ]
+  })
 </script>
 
-<svelte:window onmousedown={outside} {onkeydown} onblur={() => setOpen(false)} />
+<svelte:window onblur={() => setOpen(false)} />
 
 <div
   bind:this={root}
@@ -157,84 +196,13 @@
     {/if}
   </button>
 
-  {#if open}
-    <ul
-      class="menu dropdown-content z-10 mb-2 w-56 rounded-box border border-base-content/10 bg-base-100/90 p-1.5 shadow-lg backdrop-blur-xl"
-      class:mt-2={edge === "top"}
-      role="menu"
-    >
-      {#each group.windows.slice(0, MENU_MAX_ROWS - 4) as w (w.hwnd)}
-        <li role="none">
-          <button
-            role="menuitem"
-            class="gap-2"
-            onclick={() => run(() => native.activateWindow(w.hwnd))}
-          >
-            <span
-              class={[
-                "size-1.5 shrink-0 rounded-full",
-                w.hwnd === foreground ? "bg-primary" : "bg-base-content/40",
-              ]}
-            ></span>
-
-            <span class="truncate">{w.title}</span>
-          </button>
-        </li>
-      {/each}
-
-      {#if running}
-        <li class="my-1 border-t border-base-content/10" role="separator"></li>
-      {/if}
-
-      <li role="none">
-        <button role="menuitem" class="gap-2" onclick={() => run(launch)}>
-          <Icon icon="lucide:plus" class="size-4 text-base-content/60" />
-
-          Open new window
-        </button>
-      </li>
-
-      {#if running}
-        <li role="none">
-          <button role="menuitem" class="gap-2" onclick={() => run(closeAll)}>
-            <Icon icon="lucide:x" class="size-4 text-base-content/60" />
-
-            Close all
-          </button>
-        </li>
-      {/if}
-
-      <li role="none">
-        <button
-          role="menuitem"
-          class="gap-2"
-          onclick={() => run(() => native.openLocation(group.path))}
-        >
-          <Icon icon="lucide:folder-open" class="size-4 text-base-content/60" />
-
-          Open file location
-        </button>
-      </li>
-
-      <li role="none" class={[group.pinned === "windows" && "menu-disabled"]}>
-        <button
-          role="menuitem"
-          class="gap-2"
-          disabled={group.pinned === "windows"}
-          onclick={() => run(() => toggleDockPin(group.path))}
-        >
-          <Icon
-            icon={group.pinned === "device" ? "lucide:pin-off" : "lucide:pin"}
-            class="size-4 text-base-content/60"
-          />
-
-          {group.pinned === "windows"
-            ? "Pinned by Windows"
-            : group.pinned
-              ? "Unpin from dock"
-              : "Pin to dock"}
-        </button>
-      </li>
-    </ul>
-  {/if}
+  <ContextMenu
+    bind:open
+    items={menuItems}
+    placement={edge === "top" ? "down" : "up"}
+    align={alignEnd ? "end" : "start"}
+    label={group.name}
+    width={224}
+    onsize={height => onmenu(open ? height : 0)}
+  />
 </div>

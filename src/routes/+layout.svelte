@@ -9,6 +9,7 @@
     onProfile,
   } from "$lib/settings"
   import { applyAppearance } from "$lib/theme"
+  import GlobalContextMenu from "$lib/ui/GlobalContextMenu.svelte"
   import "./layout.css"
 
   let { children } = $props()
@@ -69,3 +70,5 @@
 
   {@render children()}
 </div>
+
+<GlobalContextMenu />
