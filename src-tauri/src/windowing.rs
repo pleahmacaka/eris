@@ -1,11 +1,13 @@
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, WebviewWindow};
+use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, WebviewWindow};
 
 use crate::{appbar, desktop};
 
 const BLUR_TOGGLE_GUARD: Duration = Duration::from_millis(250);
+const BUBBLE_SIZE: f64 = 56.0;
+const BUBBLE_EDGE: f64 = 16.0;
 const SHOW_SETTLE: Duration = Duration::from_millis(400);
 
 static BLUR_HIDDEN_AT: Mutex<Option<Instant>> = Mutex::new(None);
@@ -92,6 +94,7 @@ fn show_now(app: &AppHandle, label: &str) {
         "main" => center_on_cursor_monitor(&window),
         "panel" => dock_panel(app, &window),
         "settings" | "onboarding" => window.center(),
+        "chat" => cover_cursor_monitor(&window),
         _ => Ok(()),
     };
 
@@ -101,7 +104,7 @@ fn show_now(app: &AppHandle, label: &str) {
         *SHOWN_AT.lock().unwrap() = Some(Instant::now());
     }
 
-    if label != "taskbar" {
+    if !matches!(label, "taskbar" | "chat") {
         let _ = window.set_focus();
         desktop::force_foreground(&window);
     }
@@ -135,11 +138,109 @@ fn center_on_cursor_monitor(window: &WebviewWindow) -> tauri::Result<()> {
     window.set_position(PhysicalPosition::new(x, y))
 }
 
+// the chat bubble drags anywhere and drops on a target at the screen edge, so it owns the whole monitor
+fn cover_cursor_monitor(window: &WebviewWindow) -> tauri::Result<()> {
+    let cursor = window.cursor_position()?;
+
+    let Some(monitor) = window.monitor_from_point(cursor.x, cursor.y)? else {
+        return Ok(());
+    };
+
+    let work = monitor.work_area();
+
+    window.set_position(work.position)?;
+    window.set_size(PhysicalSize::new(work.size.width, work.size.height))?;
+
+    // the page narrows this down once it lays out; until then the window must not blanket the desktop
+    let scale = monitor.scale_factor();
+    let bubble = (BUBBLE_SIZE * scale).round() as i32;
+    let edge = (BUBBLE_EDGE * scale).round() as i32;
+    let left = work.size.width as i32 - bubble - edge;
+    let top = (work.size.height as i32 - bubble) / 2;
+
+    region::apply(
+        &window.app_handle().clone(),
+        window.label(),
+        &[[left, top, left + bubble, top + bubble, bubble / 2]],
+    );
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn set_window_region(app: AppHandle, label: String, rects: Vec<[f64; 5]>) {
+    let scale = app
+        .get_webview_window(&label)
+        .and_then(|window| window.scale_factor().ok())
+        .unwrap_or(1.0);
+
+    let scaled: Vec<[i32; 5]> = rects
+        .iter()
+        .map(|rect| rect.map(|value| (value * scale).round() as i32))
+        .collect();
+
+    region::apply(&app, &label, &scaled);
+}
+
+#[cfg(target_os = "windows")]
+mod region {
+    use tauri::{AppHandle, Manager};
+    use windows::Win32::Graphics::Gdi::{
+        CombineRgn, CreateRectRgn, CreateRoundRectRgn, DeleteObject, SetWindowRgn, RGN_OR,
+    };
+
+    pub fn apply(app: &AppHandle, label: &str, rects: &[[i32; 5]]) {
+        let Some(window) = app.get_webview_window(label) else {
+            return;
+        };
+
+        let Ok(hwnd) = window.hwnd() else {
+            return;
+        };
+
+        unsafe {
+            let region = CreateRectRgn(0, 0, 0, 0);
+
+            for [left, top, right, bottom, radius] in rects {
+                let part = if *radius > 0 {
+                    CreateRoundRectRgn(*left, *top, *right, *bottom, radius * 2, radius * 2)
+                } else {
+                    CreateRectRgn(*left, *top, *right, *bottom)
+                };
+
+                CombineRgn(Some(region), Some(region), Some(part), RGN_OR);
+
+                let _ = DeleteObject(part.into());
+            }
+
+            let _ = SetWindowRgn(hwnd, Some(region), true);
+        }
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+mod region {
+    use tauri::AppHandle;
+
+    pub fn apply(_app: &AppHandle, _label: &str, _rects: &[[i32; 5]]) {}
+}
+
 fn dock_panel(app: &AppHandle, window: &WebviewWindow) -> tauri::Result<()> {
-    let dock = app
-        .get_webview_window("taskbar")
-        .map(|dock| Ok::<_, tauri::Error>((dock.outer_position()?, dock.outer_size()?)))
-        .transpose()?;
+    // the dock window keeps room above its band for menus, so follow the band the appbar reserved
+    let dock = appbar::dock_frame().map(|[left, top, width, height]| {
+        (
+            PhysicalPosition::new(left, top),
+            tauri::PhysicalSize::new(width as u32, height as u32),
+        )
+    });
+
+    let dock = match dock {
+        Some(frame) => Some(frame),
+        None => app
+            .get_webview_window("taskbar")
+            .map(|dock| Ok::<_, tauri::Error>((dock.outer_position()?, dock.outer_size()?)))
+            .transpose()?,
+    };
 
     let anchored = match dock {
         Some((position, dock_size)) => window.monitor_from_point(

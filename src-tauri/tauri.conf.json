@@ -102,6 +102,37 @@
         "skipTaskbar": true,
         "focusable": false,
         "visible": false
+      },
+      {
+        "label": "chat",
+        "url": "/chat",
+        "title": "Eris Chat",
+        "width": 1280,
+        "height": 800,
+        "resizable": false,
+        "transparent": true,
+        "decorations": false,
+        "shadow": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "visible": false,
+        "dragDropEnabled": false
+      },
+      {
+        "label": "files",
+        "url": "/files",
+        "title": "Eris Files",
+        "width": 1100,
+        "height": 700,
+        "minWidth": 720,
+        "minHeight": 460,
+        "resizable": true,
+        "transparent": true,
+        "decorations": false,
+        "shadow": false,
+        "skipTaskbar": false,
+        "center": true,
+        "visible": false
       }
     ],
     "security": {

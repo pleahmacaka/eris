@@ -88,6 +88,14 @@ export const systemCommands: Result[] = [
     ["trash"],
   ),
   command(
+    "eris-files",
+    "Open files",
+    "Eris",
+    "lucide:folder-open",
+    () => showWindow("files"),
+    ["explorer", "탐색기", "파일"],
+  ),
+  command(
     "eris-settings",
     "Open Eris settings",
     "Eris",

@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 
-use tauri::{AppHandle, DeviceEventFilter, Manager, WindowEvent};
+use tauri::{AppHandle, DeviceEventFilter, Emitter, Manager, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 use tauri_plugin_store::StoreExt;
@@ -11,6 +11,7 @@ mod audio;
 mod clipboard;
 mod desktop;
 mod edge;
+mod files;
 mod icons;
 mod media;
 mod meters;
@@ -82,6 +83,33 @@ fn onboarded(app: &AppHandle) -> bool {
         .unwrap_or(false)
 }
 
+fn open(app: &AppHandle) {
+    let handle = app.clone();
+
+    // the shell answers an appbar message by sending one back to the dock, so never ask from its own thread
+    std::thread::spawn(move || {
+        let Some(taskbar) = handle.get_webview_window("taskbar") else {
+            return;
+        };
+
+        let _ = appbar::apply(&taskbar, &appbar::stored_layout(&handle));
+
+        edge::watch(handle);
+    });
+
+    let hidden = std::env::args().any(|arg| arg == "--hidden");
+
+    if !hidden {
+        windowing::show(app, "chat");
+    }
+
+    if !onboarded(app) {
+        windowing::show(app, "onboarding");
+    } else if !hidden {
+        windowing::show(app, "main");
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -103,6 +131,13 @@ pub fn run() {
             apps::pinned_apps,
             apps::launch_app,
             apps::open_location,
+            files::list_dir,
+            files::file_places,
+            files::search_dir,
+            files::create_folder,
+            files::rename_entry,
+            files::delete_entries,
+            files::transfer_entries,
             icons::app_icon,
             desktop::list_windows,
             desktop::activate_window,
@@ -136,11 +171,13 @@ pub fn run() {
             usage::install_usage_bridge,
             notify::notify_icons,
             notify::notify_icon_click,
+            notify::notify_icon_promote,
             winkey::set_win_key_capture,
             set_launcher_shortcut,
             windowing::show_window,
             windowing::hide_window,
             windowing::toggle_window,
+            windowing::set_window_region,
             clipboard::clipboard_history,
             clipboard::clipboard_copy,
             clipboard::clipboard_paste,
@@ -168,6 +205,21 @@ pub fn run() {
 
             let _ = set_launcher_shortcut(handle.clone(), Some("Alt+Space".into()));
 
+            // the panel's open state lives in the page, so ask it to toggle instead of hiding the window
+            if let Err(error) =
+                handle
+                    .global_shortcut()
+                    .on_shortcut("Ctrl+Space", |app, _, event| {
+                        if event.state() == ShortcutState::Pressed {
+                            windowing::show(app, "chat");
+
+                            let _ = app.emit("chat-toggle", ());
+                        }
+                    })
+            {
+                trace(&format!("chat shortcut refused: {error}"));
+            }
+
             if let Some(main) = app.get_webview_window("main") {
                 main.on_window_event({
                     let main = main.clone();
@@ -180,30 +232,20 @@ pub fn run() {
                 });
             }
 
-            if let Some(taskbar) = app.get_webview_window("taskbar") {
-                appbar::apply(&taskbar, &appbar::stored_layout(&handle))?;
-                edge::watch(handle.clone());
-            }
-
-            let hidden = std::env::args().any(|arg| arg == "--hidden");
-
-            if !onboarded(&handle) {
-                windowing::show(&handle, "onboarding");
-            } else if !hidden {
-                windowing::show(&handle, "main");
-            }
-
             Ok(())
         })
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
-        .run(|app, event| {
-            if matches!(event, tauri::RunEvent::Exit) {
+        .run(|app, event| match event {
+            tauri::RunEvent::Ready => open(app),
+            tauri::RunEvent::Exit => {
                 if let Some(taskbar) = app.get_webview_window("taskbar") {
                     appbar::release(&taskbar);
                 }
 
                 notify::release();
+                winkey::release();
             }
+            _ => {}
         });
 }

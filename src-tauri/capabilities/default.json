@@ -8,7 +8,9 @@
     "settings",
     "panel",
     "onboarding",
-    "preview"
+    "preview",
+    "chat",
+    "files"
   ],
   "permissions": [
     "core:default",

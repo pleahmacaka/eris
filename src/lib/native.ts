@@ -52,6 +52,8 @@ export type WindowLabel =
   | "settings"
   | "panel"
   | "onboarding"
+  | "chat"
+  | "files"
 
 export const listApps = () => invoke<AppEntry[]>("list_apps")
 
@@ -81,8 +83,6 @@ export const previewShow = (windows: number[], center: number) =>
   invoke<void>("preview_show", { windows, center })
 
 export const previewHide = () => invoke<void>("preview_hide")
-
-export const systemAccent = () => invoke<string | null>("system_accent")
 
 export const systemInfo = () => invoke<SystemInfo>("system_info")
 
@@ -127,6 +127,58 @@ export const hideWindow = (label: WindowLabel) =>
 
 export const toggleWindow = (label: WindowLabel) =>
   invoke<void>("toggle_window", { label })
+
+export type FileEntry = {
+  name: string
+  path: string
+  directory: boolean
+  size: number
+  modified: number
+  hidden: boolean
+}
+
+export type FilePlace = {
+  name: string
+  path: string
+  kind: "folder" | "drive"
+  free: number
+  total: number
+}
+
+export type FileListing = {
+  path: string
+  parent: string | null
+  entries: FileEntry[]
+}
+
+export const listDir = (path: string) =>
+  invoke<FileListing>("list_dir", { path })
+
+export const filePlaces = () => invoke<FilePlace[]>("file_places")
+
+export const searchDir = (root: string, query: string) =>
+  invoke<FileEntry[]>("search_dir", { root, query })
+
+export const createFolder = (path: string, name: string) =>
+  invoke<string>("create_folder", { path, name })
+
+export const renameEntry = (path: string, name: string) =>
+  invoke<string>("rename_entry", { path, name })
+
+export const deleteEntries = (paths: string[], permanent = false) =>
+  invoke<void>("delete_entries", { paths, permanent })
+
+export const transferEntries = (
+  paths: string[],
+  target: string,
+  cut: boolean,
+) => invoke<void>("transfer_entries", { paths, target, cut })
+
+export const setWindowRegion = (label: WindowLabel, rects: number[][]) =>
+  invoke<void>("set_window_region", { label, rects })
+
+export const onChatToggle = (handler: () => void) =>
+  listen("chat-toggle", () => handler())
 
 export const openUrl = (url: string) => invoke<void>("open_url", { url })
 
@@ -250,12 +302,16 @@ export type TrayIcon = {
   tooltip: string
   icon: string | null
   hidden: boolean
+  promoted: boolean
 }
 
 export const notifyIcons = () => invoke<TrayIcon[]>("notify_icons")
 
 export const notifyIconClick = (id: string, button: "left" | "right") =>
   invoke<void>("notify_icon_click", { id, button })
+
+export const notifyIconPromote = (id: string, promoted: boolean) =>
+  invoke<void>("notify_icon_promote", { id, promoted })
 
 export const onTrayIcons = (handler: () => void) =>
   listen("tray-icons", () => handler())
