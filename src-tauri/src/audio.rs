@@ -39,7 +39,7 @@ pub fn set_audio_device(id: String) -> Result<(), String> {
 
 #[cfg(target_os = "windows")]
 mod win {
-    use windows::core::{interface, BOOL, GUID, HRESULT, IUnknown, IUnknown_Vtbl, PCWSTR};
+    use windows::core::{interface, IUnknown, IUnknown_Vtbl, BOOL, GUID, HRESULT, PCWSTR};
     use windows::Win32::Devices::FunctionDiscovery::PKEY_Device_FriendlyName;
     use windows::Win32::Media::Audio::Endpoints::IAudioEndpointVolume;
     use windows::Win32::Media::Audio::{
@@ -54,8 +54,7 @@ mod win {
 
     use super::{AudioDevice, Volume};
 
-    const POLICY_CONFIG_CLIENT: GUID =
-        GUID::from_u128(0x870af99c_171d_4f9e_af0d_e63df40c2bc9);
+    const POLICY_CONFIG_CLIENT: GUID = GUID::from_u128(0x870af99c_171d_4f9e_af0d_e63df40c2bc9);
 
     // undocumented interface: the vtable order below is fixed, never reorder or trim
     #[interface("f8679f50-850a-41cf-9c72-430f290290c8")]

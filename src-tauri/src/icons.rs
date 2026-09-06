@@ -101,11 +101,11 @@ mod win {
         ReleaseDC, SelectObject, BITMAP, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS,
         HBITMAP, HGDIOBJ,
     };
-    use windows::Win32::UI::WindowsAndMessaging::{DrawIconEx, DI_NORMAL, HICON};
     use windows::Win32::System::Com::{CoInitializeEx, COINIT_APARTMENTTHREADED};
     use windows::Win32::UI::Shell::{
         IShellItemImageFactory, SHCreateItemFromParsingName, SIIGBF_BIGGERSIZEOK, SIIGBF_ICONONLY,
     };
+    use windows::Win32::UI::WindowsAndMessaging::{DrawIconEx, DI_NORMAL, HICON};
 
     const ICON_SIZE: i32 = 64;
     const TRAY_SIZE: i32 = 32;
@@ -217,21 +217,13 @@ mod win {
             };
 
             let mut bits = std::ptr::null_mut();
-            let bitmap = CreateDIBSection(Some(canvas), &header, DIB_RGB_COLORS, &mut bits, None, 0);
+            let bitmap =
+                CreateDIBSection(Some(canvas), &header, DIB_RGB_COLORS, &mut bits, None, 0);
 
             let pixels = bitmap.ok().and_then(|bitmap| {
                 let previous = SelectObject(canvas, HGDIOBJ(bitmap.0));
-                let drawn = DrawIconEx(
-                    canvas,
-                    0,
-                    0,
-                    icon,
-                    TRAY_SIZE,
-                    TRAY_SIZE,
-                    0,
-                    None,
-                    DI_NORMAL,
-                );
+                let drawn =
+                    DrawIconEx(canvas, 0, 0, icon, TRAY_SIZE, TRAY_SIZE, 0, None, DI_NORMAL);
 
                 SelectObject(canvas, previous);
 

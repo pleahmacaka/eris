@@ -72,10 +72,7 @@ pub fn machine_name() -> String {
 pub fn open_data_folder(app: tauri::AppHandle) -> Result<(), String> {
     use tauri::Manager;
 
-    let dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| e.to_string())?;
+    let dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
 
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
 

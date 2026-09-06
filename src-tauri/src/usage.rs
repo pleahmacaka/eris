@@ -146,9 +146,7 @@ pub fn bridge(chain: Option<String>) {
     let mut payload = String::new();
     let _ = std::io::stdin().read_to_string(&mut payload);
 
-    if let (Ok(parsed), Some(target)) =
-        (serde_json::from_str::<Value>(&payload), snapshot_path())
-    {
+    if let (Ok(parsed), Some(target)) = (serde_json::from_str::<Value>(&payload), snapshot_path()) {
         if let Some(snapshot) = snapshot_of(&parsed) {
             let _ = target.parent().map(std::fs::create_dir_all);
             let _ = std::fs::write(&target, snapshot.to_string());
