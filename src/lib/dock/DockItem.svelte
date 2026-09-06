@@ -8,6 +8,7 @@
   import {
     type DockGroup,
     iconFor,
+    refreshDock,
     toggleDockHidden,
     toggleDockPin,
   } from "./dock.svelte"
@@ -102,7 +103,8 @@
 
   const launch = () => native.launchApp(group.path).catch(() => undefined)
 
-  const activate = () => {
+  // the poll is a second behind, so the next click would judge a stale window list
+  const activate = async () => {
     const [first] = group.windows
 
     if (!first) {
@@ -114,10 +116,12 @@
     if (active) {
       const current = group.windows.find(w => w.hwnd === foreground) ?? first
 
-      return native.minimizeWindow(current.hwnd).catch(() => undefined)
+      await native.minimizeWindow(current.hwnd).catch(() => undefined)
+    } else {
+      await native.activateWindow(first.hwnd).catch(() => undefined)
     }
 
-    return native.activateWindow(first.hwnd).catch(() => undefined)
+    await refreshDock()
   }
 
   const closeAll = async () => {

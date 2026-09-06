@@ -144,6 +144,10 @@
     overflow: visible;
   }
 
+  :root[data-surface="overlay"] .siri-shell {
+    border-radius: var(--radius-box);
+  }
+
   :root[data-dock] .siri-shell {
     opacity: var(--dock-opacity, 1);
   }

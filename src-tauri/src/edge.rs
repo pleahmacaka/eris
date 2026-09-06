@@ -88,7 +88,7 @@ mod win {
                 continue;
             }
 
-            if stay_revealed(cursor, at_edge, window_rect(dock)) {
+            if stay_revealed(cursor, at_edge, band(dock)) {
                 left_band = None;
             } else if left_band.get_or_insert_with(Instant::now).elapsed() >= LINGER {
                 revealed = false;
@@ -132,6 +132,19 @@ mod win {
         }
 
         point
+    }
+
+    // the dock window keeps room above the band for menus, so reveal logic follows the band alone
+    fn band(dock: HWND) -> RECT {
+        match crate::appbar::dock_frame() {
+            Some([left, top, width, height]) => RECT {
+                left,
+                top,
+                right: left + width,
+                bottom: top + height,
+            },
+            None => window_rect(dock),
+        }
     }
 
     fn window_rect(hwnd: HWND) -> RECT {

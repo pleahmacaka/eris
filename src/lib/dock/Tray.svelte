@@ -172,6 +172,8 @@
   {#if device.showTrayIcons}
     <NotifyIcons
       {compact}
+      {onmenu}
+      edge={device.dockEdge}
       order={device.trayOrder}
       onreorder={order => saveDevice({ ...device, trayOrder: order })}
     />

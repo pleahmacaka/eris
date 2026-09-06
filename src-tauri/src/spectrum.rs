@@ -36,7 +36,9 @@ pub fn bands_from(samples: &[f32], rate: f32, previous: &mut [f32; BANDS]) -> [f
         })
         .collect();
 
-    FftPlanner::new().plan_fft_forward(size).process(&mut buffer);
+    FftPlanner::new()
+        .plan_fft_forward(size)
+        .process(&mut buffer);
 
     let bins = size / 2;
     let top = (rate / 2.0).min(16_000.0);
@@ -72,7 +74,7 @@ pub fn bands_from(samples: &[f32], rate: f32, previous: &mut [f32; BANDS]) -> [f
 
 #[cfg(target_os = "windows")]
 mod win {
-    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
     use std::time::Duration;
 
     use tauri::{AppHandle, Emitter};
@@ -93,11 +95,23 @@ mod win {
 
     static RUNNING: AtomicBool = AtomicBool::new(false);
 
+    // the dock and the media card both mount a view, so the capture outlives whichever closes first
+    static VIEWERS: AtomicUsize = AtomicUsize::new(0);
+
     pub fn stop() {
+        if VIEWERS.load(Ordering::Relaxed) > 1 {
+            VIEWERS.fetch_sub(1, Ordering::Relaxed);
+
+            return;
+        }
+
+        VIEWERS.store(0, Ordering::Relaxed);
         RUNNING.store(false, Ordering::Relaxed);
     }
 
     pub fn start(app: AppHandle) {
+        VIEWERS.fetch_add(1, Ordering::Relaxed);
+
         if RUNNING.swap(true, Ordering::Relaxed) {
             return;
         }
@@ -108,6 +122,7 @@ mod win {
             }
 
             RUNNING.store(false, Ordering::Relaxed);
+            VIEWERS.store(0, Ordering::Relaxed);
             let _ = app.emit("spectrum", [0.0f32; BANDS]);
         });
     }
@@ -221,9 +236,7 @@ mod tests {
     fn a_pure_tone_lands_in_one_band() {
         let rate = 48_000.0;
         let samples: Vec<f32> = (0..1024)
-            .map(|index| {
-                (std::f32::consts::TAU * 1_000.0 * index as f32 / rate).sin() * 0.5
-            })
+            .map(|index| (std::f32::consts::TAU * 1_000.0 * index as f32 / rate).sin() * 0.5)
             .collect();
 
         let mut previous = [0.0f32; BANDS];

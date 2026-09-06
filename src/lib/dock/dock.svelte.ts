@@ -150,14 +150,16 @@ export const dock = $state<{
   windows: [],
 })
 
-export const startDock = () => {
-  const refresh = async () => {
-    if (!dockAwake.visible) {
-      return
-    }
-
-    dock.windows = await listWindows().catch(() => [])
+export const refreshDock = async () => {
+  if (!dockAwake.visible) {
+    return
   }
+
+  dock.windows = await listWindows().catch(() => [])
+}
+
+export const startDock = () => {
+  const refresh = refreshDock
 
   pinnedApps()
     .then(list => {

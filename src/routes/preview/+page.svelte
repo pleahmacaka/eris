@@ -46,7 +46,7 @@
 
 <div
   role="presentation"
-  class="relative h-full w-full rounded-lg border border-base-content/10 bg-base-100/70 shadow-2xl backdrop-blur-2xl"
+  class="relative h-full w-full rounded-box bg-base-100/70 shadow-2xl ring-1 ring-base-content/10 ring-inset backdrop-blur-2xl"
   onmouseenter={() => setHover(true)}
   onmouseleave={() => setHover(false)}
 >

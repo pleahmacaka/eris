@@ -89,19 +89,32 @@ mod win {
             return;
         };
 
-        let (Ok(dock_position), Ok(dock_size), Ok(Some(monitor))) = (
-            dock.outer_position(),
-            dock.outer_size(),
-            dock.current_monitor(),
-        ) else {
+        let Ok(Some(monitor)) = dock.current_monitor() else {
             return;
+        };
+
+        // a menu extends the dock window upward, so anchor to the band it reserves instead
+        let [dock_left, dock_top, _, dock_height] = match crate::appbar::dock_frame() {
+            Some(frame) => frame,
+            None => {
+                let (Ok(position), Ok(size)) = (dock.outer_position(), dock.outer_size()) else {
+                    return;
+                };
+
+                [
+                    position.x,
+                    position.y,
+                    size.width as i32,
+                    size.height as i32,
+                ]
+            }
         };
 
         let (width, height) = layout(sources.len());
         let physical_width = (width * scale).round() as i32;
         let physical_height = (height * scale).round() as i32;
         let work = monitor.work_area();
-        let anchor = dock_position.x + (center * scale).round() as i32;
+        let anchor = dock_left + (center * scale).round() as i32;
         let left = (anchor - physical_width / 2)
             .max(work.position.x)
             .min(work.position.x + work.size.width as i32 - physical_width);
@@ -109,9 +122,9 @@ mod win {
         let gap = (DOCK_GAP * scale).round() as i32;
 
         let top = if crate::appbar::edge_is_top() {
-            dock_position.y + dock_size.height as i32 + gap
+            dock_top + dock_height + gap
         } else {
-            dock_position.y - gap - physical_height
+            dock_top - gap - physical_height
         };
 
         if preview
@@ -120,7 +133,9 @@ mod win {
                 physical_height as u32,
             ))
             .is_err()
-            || preview.set_position(PhysicalPosition::new(left, top)).is_err()
+            || preview
+                .set_position(PhysicalPosition::new(left, top))
+                .is_err()
         {
             return;
         }

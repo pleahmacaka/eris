@@ -46,6 +46,11 @@ pub fn dock_screen() -> Option<[i32; 4]> {
     *SCREEN.lock().unwrap()
 }
 
+#[cfg(target_os = "windows")]
+pub fn dock_frame() -> Option<[i32; 4]> {
+    win::base_frame()
+}
+
 pub fn stored_layout(app: &AppHandle) -> TaskbarLayout {
     let device = app
         .store("settings.json")
@@ -130,7 +135,7 @@ pub fn shell_tray() -> Option<isize> {
 
 #[cfg(target_os = "windows")]
 mod win {
-    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
     use std::sync::mpsc::{channel, RecvTimeoutError, Sender};
     use std::sync::{Mutex, OnceLock};
     use std::thread::JoinHandle;
@@ -140,22 +145,23 @@ mod win {
     use tauri_plugin_store::StoreExt;
     use windows::core::w;
     use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, RECT, WPARAM};
+    use windows::Win32::Graphics::Gdi::{CreateRectRgn, SetWindowRgn};
+    use windows::Win32::System::Threading::GetCurrentProcessId;
     use windows::Win32::UI::Shell::{
         DefSubclassProc, SHAppBarMessage, SetWindowSubclass, ABE_BOTTOM, ABE_TOP, ABM_GETSTATE,
         ABM_NEW, ABM_QUERYPOS, ABM_REMOVE, ABM_SETAUTOHIDEBAR, ABM_SETPOS, ABM_SETSTATE,
         ABN_POSCHANGED, ABS_AUTOHIDE, APPBARDATA,
     };
-    use windows::Win32::System::Threading::GetCurrentProcessId;
     use windows::Win32::UI::WindowsAndMessaging::{
         FindWindowExW, GetWindowThreadProcessId, RegisterWindowMessageW, SetWindowPos, ShowWindow,
-        HWND_TOPMOST, SWP_NOZORDER,
-        MA_NOACTIVATE, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SW_HIDE, SW_SHOW, WM_DISPLAYCHANGE,
-        WM_DPICHANGED, WM_MOUSEACTIVATE,
+        HWND_TOPMOST, MA_NOACTIVATE, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SW_HIDE, SW_SHOW,
+        WM_DISPLAYCHANGE, WM_DPICHANGED, WM_MOUSEACTIVATE,
     };
 
     use super::TaskbarLayout;
 
     const CALLBACK_MESSAGE: u32 = 0x8000 + 1;
+    const MENU_SPACE: f64 = 520.0;
     const HIDE_POLL: Duration = Duration::from_millis(500);
     const SHELL_STATE_KEY: &str = "shellTaskbarState";
 
@@ -165,6 +171,7 @@ mod win {
     static APP: OnceLock<AppHandle> = OnceLock::new();
     static HIDER: Mutex<Option<(Sender<()>, JoinHandle<()>)>> = Mutex::new(None);
     static BASE: Mutex<Option<Frame>> = Mutex::new(None);
+    static REACH: AtomicI32 = AtomicI32::new(0);
 
     #[derive(Clone, Copy)]
     struct Frame {
@@ -264,19 +271,34 @@ mod win {
         let (left, width) = span(&data.rc, layout.floating, width);
         let top = offset(&data.rc, edge == ABE_TOP, margin, height);
 
-        *BASE.lock().unwrap() = Some(Frame {
+        let frame = Frame {
             left,
             top,
             width,
             height,
             scale,
             top_edge: edge == ABE_TOP,
-        });
+        };
 
-        window.set_position(PhysicalPosition::new(left, top))?;
-        window.set_size(PhysicalSize::new(width as u32, height as u32))?;
+        *BASE.lock().unwrap() = Some(frame);
+
+        // menus live inside this window, so it keeps room above the band and clips the rest away
+        let room = (MENU_SPACE * scale).round() as i32;
+        let frame_top = if frame.top_edge { top } else { top - room };
+
+        window.set_position(PhysicalPosition::new(left, frame_top))?;
+        window.set_size(PhysicalSize::new(width as u32, (height + room) as u32))?;
+
+        REACH.store(0, Ordering::Relaxed);
+        shape(window.hwnd()?, &frame);
 
         Ok(())
+    }
+
+    pub fn base_frame() -> Option<[i32; 4]> {
+        BASE.lock()
+            .unwrap()
+            .map(|frame| [frame.left, frame.top, frame.width, frame.height])
     }
 
     pub fn extend(window: &WebviewWindow, px: f64) -> tauri::Result<()> {
@@ -284,27 +306,30 @@ mod win {
             return Ok(());
         };
 
-        let extra = (px.max(0.0) * frame.scale).round() as i32;
+        REACH.store(
+            (px.max(0.0) * frame.scale).round() as i32,
+            Ordering::Relaxed,
+        );
+        shape(window.hwnd()?, &frame);
 
-        let top = if frame.top_edge {
-            frame.top
+        Ok(())
+    }
+
+    // the window stays tall for menus, so its region is what the desktop sees and what takes the mouse
+    fn shape(hwnd: HWND, frame: &Frame) {
+        let room = (MENU_SPACE * frame.scale).round() as i32;
+        let reach = REACH.load(Ordering::Relaxed).min(room);
+
+        let (top, bottom) = if frame.top_edge {
+            (0, frame.height + reach)
         } else {
-            frame.top - extra
+            (room - reach, room + frame.height)
         };
 
         unsafe {
-            let _ = SetWindowPos(
-                window.hwnd()?,
-                None,
-                frame.left,
-                top,
-                frame.width,
-                frame.height + extra,
-                SWP_NOZORDER | SWP_NOACTIVATE,
-            );
+            let region = CreateRectRgn(0, top, frame.width, bottom);
+            let _ = SetWindowRgn(hwnd, Some(region), true);
         }
-
-        Ok(())
     }
 
     pub fn raise(window: &WebviewWindow) {
