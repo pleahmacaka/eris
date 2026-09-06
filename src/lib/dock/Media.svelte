@@ -155,6 +155,14 @@
   const subtitle = $derived(
     status ? [status.artist, status.app].filter(Boolean).join(" · ") : "",
   )
+
+  const BAR_WIDTH = 10
+
+  let stripWidth = $state(0)
+  let cardWidth = $state(0)
+
+  const stripBars = $derived(Math.max(4, Math.floor(stripWidth / BAR_WIDTH)))
+  const cardBars = $derived(Math.max(4, Math.floor(cardWidth / BAR_WIDTH)))
 </script>
 
 <svelte:window {onmousedown} {onkeydown} />
@@ -162,13 +170,28 @@
 {#if status}
   <div class="relative" data-media>
     <div
+      bind:clientWidth={stripWidth}
       class={[
-        "flex items-center gap-0.5 rounded-field border border-base-content/10 px-0.5 transition-colors duration-150",
+        "relative isolate flex items-center gap-0.5 overflow-hidden rounded-field border border-base-content/10 px-0.5 transition-colors duration-150",
         open ? "bg-base-content/10" : "bg-base-content/5 hover:bg-base-content/10",
       ]}
       role="group"
       aria-label="Media"
     >
+      {#if spectrum && status.playing}
+        <div
+          class="pointer-events-none absolute inset-x-0 bottom-0 -z-10 flex justify-center opacity-45"
+        >
+          <Spectrum
+            style={spectrumStyle}
+            bars={stripBars}
+            height={28}
+            gap={0}
+            width={BAR_WIDTH}
+          />
+        </div>
+      {/if}
+
       <button
         class="btn btn-ghost btn-square btn-xs"
         title="Previous"
@@ -199,25 +222,7 @@
         <Icon icon="lucide:skip-forward" class="size-3.5" />
       </button>
 
-      {#if spectrum && status.playing}
-        <button
-          class="flex items-center gap-1.5 rounded-field px-1.5 py-1"
-          title={label}
-          aria-label="Now playing"
-          aria-haspopup="dialog"
-          aria-expanded={open}
-          onclick={() => setOpen(!open)}
-          {onwheel}
-        >
-          <Spectrum style={spectrumStyle} bars={12} height={14} />
-
-          {#if !compact && status.title}
-            <span class="max-w-24 truncate text-xs text-base-content/70">
-              {status.title}
-            </span>
-          {/if}
-        </button>
-      {:else if !compact && status.title}
+      {#if !compact && status.title}
         <button
           class="max-w-28 truncate rounded-field px-1.5 py-1 text-xs text-base-content/70"
           title={label}
@@ -246,13 +251,28 @@
     {#if open}
       <div
         bind:this={popover}
+        bind:clientWidth={cardWidth}
         class={[
-          "absolute left-0 z-50 w-80 rounded-box border border-base-content/10 bg-base-100/90 p-3 shadow-xl backdrop-blur-xl",
+          "absolute left-0 isolate z-50 w-80 overflow-hidden rounded-box border border-base-content/10 bg-base-100/90 p-3 shadow-xl backdrop-blur-xl",
           edge === "top" ? "top-full mt-2" : "bottom-full mb-2",
         ]}
         role="dialog"
         aria-label="Now playing"
       >
+        {#if spectrum && status.playing}
+          <div
+            class="pointer-events-none absolute inset-x-0 bottom-0 -z-10 flex justify-center opacity-30"
+          >
+            <Spectrum
+              style={spectrumStyle}
+              bars={cardBars}
+              height={110}
+              gap={0}
+              width={BAR_WIDTH}
+            />
+          </div>
+        {/if}
+
         <p class="truncate text-sm font-medium">
           {status.title || "재생 없음"}
         </p>
@@ -260,12 +280,6 @@
         <p class="mt-0.5 truncate text-xs text-base-content/55">
           {subtitle || "정보 없음"}
         </p>
-
-        {#if spectrum}
-          <div class="mt-3 flex justify-center rounded-field bg-base-content/5 p-2">
-            <Spectrum style={spectrumStyle} bars={28} height={40} gap={3} />
-          </div>
-        {/if}
 
         <div class="mt-3 flex items-center justify-center gap-1">
           <button

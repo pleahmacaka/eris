@@ -842,11 +842,6 @@
                   {/each}
                 </span>
 
-                {#if item.subtitle}
-                  <span class="block truncate text-xs text-base-content/55">
-                    {item.subtitle}
-                  </span>
-                {/if}
               </span>
             </button>
 
@@ -900,15 +895,11 @@
         </div>
       {/each}
     </div>
-  </div>
 
-  <footer
-    data-launcher
-    class={[
-      "items-center justify-between gap-3 px-2 text-xs text-base-content/50",
-      device.showKeymap || error || query ? "flex" : "hidden",
-    ]}
-  >
+    <footer
+      data-launcher
+      class="flex h-7 shrink-0 items-center justify-between gap-3 overflow-hidden border-t border-base-content/10 px-3 text-xs text-base-content/50"
+    >
     {#if error}
       <span class="truncate text-error">{error}</span>
     {:else if query}
@@ -917,7 +908,7 @@
         {flat.length === 1 ? "result" : "results"}
       </span>
     {:else if device.showKeymap}
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <div class="flex items-center gap-x-3 overflow-hidden">
         {#each HINTS as [key, label] (key)}
           <button
             type="button"
@@ -956,7 +947,8 @@
         <kbd class="kbd kbd-xs">Tab</kbd> Groups
       </span>
     {/if}
-  </footer>
+    </footer>
+  </div>
 
   <ContextMenu
     bind:open={backdropMenu}

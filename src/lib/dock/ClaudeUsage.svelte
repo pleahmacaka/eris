@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { claudeIcon } from "$lib/claude-icon"
   import { http } from "$lib/http"
   import { type ClaudeUsage, claudeUsage } from "$lib/native"
 
@@ -81,7 +82,7 @@
     aria-label={label}
     role="status"
   >
-    <Icon icon="lucide:sparkles" class="size-3.5 shrink-0 text-primary/80" />
+    <Icon icon={claudeIcon} class="size-3.5 shrink-0 text-primary/80" />
 
     <div class="flex items-center gap-1.5">
       {#each [["5h", usage.fiveHour], ["7d", usage.sevenDay]] as const as [name, window] (name)}

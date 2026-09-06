@@ -8,9 +8,16 @@
     bars?: number
     height?: number
     gap?: number
+    width?: number
   }
 
-  let { style = "bars", bars = 24, height = 18, gap = 2 }: Props = $props()
+  let {
+    style = "bars",
+    bars = 24,
+    height = 18,
+    gap = 2,
+    width = 4,
+  }: Props = $props()
 
   let levels = $state<number[]>([])
 
@@ -54,14 +61,16 @@
   {#each shown as level, index (index)}
     {#if style === "dots"}
       <span
-        class="w-1 shrink-0 rounded-full bg-primary transition-[height,opacity] duration-75"
+        class="shrink-0 rounded-full bg-primary transition-[height,opacity] duration-75"
+        style:width="{width}px"
         style:height="{Math.max(2, Math.round(level * 4) + 2)}px"
         style:opacity={0.25 + level * 0.75}
         style:margin-bottom="{Math.round(level * (height - 4))}px"
       ></span>
     {:else if style === "mirror"}
       <span
-        class="flex w-1 shrink-0 flex-col items-center justify-center gap-px"
+        class="flex shrink-0 flex-col items-center justify-center gap-px"
+        style:width="{width}px"
         style:height="{height}px"
       >
         <span
@@ -76,12 +85,14 @@
       </span>
     {:else if style === "wave"}
       <span
-        class="w-1 shrink-0 rounded-full bg-gradient-to-t from-primary/30 to-primary transition-[height] duration-100"
+        class="shrink-0 rounded-full bg-gradient-to-t from-primary/30 to-primary transition-[height] duration-100"
+        style:width="{width}px"
         style:height="{size(level)}px"
       ></span>
     {:else}
       <span
-        class="w-1 shrink-0 rounded-sm bg-primary transition-[height] duration-75"
+        class="shrink-0 rounded-sm bg-primary transition-[height] duration-75"
+        style:width="{width}px"
         style:height="{size(level)}px"
         style:opacity={0.45 + level * 0.55}
       ></span>
