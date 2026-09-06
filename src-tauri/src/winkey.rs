@@ -1,17 +1,14 @@
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, OnceLock};
 use std::time::Instant;
 
-const HELD_TIMEOUT: u64 = 3_000;
-const LONE_WINDOW: u64 = 1_200;
-const COMBO_GUARD: u64 = 1_500;
+const LONE_LIMIT: u64 = 3_000;
+const HOLD_LIMIT: u64 = 5_000;
 const LWIN_BIT: u8 = 1;
 const RWIN_BIT: u8 = 2;
 
 static CAPTURE: AtomicBool = AtomicBool::new(false);
 static KEYS: Mutex<Keys> = Mutex::new(Keys::IDLE);
-static LAST_COMBO: AtomicU64 = AtomicU64::new(0);
-static LAST_LONE: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 struct Keys {
@@ -36,16 +33,25 @@ impl Keys {
     };
 
     fn stale(self, now: u64) -> bool {
-        now.saturating_sub(self.since) >= HELD_TIMEOUT
+        now.saturating_sub(self.since) >= LONE_LIMIT
+    }
+
+    // the win down never reaches the os, so the key state cannot confirm the hold: age it out instead
+    fn expired(self, now: u64) -> bool {
+        now.saturating_sub(self.since) >= HOLD_LIMIT
     }
 
     fn win_down(self, bit: u8, now: u64) -> Self {
-        if self.mask == 0 || (self.stale(now) && !self.combo) {
+        if self.expired(now) || self.mask == 0 {
             return Self {
                 mask: bit,
                 since: now,
                 combo: false,
             };
+        }
+
+        if self.mask & bit != 0 {
+            return self;
         }
 
         Self {
@@ -55,11 +61,25 @@ impl Keys {
     }
 
     fn other_down(self, now: u64) -> (Self, bool) {
-        if self.mask == 0 || self.combo || self.stale(now) {
+        if self.mask == 0 {
             return (self, false);
         }
 
-        (Self { combo: true, ..self }, true)
+        if self.expired(now) {
+            return (Self::IDLE, false);
+        }
+
+        if self.combo {
+            return (self, false);
+        }
+
+        (
+            Self {
+                combo: true,
+                ..self
+            },
+            true,
+        )
     }
 
     fn win_up(self, bit: u8, now: u64) -> (Self, WinUp) {
@@ -89,14 +109,6 @@ impl Keys {
     }
 }
 
-fn fresh(stamp: u64, now: u64, window: u64) -> bool {
-    stamp != 0 && now.saturating_sub(stamp) < window
-}
-
-fn fallback_due(now: u64, last_lone: u64, last_combo: u64) -> bool {
-    fresh(last_lone, now, LONE_WINDOW) && !fresh(last_combo, now, COMBO_GUARD)
-}
-
 fn now() -> u64 {
     static ORIGIN: OnceLock<Instant> = OnceLock::new();
 
@@ -107,12 +119,11 @@ fn now() -> u64 {
 pub fn set_win_key_capture(enabled: bool) {
     CAPTURE.store(enabled, Ordering::Relaxed);
     *KEYS.lock().unwrap() = Keys::IDLE;
-    LAST_LONE.store(0, Ordering::Relaxed);
-    LAST_COMBO.store(0, Ordering::Relaxed);
+    release();
 }
 
 #[cfg(target_os = "windows")]
-pub use win::{chord, install, tap};
+pub use win::{chord, install, release, tap};
 
 #[cfg(not(target_os = "windows"))]
 pub fn install(_app: tauri::AppHandle) {}
@@ -120,47 +131,37 @@ pub fn install(_app: tauri::AppHandle) {}
 #[cfg(not(target_os = "windows"))]
 pub fn chord<T>(_keys: &[T]) {}
 
+#[cfg(not(target_os = "windows"))]
+pub fn tap<T>(_key: T) {}
+
+#[cfg(not(target_os = "windows"))]
+pub fn release() {}
+
 #[cfg(target_os = "windows")]
 mod win {
-    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::atomic::{AtomicU16, Ordering};
     use std::sync::mpsc::{sync_channel, SyncSender};
     use std::sync::OnceLock;
 
     use tauri::AppHandle;
-    use windows::core::PWSTR;
-    use windows::Win32::Foundation::{CloseHandle, HWND, LPARAM, LRESULT, WPARAM};
-    use windows::Win32::System::Threading::{
-        OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32,
-        PROCESS_QUERY_LIMITED_INFORMATION,
-    };
-    use windows::Win32::UI::Accessibility::{SetWinEventHook, HWINEVENTHOOK};
+    use windows::Win32::Foundation::{LPARAM, LRESULT, WPARAM};
     use windows::Win32::UI::Input::KeyboardAndMouse::{
         GetAsyncKeyState, SendInput, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT, KEYBD_EVENT_FLAGS,
-        KEYEVENTF_EXTENDEDKEY, KEYEVENTF_KEYUP, VIRTUAL_KEY, VK_CONTROL, VK_ESCAPE, VK_LWIN,
-        VK_RWIN,
+        KEYEVENTF_EXTENDEDKEY, KEYEVENTF_KEYUP, VIRTUAL_KEY, VK_LWIN, VK_RWIN,
     };
     use windows::Win32::UI::WindowsAndMessaging::{
-        CallNextHookEx, DispatchMessageW, GetForegroundWindow, GetMessageW,
-        GetWindowThreadProcessId, SetWindowsHookExW, TranslateMessage, UnhookWindowsHookEx,
-        EVENT_SYSTEM_FOREGROUND, KBDLLHOOKSTRUCT, LLKHF_EXTENDED, MSG, WH_KEYBOARD_LL,
-        WINEVENT_OUTOFCONTEXT, WINEVENT_SKIPOWNPROCESS, WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN,
-        WM_SYSKEYUP,
+        CallNextHookEx, DispatchMessageW, GetMessageW, SetWindowsHookExW, TranslateMessage,
+        UnhookWindowsHookEx, KBDLLHOOKSTRUCT, LLKHF_EXTENDED, MSG, WH_KEYBOARD_LL, WM_KEYDOWN,
+        WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP,
     };
 
-    use super::{fallback_due, now, WinUp, CAPTURE, KEYS, LAST_COMBO, LAST_LONE, LWIN_BIT, RWIN_BIT};
+    use super::{now, WinUp, CAPTURE, KEYS, LWIN_BIT, RWIN_BIT};
 
     const TAG: usize = 0x4552_4953;
-    const SHELL_UI: [&str; 2] = ["StartMenuExperienceHost.exe", "SearchHost.exe"];
+    const RELEASE_TRIES: usize = 2;
 
-    static PRESSED: [AtomicBool; 256] = [const { AtomicBool::new(false) }; 256];
-
-    #[derive(Clone, Copy)]
-    enum Event {
-        Toggle,
-        ShellUi,
-    }
-
-    static EVENTS: OnceLock<SyncSender<Event>> = OnceLock::new();
+    static EVENTS: OnceLock<SyncSender<()>> = OnceLock::new();
+    static OPEN_KEY: AtomicU16 = AtomicU16::new(0);
 
     fn stroke(key: VIRTUAL_KEY, scan: u16, flags: KEYBD_EVENT_FLAGS) -> INPUT {
         INPUT {
@@ -217,15 +218,11 @@ mod win {
         }
     }
 
-    fn repeated(vk: u32) -> bool {
-        PRESSED
-            .get(vk as usize)
-            .is_some_and(|slot| slot.swap(true, Ordering::Relaxed))
-    }
-
-    fn released(vk: u32) {
-        if let Some(slot) = PRESSED.get(vk as usize) {
-            slot.store(false, Ordering::Relaxed);
+    fn win_key(mask: u8) -> VIRTUAL_KEY {
+        if mask & LWIN_BIT != 0 {
+            VK_LWIN
+        } else {
+            VK_RWIN
         }
     }
 
@@ -238,9 +235,9 @@ mod win {
     }
 
     // the shell opens Start on a win key it saw go down, so hand it the down only once a combo needs it
-    fn open_combo(event: &KBDLLHOOKSTRUCT) -> bool {
+    fn open_combo(win: VIRTUAL_KEY, event: &KBDLLHOOKSTRUCT) -> bool {
         let inputs = [
-            stroke(VK_LWIN, 0, KEYEVENTF_EXTENDEDKEY),
+            stroke(win, 0, KEYEVENTF_EXTENDEDKEY),
             stroke(
                 VIRTUAL_KEY(event.vkCode as u16),
                 event.scanCode as u16,
@@ -248,21 +245,44 @@ mod win {
             ),
         ];
 
-        send(&inputs) == inputs.len() as u32
+        OPEN_KEY.store(win.0, Ordering::Relaxed);
+
+        if send(&inputs) == inputs.len() as u32 {
+            return true;
+        }
+
+        release();
+
+        false
     }
 
-    fn close_combo() {
-        send(&[stroke(
-            VK_LWIN,
-            0,
-            KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP,
-        )]);
+    // UIPI drops an injection without saying so in the return value, so confirm the key came back up
+    pub fn release() {
+        let vk = OPEN_KEY.load(Ordering::Relaxed);
+
+        if vk == 0 {
+            return;
+        }
+
+        let key = VIRTUAL_KEY(vk);
+
+        for _ in 0..RELEASE_TRIES {
+            send(&[stroke(key, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP)]);
+
+            if !key_down(key) {
+                OPEN_KEY.store(0, Ordering::Relaxed);
+
+                return;
+            }
+        }
+
+        crate::trace("injected win key is still down after release");
     }
 
-    // ponytail: hook callbacks must return within LowLevelHooksTimeout, so only hand off here
-    fn notify(event: Event) {
+    // hook callbacks must return within LowLevelHooksTimeout, so only hand off here
+    fn notify() {
         if let Some(sender) = EVENTS.get() {
-            let _ = sender.try_send(event);
+            let _ = sender.try_send(());
         }
     }
 
@@ -284,28 +304,41 @@ mod win {
         match wparam.0 as u32 {
             WM_KEYDOWN | WM_SYSKEYDOWN if bit != 0 => {
                 let mut keys = KEYS.lock().unwrap();
-
-                *keys = keys.win_down(bit, stamp);
-
-                return LRESULT(1);
-            }
-            WM_KEYDOWN | WM_SYSKEYDOWN => {
-                if repeated(event.vkCode) {
-                    return unsafe { CallNextHookEx(None, code, wparam, lparam) };
-                }
-
-                let mut keys = KEYS.lock().unwrap();
-                let (next, opening) = keys.other_down(stamp);
+                let next = keys.win_down(bit, stamp);
+                let dropped = keys.combo && !next.combo;
 
                 *keys = next;
                 drop(keys);
 
-                if next.combo || (key == VK_ESCAPE && key_down(VK_CONTROL)) {
-                    LAST_COMBO.store(stamp, Ordering::Relaxed);
+                if dropped {
+                    release();
                 }
 
-                if opening && open_combo(event) {
-                    return LRESULT(1);
+                return LRESULT(1);
+            }
+            WM_KEYDOWN | WM_SYSKEYDOWN => {
+                let mut keys = KEYS.lock().unwrap();
+                let (next, opening) = keys.other_down(stamp);
+
+                if !opening {
+                    let dropped = keys.combo && !next.combo;
+
+                    *keys = next;
+                    drop(keys);
+
+                    if dropped {
+                        release();
+                    }
+                } else {
+                    *keys = next;
+
+                    let opened = open_combo(win_key(next.mask), event);
+
+                    drop(keys);
+
+                    if opened {
+                        return LRESULT(1);
+                    }
                 }
             }
             WM_KEYUP | WM_SYSKEYUP if bit != 0 => {
@@ -319,133 +352,21 @@ mod win {
                     WinUp::Pass => {}
                     WinUp::Swallow => return LRESULT(1),
                     WinUp::Release => {
-                        close_combo();
+                        release();
 
                         return LRESULT(1);
                     }
                     WinUp::Lone => {
-                        arm_fallback();
-                        LAST_LONE.store(stamp, Ordering::Relaxed);
-                        notify(Event::Toggle);
+                        notify();
 
                         return LRESULT(1);
                     }
                 }
             }
-            WM_KEYUP | WM_SYSKEYUP => released(event.vkCode),
             _ => {}
         }
 
         unsafe { CallNextHookEx(None, code, wparam, lparam) }
-    }
-
-    fn process_name(hwnd: HWND) -> String {
-        let mut pid = 0u32;
-
-        unsafe { GetWindowThreadProcessId(hwnd, Some(&mut pid)) };
-
-        let Ok(process) = (unsafe { OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid) })
-        else {
-            return String::new();
-        };
-
-        let mut buffer = [0u16; 1024];
-        let mut length = buffer.len() as u32;
-
-        let query = unsafe {
-            QueryFullProcessImageNameW(
-                process,
-                PROCESS_NAME_WIN32,
-                PWSTR(buffer.as_mut_ptr()),
-                &mut length,
-            )
-        };
-
-        unsafe {
-            let _ = CloseHandle(process);
-        }
-
-        if query.is_err() {
-            return String::new();
-        }
-
-        let path = String::from_utf16_lossy(&buffer[..length as usize]);
-
-        path.rsplit('\\').next().unwrap_or_default().to_string()
-    }
-
-    fn is_shell(hwnd: HWND) -> bool {
-        let name = process_name(hwnd);
-
-        SHELL_UI
-            .iter()
-            .any(|shell| name.eq_ignore_ascii_case(shell))
-    }
-
-    // armed here so it stays off until capture is on, and this thread is the one pumping messages
-    fn arm_fallback() {
-        static ARMED: OnceLock<()> = OnceLock::new();
-
-        if ARMED.set(()).is_err() {
-            return;
-        }
-
-        unsafe {
-            SetWinEventHook(
-                EVENT_SYSTEM_FOREGROUND,
-                EVENT_SYSTEM_FOREGROUND,
-                None,
-                Some(foreground_hook),
-                0,
-                0,
-                WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS,
-            )
-        };
-    }
-
-    // ponytail: a tap the hook never sees still reaches the shell, so foreground changes are the fallback
-    unsafe extern "system" fn foreground_hook(
-        _hook: HWINEVENTHOOK,
-        _event: u32,
-        hwnd: HWND,
-        _object: i32,
-        _child: i32,
-        _thread: u32,
-        _time: u32,
-    ) {
-        if !CAPTURE.load(Ordering::Relaxed) {
-            return;
-        }
-
-        let due = fallback_due(
-            now(),
-            LAST_LONE.load(Ordering::Relaxed),
-            LAST_COMBO.load(Ordering::Relaxed),
-        );
-
-        if !due || !is_shell(hwnd) {
-            return;
-        }
-
-        LAST_LONE.store(0, Ordering::Relaxed);
-        notify(Event::ShellUi);
-    }
-
-    fn handle(app: &AppHandle, event: Event) {
-        match event {
-            Event::Toggle => {
-                crate::trace("toggle");
-                crate::windowing::toggle(app, "main");
-            }
-            Event::ShellUi => {
-                if is_shell(unsafe { GetForegroundWindow() }) {
-                    tap(VK_ESCAPE);
-                }
-
-                crate::trace("shell ui dismissed");
-                crate::windowing::show(app, "main");
-            }
-        }
     }
 
     pub fn install(app: AppHandle) {
@@ -453,8 +374,8 @@ mod win {
         let _ = EVENTS.set(sender);
 
         std::thread::spawn(move || {
-            while let Ok(event) = receiver.recv() {
-                handle(&app, event);
+            while receiver.recv().is_ok() {
+                crate::windowing::toggle(&app, "main");
             }
         });
 
@@ -484,7 +405,9 @@ mod win {
 
 #[cfg(test)]
 mod tests {
-    use super::{fallback_due, Keys, WinUp, COMBO_GUARD, HELD_TIMEOUT, LONE_WINDOW, LWIN_BIT, RWIN_BIT};
+    use super::{Keys, WinUp, HOLD_LIMIT, LONE_LIMIT, LWIN_BIT, RWIN_BIT};
+
+    const BOTH: u8 = LWIN_BIT | RWIN_BIT;
 
     #[test]
     fn a_lone_win_tap_is_lone() {
@@ -492,8 +415,14 @@ mod tests {
         let (next, action) = keys.win_up(LWIN_BIT, 180);
 
         assert_eq!(action, WinUp::Lone);
-        assert_eq!(next.mask, 0);
-        assert!(!next.combo);
+        assert_eq!(
+            next,
+            Keys {
+                mask: 0,
+                since: 100,
+                combo: false
+            }
+        );
     }
 
     #[test]
@@ -530,45 +459,71 @@ mod tests {
     }
 
     #[test]
-    fn held_state_expires_so_a_later_key_is_not_a_combo() {
-        let keys = Keys::IDLE.win_down(LWIN_BIT, 0);
+    fn auto_repeat_never_re_anchors_the_hold() {
+        let mut keys = Keys::IDLE.win_down(LWIN_BIT, 0);
 
-        assert!(!keys.other_down(HELD_TIMEOUT).1);
-        assert_eq!(keys.win_down(LWIN_BIT, HELD_TIMEOUT).since, HELD_TIMEOUT);
+        for stamp in (33..LONE_LIMIT + 33).step_by(33) {
+            keys = keys.win_down(LWIN_BIT, stamp);
+        }
 
-        let (_, action) = keys.win_up(LWIN_BIT, HELD_TIMEOUT);
+        assert_eq!(keys.since, 0);
+
+        let (_, action) = keys.win_up(LWIN_BIT, LONE_LIMIT + 66);
 
         assert_eq!(action, WinUp::Swallow);
     }
 
     #[test]
-    fn an_open_combo_outlives_the_timeout_so_the_win_key_is_released() {
+    fn a_hold_past_the_tap_window_still_opens_a_combo() {
         let keys = Keys::IDLE.win_down(LWIN_BIT, 0);
-        let (keys, _) = keys.other_down(120);
-        let (_, action) = keys.win_up(LWIN_BIT, HELD_TIMEOUT * 2);
+        let (keys, opening) = keys.other_down(LONE_LIMIT + 500);
+
+        assert!(opening);
+
+        let (_, action) = keys.win_up(LWIN_BIT, LONE_LIMIT + 800);
 
         assert_eq!(action, WinUp::Release);
     }
 
     #[test]
-    fn both_win_keys_produce_one_lone_up() {
-        let keys = Keys::IDLE.win_down(LWIN_BIT, 100).win_down(RWIN_BIT, 120);
-        let (keys, first) = keys.win_up(LWIN_BIT, 200);
-        let (keys, second) = keys.win_up(RWIN_BIT, 220);
+    fn a_hold_we_lost_the_up_for_never_opens_a_combo() {
+        let keys = Keys::IDLE.win_down(LWIN_BIT, 0);
+        let (keys, opening) = keys.other_down(HOLD_LIMIT);
 
-        assert_eq!(first, WinUp::Swallow);
-        assert_eq!(second, WinUp::Lone);
-        assert_eq!(keys.mask, 0);
+        assert!(!opening);
+        assert_eq!(keys, Keys::IDLE);
     }
 
     #[test]
-    fn the_fallback_needs_a_recent_lone_up_and_no_recent_combo() {
-        let now = 10_000;
+    fn an_expired_hold_restarts_on_the_next_win_down() {
+        let keys = Keys::IDLE.win_down(LWIN_BIT, 0);
+        let (keys, _) = keys.other_down(120);
 
-        assert!(fallback_due(now, now - 900, 0));
-        assert!(!fallback_due(now, 0, 0));
-        assert!(!fallback_due(now, now - LONE_WINDOW, 0));
-        assert!(!fallback_due(now, now - 900, now - COMBO_GUARD + 1));
-        assert!(fallback_due(now, now - 900, now - COMBO_GUARD));
+        assert!(keys.combo);
+
+        let keys = keys.win_down(LWIN_BIT, HOLD_LIMIT);
+
+        assert_eq!(
+            keys,
+            Keys {
+                mask: LWIN_BIT,
+                since: HOLD_LIMIT,
+                combo: false
+            }
+        );
+    }
+
+    #[test]
+    fn the_second_win_key_keeps_the_first_one_held() {
+        let keys = Keys::IDLE.win_down(LWIN_BIT, 100).win_down(RWIN_BIT, 120);
+
+        assert_eq!(keys.mask, BOTH);
+        assert_eq!(keys.since, 100);
+
+        let (keys, first) = keys.win_up(LWIN_BIT, 200);
+        let (_, second) = keys.win_up(RWIN_BIT, 220);
+
+        assert_eq!(first, WinUp::Swallow);
+        assert_eq!(second, WinUp::Lone);
     }
 }
