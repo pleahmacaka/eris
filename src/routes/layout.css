@@ -7,6 +7,10 @@
 @theme {
   --font-sans: "Pretendard Variable", Pretendard, system-ui, sans-serif;
   --font-mono: "Pretendard Variable", Pretendard, system-ui, sans-serif;
+  --blur-md: calc(12px * var(--blur-scale));
+  --blur-xl: calc(24px * var(--blur-scale));
+  --blur-2xl: calc(40px * var(--blur-scale));
+  --blur-3xl: calc(64px * var(--blur-scale));
 }
 
 @plugin "daisyui/theme" {
@@ -144,8 +148,18 @@
     overflow: visible;
   }
 
+  :root[data-surface="dock"] .siri-aura,
+  :root[data-surface="dock"] .siri-orb,
+  :root[data-surface="dock"] .siri-veil {
+    animation: none;
+  }
+
   :root[data-surface="overlay"] .siri-shell {
     border-radius: var(--radius-box);
+  }
+
+  :root[data-surface="overlay"] .siri-aura {
+    display: none;
   }
 
   :root[data-dock] .siri-shell {
@@ -231,7 +245,6 @@
       oklch(var(--aura-l2) 0.01 var(--accent-hue) / 0.62) 70%,
       oklch(var(--aura-l3) 0.008 var(--accent-hue) / 0.45) 100%
     );
-    backdrop-filter: blur(calc(1.6rem * var(--blur-scale))) saturate(1.5);
     mask-image: radial-gradient(
       82% 78% at 50% 50%,
       black 55%,
@@ -251,12 +264,11 @@
     border-radius: 50%;
     opacity: var(--glow);
     --hue: calc(var(--accent-hue) + var(--offset) * var(--accent-spread) / 120);
-    filter: blur(calc(var(--size) / 3.2));
     background: radial-gradient(
-      circle at 38% 34%,
+      closest-side,
       oklch(var(--aura-orb-l) calc(var(--vividness) * 0.7) var(--hue) / 0.5),
-      oklch(60% var(--vividness) var(--hue) / 0.42) 45%,
-      oklch(45% var(--vividness) var(--hue) / 0) 72%
+      oklch(60% var(--vividness) var(--hue) / 0.3) 40%,
+      oklch(45% var(--vividness) var(--hue) / 0) 100%
     );
     animation:
       siri-orbit var(--dur) ease-in-out var(--delay) infinite alternate,
@@ -279,7 +291,6 @@
     background:
       radial-gradient(120% 90% at 50% -20%, var(--veil-sheen), transparent 60%),
       radial-gradient(100% 80% at 50% 120%, var(--veil-shade), transparent 65%);
-    backdrop-filter: blur(calc(1.125rem * var(--blur-scale))) saturate(1.3);
     mask-image: radial-gradient(78% 70% at 50% 50%, black 55%, transparent 100%);
     animation: siri-sheen 14s ease-in-out infinite alternate;
   }

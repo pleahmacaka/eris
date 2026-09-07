@@ -233,6 +233,10 @@ mod win {
     }
 
     fn set_visible(app: &AppHandle, dock: HWND, visible: bool) {
+        if visible {
+            crate::windowing::webview_visible(app, "taskbar", true);
+        }
+
         unsafe {
             if visible {
                 let _ = SetWindowPos(
@@ -247,6 +251,10 @@ mod win {
             } else {
                 let _ = ShowWindow(dock, SW_HIDE);
             }
+        }
+
+        if !visible {
+            crate::windowing::webview_visible(app, "taskbar", false);
         }
 
         let _ = app.emit("dock-visible", json!({ "visible": visible }));

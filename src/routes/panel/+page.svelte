@@ -118,7 +118,7 @@
     focusLanded = false
     editing = null
     emit("window-hidden", "panel")
-    appWindow.hide()
+    native.hideWindow("panel")
   }
 
   const newEvent = (day: Date, minutes = DEFAULT_MINUTES) => {

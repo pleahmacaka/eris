@@ -1,7 +1,7 @@
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, WebviewWindow};
+use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, Webview, WebviewWindow};
 
 use crate::{appbar, desktop};
 
@@ -34,7 +34,7 @@ pub fn show(app: &AppHandle, label: &str) {
 
 pub fn hide(app: &AppHandle, label: &str) {
     if let Some(window) = app.get_webview_window(label) {
-        let _ = window.hide();
+        conceal(&window);
     }
 }
 
@@ -43,8 +43,43 @@ pub fn hide_on_blur(window: &WebviewWindow) {
         return;
     }
 
-    let _ = window.hide();
+    conceal(window);
     *BLUR_HIDDEN_AT.lock().unwrap() = Some(Instant::now());
+}
+
+// tauri hides only the HWND, so the WebView2 controller keeps rendering until it is hidden as well
+fn set_webview_visible(window: &WebviewWindow, visible: bool) {
+    let webview: &Webview = window.as_ref();
+
+    let _ = if visible {
+        webview.show()
+    } else {
+        webview.hide()
+    };
+}
+
+pub fn webview_visible(app: &AppHandle, label: &str, visible: bool) {
+    if let Some(window) = app.get_webview_window(label) {
+        set_webview_visible(&window, visible);
+    }
+}
+
+pub fn conceal_hidden(app: &AppHandle) {
+    for window in app.webview_windows().values() {
+        if !window.is_visible().unwrap_or(true) {
+            set_webview_visible(window, false);
+        }
+    }
+}
+
+fn conceal(window: &WebviewWindow) {
+    let _ = window.hide();
+    set_webview_visible(window, false);
+}
+
+fn reveal(window: &WebviewWindow) {
+    set_webview_visible(window, true);
+    let _ = window.show();
 }
 
 // the shell steals focus back for a beat after show, so an early blur is not the user leaving
@@ -98,7 +133,7 @@ fn show_now(app: &AppHandle, label: &str) {
         _ => Ok(()),
     };
 
-    let _ = window.show();
+    reveal(&window);
 
     if label == "main" {
         *SHOWN_AT.lock().unwrap() = Some(Instant::now());

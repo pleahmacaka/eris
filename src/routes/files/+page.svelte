@@ -1,14 +1,11 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { getCurrentWindow } from "@tauri-apps/api/window"
   import * as native from "$lib/native"
   import type { FileEntry, FilePlace } from "$lib/native"
   import ContextMenu from "$lib/ui/ContextMenu.svelte"
   import type { MenuItem } from "$lib/ui/menu"
 
   type Sort = "name" | "modified" | "size"
-
-  const appWindow = getCurrentWindow()
 
   let places = $state<FilePlace[]>([])
   let entries = $state<FileEntry[]>([])
@@ -496,7 +493,7 @@
     <button
       class="btn btn-ghost btn-square btn-sm"
       aria-label="Close"
-      onclick={() => appWindow.hide()}
+      onclick={() => native.hideWindow("files")}
     >
       <Icon icon="lucide:x" class="size-4" />
     </button>

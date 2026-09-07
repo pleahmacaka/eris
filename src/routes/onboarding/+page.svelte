@@ -1,6 +1,6 @@
 <script lang="ts">
+  import * as native from "$lib/native"
   import Icon from "@iconify/svelte"
-  import { getCurrentWindow } from "@tauri-apps/api/window"
   import { saveProfileSynced } from "$lib/data/store"
   import { ensureDevice } from "$lib/device"
   import {
@@ -27,8 +27,6 @@
   import SyncPanel from "$lib/settings-ui/SyncPanel.svelte"
   import Toasts from "$lib/settings-ui/Toasts.svelte"
   import { applyAppearance } from "$lib/theme"
-
-  const appWindow = getCurrentWindow()
 
   const steps = [
     { id: "welcome", title: "Welcome" },
@@ -142,7 +140,7 @@
         device.launcherTrigger === "win" ? null : device.launcherShortcut,
       ).catch(() => undefined)
       await showWindow("main")
-      await appWindow.hide()
+      await native.hideWindow("onboarding")
     } finally {
       finishing = false
     }

@@ -1,7 +1,7 @@
 <script lang="ts">
+  import * as native from "$lib/native"
   import Icon from "@iconify/svelte"
   import { listen } from "@tauri-apps/api/event"
-  import { getCurrentWindow } from "@tauri-apps/api/window"
   import { appIcon } from "$lib/apps"
   import { ensureDevice } from "$lib/device"
   import { looksLikeMath } from "$lib/launcher/calc"
@@ -71,7 +71,6 @@
     saveDevice,
   } from "$lib/settings"
 
-  const appWindow = getCurrentWindow()
   const PAGE = 5
   const RECENT = 6
   const MENU_WIDTH = 208
@@ -439,7 +438,7 @@
 
   const hide = async () => {
     menu = null
-    await appWindow.hide()
+    await native.hideWindow("main")
     setQuery("")
   }
 
@@ -896,6 +895,7 @@
       {/each}
     </div>
 
+    {#if error || query || device.showKeymap}
     <footer
       data-launcher
       class="flex h-7 shrink-0 items-center justify-between gap-3 overflow-hidden border-t border-base-content/10 px-3 text-xs text-base-content/50"
@@ -948,6 +948,7 @@
       </span>
     {/if}
     </footer>
+    {/if}
   </div>
 
   <ContextMenu

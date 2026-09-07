@@ -84,6 +84,8 @@ fn onboarded(app: &AppHandle) -> bool {
 }
 
 fn open(app: &AppHandle) {
+    windowing::conceal_hidden(app);
+
     let handle = app.clone();
 
     // the shell answers an appbar message by sending one back to the dock, so never ask from its own thread

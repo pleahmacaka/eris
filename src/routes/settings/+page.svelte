@@ -1,8 +1,8 @@
 <script lang="ts">
+  import * as native from "$lib/native"
   import Icon from "@iconify/svelte"
   import { tick } from "svelte"
   import { listen } from "@tauri-apps/api/event"
-  import { getCurrentWindow } from "@tauri-apps/api/window"
   import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart"
   import { saveProfileSynced } from "$lib/data/store"
   import { ensureDevice } from "$lib/device"
@@ -45,8 +45,6 @@
   import { applyAppearance } from "$lib/theme"
 
   const VERSION = "0.1.0"
-  const appWindow = getCurrentWindow()
-
   const reminders = [0, 5, 10, 15, 30, 60]
 
   let section = $state<SectionId>("general")
@@ -232,7 +230,7 @@
     if (query) {
       query = ""
     } else {
-      appWindow.hide()
+      native.hideWindow("settings")
     }
   }
 
@@ -311,7 +309,7 @@
       type="button"
       class="btn btn-ghost btn-circle btn-sm"
       aria-label="Close"
-      onclick={() => appWindow.hide()}
+      onclick={() => native.hideWindow("settings")}
     >
       <Icon icon="lucide:x" class="size-4" />
     </button>
