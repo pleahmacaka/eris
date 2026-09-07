@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "eris",
-  "version": "0.1.0",
+  "version": "../package.json",
   "identifier": "com.eris.app",
   "build": {
     "frontendDist": "../build",
