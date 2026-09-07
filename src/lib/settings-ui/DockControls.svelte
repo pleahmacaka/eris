@@ -5,7 +5,7 @@
     type MonitorInfo,
     usageBridgeInstalled,
   } from "$lib/native"
-  import type { DeviceSettings, DockStyle } from "$lib/settings"
+  import type { DeviceSettings, DockAlign, DockStyle } from "$lib/settings"
   import Row from "./Row.svelte"
   import Segmented from "./Segmented.svelte"
 
@@ -17,6 +17,12 @@
   const styles: { value: DockStyle; label: string; hint: string }[] = [
     { value: "windows", label: "Windows", hint: "Full-width bar on the edge" },
     { value: "mac", label: "Mac", hint: "Floating centered dock" },
+  ]
+
+  const ALIGNMENTS: { value: DockAlign; label: string; icon: string }[] = [
+    { value: "start", label: "Start", icon: "lucide:align-start-horizontal" },
+    { value: "center", label: "Center", icon: "lucide:align-center-horizontal" },
+    { value: "uchiwa", label: "Uchiwa", icon: "lucide:fan" },
   ]
 
   type ToggleKey =
@@ -92,6 +98,8 @@
     ]
 
   const mac = $derived(device.dockStyle === "mac")
+
+  const alignments = $derived(ALIGNMENTS.filter(a => !mac || a.value !== "start"))
 
   let monitors = $state<MonitorInfo[]>([])
 
@@ -298,16 +306,9 @@
   </Row>
 {/if}
 
-{#if !subset && !mac}
+{#if !subset}
   <Row label="Alignment" hint="Where the apps sit along the bar">
-    <Segmented
-      label="Alignment"
-      bind:value={device.dockAlign}
-      options={[
-        { value: "start", label: "Start", icon: "lucide:align-start-horizontal" },
-        { value: "center", label: "Center", icon: "lucide:align-center-horizontal" },
-      ]}
-    />
+    <Segmented label="Alignment" bind:value={device.dockAlign} options={alignments} />
   </Row>
 {/if}
 

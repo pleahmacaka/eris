@@ -1,3 +1,8 @@
+<script module lang="ts">
+  export const MAGNIFY_BOOST = 0.55
+  export const MAGNIFY_SPREAD = 78
+</script>
+
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import * as native from "$lib/native"
@@ -21,7 +26,7 @@
     foreground: number | undefined
     alignEnd: boolean
     hiddenHere?: boolean
-    magnify?: number
+    pointerX?: number | null
     dragging?: boolean
     dropBefore?: boolean
     dropAfter?: boolean
@@ -40,7 +45,7 @@
     foreground,
     alignEnd,
     hiddenHere = false,
-    magnify = 1,
+    pointerX = null,
     dragging = false,
     dropBefore = false,
     dropAfter = false,
@@ -94,6 +99,17 @@
   const active = $derived(
     foreground !== undefined && group.windows.some(w => w.hwnd === foreground),
   )
+
+  const magnify = $derived.by(() => {
+    if (!mac || pointerX === null || !root) {
+      return 1
+    }
+
+    const box = root.getBoundingClientRect()
+    const distance = Math.abs(box.left + box.width / 2 - pointerX)
+
+    return 1 + MAGNIFY_BOOST * Math.exp(-((distance / MAGNIFY_SPREAD) ** 2))
+  })
 
   const menuHeight = $derived(
     MENU_PAD +
@@ -244,11 +260,15 @@
     draggable="true"
     ondragstart={dragStart}
     class={[
-      "btn btn-ghost btn-square relative origin-bottom will-change-transform active:scale-90",
-      mac ? "transition-transform duration-100" : "transition-transform duration-150",
-      active && "bg-base-content/10",
+      "relative origin-bottom will-change-transform active:scale-90",
+      mac
+        ? "group flex items-center justify-center rounded-field outline-none transition-transform duration-100 focus-visible:ring-2 focus-visible:ring-primary/50"
+        : "btn btn-ghost btn-square transition-transform duration-150",
+      !mac && active && "bg-base-content/10",
     ]}
     style:--size="{size + 16}px"
+    style:width={mac ? `${size + 16}px` : undefined}
+    style:height={mac ? `${size + 16}px` : undefined}
     style:transform={magnify === 1 ? undefined : `scale(${magnify})`}
     title={running ? undefined : group.name}
     aria-label={group.name}
@@ -265,12 +285,16 @@
         src={icon}
         alt=""
         draggable="false"
+        class={[mac && "transition duration-100 group-hover:brightness-125"]}
         style:width="{size}px"
         style:height="{size}px"
       />
     {:else}
       <span
-        class="text-base-content/70"
+        class={[
+          "text-base-content/70",
+          mac && "transition duration-100 group-hover:brightness-125",
+        ]}
         style:width="{size}px"
         style:height="{size}px"
       >

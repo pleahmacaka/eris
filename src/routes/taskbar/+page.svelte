@@ -16,7 +16,7 @@
     resolvePins,
     startDock,
   } from "$lib/dock/dock.svelte"
-  import DockItem from "$lib/dock/DockItem.svelte"
+  import DockItem, { MAGNIFY_BOOST } from "$lib/dock/DockItem.svelte"
   import ContextMenu from "$lib/ui/ContextMenu.svelte"
   import type { MenuItem } from "$lib/ui/menu"
   import ClaudeUsage from "$lib/dock/ClaudeUsage.svelte"
@@ -57,6 +57,8 @@
   const eventLive = live(events)
 
   const mac = $derived(device.dockStyle === "mac")
+
+  const uchiwa = $derived(device.dockAlign === "uchiwa")
 
   const foreground = $derived(dock.windows[0]?.hwnd)
 
@@ -111,14 +113,26 @@
 
   const slotWidth = $derived(device.dockIconSize + 20)
 
+  const CHROME = 96
 
   const roomForIcons = $derived(
-    Math.max(0, navWidth - leadWidth - trailWidth - slotWidth - 24),
+    Math.max(
+      0,
+      uchiwa
+        ? (navWidth - CHROME) / 2 - Math.max(leadWidth, trailWidth)
+        : navWidth - leadWidth - trailWidth - CHROME,
+    ),
   )
 
-  const fits = $derived(
-    navWidth === 0 ? Number.POSITIVE_INFINITY : Math.floor(roomForIcons / slotWidth),
-  )
+  const fits = $derived.by(() => {
+    if (navWidth === 0) {
+      return Number.POSITIVE_INFINITY
+    }
+
+    const slots = Math.floor(roomForIcons / slotWidth)
+
+    return uchiwa ? slots * 2 : slots
+  })
 
   const groups = $derived(
     ordered(
@@ -139,7 +153,9 @@
   )
 
   const naturalWidth = $derived(
-    leadWidth + trailWidth + groups.length * slotWidth + 56,
+    uchiwa
+      ? 2 * (Math.max(leadWidth, trailWidth) + Math.ceil(groups.length / 2) * slotWidth) + CHROME
+      : leadWidth + trailWidth + groups.length * slotWidth + CHROME,
   )
 
   const dockWidth = $derived(
@@ -151,6 +167,12 @@
   const shown = $derived(groups.length <= fits ? groups : groups.slice(0, Math.max(1, fits - 1)))
 
   const spilled = $derived(groups.slice(shown.length))
+
+  const half = $derived(Math.ceil(shown.length / 2))
+
+  const leftShown = $derived(uchiwa ? shown.slice(0, half) : [])
+
+  const rightShown = $derived(uchiwa ? shown.slice(half) : shown)
 
   const overflowItems = $derived.by((): MenuItem[] =>
     spilled.map(group => ({
@@ -201,11 +223,7 @@
       .catch(() => undefined)
   }
 
-  const MAGNIFY_BOOST = 0.55
-  const MAGNIFY_SPREAD = 78
-
   let pointerX = $state<number | null>(null)
-  let iconRow = $state<HTMLElement>()
 
   const lift = $derived(
     mac && pointerX !== null
@@ -259,24 +277,6 @@
     e.preventDefault()
     barMenuX = e.clientX
     barMenu = true
-  }
-
-  const magnifyOf = (index: number) => {
-    if (!mac || pointerX === null || !iconRow) {
-      return 1
-    }
-
-    const slot = iconRow.children[index] as HTMLElement | undefined
-
-    if (!slot) {
-      return 1
-    }
-
-    const box = slot.getBoundingClientRect()
-    const distance = Math.abs(box.left + box.width / 2 - pointerX)
-    const falloff = Math.exp(-((distance / MAGNIFY_SPREAD) ** 2))
-
-    return 1 + MAGNIFY_BOOST * falloff
   }
 
   const refreshVisibility = async () => {
@@ -448,6 +448,73 @@
   }}
 />
 
+{#snippet apps(list: DockGroup[], offset: number, tail: boolean)}
+  <div
+    role="toolbar"
+    tabindex="-1"
+    aria-label="Apps"
+    class="flex min-w-0 items-center gap-0.5"
+    onpointermove={e => (pointerX = e.clientX)}
+    onpointerleave={() => (pointerX = null)}
+  >
+    {#each list as group, index (group.key)}
+      <div animate:flip={{ duration: 180 }} class="flex">
+        <DockItem
+          {group}
+          size={device.dockIconSize}
+          edge={device.dockEdge}
+          {mac}
+          {foreground}
+          alignEnd={offset + index >= shown.length / 2}
+          hiddenHere={hidden.has(group.path)}
+          {pointerX}
+          dragging={dragPath === group.path}
+          dropBefore={dropPath === group.path && dropBefore}
+          dropAfter={dropPath === group.path && !dropBefore}
+          ondragstart={() => (dragPath = group.path)}
+          ondragover={before => {
+            dropPath = group.path
+            dropBefore = before
+          }}
+          ondrop={commitDrop}
+          ondragend={() => {
+            dragPath = null
+            dropPath = null
+          }}
+          onmenu={extend}
+        />
+      </div>
+    {/each}
+
+    {#if tail && spilled.length > 0}
+      <div class="relative">
+        <button
+          class="btn btn-ghost btn-square"
+          style:--size="{device.dockIconSize + 16}px"
+          title="{spilled.length} more"
+          aria-label="{spilled.length} more apps"
+          aria-haspopup="menu"
+          aria-expanded={overflowOpen}
+          onclick={() => {
+            overflowOpen = !overflowOpen
+            extend(overflowOpen ? Math.min(9, spilled.length) * 40 + 40 : 0)
+          }}
+        >
+          <Icon icon="lucide:ellipsis" class="size-5 text-base-content/70" />
+        </button>
+
+        <ContextMenu
+          bind:open={overflowOpen}
+          items={overflowItems}
+          placement={device.dockEdge === "top" ? "down" : "up"}
+          label="More apps"
+          onclose={() => extend(0)}
+        />
+      </div>
+    {/if}
+  </div>
+{/snippet}
+
 <div
   class={[
     "flex h-full flex-col",
@@ -460,12 +527,13 @@
     <nav
       class={[
         "shrink-0 items-center gap-1 border-base-content/10",
-        mac
-          ? "flex justify-center rounded-[var(--shell-radius)] border px-3"
-          : device.dockAlign === "start"
-            ? "grid grid-cols-[auto_1fr_auto] px-2"
-            : "grid grid-cols-[1fr_auto_1fr] px-2",
+        mac ? "rounded-[var(--shell-radius)] border px-3" : "px-2",
         !mac && (device.dockEdge === "top" ? "border-b" : "border-t"),
+        uchiwa || (!mac && device.dockAlign === "center")
+          ? "grid grid-cols-[1fr_auto_1fr]"
+          : mac
+            ? "flex justify-center"
+            : "grid grid-cols-[auto_1fr_auto]",
       ]}
       style:height="{device.dockHeight}px"
       aria-label="Dock"
@@ -473,31 +541,39 @@
       oncontextmenu={openBarMenu}
     >
       <div
-        class="flex items-center justify-self-start"
-        bind:clientWidth={leadWidth}
+        class={[
+          "flex items-center",
+          uchiwa ? "justify-between gap-1" : "justify-self-start",
+        ]}
       >
-        {#if device.showClaudeUsage && device.claudeUsageSide === "left"}
-          <ClaudeUsage
-            source={device.claudeUsageSource}
-            compact={device.dockHeight < 40}
-          />
-        {/if}
+        <div class="flex items-center" bind:clientWidth={leadWidth}>
+          {#if device.showClaudeUsage && device.claudeUsageSide === "left"}
+            <ClaudeUsage
+              source={device.claudeUsageSource}
+              compact={device.dockHeight < 40}
+            />
+          {/if}
 
-        {#if device.showMedia && device.mediaSide === "left"}
-          <Media
-            compact={device.dockHeight < 40}
-            edge={device.dockEdge}
-            spectrum={device.showSpectrum}
-            spectrumStyle={device.spectrumStyle}
-            onmenu={extend}
-          />
+          {#if device.showMedia && device.mediaSide === "left"}
+            <Media
+              compact={device.dockHeight < 40}
+              edge={device.dockEdge}
+              spectrum={device.showSpectrum}
+              spectrumStyle={device.spectrumStyle}
+              onmenu={extend}
+            />
+          {/if}
+        </div>
+
+        {#if uchiwa}
+          {@render apps(leftShown, 0, false)}
         {/if}
       </div>
 
       <div
         class={[
           "flex min-w-0 items-center gap-0.5",
-          mac ? "justify-center" : "justify-self-start",
+          mac || uchiwa ? "justify-center" : "justify-self-start",
         ]}
       >
         <button
@@ -509,86 +585,32 @@
           <Icon icon="lucide:sparkles" class="size-4 text-primary" />
         </button>
 
-        {#if mac}
+        {#if mac && !uchiwa}
           <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
         {/if}
 
-        <div
-          bind:this={iconRow}
-          role="toolbar"
-          tabindex="-1"
-          aria-label="Apps"
-          class="flex min-w-0 items-center gap-0.5"
-          onpointermove={e => (pointerX = e.clientX)}
-          onpointerleave={() => (pointerX = null)}
-        >
-          {#each shown as group, index (group.key)}
-            <div animate:flip={{ duration: 180 }} class="flex">
-              <DockItem
-              {group}
-              size={device.dockIconSize}
-              edge={device.dockEdge}
-              {mac}
-              {foreground}
-              alignEnd={index >= groups.length / 2}
-              hiddenHere={hidden.has(group.path)}
-              magnify={pointerX === null ? 1 : magnifyOf(index)}
-              dragging={dragPath === group.path}
-              dropBefore={dropPath === group.path && dropBefore}
-              dropAfter={dropPath === group.path && !dropBefore}
-              ondragstart={() => (dragPath = group.path)}
-              ondragover={before => {
-                dropPath = group.path
-                dropBefore = before
-              }}
-              ondrop={commitDrop}
-              ondragend={() => {
-                dragPath = null
-                dropPath = null
-              }}
-              onmenu={extend}
-              />
-            </div>
-          {/each}
-
-          {#if spilled.length > 0}
-            <div class="relative">
-              <button
-                class="btn btn-ghost btn-square"
-                style:--size="{device.dockIconSize + 16}px"
-                title="{spilled.length} more"
-                aria-label="{spilled.length} more apps"
-                aria-haspopup="menu"
-                aria-expanded={overflowOpen}
-                onclick={() => {
-                  overflowOpen = !overflowOpen
-                  extend(overflowOpen ? Math.min(9, spilled.length) * 40 + 40 : 0)
-                }}
-              >
-                <Icon icon="lucide:ellipsis" class="size-5 text-base-content/70" />
-              </button>
-
-              <ContextMenu
-                bind:open={overflowOpen}
-                items={overflowItems}
-                placement={device.dockEdge === "top" ? "down" : "up"}
-                label="More apps"
-                onclose={() => extend(0)}
-              />
-            </div>
-          {/if}
-        </div>
+        {#if !uchiwa}
+          {@render apps(rightShown, 0, true)}
+        {/if}
       </div>
 
       <div
-        class="flex items-center justify-self-end"
-        bind:clientWidth={trailWidth}
+        class={[
+          "flex items-center",
+          uchiwa ? "justify-between gap-1" : "justify-self-end",
+        ]}
       >
-        {#if mac}
-          <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
+        {#if uchiwa}
+          {@render apps(rightShown, half, true)}
         {/if}
 
-        <Tray {device} {panelOpen} onclock={togglePanel} onmenu={extend} />
+        <div class="flex items-center" bind:clientWidth={trailWidth}>
+          {#if mac}
+            <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
+          {/if}
+
+          <Tray {device} {panelOpen} onclock={togglePanel} onmenu={extend} />
+        </div>
       </div>
 
       <ContextMenu

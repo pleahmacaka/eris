@@ -90,7 +90,7 @@ export const index: SearchEntry[] = [
   entry("dock", "Style", "windows mac floating"),
   entry("dock", "Display", "monitor screen multiple external primary"),
   entry("dock", "Edge", "bottom top screen side"),
-  entry("dock", "Alignment", "start center"),
+  entry("dock", "Alignment", "start center uchiwa fan launcher middle"),
   entry("dock", "Height", "size thickness"),
   entry("dock", "Width", "size mac"),
   entry("dock", "Icon size", "icons"),

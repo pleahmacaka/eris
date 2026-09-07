@@ -5,7 +5,7 @@ import type { SyncedCollection } from "./sync/protocol"
 
 export type DockStyle = "windows" | "mac"
 export type DockEdge = "bottom" | "top"
-export type DockAlign = "start" | "center"
+export type DockAlign = "start" | "center" | "uchiwa"
 export type DockSide = "left" | "right"
 export type SpectrumStyle = "bars" | "mirror" | "wave" | "dots"
 export type LauncherTrigger = "win" | "shortcut" | "both"
