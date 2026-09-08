@@ -50,6 +50,7 @@ mod win {
         let mut at_edge = false;
         let mut fullscreen = false;
         let mut revealed = false;
+        let mut lifted = false;
         let mut left_band: Option<Instant> = None;
 
         loop {
@@ -62,6 +63,28 @@ mod win {
             if edge_now != at_edge {
                 at_edge = edge_now;
                 let _ = app.emit("dock-edge", json!({ "atEdge": at_edge }));
+            }
+
+            if crate::appbar::desktop_pinned() {
+                if !crate::appbar::desktop_reveals() {
+                    continue;
+                }
+
+                if at_edge && !lifted {
+                    lifted = true;
+                    left_band = None;
+                    crate::appbar::lift(dock, true);
+                } else if lifted && !stay_revealed(cursor, at_edge, band(dock)) {
+                    if left_band.get_or_insert_with(Instant::now).elapsed() >= LINGER {
+                        lifted = false;
+                        left_band = None;
+                        crate::appbar::lift(dock, false);
+                    }
+                } else {
+                    left_band = None;
+                }
+
+                continue;
             }
 
             if let Some(fullscreen_now) = foreground_covers(&screen) {

@@ -60,6 +60,8 @@
 
   const uchiwa = $derived(device.dockAlign === "uchiwa")
 
+  const desktop = $derived(mac && device.dockDesktop)
+
   const foreground = $derived(dock.windows[0]?.hwnd)
 
   const hotkey = $derived(
@@ -160,7 +162,7 @@
 
   const dockWidth = $derived(
     mac
-      ? Math.min(maxDockWidth, Math.max(360, naturalWidth))
+      ? Math.min(maxDockWidth, Math.max(naturalWidth, device.dockWidth))
       : device.dockWidth,
   )
 
@@ -192,6 +194,7 @@
       device.dockHeight,
       dockWidth,
       device.dockAutoHide,
+      desktop,
       device.hideSystemTaskbar,
       device.dockMonitor,
       collapsed,
@@ -217,6 +220,7 @@
         width: dockWidth,
         floating: mac,
         autoHide: device.dockAutoHide,
+        desktop,
         hideSystemTaskbar: device.hideSystemTaskbar,
         monitor: device.dockMonitor,
       })
@@ -407,6 +411,7 @@
 
     if (
       !device.dockAutoHide ||
+      desktop ||
       hovered ||
       edgeHover ||
       held ||

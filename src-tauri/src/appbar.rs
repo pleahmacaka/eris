@@ -18,6 +18,8 @@ pub struct TaskbarLayout {
     pub hide_system_taskbar: bool,
     #[serde(default)]
     pub monitor: Option<String>,
+    #[serde(default)]
+    pub desktop: bool,
 }
 
 impl Default for TaskbarLayout {
@@ -30,16 +32,27 @@ impl Default for TaskbarLayout {
             auto_hide: false,
             hide_system_taskbar: true,
             monitor: None,
+            desktop: false,
         }
     }
 }
 
 static TOP: AtomicBool = AtomicBool::new(false);
+static DESKTOP: AtomicBool = AtomicBool::new(false);
+static REVEAL: AtomicBool = AtomicBool::new(false);
 static LAST: Mutex<Option<TaskbarLayout>> = Mutex::new(None);
 static SCREEN: Mutex<Option<[i32; 4]>> = Mutex::new(None);
 
 pub fn edge_is_top() -> bool {
     TOP.load(Ordering::Relaxed)
+}
+
+pub fn desktop_pinned() -> bool {
+    DESKTOP.load(Ordering::Relaxed)
+}
+
+pub fn desktop_reveals() -> bool {
+    REVEAL.load(Ordering::Relaxed)
 }
 
 pub fn dock_screen() -> Option<[i32; 4]> {
@@ -77,6 +90,8 @@ pub fn stored_layout(app: &AppHandle) -> TaskbarLayout {
             .and_then(|v| v.as_bool())
             .unwrap_or(base.hide_system_taskbar),
         monitor: field("dockMonitor").and_then(|v| v.as_str().map(String::from)),
+        desktop: field("dockStyle").is_some_and(|v| v.as_str() == Some("mac"))
+            && field("dockDesktop").and_then(|v| v.as_bool()).unwrap_or(false),
     }
 }
 
@@ -100,6 +115,8 @@ pub fn apply_taskbar(app: AppHandle, layout: TaskbarLayout) -> Result<(), String
 
 pub fn apply(window: &WebviewWindow, layout: &TaskbarLayout) -> tauri::Result<()> {
     TOP.store(layout.edge == "top", Ordering::Relaxed);
+    DESKTOP.store(layout.desktop, Ordering::Relaxed);
+    REVEAL.store(layout.desktop && layout.auto_hide, Ordering::Relaxed);
     *LAST.lock().unwrap() = Some(layout.clone());
 
     let Some(screen) = monitors::resolve(window, layout.monitor.as_deref())? else {
@@ -129,6 +146,11 @@ pub fn release(window: &WebviewWindow) {
 }
 
 #[cfg(target_os = "windows")]
+pub fn lift(hwnd: windows::Win32::Foundation::HWND, up: bool) {
+    win::lift(hwnd, up);
+}
+
+#[cfg(target_os = "windows")]
 pub fn shell_tray() -> Option<isize> {
     win::tray_window().map(|hwnd| hwnd.0 as isize)
 }
@@ -154,7 +176,7 @@ mod win {
     };
     use windows::Win32::UI::WindowsAndMessaging::{
         FindWindowExW, GetWindowThreadProcessId, RegisterWindowMessageW, SetWindowPos, ShowWindow,
-        HWND_TOPMOST, MA_NOACTIVATE, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SW_HIDE, SW_SHOW,
+        HWND_BOTTOM, HWND_TOPMOST, MA_NOACTIVATE, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SW_HIDE, SW_SHOW,
         WM_DISPLAYCHANGE, WM_DPICHANGED, WM_MOUSEACTIVATE,
     };
 
@@ -249,7 +271,11 @@ mod win {
         fit_band(&mut data, band);
 
         unsafe {
-            if layout.auto_hide {
+            if layout.desktop {
+                if REGISTERED.swap(false, Ordering::Relaxed) {
+                    SHAppBarMessage(ABM_REMOVE, &mut data);
+                }
+            } else if layout.auto_hide {
                 SHAppBarMessage(ABM_REMOVE, &mut data);
                 SHAppBarMessage(ABM_NEW, &mut data);
                 REGISTERED.store(true, Ordering::Relaxed);
@@ -334,17 +360,21 @@ mod win {
 
     pub fn raise(window: &WebviewWindow) {
         if let Ok(hwnd) = window.hwnd() {
-            unsafe {
-                let _ = SetWindowPos(
-                    hwnd,
-                    Some(HWND_TOPMOST),
-                    0,
-                    0,
-                    0,
-                    0,
-                    SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE,
-                );
-            }
+            lift(hwnd, !super::desktop_pinned());
+        }
+    }
+
+    pub fn lift(hwnd: HWND, up: bool) {
+        unsafe {
+            let _ = SetWindowPos(
+                hwnd,
+                Some(if up { HWND_TOPMOST } else { HWND_BOTTOM }),
+                0,
+                0,
+                0,
+                0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE,
+            );
         }
     }
 

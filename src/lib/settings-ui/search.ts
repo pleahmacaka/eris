@@ -94,6 +94,7 @@ export const index: SearchEntry[] = [
   entry("dock", "Height", "size thickness"),
   entry("dock", "Width", "size mac"),
   entry("dock", "Icon size", "icons"),
+  entry("dock", "Pin to desktop", "mac behind windows wallpaper layer"),
   entry("dock", "Auto-hide", "reveal slide"),
   entry("dock", "Hide Windows taskbar", "system bar"),
   entry("dock", "Show running apps", "open windows"),

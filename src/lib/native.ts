@@ -44,6 +44,7 @@ export type TaskbarLayout = {
   autoHide: boolean
   hideSystemTaskbar: boolean
   monitor?: string | null
+  desktop?: boolean
 }
 
 export type WindowLabel =

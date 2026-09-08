@@ -34,6 +34,7 @@ export type DeviceSettings = {
   dockWidth: number
   dockIconSize: number
   dockAutoHide: boolean
+  dockDesktop: boolean
   dockMonitor: string | null
   hideSystemTaskbar: boolean
   showRunningApps: boolean
@@ -167,6 +168,7 @@ export const defaultDevice: DeviceSettings = {
   dockWidth: 720,
   dockIconSize: 24,
   dockAutoHide: false,
+  dockDesktop: false,
   dockMonitor: null,
   hideSystemTaskbar: true,
   showRunningApps: true,

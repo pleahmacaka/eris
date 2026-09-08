@@ -337,6 +337,17 @@
   </Row>
 {/if}
 
+{#if mac}
+  <Row label="Pin to desktop" hint="Windows may cover the dock; with auto-hide, touching the edge brings it forward">
+    <input
+      type="checkbox"
+      class="toggle toggle-primary"
+      aria-label="Pin to desktop"
+      bind:checked={device.dockDesktop}
+    />
+  </Row>
+{/if}
+
 <Row label="Auto-hide" hint="Slides away until the cursor touches the edge">
   <input
     type="checkbox"
