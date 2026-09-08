@@ -226,7 +226,6 @@ struct ChatMonitor {
 
 static CHAT_MONITOR: Mutex<Option<ChatMonitor>> = Mutex::new(None);
 
-// the bubble lives on the cursor's monitor; park it in the corner until the page lays out
 fn park_chat(window: &WebviewWindow) -> tauri::Result<()> {
     let cursor = window.cursor_position()?;
 

@@ -90,7 +90,7 @@
         {#if window}
           <div class={["flex items-center gap-1", stacked && "leading-none"]}>
             {#if !compact || stacked}
-              <span class="w-4 text-[10px] text-base-content/50">{name}</span>
+              <span class="w-4 text-3xs text-base-content/50">{name}</span>
             {/if}
 
             <span class="h-1 w-8 overflow-hidden rounded-full bg-base-content/15">
@@ -100,7 +100,7 @@
               ></span>
             </span>
 
-            <span class={["tabular-nums", stacked ? "text-[10px]" : "text-[11px]"]}>{percent(window.used)}%</span>
+            <span class={["tabular-nums", stacked ? "text-3xs" : "text-2xs"]}>{percent(window.used)}%</span>
           </div>
         {/if}
       {/each}

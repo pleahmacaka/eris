@@ -8,19 +8,9 @@
   import Markdown from "$lib/claude/Markdown.svelte"
   import { ClaudeSession, type Question } from "$lib/claude/session.svelte"
   import * as native from "$lib/native"
-  import Aura from "$lib/ui/Aura.svelte"
 
   type Mode = "claude" | "code"
 
-  const BUBBLE = 56
-  const PANEL_WIDTH = 440
-  const PANEL_HEIGHT = 640
-  const GAP = 12
-  const EDGE = 16
-  const TARGET = 64
-  const TARGET_BOTTOM = 56
-  const CATCH = 120
-  const SLOP = 3
   const MENTION_DELAY = 150
   const RECENT_LIMIT = 8
   const STORAGE = "eris.chat"
@@ -55,12 +45,42 @@
   let thread = $state<HTMLElement>()
   let mentions = $state<native.FileEntry[]>([])
   let picked = $state<Record<string, string[]>>({})
+  let unit = $state(16)
+  let panel = $state<HTMLElement>()
+  let placed = false
+
+  const px = (rem: number) => Math.round(rem * unit)
+
+  const BUBBLE = $derived(px(3.5))
+
+  // ponytail: fixed panel size, add resizing when threads need more room
+  const PANEL_WIDTH = $derived(px(27.5))
+
+  const PANEL_HEIGHT = $derived(px(40))
+
+  const GAP = $derived(px(0.75))
+
+  const EDGE = $derived(px(0.5))
+
+  const TARGET = $derived(px(4))
+
+  const TARGET_BOTTOM = $derived(px(3.5))
+
+  const CATCH = $derived(px(7.5))
+
+  const SLOP = $derived(px(0.2))
+
+  const panelRadius = $derived(
+    panel ? Number.parseFloat(getComputedStyle(panel).borderTopLeftRadius) : px(1),
+  )
 
   const cwd = $derived(mode === "code" && folder ? folder : null)
 
   const title = $derived(mode === "code" ? "Claude Code" : "Claude")
 
-  const folderName = $derived(folder.split(/[\\/]/).filter(Boolean).at(-1) ?? "")
+  const folderName = $derived(
+    folder.replaceAll("\\", "/").split("/").filter(Boolean).at(-1) ?? "",
+  )
 
   const targetX = $derived(area.width / 2)
   const targetY = $derived(area.height - TARGET_BOTTOM - TARGET / 2)
@@ -72,16 +92,23 @@
   )
 
   const panelLeft = $derived(
-    corner.right ? left - GAP - PANEL_WIDTH : left + BUBBLE + GAP,
+    Math.min(
+      Math.max(EDGE, corner.right ? left - GAP - PANEL_WIDTH : left + BUBBLE + GAP),
+      area.width - PANEL_WIDTH - EDGE,
+    ),
   )
 
-  const panelTop = $derived(corner.bottom ? top + BUBBLE - PANEL_HEIGHT : top)
+  const panelTop = $derived(
+    Math.min(
+      Math.max(EDGE, corner.bottom ? top + BUBBLE - PANEL_HEIGHT : top),
+      area.height - PANEL_HEIGHT - EDGE,
+    ),
+  )
 
   const origin = $derived(
     `${corner.right ? "right" : "left"} ${corner.bottom ? "bottom" : "top"}`,
   )
 
-  // the window is only as big as what it shows; it covers the whole work area just while the bubble drags
   const frame = $derived.by(() => {
     if (dragging) {
       return { x: 0, y: 0, width: area.width, height: area.height }
@@ -103,7 +130,7 @@
   })
 
   const slashTerm = $derived(
-    draft.startsWith("/") && !/\s/.test(draft) ? draft.slice(1) : null,
+    draft.startsWith("/") && !draft.includes(" ") ? draft.slice(1) : null,
   )
 
   const commands = $derived(
@@ -115,9 +142,16 @@
   )
 
   const mentionTerm = $derived.by(() => {
-    const match = /(?:^|\s)@([^\s@]*)$/.exec(draft)
+    const at = draft.lastIndexOf("@")
 
-    return match ? match[1] : null
+    if (at < 0) {
+      return null
+    }
+
+    const before = at === 0 ? " " : draft[at - 1]
+    const term = draft.slice(at + 1)
+
+    return (before === " " || before === "\n") && !term.includes(" ") ? term : null
   })
 
   const place = () => {
@@ -126,19 +160,45 @@
   }
 
   const settle = () => {
-    corner = {
-      right: left + BUBBLE / 2 >= area.width / 2,
-      bottom: top + BUBBLE / 2 >= area.height / 2,
+    const centerX = left + BUBBLE / 2
+    const centerY = top + BUBBLE / 2
+    const maxLeft = area.width - BUBBLE - EDGE
+    const maxTop = area.height - BUBBLE - EDGE
+    const gaps = [centerX, area.width - centerX, centerY, area.height - centerY]
+    const nearest = gaps.indexOf(Math.min(...gaps))
+
+    corner = { right: centerX >= area.width / 2, bottom: centerY >= area.height / 2 }
+
+    if (nearest === 0) {
+      left = EDGE
+    } else if (nearest === 1) {
+      left = maxLeft
+    } else if (nearest === 2) {
+      top = EDGE
+    } else {
+      top = maxTop
     }
-    place()
+
+    left = Math.min(Math.max(EDGE, left), maxLeft)
+    top = Math.min(Math.max(EDGE, top), maxTop)
   }
 
   const load = async () => {
+    unit = Number.parseFloat(getComputedStyle(document.documentElement).fontSize)
+
     const next = await native.chatArea().catch(() => null)
 
-    if (next) {
-      area = next
+    if (!next) {
+      return
+    }
+
+    area = next
+
+    if (placed) {
+      settle()
+    } else {
       place()
+      placed = true
     }
   }
 
@@ -235,13 +295,19 @@
   const relative = (path: string) => {
     const root = cwd ?? ""
 
-    return root && path.startsWith(root)
-      ? path.slice(root.length).replace(/^[\\/]/, "")
-      : path
+    if (!root || !path.startsWith(root)) {
+      return path
+    }
+
+    const rest = path.slice(root.length)
+
+    return rest.startsWith("\\") || rest.startsWith("/") ? rest.slice(1) : rest
   }
 
   const completeMention = (entry: native.FileEntry) => {
-    draft = draft.replace(/@[^\s@]*$/, `@${relative(entry.path).replaceAll("\\", "/")} `)
+    const at = draft.lastIndexOf("@")
+
+    draft = `${draft.slice(0, at)}@${relative(entry.path).replaceAll("\\", "/")} `
     mentions = []
     input?.focus()
   }
@@ -363,7 +429,7 @@
     const rects = [box(left, top, BUBBLE, BUBBLE, BUBBLE / 2)]
 
     if (open && !dragging) {
-      rects.push(box(panelLeft, panelTop, PANEL_WIDTH, PANEL_HEIGHT, 28))
+      rects.push(box(panelLeft, panelTop, PANEL_WIDTH, PANEL_HEIGHT, panelRadius))
     }
 
     if (dragging) {
@@ -491,7 +557,8 @@
 <div class="absolute" style:left="{-frame.x}px" style:top="{-frame.y}px">
   {#if open && !dragging}
     <section
-      class="absolute isolate flex flex-col overflow-hidden rounded-[1.75rem] border border-base-content/10 bg-base-100/90"
+      bind:this={panel}
+      class="absolute isolate flex flex-col overflow-hidden rounded-box border border-base-content/10 bg-base-100/90"
       style:left="{panelLeft}px"
       style:top="{panelTop}px"
       style:width="{PANEL_WIDTH}px"
@@ -500,7 +567,10 @@
       transition:scale={{ duration: 220, start: 0.88, easing: cubicOut }}
       aria-label={title}
     >
-      <Aura />
+      <div
+        class="pointer-events-none absolute inset-x-0 top-0 h-40 bg-linear-to-b from-primary/15 to-transparent"
+        aria-hidden="true"
+      ></div>
 
       <header class="flex shrink-0 items-center gap-1 px-4 pt-3 pb-2">
         <div
@@ -587,7 +657,7 @@
                 >
                   <span class="line-clamp-1 text-sm">{item.title || "Untitled"}</span>
 
-                  <span class="text-[11px] text-base-content/50">{when(item.modified)}</span>
+                  <span class="text-2xs text-base-content/50">{when(item.modified)}</span>
                 </button>
               </li>
             {:else}
@@ -645,7 +715,7 @@
             {#each session.turns as turn (turn.id)}
               {#if turn.role === "user"}
                 <div
-                  class="max-w-[85%] self-end rounded-[1.25rem] rounded-br-md bg-primary px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap text-primary-content"
+                  class="max-w-5/6 self-end rounded-box rounded-br-md bg-primary px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap text-primary-content"
                 >
                   {turn.blocks[0]?.kind === "text" ? turn.blocks[0].text : ""}
                 </div>
@@ -653,13 +723,13 @@
                 {#each turn.blocks as block, index (index)}
                   {#if block.kind === "text" && block.text.trim()}
                     <div
-                      class="max-w-[92%] self-start rounded-[1.25rem] rounded-bl-md bg-base-content/10 px-4 py-2.5 text-sm leading-relaxed"
+                      class="max-w-11/12 self-start rounded-box rounded-bl-md bg-base-content/10 px-4 py-2.5 text-sm leading-relaxed"
                     >
                       <Markdown text={block.text} />
                     </div>
                   {:else if block.kind === "tool"}
                     <details
-                      class="max-w-[92%] self-start rounded-field border border-base-content/10 bg-base-100/60 text-xs"
+                      class="max-w-11/12 self-start rounded-field border border-base-content/10 bg-base-100/60 text-xs"
                     >
                       <summary
                         class="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-base-content/70"
@@ -725,7 +795,7 @@
             <div class="flex flex-col gap-3 self-stretch rounded-box border border-primary/30 bg-primary/5 p-3 text-sm">
               {#each session.prompt.questions as question (question.question)}
                 <div>
-                  <p class="text-[11px] font-medium tracking-wide text-primary uppercase">{question.header}</p>
+                  <p class="text-2xs font-medium tracking-wide text-primary uppercase">{question.header}</p>
 
                   <p class="mt-0.5">{question.question}</p>
 
@@ -808,7 +878,7 @@
         {/if}
 
         <div
-          class="flex items-end gap-2 rounded-[1.5rem] border border-base-content/10 bg-base-100/70 py-1.5 pr-1.5 pl-4"
+          class="flex items-end gap-2 rounded-box border border-base-content/10 bg-base-100/70 py-1.5 pr-1.5 pl-4"
         >
           <textarea
             bind:this={input}
@@ -842,7 +912,7 @@
         </div>
 
         {#if session && (session.info.model || session.cost > 0)}
-          <p class="mt-1 flex justify-between px-2 text-[10px] text-base-content/40">
+          <p class="mt-1 flex justify-between px-2 text-3xs text-base-content/40">
             <span class="truncate">{session.info.model}</span>
 
             <span class="tabular-nums">${session.cost.toFixed(3)}</span>

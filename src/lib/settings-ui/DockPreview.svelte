@@ -59,8 +59,8 @@
   <div
     class={[
       "absolute flex items-center border border-base-content/10 bg-base-100/85 transition-all duration-300",
-      mac ? "left-1/2 -translate-x-1/2 rounded-full px-[1.5%]" : "inset-x-0 px-[1%]",
-      top ? (mac ? "top-[3%]" : "top-0") : mac ? "bottom-[3%]" : "bottom-0",
+      mac ? "left-1/2 -translate-x-1/2 rounded-full px-1" : "inset-x-0 px-1",
+      top ? (mac ? "top-1" : "top-0") : mac ? "bottom-1" : "bottom-0",
       uchiwa ? "grid grid-cols-[1fr_auto_1fr]" : start ? "justify-start" : "justify-center",
     ]}
     style:height="{heightPct}%"
@@ -68,29 +68,29 @@
   >
     {#if !device.dockAutoHide}
       {#if uchiwa}
-        <span class="flex h-full items-center justify-end gap-[3%]">
+        <span class="flex h-full items-center justify-end gap-1">
           {@render apps(APPS.slice(0, half))}
         </span>
 
-        <span class="mx-[6%] flex h-full items-center">
+        <span class="mx-2 flex h-full items-center">
           {@render launcher()}
         </span>
 
-        <span class="flex h-full items-center justify-start gap-[3%]">
+        <span class="flex h-full items-center justify-start gap-1">
           {@render apps(APPS.slice(half))}
         </span>
       {:else}
-        <span class="flex h-full items-center gap-[1.5%]">
+        <span class="flex h-full items-center gap-0.5">
           {@render launcher()}
 
-          <span class="mx-[1%] h-[60%] w-px bg-base-content/15"></span>
+          <span class="mx-0.5 h-3/5 w-px bg-base-content/15"></span>
 
           {@render apps(APPS)}
         </span>
       {/if}
 
       <span
-        class="absolute right-[1.5%] h-[45%] rounded-full bg-base-content/25"
+        class="absolute right-1 h-2/5 rounded-full bg-base-content/25"
         style:width="{mac ? 10 : 7}%"
       ></span>
     {/if}
