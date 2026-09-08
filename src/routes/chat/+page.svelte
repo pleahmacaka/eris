@@ -12,6 +12,7 @@
   type Mode = "claude" | "code"
 
   const MENTION_DELAY = 150
+  const SNAP = 0.15
   const RECENT_LIMIT = 8
   const STORAGE = "eris.chat"
 
@@ -164,18 +165,18 @@
     const centerY = top + BUBBLE / 2
     const maxLeft = area.width - BUBBLE - EDGE
     const maxTop = area.height - BUBBLE - EDGE
-    const gaps = [centerX, area.width - centerX, centerY, area.height - centerY]
-    const nearest = gaps.indexOf(Math.min(...gaps))
 
     corner = { right: centerX >= area.width / 2, bottom: centerY >= area.height / 2 }
 
-    if (nearest === 0) {
+    if (centerX < area.width * SNAP) {
       left = EDGE
-    } else if (nearest === 1) {
+    } else if (centerX > area.width * (1 - SNAP)) {
       left = maxLeft
-    } else if (nearest === 2) {
+    }
+
+    if (centerY < area.height * SNAP) {
       top = EDGE
-    } else {
+    } else if (centerY > area.height * (1 - SNAP)) {
       top = maxTop
     }
 
