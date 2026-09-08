@@ -739,7 +739,7 @@
 >
   <label
     data-launcher
-    class="input input-lg flex h-14 w-full items-center gap-3 rounded-box border border-base-content/10 bg-base-100/60 px-4 shadow-lg outline-none backdrop-blur-xl transition-[border-color,box-shadow] duration-150 focus-within:border-primary/40 focus-within:outline-none focus-within:ring-2 focus-within:ring-primary/20"
+    class="input input-lg flex h-14 w-full shrink-0 items-center gap-3 rounded-box border border-base-content/10 bg-base-100/60 px-4 shadow-lg outline-none backdrop-blur-xl transition-[border-color,box-shadow] duration-150 focus-within:border-primary/40 focus-within:outline-none focus-within:ring-2 focus-within:ring-primary/20"
   >
     <Icon icon="lucide:search" class="size-5 shrink-0 text-base-content/60" />
 

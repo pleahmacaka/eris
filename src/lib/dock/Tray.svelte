@@ -25,7 +25,6 @@
   const INFO_POLL = 5_000
   const MENU_HEIGHT = 284
   const MENU_GRACE = 600
-  const WHEEL_LOCK = 220
   const SHEET_GAP = 16
 
   const MENU: MenuItem[] = [
@@ -132,27 +131,6 @@
       device.showVolume && info.volume !== null && "volume",
     ].filter((w): w is Widget => typeof w === "string"),
   )
-
-  let page = $state(0)
-
-  const current = $derived(Math.min(page, Math.max(0, widgets.length - 1)))
-
-  let wheelAt = 0
-
-  const onwheel = (e: WheelEvent) => {
-    if (e.defaultPrevented || widgets.length < 2) {
-      return
-    }
-
-    const now = Date.now()
-
-    if (now - wheelAt < WHEEL_LOCK) {
-      return
-    }
-
-    wheelAt = now
-    page = (current + (e.deltaY > 0 ? 1 : widgets.length - 1)) % widgets.length
-  }
 
   let sheetOpen = $state(false)
   let sheetHeight = $state(0)
@@ -262,10 +240,15 @@
   {@const menu = nested ? extendSheet : onmenu}
 
   {#if name === "claude"}
-    <ClaudeUsage source={device.claudeUsageSource} compact={compact && !nested} />
+    <ClaudeUsage
+      source={device.claudeUsageSource}
+      compact={compact && !nested}
+      stacked={device.claudeUsageStacked}
+    />
   {:else if name === "tray"}
     <NotifyIcons
       compact={compact && !nested}
+      flat={nested}
       onmenu={menu}
       edge={device.dockEdge}
       order={device.trayOrder}
@@ -307,40 +290,10 @@
 {/snippet}
 
 <div class="flex items-center gap-0.5">
-  <div class={mac ? "grid" : "contents"} onwheel={mac ? onwheel : undefined}>
-    {#each widgets as name, index (name)}
-      {@const offset = index - current}
-
-      <div
-        class={mac
-          ? [
-              "col-start-1 row-start-1 flex items-center justify-center transition duration-200",
-              offset === 0
-                ? "opacity-100"
-                : offset < 0
-                  ? "-translate-y-1/2 opacity-0"
-                  : "translate-y-1/2 opacity-0",
-            ]
-          : "contents"}
-        inert={mac && offset !== 0}
-        aria-hidden={mac && offset !== 0}
-      >
-        {@render widget(name, false)}
-      </div>
+  {#if !mac}
+    {#each widgets as name (name)}
+      {@render widget(name, false)}
     {/each}
-  </div>
-
-  {#if mac && widgets.length > 1}
-    <div class="flex flex-col gap-0.5 px-0.5" aria-hidden="true">
-      {#each widgets as name, index (name)}
-        <span
-          class={[
-            "size-1 rounded-full transition-colors duration-200",
-            index === current ? "bg-base-content/70" : "bg-base-content/20",
-          ]}
-        ></span>
-      {/each}
-    </div>
   {/if}
 
   {#if device.sync.enabled}
@@ -392,8 +345,8 @@
     <div class="relative" data-widgets>
       <button
         class="btn btn-ghost btn-square btn-sm"
-        title="Widgets"
-        aria-label="Show widgets"
+        title="Tray and widgets"
+        aria-label="Show tray and widgets"
         aria-haspopup="dialog"
         aria-expanded={sheetOpen}
         onclick={() => setSheet(!sheetOpen)}
@@ -409,14 +362,14 @@
             device.dockEdge === "top" ? "top-full mt-2" : "bottom-full mb-2",
           ]}
           role="dialog"
-          aria-label="Widgets"
+          aria-label="Tray and widgets"
         >
           <ul class="divide-y divide-base-content/10">
             {#each widgets as name (name)}
-              <li class="flex min-h-11 items-center justify-between gap-3 px-2 py-1">
+              <li class="flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-1 px-2 py-1">
                 <span class="text-xs text-base-content/60">{TITLES[name]}</span>
 
-                <div class="flex items-center">
+                <div class="flex min-w-0 flex-wrap items-center justify-end">
                   {@render widget(name, true)}
                 </div>
               </li>

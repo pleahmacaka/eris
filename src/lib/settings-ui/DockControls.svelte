@@ -6,6 +6,7 @@
     usageBridgeInstalled,
   } from "$lib/native"
   import type { DeviceSettings, DockAlign, DockStyle } from "$lib/settings"
+  import DockPreview from "./DockPreview.svelte"
   import Row from "./Row.svelte"
   import Segmented from "./Segmented.svelte"
 
@@ -30,6 +31,7 @@
     | "showTrayIcons"
     | "showKeymap"
     | "showClaudeUsage"
+    | "claudeUsageStacked"
     | "showSettingsButton"
     | "showSpectrum"
     | "showBattery"
@@ -56,6 +58,11 @@
         key: "showClaudeUsage",
         label: "Show Claude usage",
         hint: "5-hour and weekly session limits",
+      },
+      {
+        key: "claudeUsageStacked",
+        label: "Stack Claude usage",
+        hint: "5-hour above weekly instead of side by side",
       },
       {
         key: "showSettingsButton",
@@ -156,6 +163,10 @@
 <div data-row="Style" class="flex flex-col gap-3 px-4 py-3">
   <span class="text-sm font-medium">Style</span>
 
+  <div class="mx-auto w-full max-w-sm">
+    <DockPreview {device} />
+  </div>
+
   <div class="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Dock style">
     {#each styles as s (s.value)}
       {@const active = device.dockStyle === s.value}
@@ -172,33 +183,7 @@
         ]}
         onclick={() => (device.dockStyle = s.value)}
       >
-        <div
-          class="relative h-14 w-full overflow-hidden rounded-field bg-linear-to-br from-primary/20 to-secondary/20 ring-1 ring-base-content/10"
-        >
-          {#if s.value === "windows"}
-            <div
-              class={[
-                "absolute inset-x-0 flex h-3.5 items-center justify-center gap-1 bg-base-content/25",
-                device.dockEdge === "top" ? "top-0" : "bottom-0",
-              ]}
-            >
-              {#each [0, 1, 2, 3] as dot (dot)}
-                <span class="size-1.5 rounded-sm bg-base-100/80"></span>
-              {/each}
-            </div>
-          {:else}
-            <div
-              class={[
-                "absolute left-1/2 flex h-3.5 w-1/2 -translate-x-1/2 items-center justify-center gap-1 rounded-full bg-base-content/25",
-                device.dockEdge === "top" ? "top-1" : "bottom-1",
-              ]}
-            >
-              {#each [0, 1, 2, 3] as dot (dot)}
-                <span class="size-1.5 rounded-full bg-base-100/80"></span>
-              {/each}
-            </div>
-          {/if}
-        </div>
+        <DockPreview {device} style={s.value} />
 
         <span class="text-sm font-medium">{s.label}</span>
 

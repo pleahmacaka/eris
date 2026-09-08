@@ -551,6 +551,7 @@
             <ClaudeUsage
               source={device.claudeUsageSource}
               compact={device.dockHeight < 40}
+              stacked={device.claudeUsageStacked}
             />
           {/if}
 

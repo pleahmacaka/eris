@@ -14,6 +14,7 @@
     compact?: boolean
     edge?: DockEdge
     order?: string[]
+    flat?: boolean
     onreorder?: (order: string[]) => void
     onmenu?: (height: number) => void
   }
@@ -22,6 +23,7 @@
     compact = false,
     edge = "bottom",
     order = [],
+    flat = false,
     onreorder,
     onmenu,
   }: Props = $props()
@@ -76,8 +78,8 @@
     )
   })
 
-  const shown = $derived(sorted.filter(icon => icon.promoted))
-  const stashed = $derived(sorted.filter(icon => !icon.promoted))
+  const shown = $derived(flat ? sorted : sorted.filter(icon => icon.promoted))
+  const stashed = $derived(flat ? [] : sorted.filter(icon => !icon.promoted))
 
   const COLUMNS = 6
   const ROW = 36
@@ -185,7 +187,7 @@
 
 {#if icons.length > 0}
   <div
-    class="relative flex items-center gap-px"
+    class={["relative flex items-center gap-px", flat && "flex-wrap justify-end"]}
     role="list"
     bind:this={row}
     ondragover={e => e.preventDefault()}

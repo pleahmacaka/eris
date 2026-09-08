@@ -7,9 +7,10 @@
   type Props = {
     source?: string
     compact?: boolean
+    stacked?: boolean
   }
 
-  let { source = "", compact = false }: Props = $props()
+  let { source = "", compact = false, stacked = false }: Props = $props()
 
   const POLL = 60_000
 
@@ -84,12 +85,12 @@
   >
     <Icon icon={claudeIcon} class="size-3.5 shrink-0 text-primary/80" />
 
-    <div class="flex items-center gap-1.5">
+    <div class={["flex", stacked ? "flex-col gap-0.5" : "items-center gap-1.5"]}>
       {#each [["5h", usage.fiveHour], ["7d", usage.sevenDay]] as const as [name, window] (name)}
         {#if window}
-          <div class="flex items-center gap-1">
-            {#if !compact}
-              <span class="text-[10px] text-base-content/50">{name}</span>
+          <div class={["flex items-center gap-1", stacked && "leading-none"]}>
+            {#if !compact || stacked}
+              <span class="w-4 text-[10px] text-base-content/50">{name}</span>
             {/if}
 
             <span class="h-1 w-8 overflow-hidden rounded-full bg-base-content/15">
@@ -99,7 +100,7 @@
               ></span>
             </span>
 
-            <span class="tabular-nums text-[11px]">{percent(window.used)}%</span>
+            <span class={["tabular-nums", stacked ? "text-[10px]" : "text-[11px]"]}>{percent(window.used)}%</span>
           </div>
         {/if}
       {/each}

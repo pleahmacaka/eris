@@ -43,6 +43,7 @@ export type DeviceSettings = {
   showClaudeUsage: boolean
   claudeUsageSource: string
   claudeUsageSide: DockSide
+  claudeUsageStacked: boolean
   mediaSide: DockSide
   showSpectrum: boolean
   spectrumStyle: SpectrumStyle
@@ -175,6 +176,7 @@ export const defaultDevice: DeviceSettings = {
   showClaudeUsage: true,
   claudeUsageSource: "",
   claudeUsageSide: "left",
+  claudeUsageStacked: false,
   mediaSide: "left",
   showSpectrum: true,
   spectrumStyle: "bars",
