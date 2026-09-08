@@ -2,27 +2,37 @@ name: release
 
 on:
   push:
-    tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to build
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
-  release:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ github.event.inputs.tag || steps.release.outputs.tag_name }}
+      build: ${{ github.event_name == 'workflow_dispatch' || steps.release.outputs.release_created == 'true' }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        if: github.event_name == 'push'
+
+  build:
+    needs: version
+    if: needs.version.outputs.build == 'true'
     runs-on: windows-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v7
 
       - uses: oven-sh/setup-bun@v2
-
-      - name: verify tag matches app version
-        shell: bash
-        run: |
-          version=$(jq -r .version package.json)
-          [ "$version" = "${{ github.ref_name }}" ] || {
-            echo "package.json is $version but the tag is ${{ github.ref_name }}"
-            exit 1
-          }
 
       - uses: dtolnay/rust-toolchain@stable
 
@@ -36,6 +46,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: ${{ github.ref_name }}
-          releaseDraft: false
+          tagName: ${{ needs.version.outputs.tag }}
+          releaseName: ${{ needs.version.outputs.tag }}
