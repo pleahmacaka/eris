@@ -41,10 +41,12 @@ export type Prompt = {
   questions: Question[]
 }
 
+export type Command = { name: string; description: string }
+
 export type Info = {
   id: string | null
   model: string
-  commands: string[]
+  commands: Command[]
   cwd: string
 }
 
@@ -130,6 +132,12 @@ export class ClaudeSession {
       cwd: options.cwd,
       resume: options.resume,
       plain: options.plain,
+    })
+
+    await this.write({
+      type: "control_request",
+      request_id: "initialize",
+      request: { subtype: "initialize" },
     })
   }
 
@@ -269,6 +277,28 @@ export class ClaudeSession {
       case "control_request":
         this.onControl(event)
         break
+      case "control_response":
+        this.onInitialized(event.response as Event)
+        break
+    }
+  }
+
+  private onInitialized(response: Event) {
+    if (response.request_id !== "initialize") {
+      return
+    }
+
+    const inner = (response.response ?? {}) as Event
+    const commands = Array.isArray(inner.commands)
+      ? (inner.commands as Event[])
+      : []
+
+    this.info = {
+      ...this.info,
+      commands: commands.map(c => ({
+        name: String(c.name ?? ""),
+        description: String(c.description ?? ""),
+      })),
     }
   }
 
@@ -277,12 +307,17 @@ export class ClaudeSession {
       return
     }
 
+    const names = Array.isArray(event.slash_commands)
+      ? event.slash_commands.map(String)
+      : []
+
     this.info = {
       id: String(event.session_id ?? ""),
       model: String(event.model ?? ""),
-      commands: Array.isArray(event.slash_commands)
-        ? event.slash_commands.map(String)
-        : [],
+      commands:
+        this.info.commands.length > 0
+          ? this.info.commands
+          : names.map(name => ({ name, description: "" })),
       cwd: String(event.cwd ?? this.info.cwd),
     }
   }

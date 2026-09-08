@@ -138,7 +138,8 @@
     slashTerm === null
       ? []
       : (session?.info.commands ?? [])
-          .filter(command => command.startsWith(slashTerm))
+          .filter(command => command.name.startsWith(slashTerm))
+          .sort((a, b) => Number(b.name === slashTerm) - Number(a.name === slashTerm))
           .slice(0, 8),
   )
 
@@ -286,6 +287,20 @@
 
     draft = ""
     await session?.send(text)
+  }
+
+  const capture = (e: PointerEvent, on: boolean) => {
+    const target = e.currentTarget as HTMLElement
+
+    try {
+      if (on) {
+        target.setPointerCapture(e.pointerId)
+      } else {
+        target.releasePointerCapture(e.pointerId)
+      }
+    } catch {
+      return
+    }
   }
 
   const completeCommand = (command: string) => {
@@ -461,6 +476,10 @@
     if (open) {
       appWindow.setFocus().catch(() => undefined)
       queueMicrotask(() => input?.focus())
+
+      if (!session && cli !== null) {
+        fresh()
+      }
     }
   }
 
@@ -487,7 +506,7 @@
     grabY = e.clientY + frame.y - top
     travel = 0
     dragging = true
-    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+    capture(e, true)
   }
 
   const move = (e: PointerEvent) => {
@@ -508,7 +527,7 @@
       return
     }
 
-    ;(e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
+    capture(e, false)
 
     const dropped = overTarget
     const tapped = travel < SLOP
@@ -534,7 +553,7 @@
   const compose = (e: KeyboardEvent) => {
     if ((e.key === "Enter" || e.key === "Tab") && commands.length > 0 && slashTerm !== null) {
       e.preventDefault()
-      completeCommand(commands[0])
+      completeCommand(commands[0].name)
 
       return
     }
@@ -559,7 +578,7 @@
   {#if open && !dragging}
     <section
       bind:this={panel}
-      class="absolute isolate flex flex-col overflow-hidden rounded-box border border-base-content/10 bg-base-100/90"
+      class="absolute isolate flex flex-col overflow-hidden rounded-box border border-base-content/10 bg-base-100"
       style:left="{panelLeft}px"
       style:top="{panelTop}px"
       style:width="{PANEL_WIDTH}px"
@@ -849,14 +868,16 @@
           <ul
             class="absolute inset-x-3 bottom-full mb-1 max-h-56 overflow-y-auto rounded-box border border-base-content/10 bg-base-100/95 p-1 text-sm shadow-xl"
           >
-            {#each commands as command (command)}
+            {#each commands as command (command.name)}
               <li>
                 <button
                   type="button"
-                  class="w-full rounded-field px-2 py-1 text-left hover:bg-base-content/10"
-                  onclick={() => completeCommand(command)}
+                  class="flex w-full items-baseline gap-2 rounded-field px-2 py-1 text-left hover:bg-base-content/10"
+                  onclick={() => completeCommand(command.name)}
                 >
-                  /{command}
+                  <span class="shrink-0">/{command.name}</span>
+
+                  <span class="truncate text-xs text-base-content/50">{command.description}</span>
                 </button>
               </li>
             {/each}
@@ -926,7 +947,7 @@
   <button
     type="button"
     class={[
-      "absolute flex cursor-grab items-center justify-center rounded-full border border-base-content/15 bg-base-100/80 transition-[left,top,filter] duration-200 ease-out hover:brightness-110 active:cursor-grabbing",
+      "absolute flex cursor-grab items-center justify-center rounded-full border border-base-content/15 bg-base-100 transition-[left,top,filter] duration-200 ease-out hover:brightness-110 active:cursor-grabbing",
       dragging && "transition-none brightness-110",
       open && "ring-2 ring-primary/40",
     ]}
