@@ -1,44 +1,69 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { getCurrentWindow } from "@tauri-apps/api/window"
+  import { open as pickDirectory } from "@tauri-apps/plugin-dialog"
+  import { cubicOut } from "svelte/easing"
+  import { scale } from "svelte/transition"
   import { claudeIcon } from "$lib/claude-icon"
+  import Markdown from "$lib/claude/Markdown.svelte"
+  import { ClaudeSession, type Question } from "$lib/claude/session.svelte"
   import * as native from "$lib/native"
+  import Aura from "$lib/ui/Aura.svelte"
 
-  type Message = {
-    id: string
-    role: "user" | "assistant"
-    text: string
-  }
+  type Mode = "claude" | "code"
 
   const BUBBLE = 56
-  const PANEL_WIDTH = 380
-  const PANEL_HEIGHT = 520
+  const PANEL_WIDTH = 440
+  const PANEL_HEIGHT = 640
   const GAP = 12
   const EDGE = 16
   const TARGET = 64
   const TARGET_BOTTOM = 56
-  const CATCH = 90
-  const SLOP = 5
+  const CATCH = 120
+  const SLOP = 3
+  const MENTION_DELAY = 150
+  const RECENT_LIMIT = 8
+  const STORAGE = "eris.chat"
 
   const appWindow = getCurrentWindow()
 
-  let viewport = $state({ width: 0, height: 0 })
+  let area = $state({ width: 0, height: 0 })
   let left = $state(0)
   let top = $state(0)
-  let moved = $state(false)
+  let corner = $state({ right: true, bottom: true })
   let dragging = $state(false)
   let open = $state(false)
   let grabX = 0
   let grabY = 0
   let travel = 0
 
-  let messages = $state<Message[]>([])
+  const stored = JSON.parse(localStorage.getItem(STORAGE) ?? "{}") as {
+    mode?: Mode
+    folder?: string
+    recent?: string[]
+  }
+
+  let mode = $state<Mode>(stored.mode ?? "claude")
+  let folder = $state(stored.folder ?? "")
+  let recent = $state<string[]>(stored.recent ?? [])
+  let session = $state<ClaudeSession | null>(null)
+  let cli = $state<string | null | undefined>(undefined)
+  let history = $state<native.Transcript[]>([])
+  let historyOpen = $state(false)
   let draft = $state("")
   let input = $state<HTMLTextAreaElement>()
   let thread = $state<HTMLElement>()
+  let mentions = $state<native.FileEntry[]>([])
+  let picked = $state<Record<string, string[]>>({})
 
-  const targetX = $derived(viewport.width / 2)
-  const targetY = $derived(viewport.height - TARGET_BOTTOM - TARGET / 2)
+  const cwd = $derived(mode === "code" && folder ? folder : null)
+
+  const title = $derived(mode === "code" ? "Claude Code" : "Claude")
+
+  const folderName = $derived(folder.split(/[\\/]/).filter(Boolean).at(-1) ?? "")
+
+  const targetX = $derived(area.width / 2)
+  const targetY = $derived(area.height - TARGET_BOTTOM - TARGET / 2)
 
   const overTarget = $derived(
     dragging &&
@@ -46,40 +71,242 @@
         CATCH,
   )
 
-  const rightSide = $derived(
-    left + BUBBLE + GAP + PANEL_WIDTH + EDGE <= viewport.width,
-  )
-
   const panelLeft = $derived(
-    rightSide ? left + BUBBLE + GAP : left - GAP - PANEL_WIDTH,
+    corner.right ? left - GAP - PANEL_WIDTH : left + BUBBLE + GAP,
   )
 
-  const panelTop = $derived(
-    Math.min(
-      Math.max(EDGE, top + BUBBLE / 2 - PANEL_HEIGHT / 2),
-      Math.max(EDGE, viewport.height - PANEL_HEIGHT - EDGE),
-    ),
+  const panelTop = $derived(corner.bottom ? top + BUBBLE - PANEL_HEIGHT : top)
+
+  const origin = $derived(
+    `${corner.right ? "right" : "left"} ${corner.bottom ? "bottom" : "top"}`,
   )
 
-  const rest = () => {
-    left = Math.max(EDGE, viewport.width - BUBBLE - EDGE)
-    top = Math.round(viewport.height / 2 - BUBBLE / 2)
+  // the window is only as big as what it shows; it covers the whole work area just while the bubble drags
+  const frame = $derived.by(() => {
+    if (dragging) {
+      return { x: 0, y: 0, width: area.width, height: area.height }
+    }
+
+    let x0 = left
+    let y0 = top
+    let x1 = left + BUBBLE
+    let y1 = top + BUBBLE
+
+    if (open) {
+      x0 = Math.min(x0, panelLeft)
+      y0 = Math.min(y0, panelTop)
+      x1 = Math.max(x1, panelLeft + PANEL_WIDTH)
+      y1 = Math.max(y1, panelTop + PANEL_HEIGHT)
+    }
+
+    return { x: x0, y: y0, width: x1 - x0, height: y1 - y0 }
+  })
+
+  const slashTerm = $derived(
+    draft.startsWith("/") && !/\s/.test(draft) ? draft.slice(1) : null,
+  )
+
+  const commands = $derived(
+    slashTerm === null
+      ? []
+      : (session?.info.commands ?? [])
+          .filter(command => command.startsWith(slashTerm))
+          .slice(0, 8),
+  )
+
+  const mentionTerm = $derived.by(() => {
+    const match = /(?:^|\s)@([^\s@]*)$/.exec(draft)
+
+    return match ? match[1] : null
+  })
+
+  const place = () => {
+    left = corner.right ? area.width - BUBBLE - EDGE : EDGE
+    top = corner.bottom ? area.height - BUBBLE - EDGE : EDGE
   }
 
-  const clamp = () => {
-    left = Math.min(Math.max(EDGE, left), viewport.width - BUBBLE - EDGE)
-    top = Math.min(Math.max(EDGE, top), viewport.height - BUBBLE - EDGE)
+  const settle = () => {
+    corner = {
+      right: left + BUBBLE / 2 >= area.width / 2,
+      bottom: top + BUBBLE / 2 >= area.height / 2,
+    }
+    place()
   }
+
+  const load = async () => {
+    const next = await native.chatArea().catch(() => null)
+
+    if (next) {
+      area = next
+      place()
+    }
+  }
+
+  const remember = () => {
+    if (folder && !recent.includes(folder)) {
+      recent = [folder, ...recent].slice(0, RECENT_LIMIT)
+    }
+
+    localStorage.setItem(STORAGE, JSON.stringify({ mode, folder, recent }))
+  }
+
+  const fresh = async (resume: string | null = null) => {
+    await session?.stop()
+
+    const next = new ClaudeSession()
+
+    session = next
+    historyOpen = false
+    picked = {}
+
+    const past = resume ? await native.claudeTranscript(cwd, resume).catch(() => []) : []
+
+    await next
+      .start({ cwd, resume, plain: mode === "claude", history: past })
+      .catch(e => {
+        next.error = String(e)
+      })
+  }
+
+  const loadHistory = async () => {
+    history = await native.claudeSessions(cwd).catch(() => [])
+    historyOpen = true
+  }
+
+  const chooseFolder = async () => {
+    const choice = await pickDirectory({
+      directory: true,
+      defaultPath: folder || undefined,
+    }).catch(() => null)
+
+    if (typeof choice !== "string") {
+      return
+    }
+
+    folder = choice
+    mode = "code"
+    remember()
+    await fresh()
+  }
+
+  const useFolder = async (path: string) => {
+    folder = path
+    mode = "code"
+    remember()
+    await fresh()
+  }
+
+  const switchMode = async (next: Mode) => {
+    if (next === mode) {
+      return
+    }
+
+    if (next === "code" && !folder) {
+      await chooseFolder()
+
+      return
+    }
+
+    mode = next
+    remember()
+    await fresh()
+  }
+
+  const send = async () => {
+    const text = draft.trim()
+
+    if (!text || session?.busy) {
+      return
+    }
+
+    if (!session) {
+      await fresh()
+    }
+
+    draft = ""
+    await session?.send(text)
+  }
+
+  const completeCommand = (command: string) => {
+    draft = `/${command} `
+    input?.focus()
+  }
+
+  const relative = (path: string) => {
+    const root = cwd ?? ""
+
+    return root && path.startsWith(root)
+      ? path.slice(root.length).replace(/^[\\/]/, "")
+      : path
+  }
+
+  const completeMention = (entry: native.FileEntry) => {
+    draft = draft.replace(/@[^\s@]*$/, `@${relative(entry.path).replaceAll("\\", "/")} `)
+    mentions = []
+    input?.focus()
+  }
+
+  const pick = (question: Question, label: string) => {
+    const current = picked[question.question] ?? []
+
+    picked = {
+      ...picked,
+      [question.question]: question.multiSelect
+        ? current.includes(label)
+          ? current.filter(item => item !== label)
+          : [...current, label]
+        : [label],
+    }
+  }
+
+  const submitAnswers = () => {
+    if (!session?.prompt) {
+      return
+    }
+
+    const answers = Object.fromEntries(
+      session.prompt.questions.map(question => [
+        question.question,
+        (picked[question.question] ?? []).join(", "),
+      ]),
+    )
+
+    picked = {}
+    session.answer(answers)
+  }
+
+  const summary = (input: unknown) => {
+    const fields = (input ?? {}) as Record<string, unknown>
+    const value =
+      fields.command ??
+      fields.file_path ??
+      fields.pattern ??
+      fields.path ??
+      fields.query ??
+      fields.url ??
+      fields.description ??
+      fields.prompt
+
+    return typeof value === "string" ? value : JSON.stringify(fields).slice(0, 160)
+  }
+
+  const when = (seconds: number) =>
+    new Date(seconds * 1000).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    })
 
   $effect(() => {
     document.documentElement.dataset.surface = "overlay"
+    load()
+    native.claudeWhich().then(path => {
+      cli = path
+    })
 
     const stops = [
-      // the bubble is what the window shows; the panel only opens on the shortcut or a tap
-      native.onWindowShown("chat", () => {
-        moved = false
-        rest()
-      }),
+      native.onWindowShown("chat", load),
       native.onChatToggle(() => toggle()),
     ]
 
@@ -87,31 +314,51 @@
       for (const stop of stops) {
         stop.then(off => off()).catch(() => undefined)
       }
-    }
-  })
 
-  // the window only takes the monitor size once it is shown, so ride the viewport until the user drags
-  $effect(() => {
-    if (viewport.width > 0 && viewport.height > 0 && !moved) {
-      rest()
+      session?.stop()
     }
   })
 
   $effect(() => {
-    if (messages.length > 0 && thread) {
+    if (mentionTerm === null) {
+      mentions = []
+
+      return
+    }
+
+    const term = mentionTerm
+    const timer = setTimeout(async () => {
+      const root = cwd ?? session?.info.cwd ?? ""
+
+      mentions = root
+        ? (await native.searchDir(root, term).catch(() => [])).slice(0, 8)
+        : []
+    }, MENTION_DELAY)
+
+    return () => clearTimeout(timer)
+  })
+
+  $effect(() => {
+    void session?.turns.length
+    void session?.turns.at(-1)?.blocks.length
+
+    if (thread) {
       thread.scrollTop = thread.scrollHeight
     }
   })
 
-  // only the bubble, the panel and the drop target belong to this window; the rest is the desktop
   $effect(() => {
+    if (area.width === 0) {
+      return
+    }
+
     const box = (
       x: number,
       y: number,
       width: number,
       height: number,
       radius: number,
-    ) => [x, y, x + width, y + height, radius]
+    ) => [x - frame.x, y - frame.y, x - frame.x + width, y - frame.y + height, radius]
 
     const rects = [box(left, top, BUBBLE, BUBBLE, BUBBLE / 2)]
 
@@ -131,13 +378,13 @@
       )
     }
 
-    native.setWindowRegion("chat", rects).catch(() => undefined)
+    native
+      .chatFrame([frame.x, frame.y, frame.width, frame.height], rects)
+      .catch(() => undefined)
   })
 
   const hide = () => {
     open = false
-    moved = false
-    rest()
     native.hideWindow("chat").catch(() => undefined)
   }
 
@@ -152,6 +399,14 @@
 
   const onkeydown = (e: KeyboardEvent) => {
     if (e.key === "Escape" && open) {
+      if (historyOpen || commands.length > 0 || mentions.length > 0) {
+        historyOpen = false
+        mentions = []
+        draft = commands.length > 0 ? "" : draft
+
+        return
+      }
+
       open = false
     }
   }
@@ -161,10 +416,10 @@
       return
     }
 
-    dragging = true
+    grabX = e.clientX + frame.x - left
+    grabY = e.clientY + frame.y - top
     travel = 0
-    grabX = e.clientX - left
-    grabY = e.clientY - top
+    dragging = true
     ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
   }
 
@@ -173,8 +428,8 @@
       return
     }
 
-    const nextLeft = e.clientX - grabX
-    const nextTop = e.clientY - grabY
+    const nextLeft = e.clientX + frame.x - grabX
+    const nextTop = e.clientY + frame.y - grabY
 
     travel += Math.abs(nextLeft - left) + Math.abs(nextTop - top)
     left = nextLeft
@@ -200,36 +455,30 @@
     }
 
     if (tapped) {
+      place()
       toggle()
 
       return
     }
 
-    moved = true
-    clamp()
-  }
-
-  const send = () => {
-    const text = draft.trim()
-
-    if (!text) {
-      return
-    }
-
-    messages = [
-      ...messages,
-      { id: crypto.randomUUID(), role: "user", text },
-      {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        text: "모델 연결이 아직 설정되지 않았습니다. 설정에서 연동한 뒤 다시 시도하세요.",
-      },
-    ]
-
-    draft = ""
+    settle()
   }
 
   const compose = (e: KeyboardEvent) => {
+    if ((e.key === "Enter" || e.key === "Tab") && commands.length > 0 && slashTerm !== null) {
+      e.preventDefault()
+      completeCommand(commands[0])
+
+      return
+    }
+
+    if (e.key === "Tab" && mentions.length > 0) {
+      e.preventDefault()
+      completeMention(mentions[0])
+
+      return
+    }
+
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
       send()
@@ -237,125 +486,409 @@
   }
 </script>
 
-<svelte:window
-  {onkeydown}
-  bind:innerWidth={viewport.width}
-  bind:innerHeight={viewport.height}
-/>
+<svelte:window {onkeydown} />
 
-{#if open && !dragging}
-  <section
-    class="absolute flex flex-col overflow-hidden rounded-[1.75rem] border border-base-content/10 bg-base-100/65 shadow-2xl backdrop-blur-3xl"
-    style:left="{panelLeft}px"
-    style:top="{panelTop}px"
-    style:width="{PANEL_WIDTH}px"
-    style:height="{PANEL_HEIGHT}px"
-    aria-label="Chat"
-  >
-    <div
-      class="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-primary/15 to-transparent"
-      aria-hidden="true"
-    ></div>
-
-    <header class="flex shrink-0 items-center gap-2 px-5 pt-4 pb-2">
-      <span class="grow text-sm font-medium tracking-tight">Claude</span>
-
-      <button
-        type="button"
-        class="btn btn-circle btn-ghost btn-xs"
-        aria-label="Close chat"
-        onclick={() => (open = false)}
-      >
-        <Icon icon="lucide:x" class="size-4" />
-      </button>
-    </header>
-
-    <div
-      bind:this={thread}
-      class="flex min-h-0 grow flex-col gap-2 overflow-y-auto px-4 py-2"
+<div class="absolute" style:left="{-frame.x}px" style:top="{-frame.y}px">
+  {#if open && !dragging}
+    <section
+      class="absolute isolate flex flex-col overflow-hidden rounded-[1.75rem] border border-base-content/10 bg-base-100/90"
+      style:left="{panelLeft}px"
+      style:top="{panelTop}px"
+      style:width="{PANEL_WIDTH}px"
+      style:height="{PANEL_HEIGHT}px"
+      style:transform-origin={origin}
+      transition:scale={{ duration: 220, start: 0.88, easing: cubicOut }}
+      aria-label={title}
     >
-      {#each messages as message (message.id)}
+      <Aura />
+
+      <header class="flex shrink-0 items-center gap-1 px-4 pt-3 pb-2">
         <div
-          class={[
-            "max-w-[82%] px-4 py-2.5 text-sm leading-relaxed",
-            message.role === "user"
-              ? "self-end rounded-[1.25rem] rounded-br-md bg-primary text-primary-content"
-              : "self-start rounded-[1.25rem] rounded-bl-md bg-base-content/10",
-          ]}
+          class="inline-flex gap-0.5 rounded-field border border-base-content/10 bg-base-content/5 p-0.5"
+          role="radiogroup"
+          aria-label="Mode"
         >
-          {message.text}
+          {#each [["claude", "Claude"], ["code", "Claude Code"]] as const as [value, label] (value)}
+            <button
+              type="button"
+              role="radio"
+              aria-checked={mode === value}
+              class={[
+                "rounded-field px-2.5 py-1 text-xs transition-colors duration-150",
+                mode === value
+                  ? "bg-base-100 text-base-content shadow-sm"
+                  : "text-base-content/60 hover:text-base-content",
+              ]}
+              onclick={() => switchMode(value)}
+            >
+              {label}
+            </button>
+          {/each}
         </div>
-      {:else}
-        <div class="m-auto flex flex-col items-center gap-3 text-center">
-          <Icon icon={claudeIcon} class="size-8 text-primary/70" />
 
-          <p class="text-sm text-base-content/50">무엇이든 물어보세요</p>
-        </div>
-      {/each}
-    </div>
+        {#if mode === "code"}
+          <button
+            type="button"
+            class="btn btn-ghost btn-xs max-w-32 gap-1 truncate font-normal"
+            title={folder}
+            onclick={chooseFolder}
+          >
+            <Icon icon="lucide:folder" class="size-3.5 shrink-0" />
 
-    <div class="shrink-0 p-3">
-      <div
-        class="flex items-end gap-2 rounded-[1.5rem] border border-base-content/10 bg-base-100/70 py-1.5 pr-1.5 pl-4"
-      >
-        <textarea
-          bind:this={input}
-          bind:value={draft}
-          onkeydown={compose}
-          rows="1"
-          placeholder="메시지 입력"
-          class="max-h-28 min-h-8 grow resize-none bg-transparent py-1 text-sm outline-none placeholder:text-base-content/35"
-        ></textarea>
+            <span class="truncate">{folderName || "Folder"}</span>
+          </button>
+        {/if}
+
+        <span class="grow"></span>
 
         <button
           type="button"
-          class="btn btn-circle btn-primary btn-sm"
-          aria-label="Send"
-          disabled={!draft.trim()}
-          onclick={send}
+          class="btn btn-circle btn-ghost btn-xs"
+          title="History"
+          aria-label="Previous chats"
+          onclick={loadHistory}
         >
-          <Icon icon="lucide:arrow-up" class="size-4" />
+          <Icon icon="lucide:history" class="size-4" />
         </button>
+
+        <button
+          type="button"
+          class="btn btn-circle btn-ghost btn-xs"
+          title="New chat"
+          aria-label="New chat"
+          onclick={() => fresh()}
+        >
+          <Icon icon="lucide:plus" class="size-4" />
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-circle btn-ghost btn-xs"
+          aria-label="Close"
+          onclick={() => (open = false)}
+        >
+          <Icon icon="lucide:x" class="size-4" />
+        </button>
+      </header>
+
+      {#if historyOpen}
+        <div class="flex min-h-0 grow flex-col px-3 pb-3">
+          <p class="px-2 pb-1 text-xs text-base-content/50">
+            {cwd ?? "Home"}
+          </p>
+
+          <ul class="min-h-0 grow space-y-0.5 overflow-y-auto">
+            {#each history as item (item.id)}
+              <li>
+                <button
+                  type="button"
+                  class="flex w-full flex-col items-start gap-0.5 rounded-field px-2 py-1.5 text-left hover:bg-base-content/10"
+                  onclick={() => fresh(item.id)}
+                >
+                  <span class="line-clamp-1 text-sm">{item.title || "Untitled"}</span>
+
+                  <span class="text-[11px] text-base-content/50">{when(item.modified)}</span>
+                </button>
+              </li>
+            {:else}
+              <li class="px-2 py-4 text-sm text-base-content/50">기록 없음</li>
+            {/each}
+          </ul>
+
+          {#if recent.length > 0}
+            <p class="px-2 pt-2 pb-1 text-xs text-base-content/50">Recent folders</p>
+
+            <ul class="max-h-28 space-y-0.5 overflow-y-auto">
+              {#each recent as path (path)}
+                <li>
+                  <button
+                    type="button"
+                    class="flex w-full items-center gap-2 truncate rounded-field px-2 py-1 text-left text-xs hover:bg-base-content/10"
+                    title={path}
+                    onclick={() => useFolder(path)}
+                  >
+                    <Icon icon="lucide:folder" class="size-3.5 shrink-0" />
+
+                    <span class="truncate">{path}</span>
+                  </button>
+                </li>
+              {/each}
+            </ul>
+          {/if}
+        </div>
+      {:else}
+        <div
+          bind:this={thread}
+          class="flex min-h-0 grow flex-col gap-2 overflow-y-auto px-4 py-2"
+        >
+          {#if cli === null}
+            <div class="m-auto flex flex-col items-center gap-2 text-center text-sm">
+              <Icon icon="lucide:terminal" class="size-7 text-base-content/50" />
+
+              <p>Claude Code CLI 미설치</p>
+
+              <code class="rounded-field bg-base-content/10 px-2 py-1 text-xs"
+                >npm install -g @anthropic-ai/claude-code</code
+              >
+            </div>
+          {:else if !session || session.turns.length === 0}
+            <div class="m-auto flex flex-col items-center gap-3 text-center">
+              <Icon icon={claudeIcon} class="size-8 text-primary/70" />
+
+              <p class="text-sm text-base-content/50">
+                {mode === "code" ? "코드 작업을 요청하세요" : "무엇이든 물어보세요"}
+              </p>
+
+              <p class="text-xs text-base-content/40">/ 명령, @ 파일</p>
+            </div>
+          {:else}
+            {#each session.turns as turn (turn.id)}
+              {#if turn.role === "user"}
+                <div
+                  class="max-w-[85%] self-end rounded-[1.25rem] rounded-br-md bg-primary px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap text-primary-content"
+                >
+                  {turn.blocks[0]?.kind === "text" ? turn.blocks[0].text : ""}
+                </div>
+              {:else}
+                {#each turn.blocks as block, index (index)}
+                  {#if block.kind === "text" && block.text.trim()}
+                    <div
+                      class="max-w-[92%] self-start rounded-[1.25rem] rounded-bl-md bg-base-content/10 px-4 py-2.5 text-sm leading-relaxed"
+                    >
+                      <Markdown text={block.text} />
+                    </div>
+                  {:else if block.kind === "tool"}
+                    <details
+                      class="max-w-[92%] self-start rounded-field border border-base-content/10 bg-base-100/60 text-xs"
+                    >
+                      <summary
+                        class="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-base-content/70"
+                      >
+                        <Icon
+                          icon={block.error ? "lucide:circle-x" : block.result === null ? "lucide:loader" : "lucide:wrench"}
+                          class={["size-3.5 shrink-0", block.error && "text-error", block.result === null && "animate-spin"]}
+                        />
+
+                        <span class="font-medium">{block.name}</span>
+
+                        <span class="truncate text-base-content/50">{summary(block.input)}</span>
+                      </summary>
+
+                      {#if block.result}
+                        <pre
+                          class="max-h-48 overflow-auto border-t border-base-content/10 px-3 py-2 whitespace-pre-wrap">{block.result.slice(0, 4000)}</pre>
+                      {/if}
+                    </details>
+                  {/if}
+                {/each}
+
+                {#if turn.streaming && turn.blocks.length === 0}
+                  <span class="loading loading-dots loading-sm self-start text-base-content/50"></span>
+                {/if}
+              {/if}
+            {/each}
+          {/if}
+
+          {#if session?.permission}
+            {@const permission = session.permission}
+
+            <div class="self-stretch rounded-box border border-warning/40 bg-warning/10 p-3 text-sm">
+              <p class="flex items-center gap-2 font-medium">
+                <Icon icon="lucide:shield-alert" class="size-4 text-warning" />
+
+                {permission.tool}
+              </p>
+
+              <p class="mt-1 truncate text-xs text-base-content/70" title={summary(permission.input)}>
+                {summary(permission.input)}
+              </p>
+
+              <div class="mt-2 flex justify-end gap-1">
+                <button type="button" class="btn btn-ghost btn-xs" onclick={() => session?.deny()}>
+                  Deny
+                </button>
+
+                {#if permission.suggestions}
+                  <button type="button" class="btn btn-ghost btn-xs" onclick={() => session?.allow(true)}>
+                    Always
+                  </button>
+                {/if}
+
+                <button type="button" class="btn btn-primary btn-xs" onclick={() => session?.allow(false)}>
+                  Allow
+                </button>
+              </div>
+            </div>
+          {/if}
+
+          {#if session?.prompt}
+            <div class="flex flex-col gap-3 self-stretch rounded-box border border-primary/30 bg-primary/5 p-3 text-sm">
+              {#each session.prompt.questions as question (question.question)}
+                <div>
+                  <p class="text-[11px] font-medium tracking-wide text-primary uppercase">{question.header}</p>
+
+                  <p class="mt-0.5">{question.question}</p>
+
+                  <div class="mt-2 flex flex-col gap-1">
+                    {#each question.options as option (option.label)}
+                      {@const on = (picked[question.question] ?? []).includes(option.label)}
+
+                      <button
+                        type="button"
+                        class={[
+                          "rounded-field border px-3 py-1.5 text-left transition-colors duration-150",
+                          on
+                            ? "border-primary/60 bg-primary/15"
+                            : "border-base-content/10 hover:bg-base-content/10",
+                        ]}
+                        onclick={() => pick(question, option.label)}
+                      >
+                        <span class="block text-sm">{option.label}</span>
+
+                        {#if option.description}
+                          <span class="block text-xs text-base-content/60">{option.description}</span>
+                        {/if}
+                      </button>
+                    {/each}
+                  </div>
+                </div>
+              {/each}
+
+              <button
+                type="button"
+                class="btn btn-primary btn-sm self-end"
+                disabled={session.prompt.questions.some(q => !(picked[q.question] ?? []).length)}
+                onclick={submitAnswers}
+              >
+                Submit
+              </button>
+            </div>
+          {/if}
+
+          {#if session?.error}
+            <p class="self-stretch rounded-field bg-error/10 px-3 py-2 text-xs text-error whitespace-pre-wrap">
+              {session.error}
+            </p>
+          {/if}
+        </div>
+      {/if}
+
+      <div class="relative shrink-0 p-3">
+        {#if commands.length > 0 || mentions.length > 0}
+          <ul
+            class="absolute inset-x-3 bottom-full mb-1 max-h-56 overflow-y-auto rounded-box border border-base-content/10 bg-base-100/95 p-1 text-sm shadow-xl"
+          >
+            {#each commands as command (command)}
+              <li>
+                <button
+                  type="button"
+                  class="w-full rounded-field px-2 py-1 text-left hover:bg-base-content/10"
+                  onclick={() => completeCommand(command)}
+                >
+                  /{command}
+                </button>
+              </li>
+            {/each}
+
+            {#each mentions as entry (entry.path)}
+              <li>
+                <button
+                  type="button"
+                  class="flex w-full items-center gap-2 rounded-field px-2 py-1 text-left hover:bg-base-content/10"
+                  title={entry.path}
+                  onclick={() => completeMention(entry)}
+                >
+                  <Icon icon={entry.directory ? "lucide:folder" : "lucide:file"} class="size-3.5 shrink-0 text-base-content/60" />
+
+                  <span class="truncate">{relative(entry.path)}</span>
+                </button>
+              </li>
+            {/each}
+          </ul>
+        {/if}
+
+        <div
+          class="flex items-end gap-2 rounded-[1.5rem] border border-base-content/10 bg-base-100/70 py-1.5 pr-1.5 pl-4"
+        >
+          <textarea
+            bind:this={input}
+            bind:value={draft}
+            onkeydown={compose}
+            rows="1"
+            placeholder={session?.busy ? "응답 중" : "메시지 입력"}
+            class="max-h-28 min-h-8 grow resize-none bg-transparent py-1 text-sm outline-none placeholder:text-base-content/35"
+          ></textarea>
+
+          {#if session?.busy}
+            <button
+              type="button"
+              class="btn btn-circle btn-ghost btn-sm"
+              aria-label="Stop"
+              onclick={() => session?.interrupt()}
+            >
+              <Icon icon="lucide:square" class="size-4" />
+            </button>
+          {:else}
+            <button
+              type="button"
+              class="btn btn-circle btn-primary btn-sm"
+              aria-label="Send"
+              disabled={!draft.trim() || cli === null}
+              onclick={send}
+            >
+              <Icon icon="lucide:arrow-up" class="size-4" />
+            </button>
+          {/if}
+        </div>
+
+        {#if session && (session.info.model || session.cost > 0)}
+          <p class="mt-1 flex justify-between px-2 text-[10px] text-base-content/40">
+            <span class="truncate">{session.info.model}</span>
+
+            <span class="tabular-nums">${session.cost.toFixed(3)}</span>
+          </p>
+        {/if}
       </div>
-    </div>
-  </section>
-{/if}
+    </section>
+  {/if}
 
-<button
-  type="button"
-  class={[
-    "absolute flex cursor-grab items-center justify-center rounded-full border border-base-content/15 bg-base-100/80 shadow-xl backdrop-blur-2xl transition-transform duration-150 active:cursor-grabbing",
-    dragging ? "scale-105" : "hover:scale-105",
-    open && "ring-2 ring-primary/40",
-  ]}
-  style:left="{left}px"
-  style:top="{top}px"
-  style:width="{BUBBLE}px"
-  style:height="{BUBBLE}px"
-  aria-label="Chat bubble"
-  aria-expanded={open}
-  onpointerdown={grab}
-  onpointermove={move}
-  onpointerup={release}
-  onpointercancel={release}
->
-  <Icon icon={claudeIcon} class="size-6 text-primary" />
-</button>
-
-{#if dragging}
-  <div
+  <button
+    type="button"
     class={[
-      "absolute flex items-center justify-center rounded-full border backdrop-blur-xl transition-[transform,background-color] duration-150",
-      overTarget
-        ? "scale-125 border-error/40 bg-error/80 text-error-content"
-        : "border-base-content/10 bg-base-100/70 text-base-content/70",
+      "absolute flex cursor-grab items-center justify-center rounded-full border border-base-content/15 bg-base-100/80 transition-[left,top,filter] duration-200 ease-out hover:brightness-110 active:cursor-grabbing",
+      dragging && "transition-none brightness-110",
+      open && "ring-2 ring-primary/40",
     ]}
-    style:left="{targetX - TARGET / 2}px"
-    style:top="{targetY - TARGET / 2}px"
-    style:width="{TARGET}px"
-    style:height="{TARGET}px"
-    aria-hidden="true"
+    style:left="{left}px"
+    style:top="{top}px"
+    style:width="{BUBBLE}px"
+    style:height="{BUBBLE}px"
+    aria-label="Chat bubble"
+    aria-expanded={open}
+    onpointerdown={grab}
+    onpointermove={move}
+    onpointerup={release}
+    onpointercancel={release}
   >
-    <Icon icon="lucide:x" class="size-7" />
-  </div>
-{/if}
+    <Icon icon={claudeIcon} class="size-6 text-primary" />
+  </button>
+
+  {#if dragging}
+    <div
+      class={[
+        "absolute flex items-center justify-center rounded-full border transition-[transform,background-color] duration-150",
+        overTarget
+          ? "scale-125 border-error/40 bg-error/80 text-error-content"
+          : "border-base-content/10 bg-base-100/80 text-base-content/70",
+      ]}
+      style:left="{targetX - TARGET / 2}px"
+      style:top="{targetY - TARGET / 2}px"
+      style:width="{TARGET}px"
+      style:height="{TARGET}px"
+      transition:scale={{ duration: 160, start: 0.4, easing: cubicOut }}
+      aria-hidden="true"
+    >
+      <Icon icon="lucide:x" class="size-7" />
+    </div>
+  {/if}
+</div>

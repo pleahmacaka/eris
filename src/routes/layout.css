@@ -148,9 +148,7 @@
     overflow: visible;
   }
 
-  :root[data-surface="dock"] .siri-aura,
-  :root[data-surface="dock"] .siri-orb,
-  :root[data-surface="dock"] .siri-veil {
+  :root[data-surface="dock"] .siri-aura {
     animation: none;
   }
 
@@ -158,7 +156,7 @@
     border-radius: var(--radius-box);
   }
 
-  :root[data-surface="overlay"] .siri-aura {
+  :root[data-surface="overlay"] .siri-shell > .siri-aura {
     display: none;
   }
 
@@ -251,28 +249,31 @@
       oklch(0% 0 0 / 0.85) 82%,
       transparent 100%
     );
-    animation: siri-breathe 11s ease-in-out infinite alternate;
+    animation: siri-breathe 11s steps(110) infinite alternate;
   }
 
   .siri-orb {
     position: absolute;
     top: var(--y);
     left: var(--x);
-    width: var(--size);
+    --orb: min(var(--size), 22rem);
+    width: var(--orb);
     aspect-ratio: 1;
-    margin: calc(var(--size) / -2);
+    margin: calc(var(--orb) / -2);
     border-radius: 50%;
     opacity: var(--glow);
     --hue: calc(var(--accent-hue) + var(--offset) * var(--accent-spread) / 120);
     background: radial-gradient(
       closest-side,
-      oklch(var(--aura-orb-l) calc(var(--vividness) * 0.7) var(--hue) / 0.5),
-      oklch(60% var(--vividness) var(--hue) / 0.3) 40%,
+      oklch(var(--aura-orb-l) calc(var(--vividness) * 0.7) var(--hue) / 0.55),
+      oklch(72% var(--vividness) var(--hue) / 0.42) 25%,
+      oklch(60% var(--vividness) var(--hue) / 0.22) 50%,
+      oklch(50% var(--vividness) var(--hue) / 0.08) 75%,
       oklch(45% var(--vividness) var(--hue) / 0) 100%
     );
     animation:
-      siri-orbit var(--dur) ease-in-out var(--delay) infinite alternate,
-      siri-pulse calc(var(--dur) / 2.7) ease-in-out var(--delay) infinite
+      siri-orbit var(--dur) steps(var(--steps)) var(--delay) infinite alternate,
+      siri-pulse var(--pulse) steps(var(--pulse-steps)) var(--delay) infinite
         alternate;
   }
 
@@ -292,7 +293,49 @@
       radial-gradient(120% 90% at 50% -20%, var(--veil-sheen), transparent 60%),
       radial-gradient(100% 80% at 50% 120%, var(--veil-shade), transparent 65%);
     mask-image: radial-gradient(78% 70% at 50% 50%, black 55%, transparent 100%);
-    animation: siri-sheen 14s ease-in-out infinite alternate;
+    animation: siri-sheen 14s steps(140) infinite alternate;
+  }
+
+  .prose-chat {
+    overflow-wrap: anywhere;
+  }
+
+  .prose-chat > * + * {
+    margin-top: 0.5rem;
+  }
+
+  .prose-chat ul,
+  .prose-chat ol {
+    padding-left: 1.25rem;
+    list-style: disc;
+  }
+
+  .prose-chat ol {
+    list-style: decimal;
+  }
+
+  .prose-chat a {
+    color: var(--color-primary);
+    text-decoration: underline;
+  }
+
+  .prose-chat code {
+    padding: 0.05rem 0.3rem;
+    border-radius: 0.3rem;
+    background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+    font-size: 0.85em;
+  }
+
+  .prose-chat pre {
+    overflow-x: auto;
+    padding: 0.6rem 0.75rem;
+    border-radius: var(--radius-field);
+    background: color-mix(in oklch, var(--color-base-content) 8%, transparent);
+  }
+
+  .prose-chat pre code {
+    padding: 0;
+    background: transparent;
   }
 
   @keyframes siri-orbit {

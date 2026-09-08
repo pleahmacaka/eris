@@ -9,6 +9,7 @@ const BLUR_TOGGLE_GUARD: Duration = Duration::from_millis(250);
 const BUBBLE_SIZE: f64 = 56.0;
 const BUBBLE_EDGE: f64 = 16.0;
 const SHOW_SETTLE: Duration = Duration::from_millis(400);
+const LAZY: [&str; 4] = ["settings", "files", "onboarding", "panel"];
 
 static BLUR_HIDDEN_AT: Mutex<Option<Instant>> = Mutex::new(None);
 static SHOWN_AT: Mutex<Option<Instant>> = Mutex::new(None);
@@ -28,8 +29,16 @@ pub fn toggle_window(app: AppHandle, label: String) {
     toggle(&app, &label);
 }
 
+// building a webview inside a main-thread callback deadlocks the event loop, so lazy windows are built from a helper thread
 pub fn show(app: &AppHandle, label: &str) {
-    on_main(app, label, show_now);
+    let app = app.clone();
+    let label = label.to_string();
+
+    std::thread::spawn(move || {
+        if window_for(&app, &label).is_some() {
+            on_main(&app, &label, show_now);
+        }
+    });
 }
 
 pub fn hide(app: &AppHandle, label: &str) {
@@ -72,9 +81,39 @@ pub fn conceal_hidden(app: &AppHandle) {
     }
 }
 
+// lazy windows are rebuilt from config on the next show, so closing them frees their renderer
 fn conceal(window: &WebviewWindow) {
+    if LAZY.contains(&window.label()) {
+        let _ = window.destroy();
+
+        return;
+    }
+
     let _ = window.hide();
     set_webview_visible(window, false);
+}
+
+fn window_for(app: &AppHandle, label: &str) -> Option<WebviewWindow> {
+    if let Some(window) = app.get_webview_window(label) {
+        return Some(window);
+    }
+
+    if !LAZY.contains(&label) {
+        return None;
+    }
+
+    let config = app
+        .config()
+        .app
+        .windows
+        .iter()
+        .find(|window| window.label == label)?
+        .clone();
+
+    tauri::WebviewWindowBuilder::from_config(app, &config)
+        .ok()?
+        .build()
+        .ok()
 }
 
 fn reveal(window: &WebviewWindow) {
@@ -100,7 +139,7 @@ pub fn toggle(app: &AppHandle, label: &str) {
         if visible {
             hide(app, label);
         } else if !(label == "main" && just_hidden_by_blur()) {
-            show_now(app, label);
+            show(app, label);
         }
     });
 }
@@ -129,7 +168,7 @@ fn show_now(app: &AppHandle, label: &str) {
         "main" => center_on_cursor_monitor(&window),
         "panel" => dock_panel(app, &window),
         "settings" | "onboarding" => window.center(),
-        "chat" => cover_cursor_monitor(&window),
+        "chat" => park_chat(&window),
         _ => Ok(()),
     };
 
@@ -173,8 +212,22 @@ fn center_on_cursor_monitor(window: &WebviewWindow) -> tauri::Result<()> {
     window.set_position(PhysicalPosition::new(x, y))
 }
 
-// the chat bubble drags anywhere and drops on a target at the screen edge, so it owns the whole monitor
-fn cover_cursor_monitor(window: &WebviewWindow) -> tauri::Result<()> {
+#[derive(Clone, Copy, serde::Serialize)]
+pub struct ChatArea {
+    pub width: f64,
+    pub height: f64,
+}
+
+struct ChatMonitor {
+    origin: PhysicalPosition<i32>,
+    size: PhysicalSize<u32>,
+    scale: f64,
+}
+
+static CHAT_MONITOR: Mutex<Option<ChatMonitor>> = Mutex::new(None);
+
+// the bubble lives on the cursor's monitor; park it in the corner until the page lays out
+fn park_chat(window: &WebviewWindow) -> tauri::Result<()> {
     let cursor = window.cursor_position()?;
 
     let Some(monitor) = window.monitor_from_point(cursor.x, cursor.y)? else {
@@ -182,39 +235,58 @@ fn cover_cursor_monitor(window: &WebviewWindow) -> tauri::Result<()> {
     };
 
     let work = monitor.work_area();
-
-    window.set_position(work.position)?;
-    window.set_size(PhysicalSize::new(work.size.width, work.size.height))?;
-
-    // the page narrows this down once it lays out; until then the window must not blanket the desktop
     let scale = monitor.scale_factor();
     let bubble = (BUBBLE_SIZE * scale).round() as i32;
     let edge = (BUBBLE_EDGE * scale).round() as i32;
-    let left = work.size.width as i32 - bubble - edge;
-    let top = (work.size.height as i32 - bubble) / 2;
 
+    *CHAT_MONITOR.lock().unwrap() = Some(ChatMonitor {
+        origin: work.position,
+        size: work.size,
+        scale,
+    });
+
+    window.set_position(PhysicalPosition::new(
+        work.position.x + work.size.width as i32 - bubble - edge,
+        work.position.y + work.size.height as i32 - bubble - edge,
+    ))?;
+    window.set_size(PhysicalSize::new(bubble as u32, bubble as u32))?;
     region::apply(
         &window.app_handle().clone(),
         window.label(),
-        &[[left, top, left + bubble, top + bubble, bubble / 2]],
+        &[[0, 0, bubble, bubble, bubble / 2]],
     );
 
     Ok(())
 }
 
 #[tauri::command]
-pub fn set_window_region(app: AppHandle, label: String, rects: Vec<[f64; 5]>) {
-    let scale = app
-        .get_webview_window(&label)
-        .and_then(|window| window.scale_factor().ok())
-        .unwrap_or(1.0);
+pub fn chat_area() -> Option<ChatArea> {
+    CHAT_MONITOR.lock().unwrap().as_ref().map(|m| ChatArea {
+        width: f64::from(m.size.width) / m.scale,
+        height: f64::from(m.size.height) / m.scale,
+    })
+}
 
-    let scaled: Vec<[i32; 5]> = rects
-        .iter()
-        .map(|rect| rect.map(|value| (value * scale).round() as i32))
-        .collect();
+#[tauri::command]
+pub fn chat_frame(app: AppHandle, frame: [f64; 4], rects: Vec<[f64; 5]>) {
+    let Some(window) = app.get_webview_window("chat") else {
+        return;
+    };
 
-    region::apply(&app, &label, &scaled);
+    let (origin, scale) = match CHAT_MONITOR.lock().unwrap().as_ref() {
+        Some(m) => (m.origin, m.scale),
+        None => return,
+    };
+
+    let px = |value: f64| (value * scale).round() as i32;
+    let [x, y, width, height] = frame;
+
+    let _ = window.set_position(PhysicalPosition::new(origin.x + px(x), origin.y + px(y)));
+    let _ = window.set_size(PhysicalSize::new(px(width).max(1) as u32, px(height).max(1) as u32));
+
+    let scaled: Vec<[i32; 5]> = rects.iter().map(|rect| rect.map(px)).collect();
+
+    region::apply(&app, "chat", &scaled);
 }
 
 #[cfg(target_os = "windows")]

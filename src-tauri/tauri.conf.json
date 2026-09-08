@@ -26,7 +26,8 @@
         "center": true,
         "visible": false,
         "focus": true,
-        "dragDropEnabled": false
+        "dragDropEnabled": false,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-gpu-compositing"
       },
       {
         "label": "taskbar",
@@ -42,7 +43,8 @@
         "skipTaskbar": true,
         "focus": false,
         "focusable": false,
-        "dragDropEnabled": false
+        "dragDropEnabled": false,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-gpu-compositing"
       },
       {
         "label": "settings",
@@ -57,7 +59,9 @@
         "skipTaskbar": true,
         "center": true,
         "visible": false,
-        "dragDropEnabled": false
+        "dragDropEnabled": false,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-gpu-compositing",
+        "create": false
       },
       {
         "label": "panel",
@@ -72,7 +76,9 @@
         "alwaysOnTop": true,
         "skipTaskbar": true,
         "visible": false,
-        "dragDropEnabled": false
+        "dragDropEnabled": false,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-gpu-compositing",
+        "create": false
       },
       {
         "label": "onboarding",
@@ -86,7 +92,9 @@
         "shadow": false,
         "skipTaskbar": true,
         "center": true,
-        "visible": false
+        "visible": false,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-gpu-compositing",
+        "create": false
       },
       {
         "label": "preview",
@@ -101,12 +109,13 @@
         "alwaysOnTop": true,
         "skipTaskbar": true,
         "focusable": false,
-        "visible": false
+        "visible": false,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-gpu-compositing"
       },
       {
         "label": "chat",
         "url": "/chat",
-        "title": "Eris Chat",
+        "title": "Claude Code",
         "width": 1280,
         "height": 800,
         "resizable": false,
@@ -116,7 +125,8 @@
         "alwaysOnTop": true,
         "skipTaskbar": true,
         "visible": false,
-        "dragDropEnabled": false
+        "dragDropEnabled": false,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-gpu-compositing"
       },
       {
         "label": "files",
@@ -132,7 +142,9 @@
         "shadow": false,
         "skipTaskbar": false,
         "center": true,
-        "visible": false
+        "visible": false,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-gpu-compositing",
+        "create": false
       }
     ],
     "security": {

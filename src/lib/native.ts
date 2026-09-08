@@ -174,8 +174,39 @@ export const transferEntries = (
   cut: boolean,
 ) => invoke<void>("transfer_entries", { paths, target, cut })
 
-export const setWindowRegion = (label: WindowLabel, rects: number[][]) =>
-  invoke<void>("set_window_region", { label, rects })
+export type ChatArea = { width: number; height: number }
+
+export type Transcript = { id: string; title: string; modified: number }
+
+export type TranscriptMessage = { role: string; text: string }
+
+export type ClaudeStart = {
+  key: string
+  cwd: string | null
+  resume: string | null
+  plain: boolean
+}
+
+export const claudeWhich = () => invoke<string | null>("claude_which")
+
+export const claudeStart = (options: ClaudeStart) =>
+  invoke<void>("claude_start", { options })
+
+export const claudeSend = (key: string, line: string) =>
+  invoke<void>("claude_send", { key, line })
+
+export const claudeStop = (key: string) => invoke<void>("claude_stop", { key })
+
+export const claudeSessions = (cwd: string | null) =>
+  invoke<Transcript[]>("claude_sessions", { cwd })
+
+export const claudeTranscript = (cwd: string | null, id: string) =>
+  invoke<TranscriptMessage[]>("claude_transcript", { cwd, id })
+
+export const chatArea = () => invoke<ChatArea | null>("chat_area")
+
+export const chatFrame = (frame: number[], rects: number[][]) =>
+  invoke<void>("chat_frame", { frame, rects })
 
 export const onChatToggle = (handler: () => void) =>
   listen("chat-toggle", () => handler())

@@ -18,6 +18,7 @@ mod meters;
 mod monitors;
 mod notify;
 mod preview;
+mod claude;
 mod spectrum;
 mod system;
 mod usage;
@@ -128,6 +129,7 @@ pub fn run() {
         ))
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             apps::list_apps,
             apps::pinned_apps,
@@ -179,7 +181,14 @@ pub fn run() {
             windowing::show_window,
             windowing::hide_window,
             windowing::toggle_window,
-            windowing::set_window_region,
+            claude::claude_which,
+            claude::claude_start,
+            claude::claude_send,
+            claude::claude_stop,
+            claude::claude_sessions,
+            claude::claude_transcript,
+            windowing::chat_area,
+            windowing::chat_frame,
             clipboard::clipboard_history,
             clipboard::clipboard_copy,
             clipboard::clipboard_paste,

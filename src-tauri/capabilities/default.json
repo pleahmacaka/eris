@@ -33,6 +33,7 @@
     "autostart:allow-enable",
     "autostart:allow-disable",
     "autostart:allow-is-enabled",
+    "dialog:allow-open",
     "process:allow-exit",
     "process:allow-restart",
     "clipboard-manager:allow-write-text",
