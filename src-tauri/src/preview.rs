@@ -197,6 +197,8 @@ mod win {
 
         let _ = app.emit("preview-shown", placed);
 
+        crate::windowing::webview_visible(app, "preview", true);
+
         unsafe {
             let _ = ShowWindow(destination, SW_SHOWNA);
         }
@@ -216,6 +218,8 @@ mod win {
                 let _ = ShowWindow(HWND(handle.0 as _), SW_HIDE);
             }
         }
+
+        crate::windowing::webview_visible(app, "preview", false);
     }
 }
 

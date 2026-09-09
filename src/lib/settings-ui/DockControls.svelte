@@ -27,6 +27,7 @@
   ]
 
   type ToggleKey =
+    | "showLauncherButton"
     | "showRunningApps"
     | "showTrayIcons"
     | "showKeymap"
@@ -44,6 +45,11 @@
 
   const toggles: { key: ToggleKey; label: string; hint: string }[] =
     [
+      {
+        key: "showLauncherButton",
+        label: "Show launcher button",
+        hint: "The Win key still opens the launcher",
+      },
       {
         key: "showRunningApps",
         label: "Show running apps",
@@ -183,7 +189,33 @@
         ]}
         onclick={() => (device.dockStyle = s.value)}
       >
-        <DockPreview {device} style={s.value} />
+        <div
+          class="relative h-14 w-full overflow-hidden rounded-field bg-linear-to-br from-primary/20 to-secondary/20 ring-1 ring-base-content/10"
+        >
+          {#if s.value === "windows"}
+            <div
+              class={[
+                "absolute inset-x-0 flex h-3.5 items-center justify-center gap-1 bg-base-content/25",
+                device.dockEdge === "top" ? "top-0" : "bottom-0",
+              ]}
+            >
+              {#each [0, 1, 2, 3] as dot (dot)}
+                <span class="size-1.5 rounded-sm bg-base-100/80"></span>
+              {/each}
+            </div>
+          {:else}
+            <div
+              class={[
+                "absolute left-1/2 flex h-3.5 w-1/2 -translate-x-1/2 items-center justify-center gap-1 rounded-full bg-base-content/25",
+                device.dockEdge === "top" ? "top-1" : "bottom-1",
+              ]}
+            >
+              {#each [0, 1, 2, 3] as dot (dot)}
+                <span class="size-1.5 rounded-full bg-base-100/80"></span>
+              {/each}
+            </div>
+          {/if}
+        </div>
 
         <span class="text-sm font-medium">{s.label}</span>
 

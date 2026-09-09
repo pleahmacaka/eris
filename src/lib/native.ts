@@ -186,6 +186,7 @@ export type ClaudeStart = {
   cwd: string | null
   resume: string | null
   plain: boolean
+  permissionMode: string
 }
 
 export const claudeWhich = () => invoke<string | null>("claude_which")
