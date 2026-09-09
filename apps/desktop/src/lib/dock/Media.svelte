@@ -2,12 +2,7 @@
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
   import * as native from "$lib/native"
-  import {
-    type MediaAction,
-    mediaCommand,
-    type MediaStatus,
-    mediaStatus,
-  } from "$lib/native"
+  import { type MediaAction, mediaCommand, type MediaStatus, mediaStatus } from "$lib/native/media"
   import type { DockEdge, SpectrumStyle } from "@eris/settings"
   import Spectrum from "./Spectrum.svelte"
 

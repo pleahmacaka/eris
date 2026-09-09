@@ -1,13 +1,8 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
-  import {
-    type NetworkInfo,
-    openUrl,
-    type RadioState,
-    radios,
-    setRadio,
-  } from "$lib/native"
+  import { type NetworkInfo, openUrl } from "$lib/native/system"
+  import { type RadioState, radios, setRadio } from "$lib/native/quick"
   import type { DockEdge } from "@eris/settings"
 
   type Props = {

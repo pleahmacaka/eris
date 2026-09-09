@@ -3,7 +3,7 @@
   import { t } from "svelte-i18n"
   import { currentLocale } from "@eris/i18n"
   import * as native from "$lib/native"
-  import type { FileEntry, FilePlace } from "$lib/native"
+  import type { FileEntry, FilePlace } from "$lib/native/files"
   import { ContextMenu } from "@eris/ui"
   import type { MenuItem } from "@eris/ui"
 

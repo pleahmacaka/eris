@@ -3,7 +3,7 @@
   import { t } from "svelte-i18n"
   import { claudeIcon } from "$lib/claude-icon"
   import { http } from "$lib/http"
-  import { type ClaudeUsage, claudeUsage } from "$lib/native"
+  import { type ClaudeUsage, claudeUsage } from "$lib/native/usage"
 
   type Props = {
     source?: string

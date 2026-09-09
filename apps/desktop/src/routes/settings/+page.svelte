@@ -6,12 +6,8 @@
   import { disable, enable } from "@tauri-apps/plugin-autostart"
   import { saveProfileSynced } from "$lib/data/store"
   import { ensureDevice } from "$lib/device"
-  import {
-    onWindowShown,
-    setLauncherShortcut,
-    setWinKeyCapture,
-    showWindow,
-  } from "$lib/native"
+  import { onWindowShown, showWindow } from "$lib/native/windows"
+  import { setLauncherShortcut, setWinKeyCapture } from "$lib/native/dock"
   import {
     type DeviceSettings,
     defaultDevice,

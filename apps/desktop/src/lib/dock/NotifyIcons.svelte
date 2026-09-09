@@ -2,13 +2,7 @@
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
   import { flip } from "svelte/animate"
-  import {
-    notifyIconClick,
-    notifyIconPromote,
-    notifyIcons,
-    onTrayIcons,
-    type TrayIcon,
-  } from "$lib/native"
+  import { notifyIconClick, notifyIconPromote, notifyIcons, onTrayIcons, type TrayIcon } from "$lib/native/tray"
   import type { DockEdge } from "@eris/settings"
 
   type Props = {

@@ -1,7 +1,8 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
-  import { bluetoothDevices, openUrl, type RadioState, radios, setRadio } from "$lib/native"
+  import { openUrl } from "$lib/native/system"
+  import { bluetoothDevices, type RadioState, radios, setRadio } from "$lib/native/quick"
   import type { DockEdge } from "@eris/settings"
   import { dockAwake } from "./dock.svelte"
 

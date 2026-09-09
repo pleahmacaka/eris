@@ -47,18 +47,9 @@
     type ResultKind,
     type SecondaryAction,
   } from "$lib/launcher/types"
-  import {
-    type AppEntry,
-    type ClipEntry,
-    clipboardHistory,
-    hideWindow,
-    listApps,
-    listWindows,
-    onWindowShown,
-    pinnedApps,
-    showWindow,
-    type WindowEntry,
-  } from "$lib/native"
+  import { type AppEntry, listApps, pinnedApps } from "$lib/native/apps"
+  import { hideWindow, listWindows, onWindowShown, showWindow, type WindowEntry } from "$lib/native/windows"
+  import { type ClipEntry, clipboardHistory } from "$lib/native/clipboard"
   import type { MenuItem } from "@eris/ui"
   import {
     type DeviceSettings,
