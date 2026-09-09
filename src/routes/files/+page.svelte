@@ -1,5 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { t } from "svelte-i18n"
+  import { currentLocale } from "$lib/i18n/locale"
   import * as native from "$lib/native"
   import type { FileEntry, FilePlace } from "$lib/native"
   import ContextMenu from "$lib/ui/ContextMenu.svelte"
@@ -92,7 +94,7 @@
 
   const when = (stamp: number) =>
     stamp
-      ? new Date(stamp).toLocaleString(undefined, {
+      ? new Date(stamp).toLocaleString(currentLocale(), {
           dateStyle: "short",
           timeStyle: "short",
         })
@@ -249,7 +251,7 @@
   }
 
   const newFolder = async () => {
-    const created = await native.createFolder(path, "New folder").catch(reason => {
+    const created = await native.createFolder(path, $t("files.newFolder")).catch(reason => {
       error = String(reason)
 
       return null
@@ -284,35 +286,35 @@
     if (!target) {
       return [
         {
-          label: "새 폴더",
+          label: $t("files.newFolder"),
           icon: "lucide:folder-plus",
           action: newFolder,
         },
         {
-          label: "붙여넣기",
+          label: $t("files.paste"),
           icon: "lucide:clipboard",
           action: paste,
           disabled: !clipboard,
         },
-        { label: "새로 고침", icon: "lucide:refresh-cw", action: refresh },
+        { label: $t("files.refresh"), icon: "lucide:refresh-cw", action: refresh },
       ]
     }
 
     return [
-      { label: "열기", icon: "lucide:external-link", action: () => open(target) },
+      { label: $t("files.open"), icon: "lucide:external-link", action: () => open(target) },
       {
-        label: "이름 바꾸기",
+        label: $t("files.rename"),
         icon: "lucide:pencil",
         action: () => startRename(target),
       },
-      { label: "복사", icon: "lucide:copy", action: () => copy(false) },
-      { label: "잘라내기", icon: "lucide:scissors", action: () => copy(true) },
+      { label: $t("files.copy"), icon: "lucide:copy", action: () => copy(false) },
+      { label: $t("files.cut"), icon: "lucide:scissors", action: () => copy(true) },
       {
-        label: "경로 복사",
+        label: $t("files.copyPath"),
         icon: "lucide:link",
         action: () => navigator.clipboard.writeText(target.path),
       },
-      { label: "삭제", icon: "lucide:trash-2", action: () => remove(false) },
+      { label: $t("common.delete"), icon: "lucide:trash-2", action: () => remove(false) },
     ]
   })
 
@@ -421,7 +423,7 @@
   >
     <button
       class="btn btn-ghost btn-square btn-sm"
-      aria-label="Back"
+      aria-label={$t("common.back")}
       disabled={cursor <= 0}
       onclick={back}
     >
@@ -430,7 +432,7 @@
 
     <button
       class="btn btn-ghost btn-square btn-sm"
-      aria-label="Forward"
+      aria-label={$t("files.forward")}
       disabled={cursor >= history.length - 1}
       onclick={forward}
     >
@@ -439,20 +441,20 @@
 
     <button
       class="btn btn-ghost btn-square btn-sm"
-      aria-label="Up"
+      aria-label={$t("files.up")}
       disabled={!parent}
       onclick={up}
     >
       <Icon icon="lucide:arrow-up" class="size-4" />
     </button>
 
-    <button class="btn btn-ghost btn-square btn-sm" aria-label="Refresh" onclick={refresh}>
+    <button class="btn btn-ghost btn-square btn-sm" aria-label={$t("files.refresh")} onclick={refresh}>
       <Icon icon="lucide:refresh-cw" class="size-4" />
     </button>
 
     <nav
       class="mx-1 flex min-w-0 grow items-center gap-0.5 overflow-x-auto rounded-field bg-base-content/5 px-2 py-1 text-sm"
-      aria-label="Path"
+      aria-label={$t("files.pathAria")}
     >
       {#each crumbs as crumb, index (crumb.path)}
         {#if index > 0}
@@ -475,15 +477,15 @@
         bind:value={filter}
         onkeydown={e => e.key === "Enter" && runSearch()}
         type="text"
-        placeholder="이 폴더에서 검색"
+        placeholder={$t("files.searchPlaceholder")}
         class="grow"
       />
     </label>
 
     <button
       class={["btn btn-ghost btn-square btn-sm", showHidden && "text-primary"]}
-      aria-label="Toggle hidden files"
-      title="숨김 항목"
+      aria-label={$t("files.toggleHidden")}
+      title={$t("files.hiddenItems")}
       aria-pressed={showHidden}
       onclick={() => (showHidden = !showHidden)}
     >
@@ -492,7 +494,7 @@
 
     <button
       class="btn btn-ghost btn-square btn-sm"
-      aria-label="Close"
+      aria-label={$t("common.close")}
       onclick={() => native.hideWindow("files")}
     >
       <Icon icon="lucide:x" class="size-4" />
@@ -531,7 +533,7 @@
 
     <section
       role="application"
-      aria-label="Files"
+      aria-label={$t("files.filesAria")}
       class="relative flex min-w-0 grow flex-col"
       oncontextmenu={e => {
         e.preventDefault()
@@ -550,7 +552,7 @@
             sort = "name"
           }}
         >
-          이름
+          {$t("files.columns.name")}
         </button>
 
         <button
@@ -560,7 +562,7 @@
             sort = "modified"
           }}
         >
-          수정한 날짜
+          {$t("files.columns.modified")}
         </button>
 
         <button
@@ -570,7 +572,7 @@
             sort = "size"
           }}
         >
-          크기
+          {$t("files.columns.size")}
         </button>
       </div>
 
@@ -578,7 +580,7 @@
         {#if error}
           <p class="p-6 text-sm text-error">{error}</p>
         {:else if loading && listed.length === 0}
-          <p class="p-6 text-sm text-base-content/50">불러오는 중</p>
+          <p class="p-6 text-sm text-base-content/50">{$t("files.loading")}</p>
         {:else}
           {#each listed as entry (entry.path)}
             <div
@@ -636,7 +638,7 @@
               </span>
             </div>
           {:else}
-            <p class="p-6 text-sm text-base-content/50">비어 있습니다</p>
+            <p class="p-6 text-sm text-base-content/50">{$t("files.empty")}</p>
           {/each}
         {/if}
       </div>
@@ -644,10 +646,10 @@
       <footer
         class="flex shrink-0 items-center justify-between border-t border-base-content/10 px-3 py-1 text-xs text-base-content/50"
       >
-        <span>{listed.length}개 항목</span>
+        <span>{$t("files.itemCount", { values: { count: listed.length } })}</span>
 
         {#if selection.size > 0}
-          <span>{selection.size}개 선택</span>
+          <span>{$t("files.selectedCount", { values: { count: selection.size } })}</span>
         {/if}
       </footer>
 
@@ -657,7 +659,7 @@
         x={menuX}
         y={menuY}
         placement="down"
-        label="File menu"
+        label={$t("files.menuAria")}
       />
     </section>
   </div>

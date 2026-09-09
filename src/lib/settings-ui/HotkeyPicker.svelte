@@ -2,9 +2,10 @@
   import { t } from "svelte-i18n"
   import Icon from "@iconify/svelte"
 
-  let { value = $bindable() }: { value: string } = $props()
-
-  const DEFAULT = "Alt+Space"
+  let {
+    value = $bindable(),
+    fallback = "Alt+Space",
+  }: { value: string; fallback?: string } = $props()
 
   const modifierCodes = new Set([
     "ControlLeft",
@@ -145,8 +146,8 @@
     <button
       type="button"
       class="btn btn-ghost btn-sm"
-      disabled={value === DEFAULT}
-      onclick={() => (value = DEFAULT)}
+      disabled={value === fallback}
+      onclick={() => (value = fallback)}
     >
       {$t("common.reset")}
     </button>

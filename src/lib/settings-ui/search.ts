@@ -6,6 +6,7 @@ export type SectionId =
   | "calendar"
   | "sync"
   | "advanced"
+  | "keymap"
   | "about"
 
 export type NavSection = {
@@ -29,6 +30,7 @@ export const sections: NavSection[] = [
   { id: "calendar", icon: "lucide:calendar-check" },
   { id: "sync", icon: "lucide:refresh-cw" },
   { id: "advanced", icon: "lucide:wrench" },
+  { id: "keymap", icon: "lucide:keyboard" },
   { id: "about", icon: "lucide:info" },
 ]
 
@@ -47,6 +49,26 @@ export const index: SearchEntry[] = [
   entry("general", "featureLauncher", "feature enable disable"),
   entry("general", "featureChat", "feature enable disable claude"),
   entry("general", "snapDistance", "chat bubble edge percent"),
+  entry("general", "chatModel", "chat claude code model opus sonnet haiku"),
+  entry("general", "chatEffort", "chat claude code effort thinking level"),
+  entry(
+    "general",
+    "chatPermission",
+    "chat claude code permission mode bypass plan",
+  ),
+  entry("general", "chatThinking", "chat claude code extended thinking"),
+  entry("general", "chatAutoCompact", "chat claude code context compact"),
+  entry("general", "chatLanguage", "chat claude code response language"),
+  entry("general", "chatBudget", "chat claude code cost limit usd"),
+  entry(
+    "general",
+    "chatSystemPrompt",
+    "chat claude code system prompt instructions",
+  ),
+  entry("general", "chatHover", "chat bubble tooltip title preview"),
+  entry("general", "chatMultiBubble", "chat bubbles sessions plus stack"),
+  entry("general", "chatBubbleColors", "chat bubble ring hue color"),
+  entry("general", "chatQueueMode", "chat queue message after tool reply"),
   entry("general", "setupWizard", "onboarding first run"),
   entry("general", "openWith", "hotkey trigger win key launcher"),
   entry("general", "shortcut", "hotkey keybinding combination"),
@@ -68,6 +90,19 @@ export const index: SearchEntry[] = [
   entry("dock", "showMedia", "music play pause track spotify"),
   entry("dock", "showMeters", "meters usage ram performance cpu memory"),
   entry("dock", "showNetwork", "wifi ethernet adapter connection"),
+  entry("dock", "showBluetooth", "bluetooth radio devices headset pair"),
+  entry(
+    "dock",
+    "showNotifications",
+    "bell notification center action quick settings focus",
+  ),
+  entry("dock", "showDesktopButton", "show desktop peek minimize strip"),
+  entry("dock", "showTaskView", "task view timeline windows overview"),
+  entry(
+    "dock",
+    "showInputLanguage",
+    "keyboard layout ime language korean english indicator",
+  ),
   entry("dock", "clock24h", "time format 24-hour"),
   entry("dock", "showSeconds", "clock time"),
   entry("launcher", "resultsPerGroup", "max count"),
@@ -89,6 +124,15 @@ export const index: SearchEntry[] = [
   entry("appearance", "fontSize", "text scale"),
   entry("appearance", "windowOpacity", "transparency translucent alpha"),
   entry("appearance", "dockOpacity", "transparency translucent taskbar"),
+  entry("appearance", "dockBackground", "dock aura glass solid taskbar"),
+  entry("appearance", "dockBlur", "dock blur frosted taskbar"),
+  entry("appearance", "dockRadius", "dock corners rounded taskbar"),
+  entry("appearance", "dockTint", "dock accent color taskbar"),
+  entry("appearance", "dockBorder", "dock border outline taskbar"),
+  entry("appearance", "dockAura", "dock orbs animation taskbar"),
+  entry("dock", "dockSeparators", "divider line sections"),
+  entry("dock", "clockAlign", "clock time date left center right"),
+  entry("dock", "editMode", "edit layout customize experimental"),
   entry("appearance", "density", "compact cozy spacing"),
   entry("appearance", "motion", "animation reduced"),
   entry("calendar", "weekStartsOn", "monday sunday"),
@@ -105,12 +149,18 @@ export const index: SearchEntry[] = [
   entry("sync", "resetCollection", "danger wipe"),
   entry("sync", "unlinkDevice", "disconnect forget danger"),
   entry("advanced", "storedData", "counts todos events presets"),
-  entry("advanced", "dataFolder", "open data folder explorer files storage appdata"),
+  entry(
+    "advanced",
+    "dataFolder",
+    "open data folder explorer files storage appdata",
+  ),
   entry("advanced", "iconCache", "clear icons rebuild thumbnails"),
   entry("advanced", "resetAppearance", "theme default preset"),
   entry("advanced", "resetAll", "defaults factory wipe"),
+  entry("keymap", "chatShortcut", "claude bubble hotkey ctrl space"),
+  entry("about", "updates", "update installer version release"),
   entry("about", "version", "build release eris"),
-  entry("about", "keyboardShortcuts", "keys hotkeys launcher panel"),
+  entry("keymap", "keyboardShortcuts", "keys hotkeys launcher panel"),
 ]
 
 const clean = (query: string) => query.trim().toLowerCase()

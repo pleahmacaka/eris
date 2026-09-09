@@ -1,5 +1,6 @@
 <script lang="ts">
   import { untrack } from "svelte"
+  import { t } from "svelte-i18n"
   import {
     addDays,
     dateKey,
@@ -8,6 +9,7 @@
     startOfDay,
   } from "$lib/data/calendar"
   import type { CalendarEvent } from "$lib/data/types"
+  import { currentLocale } from "$lib/i18n/locale"
   import { longDate } from "./dates"
 
   type Props = {
@@ -126,13 +128,17 @@
   const topOf = (minutes: number) => (minutes - startHour * 60) * (HOUR_PX / 60)
 
   const hourLabel = (hour: number) =>
-    new Date(2024, 0, 1, hour).toLocaleTimeString("en-US", { hour: "numeric" })
+    new Date(2024, 0, 1, hour).toLocaleTimeString(currentLocale(), {
+      hour: "numeric",
+    })
 
   const slotLabel = (day: Date, hour: number) =>
-    `New event ${longDate(day)} ${hourLabel(hour)}`
+    $t("panel.week.slot", {
+      values: { day: longDate(day), time: hourLabel(hour) },
+    })
 
   const timeOf = (event: CalendarEvent) =>
-    parseLocal(event.start).toLocaleTimeString("en-US", {
+    parseLocal(event.start).toLocaleTimeString(currentLocale(), {
       hour: "numeric",
       minute: "2-digit",
     })
@@ -155,7 +161,7 @@
     {#each columns as column (column.key)}
       <div class="flex flex-col items-center pb-0.5">
         <span class="text-[10px] text-base-content/50">
-          {column.day.toLocaleDateString("en-US", { weekday: "short" })}
+          {column.day.toLocaleDateString(currentLocale(), { weekday: "short" })}
         </span>
 
         <span
@@ -172,7 +178,9 @@
 
   {#if hasAllDay}
     <div class="grid grid-cols-[2.25rem_repeat(7,1fr)] gap-px">
-      <span class="self-start text-[9px] text-base-content/45">All day</span>
+      <span class="self-start text-[9px] text-base-content/45">
+        {$t("panel.allDay")}
+      </span>
 
       {#each columns as column (column.key)}
         <div class="flex flex-col gap-0.5">

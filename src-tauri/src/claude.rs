@@ -51,6 +51,55 @@ pub struct Start {
     pub resume: Option<String>,
     pub plain: bool,
     pub permission_mode: Option<String>,
+    #[serde(default)]
+    pub model: String,
+    #[serde(default)]
+    pub effort: String,
+    #[serde(default)]
+    pub thinking: String,
+    #[serde(default)]
+    pub auto_compact: String,
+    #[serde(default)]
+    pub language: String,
+    #[serde(default)]
+    pub budget: f64,
+    #[serde(default)]
+    pub system_prompt: String,
+}
+
+fn tri(value: &str) -> Option<bool> {
+    match value {
+        "on" => Some(true),
+        "off" => Some(false),
+        _ => None,
+    }
+}
+
+// a json argument does not survive cmd.exe quoting when claude is a .cmd shim, so settings travel through a file
+fn settings_file(options: &Start) -> Option<PathBuf> {
+    let mut settings = serde_json::Map::new();
+
+    if let Some(thinking) = tri(&options.thinking) {
+        settings.insert("alwaysThinkingEnabled".into(), thinking.into());
+    }
+
+    if let Some(compact) = tri(&options.auto_compact) {
+        settings.insert("autoCompactEnabled".into(), compact.into());
+    }
+
+    if !options.language.trim().is_empty() {
+        settings.insert("language".into(), options.language.trim().into());
+    }
+
+    if settings.is_empty() {
+        return None;
+    }
+
+    let path = std::env::temp_dir().join(format!("eris-claude-{}.json", options.key));
+
+    std::fs::write(&path, serde_json::Value::Object(settings).to_string()).ok()?;
+
+    Some(path)
 }
 
 #[derive(Serialize)]
@@ -138,6 +187,31 @@ pub fn claude_start(app: AppHandle, options: Start) -> Result<(), String> {
     if let Some(id) = &options.resume {
         args.push("--resume".into());
         args.push(id.clone());
+    }
+
+    if !options.model.trim().is_empty() {
+        args.push("--model".into());
+        args.push(options.model.trim().to_string());
+    }
+
+    if !options.effort.is_empty() {
+        args.push("--effort".into());
+        args.push(options.effort.clone());
+    }
+
+    if options.budget > 0.0 {
+        args.push("--max-budget-usd".into());
+        args.push(options.budget.to_string());
+    }
+
+    if !options.system_prompt.trim().is_empty() {
+        args.push("--append-system-prompt".into());
+        args.push(options.system_prompt.trim().to_string());
+    }
+
+    if let Some(path) = settings_file(&options) {
+        args.push("--settings".into());
+        args.push(path.display().to_string());
     }
 
     if let Some(mode) = options.permission_mode.as_deref().filter(|mode| *mode != "default") {

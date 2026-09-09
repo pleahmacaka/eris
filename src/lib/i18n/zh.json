@@ -1,1 +1,1298 @@
-{}
+{
+  "common": {
+    "close": "关闭",
+    "cancel": "取消",
+    "save": "保存",
+    "reset": "重置",
+    "open": "打开",
+    "clear": "清除",
+    "back": "返回",
+    "submit": "提交",
+    "none": "无",
+    "search": "搜索",
+    "noMatches": "无匹配项",
+    "delete": "删除",
+    "confirm": "确认",
+    "settings": "设置",
+    "done": "完成",
+    "next": "下一步",
+    "skip": "跳过",
+    "on": "开",
+    "off": "关",
+    "previous": "上一步"
+  },
+  "languages": {
+    "system": "跟随系统",
+    "en": "English",
+    "ko": "한국어",
+    "ja": "日本語",
+    "zh": "中文"
+  },
+  "settings": {
+    "title": "设置",
+    "searchAria": "搜索设置",
+    "sections": {
+      "general": {
+        "label": "常规",
+        "blurb": "此设备、启动与启动器快捷键"
+      },
+      "dock": {
+        "label": "程序坞",
+        "blurb": "替代 Windows 任务栏的工具栏"
+      },
+      "launcher": {
+        "label": "启动器",
+        "blurb": "结果分组与网页搜索引擎"
+      },
+      "appearance": {
+        "label": "外观",
+        "blurb": "所有窗口的预设、颜色与表面"
+      },
+      "calendar": {
+        "label": "日历与待办",
+        "blurb": "周视图布局、提醒与列表排序"
+      },
+      "sync": {
+        "label": "同步",
+        "blurb": "通过自有服务器让各设备保持一致"
+      },
+      "advanced": {
+        "label": "高级",
+        "blurb": "存储的数据、缓存与重置"
+      },
+      "about": {
+        "label": "关于",
+        "blurb": "版本与键盘快捷键"
+      },
+      "keymap": {
+        "label": "键位",
+        "blurb": "启动器、聊天与面板的快捷键"
+      }
+    },
+    "groups": {
+      "device": "此设备",
+      "features": {
+        "title": "功能",
+        "description": "整体开启或关闭 Eris 的各个部分"
+      },
+      "chat": {
+        "title": "聊天气泡",
+        "description": "气泡离屏幕边缘多近时会吸附"
+      },
+      "hotkey": {
+        "title": "启动器快捷键",
+        "description": "轻按 Win 键打开 Eris。Win 组合键照常可用。"
+      },
+      "backup": {
+        "title": "备份",
+        "description": "将设置、预设、待办与日程导出为一个 JSON 文件"
+      },
+      "dock": "程序坞",
+      "results": "结果",
+      "presets": {
+        "title": "预设",
+        "description": "先选一种外观，再在下方微调"
+      },
+      "fineTune": {
+        "title": "微调",
+        "description": "更改会实时预览，并将预设标记为自定义"
+      },
+      "calendar": "日历",
+      "todo": "待办",
+      "storedData": {
+        "title": "存储的数据",
+        "description": "Eris 保存在此设备上的内容"
+      },
+      "resets": "重置",
+      "shortcuts": {
+        "title": "键盘快捷键",
+        "description": "Eris 响应的全部按键"
+      },
+      "dockLook": {
+        "title": "程序坞",
+        "description": "程序坞如何与主题的其余部分融合"
+      },
+      "chatHotkey": {
+        "title": "聊天",
+        "description": "聊天气泡的全局快捷键"
+      },
+      "tray": "Windows 托盘"
+    },
+    "rows": {
+      "deviceName": "设备名称",
+      "autostart": "随 Windows 启动",
+      "hideTaskbar": "隐藏 Windows 任务栏",
+      "language": "语言",
+      "featureDock": "程序坞",
+      "featureLauncher": "启动器",
+      "featureChat": "聊天气泡",
+      "snapDistance": "吸附距离",
+      "setupWizard": "设置向导",
+      "openWith": "打开方式",
+      "shortcut": "快捷键",
+      "backup": "备份",
+      "resultsPerGroup": "每组结果数",
+      "openWindows": "已打开的窗口",
+      "commands": "命令",
+      "todos": "待办",
+      "calculator": "计算器",
+      "webSearch": "网页搜索",
+      "presets": "预设",
+      "mode": "模式",
+      "background": "背景",
+      "followAccent": "跟随 Windows 主题色",
+      "accentHue": "主题色色相",
+      "colorSpread": "色彩跨度",
+      "vividness": "鲜艳度",
+      "texture": "纹理",
+      "cornerRadius": "圆角",
+      "blur": "模糊",
+      "fontSize": "字体大小",
+      "windowOpacity": "窗口不透明度",
+      "dockOpacity": "程序坞不透明度",
+      "density": "密度",
+      "motion": "动效",
+      "weekStartsOn": "一周开始于",
+      "weekNumbers": "周数",
+      "defaultReminder": "默认提醒",
+      "showCompleted": "显示已完成",
+      "sortBy": "排序方式",
+      "storedData": "存储的数据",
+      "dataFolder": "数据文件夹",
+      "iconCache": "图标缓存",
+      "resetAppearance": "重置外观",
+      "resetAll": "重置所有设置",
+      "version": "版本",
+      "keyboardShortcuts": "键盘快捷键",
+      "style": "样式",
+      "display": "显示器",
+      "edge": "边缘",
+      "alignment": "对齐",
+      "height": "高度",
+      "width": "宽度",
+      "iconSize": "图标大小",
+      "pinDesktop": "固定到桌面",
+      "autoHide": "自动隐藏",
+      "showLauncherButton": "显示启动器按钮",
+      "showRunningApps": "显示运行中的应用",
+      "showTrayIcons": "显示托盘图标",
+      "showClaudeUsage": "显示 Claude 用量",
+      "claudeUsageStacked": "堆叠显示 Claude 用量",
+      "showSettingsButton": "显示设置按钮",
+      "showKeymap": "显示按键提示",
+      "showBattery": "显示电池",
+      "showVolume": "显示音量",
+      "showMedia": "显示媒体控件",
+      "showSpectrum": "显示声音频谱",
+      "showMeters": "显示 CPU 和内存",
+      "showNetwork": "显示网络",
+      "clock24h": "24 小时制",
+      "showSeconds": "显示秒",
+      "spectrumStyle": "频谱样式",
+      "claudeUsageSide": "Claude 用量",
+      "claudeBridge": "Claude 状态栏桥接",
+      "usageSnapshot": "用量快照",
+      "mediaSide": "媒体控件",
+      "serverUrl": "服务器 URL",
+      "token": "令牌",
+      "enableSync": "启用同步",
+      "interval": "间隔",
+      "collections": "集合",
+      "replaceLocal": "用服务器数据替换本地数据",
+      "resetCollection": "重置服务器上的集合",
+      "unlinkDevice": "解除此设备关联",
+      "dockSeparators": "分隔线",
+      "clockAlign": "时钟对齐",
+      "editMode": "编辑模式",
+      "dockBackground": "程序坞背景",
+      "dockBlur": "程序坞模糊",
+      "dockRadius": "程序坞圆角",
+      "dockTint": "程序坞着色",
+      "dockBorder": "程序坞边框",
+      "dockAura": "程序坞光球",
+      "chatShortcut": "聊天快捷键",
+      "updates": "更新",
+      "showBluetooth": "显示 Bluetooth",
+      "showNotifications": "显示通知铃铛",
+      "showDesktopButton": "显示“显示桌面”按钮",
+      "showTaskView": "显示任务视图按钮",
+      "showInputLanguage": "显示输入语言",
+      "chatModel": "模型",
+      "chatEffort": "思考强度",
+      "chatPermission": "权限模式",
+      "chatThinking": "扩展思考",
+      "chatAutoCompact": "自动压缩",
+      "chatLanguage": "回复语言",
+      "chatBudget": "每会话预算",
+      "chatSystemPrompt": "附加系统提示词",
+      "chatHover": "悬停显示",
+      "chatMultiBubble": "多气泡",
+      "chatBubbleColors": "气泡颜色",
+      "chatQueueMode": "排队消息"
+    },
+    "hints": {
+      "deviceName": "显示在同步设备列表中",
+      "autostart": "登录时在后台启动 Eris",
+      "hideTaskbar": "由 Eris 接管屏幕边缘",
+      "language": "未选择时跟随 Windows",
+      "featureDock": "替代 Windows 任务栏的工具栏",
+      "featureLauncher": "按 Win 键搜索应用、窗口和命令",
+      "featureChat": "在浮动气泡中使用 Claude 和 Claude Code",
+      "setupWizard": "重新运行首次启动设置",
+      "openWith": "用哪些按键呼出启动器",
+      "shortcut": "点击后按下组合键",
+      "openWindows": "按名称切换到运行中的窗口",
+      "commands": "锁定、睡眠、清空回收站等",
+      "todos": "直接在搜索框中添加待办",
+      "calculator": "输入表达式即可计算",
+      "webSearch": "没有其他匹配结果时使用的搜索引擎",
+      "weekNumbers": "在月视图中显示周数",
+      "defaultReminder": "日程开始前",
+      "showCompleted": "在列表中保留已完成项",
+      "mode": "深色、浅色或跟随 Windows",
+      "background": "所有窗口背后的表面效果",
+      "followAccent": "使用 Windows 设置中的主题色",
+      "colorSpread": "各主题色之间的色相间距",
+      "vividness": "渗入表面的色彩浓度",
+      "texture": "背景上的颗粒纹理",
+      "cornerRadius": "所有表面的圆角程度",
+      "blur": "毛玻璃效果强度",
+      "fontSize": "缩放所有文字",
+      "windowOpacity": "所有 Eris 窗口的不透明度",
+      "dockOpacity": "程序坞条带的不透明度",
+      "density": "列表与按钮内的间距",
+      "motion": "动态背景与过渡动画",
+      "dataFolder": "设置、待办、日程与缓存的图标",
+      "iconCache": "应用图标缺失时自动重建",
+      "resetAppearance": "恢复默认预设与滑块",
+      "resetAll": "保留设备名称、同步与存储的数据",
+      "display": "程序坞所在的屏幕",
+      "edge": "程序坞所在的屏幕边缘",
+      "alignment": "应用在工具栏上的位置",
+      "pinDesktop": "窗口可遮挡程序坞；开启自动隐藏后，光标触碰边缘即可将其置前",
+      "autoHide": "滑出屏幕，直到光标触碰边缘",
+      "showLauncherButton": "Win 键仍可打开启动器",
+      "showRunningApps": "打开的窗口显示在固定应用旁",
+      "showTrayIcons": "后台程序的通知图标",
+      "showClaudeUsage": "5 小时与每周会话限额",
+      "claudeUsageStacked": "5 小时显示在每周上方，而非并排",
+      "showSettingsButton": "右键点击工具栏可打开同一菜单",
+      "showKeymap": "在启动器页脚和结果行中显示快捷键",
+      "showBattery": "仅限笔记本电脑",
+      "showVolume": "在其上滚动可调节音量",
+      "showMedia": "播放、暂停和切换当前曲目",
+      "showSpectrum": "媒体控件旁的实时输出电平",
+      "showMeters": "实时用量读数",
+      "showNetwork": "Wi-Fi 或以太网状态",
+      "clock24h": "显示 18:30 而非下午 6:30",
+      "showSeconds": "每秒跳动一次",
+      "spectrumStyle": "频段的绘制方式",
+      "claudeUsageSide": "位于工具栏的哪一端",
+      "claudeBridge": "写入 Claude Code 报告的 5 小时与每周窗口数据",
+      "usageSnapshot": "桥接写入的文件，或一个 URL",
+      "mediaSide": "位于工具栏的哪一端",
+      "serverUrl": "Eris 同步服务器的运行地址",
+      "token": "启动服务器时使用的 ERIS_TOKEN",
+      "enableSync": "Eris 打开时在后台运行",
+      "interval": "检查服务器的频率",
+      "collections": "此设备发送和接收的内容",
+      "replaceLocal": "丢弃本地的{collections}并重新拉取全部数据",
+      "resetCollection": "将每条记录标记为已删除，使所有设备一并清除",
+      "unlinkDevice": "忘记此设备上的服务器、令牌和待同步更改",
+      "dockSeparators": "启动器、应用与托盘之间的细线",
+      "clockAlign": "时间与日期的对齐方式",
+      "editMode": "调暗屏幕，点击 Eris 的任意部分即可更改其选项",
+      "dockBackground": "跟随窗口背景，或为程序坞单独选择",
+      "dockBlur": "程序坞背后的模糊强度，相对于窗口模糊",
+      "dockRadius": "浮动程序坞的圆角程度，相对于窗口圆角",
+      "dockTint": "覆盖在程序坞上的主题色",
+      "dockBorder": "程序坞周围的细边框",
+      "dockAura": "程序坞背后的动态光球",
+      "chatShortcut": "在任意位置打开或关闭 Claude 聊天",
+      "updates": "下载安装程序并以新版本重启 Eris",
+      "showBluetooth": "无线开关与已连接设备",
+      "showNotifications": "打开 Windows 通知中心",
+      "showDesktopButton": "右端的细条，点击可显示桌面",
+      "showTaskView": "打开 Windows 任务视图",
+      "showInputLanguage": "活动窗口的键盘布局；仅在有两个及以上布局时显示",
+      "chatModel": "别名（如 sonnet）或完整模型 ID；加 [1m] 后缀可选用 1M 上下文",
+      "chatEffort": "作为 --effort 传入；“默认”跟随 Claude Code 设置",
+      "chatPermission": "工具调用的批准方式",
+      "chatThinking": "在支持的模型上启用扩展思考",
+      "chatAutoCompact": "上下文快满时自动压缩",
+      "chatLanguage": "例如 korean 或 english",
+      "chatBudget": "单位为美元；0 表示不限制",
+      "chatSystemPrompt": "追加到默认系统提示词之后",
+      "chatHover": "光标停留在气泡上时显示的内容",
+      "chatMultiBubble": "气泡边缘的加号按钮可打开另一个会话",
+      "chatBubbleColors": "每个气泡各有一种外圈颜色",
+      "chatQueueMode": "回复期间输入的消息何时发送"
+    },
+    "options": {
+      "win": "Win 键",
+      "shortcut": "快捷键",
+      "both": "两者",
+      "monday": "星期一",
+      "sunday": "星期日",
+      "manual": "手动",
+      "due": "截止日期",
+      "priority": "优先级",
+      "dark": "深色",
+      "light": "浅色",
+      "system": "跟随系统",
+      "aura": "光晕",
+      "glass": "玻璃",
+      "solid": "纯色",
+      "cozy": "宽松",
+      "compact": "紧凑",
+      "minBefore": "提前 {minutes} 分钟",
+      "deg": "{value} 度",
+      "runSetup": "运行向导",
+      "inherit": "与窗口相同"
+    },
+    "featurePresets": {
+      "all": {
+        "name": "全部",
+        "hint": "程序坞、启动器与聊天"
+      },
+      "desk": {
+        "name": "工作台",
+        "hint": "程序坞与启动器，不含聊天"
+      },
+      "search": {
+        "name": "仅启动器",
+        "hint": "保留 Windows 任务栏"
+      },
+      "bubble": {
+        "name": "仅聊天",
+        "hint": "仅 Claude 气泡"
+      },
+      "aria": "功能预设"
+    },
+    "toasts": {
+      "shortcutFailed": "快捷键未注册：{error}",
+      "autostartFailed": "开机启动设置失败：{error}",
+      "presetSaved": "已保存预设“{name}”",
+      "dataFolderFailed": "无法打开数据文件夹：{error}",
+      "iconCacheCleared": "已清除图标缓存",
+      "iconCacheFailed": "无法清除图标缓存：{error}",
+      "appearanceReset": "已重置外观",
+      "settingsReset": "已重置设置"
+    },
+    "about": {
+      "tagline": "适用于 Windows 11 的启动器、程序坞与日历",
+      "checkUpdates": "检查更新",
+      "checking": "正在检查",
+      "upToDate": "已是最新版本",
+      "available": "有新版本 {version}",
+      "installRestart": "安装并重启",
+      "downloading": "正在下载 {percent}%",
+      "installing": "正在安装",
+      "failed": "更新失败：{error}"
+    },
+    "shortcuts": {
+      "launcher": "启动器",
+      "panel": "日历面板",
+      "setup": "设置向导与设置",
+      "openLauncher": "打开启动器",
+      "moveSelection": "移动选择",
+      "movePage": "翻页",
+      "nextGroup": "下一组",
+      "previousGroup": "上一组",
+      "openResult": "打开所选结果",
+      "openAdmin": "以管理员身份打开",
+      "openLocation": "打开文件位置",
+      "openNumbered": "打开对应编号的结果",
+      "actionMenu": "打开操作菜单",
+      "clearThenClose": "清除查询，然后关闭",
+      "switchTabs": "切换标签页",
+      "moveDay": "移动所选日期",
+      "addEvent": "在该日添加日程",
+      "renameTodo": "重命名待办",
+      "saveEvent": "保存日程",
+      "closePanel": "关闭面板",
+      "nextStep": "下一设置步骤",
+      "closeWindow": "关闭此窗口",
+      "keys": {
+        "up": "上",
+        "down": "下",
+        "pageUp": "Page Up",
+        "pageDown": "Page Down",
+        "left": "左",
+        "right": "右",
+        "arrows": "方向键",
+        "menu": "菜单键"
+      },
+      "chat": "聊天",
+      "toggleChat": "打开或关闭聊天"
+    },
+    "appearance": {
+      "presetDescriptions": {
+        "aurora": "深蓝底色上漂浮的光球",
+        "glass": "浅色毛玻璃表面",
+        "mica": "带 Windows 主题色的纯色表面",
+        "nord": "清冷的极地蓝",
+        "catppuccin": "柔和的粉彩淡紫",
+        "dracula": "炭黑底色上的紫与粉",
+        "solarized": "暖纸色配琥珀主题色",
+        "mono": "灰阶，无主题色",
+        "neon": "鲜艳的品红与青色光晕",
+        "sunset": "暮色中的橙与金",
+        "forest": "带颗粒感的苔藓绿",
+        "ocean": "深邃的蓝绿色洋流",
+        "user": "保存自你的设置"
+      },
+      "followingAccent": "正在跟随 Windows 主题色",
+      "baseColor": "整个主题的基础色",
+      "resetTo": "重置为 {name}",
+      "preset": "预设",
+      "saveAsPreset": "另存为预设",
+      "savePreset": "保存预设",
+      "savePresetBody": "将当前外观保存为网格中的一张卡片。",
+      "presetName": "预设名称",
+      "deletePreset": "删除预设 {name}"
+    },
+    "hotkey": {
+      "addModifier": "请添加 Ctrl 或 Alt 等修饰键",
+      "recording": "正在录制快捷键",
+      "change": "更改快捷键",
+      "pressKeys": "请按下按键",
+      "escCancels": "按 Esc 取消"
+    },
+    "advanced": {
+      "todos": "待办",
+      "events": "日程",
+      "presets": "预设",
+      "resetAllTitle": "重置所有设置？",
+      "resetAllBody": "所有设置将恢复默认值。待办、日程、预设与同步连接将保留。"
+    },
+    "dock": {
+      "styles": {
+        "windows": {
+          "label": "Windows",
+          "hint": "贴边的全宽栏"
+        },
+        "mac": {
+          "label": "Mac",
+          "hint": "居中浮动的程序坞"
+        }
+      },
+      "styleAria": "程序坞样式",
+      "automatic": "自动（主显示器）",
+      "notConnected": "未连接",
+      "primary": "主显示器",
+      "start": "左对齐",
+      "center": "居中",
+      "uchiwa": "团扇",
+      "bottom": "底部",
+      "top": "顶部",
+      "bars": "条形",
+      "mirror": "镜像",
+      "wave": "波形",
+      "dots": "点状",
+      "left": "左侧",
+      "right": "右侧",
+      "connect": "连接",
+      "disconnect": "断开",
+      "alignStart": "左",
+      "alignCenter": "居中",
+      "alignEnd": "右",
+      "experimental": "实验性",
+      "openEditMode": "打开"
+    },
+    "sync": {
+      "server": {
+        "title": "服务器",
+        "description": "让{collections}在各设备间保持一致。"
+      },
+      "status": "状态",
+      "devices": {
+        "title": "设备",
+        "description": "此服务器上注册的全部设备"
+      },
+      "danger": {
+        "title": "危险区域",
+        "description": "这些操作无法撤销"
+      },
+      "collections": {
+        "todos": "待办",
+        "events": "日程",
+        "profile": "个人资料",
+        "presets": "预设",
+        "notes": "笔记"
+      },
+      "hideToken": "隐藏令牌",
+      "revealToken": "显示令牌",
+      "testConnection": "测试连接",
+      "connected": "已连接，服务器 {version}，序号 {seq}",
+      "everyHour": "每小时",
+      "everyMinutes": "每 {minutes} 分钟",
+      "states": {
+        "idle": "已是最新",
+        "syncing": "同步中",
+        "error": "错误",
+        "disabled": "已关闭"
+      },
+      "lastSync": "上次同步 {when}",
+      "neverSynced": "从未同步",
+      "pending": "{count} 项待同步",
+      "justNow": "刚刚",
+      "syncNow": "立即同步",
+      "noDevices": "暂无设备",
+      "setServerFirst": "请先设置服务器 URL 和令牌",
+      "seen": "上次在线 {when}",
+      "thisDevice": "此设备",
+      "forget": "忘记",
+      "replace": "替换",
+      "unlink": "解除关联",
+      "collection": "集合",
+      "toasts": {
+        "failed": "同步失败",
+        "enableFirst": "请先启用同步并填写服务器",
+        "synced": "已同步：推送 {pushed} 项，拉取 {pulled} 项",
+        "deviceForgotten": "已忘记设备",
+        "localReplaced": "已用服务器数据替换本地数据",
+        "recordsCleared": "已清除 {count} 条记录",
+        "collectionReset": "服务器上的{collection}已重置",
+        "unlinked": "已解除设备关联"
+      },
+      "confirm": {
+        "replaceTitle": "替换本地数据？",
+        "replaceBody": "本地的{collections}将被删除，并替换为服务器上的数据。未同步的更改将丢失。",
+        "resetTitle": "在服务器上重置{collection}？",
+        "resetBody": "此集合中的每条记录都将在服务器上标记为已删除，并从所有已同步设备中移除。",
+        "unlinkTitle": "解除此设备关联？",
+        "unlinkBody": "同步将关闭，服务器地址、令牌和待同步更改将被清除。本地数据保留。"
+      }
+    },
+    "backup": {
+      "exportJson": "导出 JSON",
+      "copyJson": "复制 JSON",
+      "importJson": "导入 JSON",
+      "exportStarted": "已开始导出",
+      "copied": "已将 JSON 复制到剪贴板",
+      "notBackup": "不是 Eris 备份文件",
+      "nothing": "没有可导入的内容",
+      "imported": "已导入 {count} 项"
+    },
+    "sectionsAria": "分区"
+  },
+  "launcher": {
+    "placeholder": "搜索应用、窗口和命令",
+    "clear": "清除",
+    "results": "结果",
+    "moreActions": "更多操作",
+    "menuAria": "启动器菜单",
+    "resultCount": "{count, plural, other {# 个结果}}",
+    "enter": {
+      "paste": "粘贴",
+      "copy": "复制",
+      "open": "打开"
+    },
+    "footer": {
+      "admin": "管理员",
+      "location": "位置",
+      "groups": "分组"
+    },
+    "sections": {
+      "recent": "最近",
+      "pinned": "已固定",
+      "timers": "计时器",
+      "running": "运行中"
+    },
+    "modes": {
+      "run": "运行",
+      "todo": "待办",
+      "calc": "计算",
+      "clip": "剪贴",
+      "emoji": "表情",
+      "timer": "计时",
+      "alarm": "闹钟"
+    },
+    "hints": {
+      "run": "运行",
+      "todo": "待办",
+      "calc": "计算",
+      "emoji": "表情",
+      "clip": "剪贴板",
+      "timer": "计时器"
+    },
+    "empty": {
+      "run": "输入命令",
+      "todo": "输入任务",
+      "calc": "输入表达式或换算",
+      "alarm": "输入时间，例如 7:30 起床",
+      "timer": "输入时长，例如 5m 泡茶",
+      "emoji": "未找到表情符号",
+      "clip": "剪贴板历史为空",
+      "noResults": "无结果",
+      "start": "搜索应用、窗口和命令",
+      "loading": "正在加载应用"
+    },
+    "couldNotOpen": "无法打开 {title}（{error}）",
+    "backdrop": {
+      "clearSearch": "清除搜索",
+      "focusSearch": "聚焦搜索框",
+      "hideKeymap": "隐藏按键提示",
+      "showKeymap": "显示按键提示",
+      "settings": "Eris 设置"
+    },
+    "groups": {
+      "app": "应用",
+      "window": "窗口",
+      "command": "命令",
+      "calc": "计算器",
+      "unit": "单位换算",
+      "todo": "待办",
+      "timer": "计时器",
+      "emoji": "表情符号",
+      "web": "网页",
+      "run": "运行",
+      "setting": "设置",
+      "clip": "剪贴板"
+    },
+    "kinds": {
+      "app": "应用",
+      "window": "窗口",
+      "command": "命令",
+      "calc": "计算",
+      "unit": "换算",
+      "todo": "待办",
+      "timer": "计时器",
+      "emoji": "表情",
+      "web": "网页",
+      "run": "运行",
+      "setting": "设置",
+      "clip": "剪贴"
+    },
+    "actions": {
+      "admin": "以管理员身份运行",
+      "location": "打开文件位置",
+      "cancel": "取消",
+      "closeWindow": "关闭窗口",
+      "pinDock": "固定到程序坞",
+      "unpinDock": "从程序坞取消固定",
+      "copyOnly": "仅复制",
+      "pin": "固定",
+      "unpin": "取消固定",
+      "delete": "删除",
+      "paste": "粘贴",
+      "open": "打开"
+    },
+    "chips": {
+      "minimized": "已最小化",
+      "enterCopies": "Enter 复制",
+      "priority": "优先级 {level}"
+    },
+    "timer": {
+      "setAlarm": "设置闹钟：{label}",
+      "startTimer": "启动计时器：{label}",
+      "firesAt": "{time} 响铃",
+      "left": "剩余 {remaining} · {time}",
+      "alarm": "闹钟",
+      "timer": "计时器"
+    },
+    "todo": {
+      "add": "添加待办：{title}",
+      "saves": "保存到你的待办列表"
+    },
+    "web": {
+      "search": "在网上搜索“{query}”"
+    },
+    "run": {
+      "title": "运行 {command}",
+      "subtitle": "命令行"
+    },
+    "open": {
+      "title": "打开 {target}",
+      "link": "链接",
+      "path": "路径"
+    },
+    "clip": {
+      "whitespace": "空白字符",
+      "justNow": "刚刚",
+      "lines": "{count, plural, other {# 行}}",
+      "chars": "{count, plural, other {# 个字符}}",
+      "clearHistory": "清除历史记录",
+      "keepsPinned": "保留已固定项"
+    },
+    "calcErrors": {
+      "divisionByZero": "除以零",
+      "undefined": "未定义",
+      "outOfRange": "超出范围"
+    },
+    "subtitles": {
+      "power": "电源",
+      "windowsSettings": "Windows 设置",
+      "windows": "Windows",
+      "folder": "文件夹",
+      "system": "系统",
+      "eris": "Eris",
+      "erisSettings": "Eris 设置"
+    },
+    "commands": {
+      "lock": "锁定",
+      "sleep": "睡眠",
+      "hibernate": "休眠",
+      "shutdown": "关机",
+      "restart": "重启",
+      "signout": "注销",
+      "recycle": "清空回收站",
+      "erisFiles": "打开文件",
+      "erisSettings": "打开 Eris 设置",
+      "erisPanel": "打开日历面板",
+      "erisNote": "新建笔记",
+      "erisQuit": "退出 Eris",
+      "erisClipboard": "剪贴板历史记录",
+      "display": "显示",
+      "bluetooth": "Bluetooth",
+      "wifi": "Wi-Fi",
+      "sound": "声音",
+      "notifications": "通知",
+      "personalization": "个性化",
+      "apps": "应用",
+      "update": "更新",
+      "taskmgr": "任务管理器",
+      "explorer": "文件资源管理器",
+      "terminal": "终端",
+      "control": "控制面板",
+      "screenclip": "区域截图",
+      "snippingtool": "截图工具",
+      "clipboard": "剪贴板",
+      "quiethours": "专注助手",
+      "printers": "打印机",
+      "defaultapps": "默认应用",
+      "storage": "存储",
+      "powersleep": "电源和电池",
+      "mouse": "鼠标",
+      "keyboard": "键盘",
+      "dateandtime": "日期和时间",
+      "regionlanguage": "区域和语言",
+      "startupapps": "启动应用",
+      "security": "Windows 安全中心",
+      "devmgmt": "设备管理器",
+      "diskmgmt": "磁盘管理",
+      "services": "服务",
+      "regedit": "注册表编辑器",
+      "eventvwr": "事件查看器",
+      "msinfo32": "系统信息",
+      "charmap": "字符映射表",
+      "calc": "计算器",
+      "notepad": "记事本",
+      "mspaint": "画图",
+      "downloads": "下载",
+      "documents": "文档",
+      "desktop": "桌面",
+      "recyclebin": "回收站",
+      "thispc": "此电脑",
+      "erisEdit": "编辑布局"
+    }
+  },
+  "dates": {
+    "today": "今天",
+    "tomorrow": "明天",
+    "yesterday": "昨天"
+  },
+  "dock": {
+    "dockAria": "程序坞",
+    "dockMenu": "程序坞菜单",
+    "apps": "应用",
+    "launcher": "启动器",
+    "openLauncher": "打开启动器",
+    "more": "还有 {count} 个",
+    "moreApps": "更多应用",
+    "taskManager": "任务管理器",
+    "hideRunning": "隐藏运行中的应用",
+    "showRunning": "显示运行中的应用",
+    "hideSettingsButton": "隐藏设置按钮",
+    "showSettingsButton": "显示设置按钮",
+    "settings": "Eris 设置",
+    "editLayout": "编辑布局",
+    "calendar": "日历",
+    "openCalendar": "打开日历",
+    "menu": {
+      "pin": "固定到程序坞",
+      "unpin": "从程序坞取消固定",
+      "newWindow": "打开新窗口",
+      "closeAll": "全部关闭",
+      "openLocation": "打开文件位置"
+    },
+    "preview": {
+      "switchTo": "切换到窗口",
+      "close": "关闭窗口"
+    }
+  },
+  "edit": {
+    "title": "编辑布局",
+    "hint": "点击高亮部分进行更改。按 Esc 或“完成”结束。",
+    "done": "完成",
+    "spots": {
+      "launcher": "启动器按钮",
+      "apps": "应用",
+      "tray": "托盘与时钟",
+      "widgets": "小组件",
+      "search": "启动器",
+      "bubble": "聊天气泡"
+    }
+  },
+  "menu": {
+    "label": "菜单",
+    "cut": "剪切",
+    "copy": "复制",
+    "paste": "粘贴",
+    "selectAll": "全选"
+  },
+  "panel": {
+    "allDay": "全天",
+    "untitled": "无标题",
+    "title": "标题",
+    "events": "日程",
+    "todos": "待办",
+    "errors": {
+      "startRequired": "请填写开始日期",
+      "endRequired": "请填写结束日期",
+      "endBeforeStart": "结束时间早于开始时间"
+    },
+    "greeting": {
+      "morning": "早上好",
+      "afternoon": "下午好",
+      "evening": "晚上好"
+    },
+    "summary": {
+      "events": "{count, plural, other {# 个日程}}",
+      "todosDue": "{count, plural, other {# 个待办到期}}"
+    },
+    "searchPlaceholder": "搜索待办和日程",
+    "clearSearch": "清除搜索",
+    "calendarAria": "日历",
+    "cardsAria": "面板卡片",
+    "todoAria": "待办",
+    "notesAria": "笔记",
+    "due": "到期",
+    "nothingDue": "无到期事项",
+    "colors": {
+      "default": "默认",
+      "secondary": "次要",
+      "accent": "强调",
+      "success": "成功",
+      "warning": "警告",
+      "error": "错误"
+    },
+    "calendar": {
+      "month": "月",
+      "week": "周",
+      "agenda": "议程",
+      "from": "从 {date} 起",
+      "viewAria": "日历视图",
+      "nothingScheduled": "无安排",
+      "nextDays": "未来 {count} 天",
+      "noUpcoming": "无即将到来的日程"
+    },
+    "week": {
+      "slot": "新建日程 {day} {time}"
+    },
+    "event": {
+      "new": "新建日程",
+      "edit": "编辑日程",
+      "start": "开始",
+      "end": "结束",
+      "color": "颜色",
+      "reminder": "提醒",
+      "repeat": "重复",
+      "notes": "备注",
+      "reminders": {
+        "atStart": "开始时",
+        "minutesBefore": "提前 {count} 分钟",
+        "hourBefore": "提前 1 小时",
+        "dayBefore": "提前 1 天"
+      },
+      "recurrences": {
+        "none": "不重复",
+        "daily": "每天",
+        "weekdays": "工作日",
+        "weekly": "每周",
+        "monthly": "每月",
+        "yearly": "每年"
+      }
+    },
+    "ics": {
+      "options": "日历选项",
+      "import": "导入 .ics",
+      "export": "导出 .ics",
+      "copy": "复制 .ics",
+      "importFile": "导入日历文件",
+      "exported": "已导出 {count, plural, other {# 个日程}}",
+      "imported": "已导入 {count, plural, other {# 个日程}}",
+      "copied": "已将日历复制到剪贴板",
+      "noEvents": "未找到日程"
+    },
+    "notes": {
+      "search": "搜索笔记",
+      "new": "新建笔记",
+      "pinned": "已固定",
+      "noNotes": "无笔记",
+      "conflict": "已重新加载来自其他设备的较新版本。",
+      "titleAria": "笔记标题",
+      "pin": "固定笔记",
+      "unpin": "取消固定笔记",
+      "delete": "删除笔记",
+      "bodyPlaceholder": "写点什么",
+      "bodyAria": "笔记正文",
+      "select": "选择一条笔记"
+    },
+    "quickAdd": {
+      "todo": "添加待办",
+      "auto": "添加待办，输入 / 添加日程",
+      "eventBadge": "日程",
+      "todoBadge": "待办"
+    },
+    "todo": {
+      "overdue": "已逾期",
+      "upcoming": "即将到期",
+      "noDate": "无日期",
+      "markDone": "标记为已完成",
+      "markNotDone": "标记为未完成",
+      "titleAria": "待办标题",
+      "editHint": "双击编辑",
+      "delete": "删除待办",
+      "allDone": "全部完成",
+      "completed": "已完成",
+      "clearCompleted": "清除已完成"
+    },
+    "notifications": {
+      "title": "通知",
+      "empty": "无通知",
+      "clearAll": "全部清除",
+      "dismiss": "关闭",
+      "dismissApp": "关闭 {app} 的全部通知",
+      "focusAssist": "专注助手",
+      "settings": "通知设置",
+      "windowsCenter": "Windows 通知中心",
+      "toggle": "显示通知",
+      "back": "返回待办"
+    }
+  },
+  "files": {
+    "forward": "前进",
+    "up": "上一级",
+    "refresh": "刷新",
+    "pathAria": "路径",
+    "searchPlaceholder": "搜索此文件夹",
+    "toggleHidden": "切换隐藏文件",
+    "hiddenItems": "隐藏的项目",
+    "filesAria": "文件",
+    "menuAria": "文件菜单",
+    "newFolder": "新建文件夹",
+    "paste": "粘贴",
+    "open": "打开",
+    "rename": "重命名",
+    "copy": "复制",
+    "cut": "剪切",
+    "copyPath": "复制路径",
+    "columns": {
+      "name": "名称",
+      "modified": "修改日期",
+      "size": "大小"
+    },
+    "loading": "正在加载",
+    "empty": "空文件夹",
+    "itemCount": "{count, plural, other {# 个项目}}",
+    "selectedCount": "已选择 {count} 项"
+  },
+  "onboarding": {
+    "title": "Eris 设置",
+    "progressAria": "进度",
+    "skipSetup": "跳过设置",
+    "custom": "自定义",
+    "enterContinues": "Enter 继续",
+    "getStarted": "开始",
+    "startUsing": "开始使用 Eris",
+    "steps": {
+      "welcome": "欢迎",
+      "features": "功能",
+      "style": "样式",
+      "dock": "程序坞",
+      "hotkeys": "快捷键",
+      "sync": "同步",
+      "tips": "提示",
+      "done": "完成"
+    },
+    "welcome": {
+      "title": "欢迎使用 Eris",
+      "tagline": "常驻桌面的启动器、程序坞与日历。",
+      "launcher": {
+        "title": "启动器",
+        "text": "轻按 Win，输入，按 Enter。应用、窗口、待办、计算与网页。"
+      },
+      "dock": {
+        "title": "程序坞",
+        "text": "在替代 Windows 任务栏的工具栏上显示固定与运行中的应用。"
+      },
+      "calendar": {
+        "title": "日历与待办",
+        "text": "点击时钟即可查看今天、日程与待办列表。"
+      }
+    },
+    "features": {
+      "title": "选择要运行的部分",
+      "blurb": "选择一个预设，再单独开关各个部分。之后都可以在设置中更改。"
+    },
+    "style": {
+      "title": "选择外观",
+      "blurb": "更改会实时预览。之后可在设置中微调每种颜色。"
+    },
+    "dock": {
+      "title": "调整程序坞",
+      "blurb": "之后可在设置中微调尺寸和内容。",
+      "autoHide": "隐藏至光标触碰边缘",
+      "replaces": "Eris 替代 Windows 任务栏",
+      "taskbarStays": "Windows 任务栏保持可见"
+    },
+    "hotkeys": {
+      "title": "打开 Eris",
+      "blurb": "选择如何呼出启动器。",
+      "info": "单独轻按 {win} 打开 Eris。{win} + {e} 等组合键照常可用。",
+      "winOr": "Win 键或 {shortcut}"
+    },
+    "sync": {
+      "title": "跨设备同步",
+      "blurb": "可选。将 Eris 指向你自己的同步服务器，或跳过并稍后设置。"
+    },
+    "tips": {
+      "title": "几点提示",
+      "blurb": "开始前值得了解的三件事。",
+      "win": {
+        "title": "Win 打开 Eris",
+        "text": "在任何地方轻按即可。Win 组合键照常可用。"
+      },
+      "run": {
+        "title": "输入 > 运行命令",
+        "text": "命令直接从搜索框运行。"
+      },
+      "clock": {
+        "title": "点击时钟",
+        "text": "日历与待办列表会滑出。"
+      }
+    },
+    "done": {
+      "title": "一切就绪",
+      "blurb": "以下内容之后都可在设置中更改。",
+      "dockValue": "{style} 样式，{edge}边缘{autoHide, select, yes {，自动隐藏} other {}}",
+      "edges": {
+        "top": "顶部",
+        "bottom": "底部"
+      }
+    }
+  },
+  "tray": {
+    "taskView": "任务视图",
+    "showDesktop": "显示桌面",
+    "openSettings": "打开设置",
+    "menu": {
+      "title": "Eris 菜单",
+      "calendar": "日历",
+      "lock": "锁定",
+      "sleep": "睡眠",
+      "restart": "重启",
+      "shutdown": "关机",
+      "quit": "退出 Eris"
+    },
+    "widgets": {
+      "title": "托盘与小组件",
+      "open": "显示托盘与小组件",
+      "claude": "Claude",
+      "tray": "托盘",
+      "media": "媒体",
+      "input": "输入",
+      "meters": "系统",
+      "bluetooth": "Bluetooth",
+      "battery": "电池",
+      "volume": "声音"
+    },
+    "battery": {
+      "level": "电池 {percent}%",
+      "charging": "充电中"
+    },
+    "sync": {
+      "failed": "同步失败：{error}",
+      "unknownError": "未知错误",
+      "syncing": "正在同步",
+      "pending": "同步：{count} 项待同步",
+      "synced": "已同步 {time}",
+      "ready": "同步就绪"
+    },
+    "notifications": {
+      "title": "通知",
+      "open": "打开通知中心",
+      "quickSettings": "快速设置",
+      "focusAssist": "专注助手",
+      "settings": "通知设置",
+      "windowsCenter": "Windows 通知中心",
+      "unseen": "{count} 条新通知"
+    },
+    "network": {
+      "title": "网络",
+      "none": "无网络",
+      "connected": "已连接",
+      "ethernet": "以太网",
+      "wifi": "Wi-Fi",
+      "signal": "信号 {bars}/5",
+      "available": "可用网络",
+      "settings": "网络设置",
+      "airplane": "飞行模式",
+      "noRadio": "无 Wi-Fi 适配器",
+      "deniedUser": "Windows 隐私设置已阻止访问无线电",
+      "deniedSystem": "系统已阻止访问无线电",
+      "radioFailed": "无法更改无线电状态"
+    },
+    "bluetooth": {
+      "title": "Bluetooth",
+      "off": "Bluetooth 已关闭",
+      "connected": "已连接的设备",
+      "noDevices": "未连接设备",
+      "addDevice": "添加设备",
+      "settings": "Bluetooth 设置"
+    },
+    "input": {
+      "title": "输入语言：{label}"
+    },
+    "icons": {
+      "icon": "托盘图标",
+      "hidden": "隐藏的托盘图标",
+      "hiddenCount": "{count} 个隐藏图标",
+      "hide": "从溢出区隐藏",
+      "unhide": "在溢出区显示",
+      "showAll": "全部显示",
+      "allHidden": "已隐藏 {count} 个图标"
+    },
+    "meters": {
+      "title": "系统用量",
+      "memory": "内存",
+      "of": "{used}，共 {total}",
+      "taskManager": "任务管理器"
+    },
+    "media": {
+      "title": "媒体",
+      "previous": "上一曲",
+      "next": "下一曲",
+      "play": "播放",
+      "pause": "暂停",
+      "failed": "媒体命令失败",
+      "nowPlaying": "正在播放",
+      "nothing": "无播放内容",
+      "noInfo": "无详细信息"
+    },
+    "volume": {
+      "title": "音量",
+      "sound": "声音",
+      "muted": "已静音",
+      "level": "音量 {percent}%",
+      "mute": "静音",
+      "unmute": "取消静音",
+      "output": "输出设备",
+      "noDevices": "无设备"
+    },
+    "claude": {
+      "unmeasured": "Claude 用量未测量",
+      "fiveHour": "5 小时 {percent}%",
+      "weekly": "每周 {percent}%",
+      "leftHours": "剩余 {hours} 小时 {minutes} 分钟",
+      "leftMinutes": "剩余 {minutes} 分钟"
+    }
+  },
+  "chat": {
+    "title": "Claude",
+    "rename": "重命名聊天",
+    "closeFolder": "关闭文件夹",
+    "openFolder": "打开文件夹",
+    "newChat": "新建聊天",
+    "newBubble": "新建气泡",
+    "cliMissing": "未安装 Claude Code CLI",
+    "placeholder": "输入消息",
+    "queuePlaceholder": "输入排队消息",
+    "send": "发送",
+    "queueSend": "排队",
+    "stop": "停止",
+    "deny": "拒绝",
+    "allow": "允许",
+    "allowAlways": "始终允许",
+    "usageUnknown": "用量不可用",
+    "context": "上下文 {percent}%（{used} / {total} tokens）",
+    "empty": {
+      "ask": "随便问些什么",
+      "askHint": "打开文件夹即可开始编码",
+      "code": "请求修改代码",
+      "codeHint": "/ 输入命令，@ 引用文件"
+    },
+    "history": {
+      "title": "历史记录",
+      "home": "主目录",
+      "current": "进行中",
+      "untitled": "无标题",
+      "empty": "无历史记录",
+      "recentFolders": "最近的文件夹",
+      "meta": "{count} 条消息，{when}"
+    },
+    "usage": {
+      "fiveHour": "5 小时",
+      "sevenDay": "7 天",
+      "resets": "{time} 重置"
+    },
+    "config": {
+      "title": "Claude Code 设置",
+      "model": "模型",
+      "modelDefault": "默认模型",
+      "modelCustom": "自定义…",
+      "effort": "思考强度",
+      "permission": "权限模式",
+      "thinking": "扩展思考",
+      "autoCompact": "自动压缩",
+      "language": "回复语言",
+      "languageDefault": "默认",
+      "budget": "每会话预算（USD）",
+      "budgetNone": "不限制",
+      "systemPrompt": "附加系统提示词",
+      "restartHint": "重启会话后生效",
+      "restart": "重启"
+    },
+    "effort": {
+      "default": "默认强度",
+      "low": "低",
+      "medium": "中",
+      "high": "高",
+      "xhigh": "超高",
+      "max": "最高"
+    },
+    "permission": {
+      "default": "询问",
+      "acceptEdits": "接受编辑",
+      "plan": "计划",
+      "auto": "自动",
+      "dontAsk": "不询问",
+      "bypassPermissions": "绕过权限"
+    },
+    "tri": {
+      "default": "默认",
+      "on": "开",
+      "off": "关"
+    },
+    "hover": {
+      "none": "无",
+      "title": "标题",
+      "preview": "最后一条消息"
+    },
+    "queue": {
+      "afterTool": "工具完成后",
+      "afterReply": "回复后",
+      "toggle": "切换发送时机"
+    },
+    "commands": {
+      "clear": "清空对话并重新开始",
+      "resume": "选择之前的会话",
+      "usage": "显示套餐用量限额",
+      "model": "选择模型",
+      "effort": "选择思考强度",
+      "config": "Claude Code 设置"
+    }
+  }
+}

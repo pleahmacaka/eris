@@ -6,10 +6,8 @@ use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, Webview
 use crate::{appbar, desktop};
 
 const BLUR_TOGGLE_GUARD: Duration = Duration::from_millis(250);
-const BUBBLE_SIZE: f64 = 56.0;
-const BUBBLE_EDGE: f64 = 16.0;
 const SHOW_SETTLE: Duration = Duration::from_millis(400);
-const LAZY: [&str; 4] = ["settings", "files", "onboarding", "panel"];
+const LAZY: [&str; 5] = ["settings", "files", "onboarding", "panel", "edit"];
 
 static BLUR_HIDDEN_AT: Mutex<Option<Instant>> = Mutex::new(None);
 static SHOWN_AT: Mutex<Option<Instant>> = Mutex::new(None);
@@ -48,7 +46,7 @@ pub fn hide(app: &AppHandle, label: &str) {
 }
 
 pub fn hide_on_blur(window: &WebviewWindow) {
-    if settling() || !window.is_visible().unwrap_or(false) {
+    if settling() || crate::edit::editing() || !window.is_visible().unwrap_or(false) {
         return;
     }
 
@@ -93,7 +91,7 @@ fn conceal(window: &WebviewWindow) {
     set_webview_visible(window, false);
 }
 
-fn window_for(app: &AppHandle, label: &str) -> Option<WebviewWindow> {
+pub(crate) fn window_for(app: &AppHandle, label: &str) -> Option<WebviewWindow> {
     if let Some(window) = app.get_webview_window(label) {
         return Some(window);
     }
@@ -235,8 +233,10 @@ struct ChatSpace {
 }
 
 static CHAT_SPACE: Mutex<Option<ChatSpace>> = Mutex::new(None);
+static CHAT_FRAME: Mutex<Option<[i32; 4]>> = Mutex::new(None);
+static CHAT_RECTS: Mutex<Vec<[i32; 5]>> = Mutex::new(Vec::new());
 
-// every monitor's work area maps into one logical plane, scaled like the primary; the bubble parks on the cursor's monitor
+// moving the window origin races the page's own offset, so the window always spans the plane and only its region changes
 fn park_chat(window: &WebviewWindow) -> tauri::Result<()> {
     let cursor = window.cursor_position()?;
     let monitors = window.available_monitors()?;
@@ -282,6 +282,8 @@ fn park_chat(window: &WebviewWindow) -> tauri::Result<()> {
         })
         .collect();
 
+    let first = CHAT_SPACE.lock().unwrap().is_none();
+
     *CHAT_SPACE.lock().unwrap() = Some(ChatSpace {
         origin,
         scale,
@@ -293,22 +295,40 @@ fn park_chat(window: &WebviewWindow) -> tauri::Result<()> {
         },
     });
 
-    let (position, size) = works[home];
-    let bubble = (BUBBLE_SIZE * scale).round() as i32;
-    let edge = (BUBBLE_EDGE * scale).round() as i32;
+    place_chat(window, [origin.x, origin.y, right - origin.x, bottom - origin.y])?;
 
-    window.set_position(PhysicalPosition::new(
-        position.x + size.width as i32 - bubble - edge,
-        position.y + size.height as i32 - bubble - edge,
-    ))?;
-    window.set_size(PhysicalSize::new(bubble as u32, bubble as u32))?;
-    region::apply(
-        &window.app_handle().clone(),
-        window.label(),
-        &[[0, 0, bubble, bubble, bubble / 2]],
-    );
+    if first {
+        clip_chat(&window.app_handle().clone(), Vec::new());
+    }
 
     Ok(())
+}
+
+fn place_chat(window: &WebviewWindow, frame: [i32; 4]) -> tauri::Result<()> {
+    let mut last = CHAT_FRAME.lock().unwrap();
+
+    if *last == Some(frame) {
+        return Ok(());
+    }
+
+    let [x, y, width, height] = frame;
+
+    window.set_position(PhysicalPosition::new(x, y))?;
+    window.set_size(PhysicalSize::new(width.max(1) as u32, height.max(1) as u32))?;
+    *last = Some(frame);
+
+    Ok(())
+}
+
+fn clip_chat(app: &AppHandle, rects: Vec<[i32; 5]>) {
+    let mut last = CHAT_RECTS.lock().unwrap();
+
+    if *last == rects {
+        return;
+    }
+
+    region::apply(app, "chat", &rects);
+    *last = rects;
 }
 
 #[tauri::command]
@@ -334,12 +354,12 @@ pub fn chat_frame(app: AppHandle, frame: [f64; 4], rects: Vec<[f64; 5]>) {
     let px = |value: f64| (value * scale).round() as i32;
     let [x, y, width, height] = frame;
 
-    let _ = window.set_position(PhysicalPosition::new(origin.x + px(x), origin.y + px(y)));
-    let _ = window.set_size(PhysicalSize::new(px(width).max(1) as u32, px(height).max(1) as u32));
+    let _ = place_chat(
+        &window,
+        [origin.x + px(x), origin.y + px(y), px(width), px(height)],
+    );
 
-    let scaled: Vec<[i32; 5]> = rects.iter().map(|rect| rect.map(px)).collect();
-
-    region::apply(&app, "chat", &scaled);
+    clip_chat(&app, rects.iter().map(|rect| rect.map(px)).collect());
 }
 
 #[cfg(target_os = "windows")]

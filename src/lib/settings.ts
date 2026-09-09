@@ -8,6 +8,8 @@ export type DockStyle = "windows" | "mac"
 export type DockEdge = "bottom" | "top"
 export type DockAlign = "start" | "center" | "uchiwa"
 export type DockSide = "left" | "right"
+export type ClockAlign = "start" | "center" | "end"
+export type DockBackground = "inherit" | Background
 export type SpectrumStyle = "bars" | "mirror" | "wave" | "dots"
 export type LauncherTrigger = "win" | "shortcut" | "both"
 export type ThemeMode = "dark" | "light" | "system"
@@ -16,6 +18,17 @@ export type Density = "compact" | "cozy"
 export type Features = { dock: boolean; launcher: boolean; chat: boolean }
 export type WebSearchEngine = "google" | "duckduckgo" | "bing" | "naver"
 export type TodoSort = "manual" | "due" | "priority"
+export type ChatEffort = "" | "low" | "medium" | "high" | "xhigh" | "max"
+export type ChatPermission =
+  | "default"
+  | "acceptEdits"
+  | "plan"
+  | "auto"
+  | "dontAsk"
+  | "bypassPermissions"
+export type ChatTri = "default" | "on" | "off"
+export type ChatHover = "none" | "title" | "preview"
+export type ChatQueueMode = "afterTool" | "afterReply"
 
 export type SyncSettings = {
   enabled: boolean
@@ -38,8 +51,23 @@ export type DeviceSettings = {
   dockIconSize: number
   dockAutoHide: boolean
   dockDesktop: boolean
+  dockSeparators: boolean
+  clockAlign: ClockAlign
+  editMode: boolean
   features: Features
   chatSnap: number
+  chatModel: string
+  chatEffort: ChatEffort
+  chatPermission: ChatPermission
+  chatThinking: ChatTri
+  chatAutoCompact: ChatTri
+  chatLanguage: string
+  chatBudget: number
+  chatSystemPrompt: string
+  chatHover: ChatHover
+  chatMultiBubble: boolean
+  chatBubbleColors: boolean
+  chatQueueMode: ChatQueueMode
   dockMonitor: string | null
   hideSystemTaskbar: boolean
   showLauncherButton: boolean
@@ -59,15 +87,22 @@ export type DeviceSettings = {
   showMedia: boolean
   showMeters: boolean
   showNetwork: boolean
+  showBluetooth: boolean
+  showNotifications: boolean
+  showDesktopButton: boolean
+  showTaskView: boolean
+  showInputLanguage: boolean
   showSeconds: boolean
   clock24h: boolean
   launcherTrigger: LauncherTrigger
   launcherShortcut: string
+  chatShortcut: string
   autostart: boolean
   pinnedApps: string[]
   hiddenApps: string[]
   dockOrder: string[]
   trayOrder: string[]
+  trayHidden: string[]
   sync: SyncSettings
 }
 
@@ -84,6 +119,12 @@ export type Appearance = {
   fontScale: number
   surfaceOpacity: number
   dockOpacity: number
+  dockBackground: DockBackground
+  dockBlur: number
+  dockRadius: number
+  dockBorder: boolean
+  dockTint: number
+  dockAura: boolean
   density: Density
   motion: boolean
 }
@@ -123,6 +164,12 @@ export const defaultAppearance: Appearance = {
   fontScale: 1,
   surfaceOpacity: 1,
   dockOpacity: 1,
+  dockBackground: "inherit",
+  dockBlur: 1,
+  dockRadius: 1,
+  dockBorder: true,
+  dockTint: 0,
+  dockAura: false,
   density: "cozy",
   motion: true,
 }
@@ -176,8 +223,23 @@ export const defaultDevice: DeviceSettings = {
   dockIconSize: 24,
   dockAutoHide: false,
   dockDesktop: false,
+  dockSeparators: true,
+  clockAlign: "end",
+  editMode: true,
   features: { dock: true, launcher: true, chat: true },
   chatSnap: 15,
+  chatModel: "",
+  chatEffort: "",
+  chatPermission: "default",
+  chatThinking: "default",
+  chatAutoCompact: "default",
+  chatLanguage: "",
+  chatBudget: 0,
+  chatSystemPrompt: "",
+  chatHover: "title",
+  chatMultiBubble: true,
+  chatBubbleColors: true,
+  chatQueueMode: "afterReply",
   dockMonitor: null,
   hideSystemTaskbar: true,
   showLauncherButton: true,
@@ -197,15 +259,22 @@ export const defaultDevice: DeviceSettings = {
   showMedia: true,
   showMeters: false,
   showNetwork: true,
+  showBluetooth: true,
+  showNotifications: true,
+  showDesktopButton: true,
+  showTaskView: false,
+  showInputLanguage: true,
   showSeconds: false,
   clock24h: false,
   launcherTrigger: "both",
   launcherShortcut: "Alt+Space",
-  autostart: false,
+  chatShortcut: "Ctrl+Space",
+  autostart: true,
   pinnedApps: [],
   hiddenApps: [],
   dockOrder: [],
   trayOrder: [],
+  trayHidden: [],
   sync: defaultSync,
 }
 

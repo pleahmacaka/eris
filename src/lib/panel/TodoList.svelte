@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { t } from "svelte-i18n"
   import { dateKey } from "$lib/data/calendar"
   import { todos } from "$lib/data/store"
   import { isOverdue, sortTodos } from "$lib/data/todo"
@@ -18,11 +19,11 @@
 
   type SectionId = "overdue" | "today" | "upcoming" | "none"
 
-  const SECTIONS: { id: SectionId; label: string }[] = [
-    { id: "overdue", label: "Overdue" },
-    { id: "today", label: "Today" },
-    { id: "upcoming", label: "Upcoming" },
-    { id: "none", label: "No date" },
+  const SECTIONS: { id: SectionId; key: string }[] = [
+    { id: "overdue", key: "panel.todo.overdue" },
+    { id: "today", key: "dates.today" },
+    { id: "upcoming", key: "panel.todo.upcoming" },
+    { id: "none", key: "panel.todo.noDate" },
   ]
 
   let completedOverride = $state<boolean | null>(null)
@@ -58,6 +59,7 @@
 
     return SECTIONS.map(section => ({
       ...section,
+      label: $t(section.key),
       items: active.filter(t => bucket(t, today) === section.id),
     })).filter(section => section.items.length > 0)
   })
@@ -144,7 +146,7 @@
     >
       <Icon icon="lucide:check-circle-2" class="size-6 text-success/70" />
 
-      All done
+      {$t("panel.todo.allDone")}
     </p>
   {/if}
 
@@ -166,7 +168,7 @@
             ]}
           />
 
-          Completed
+          {$t("panel.todo.completed")}
 
           <span class="badge badge-ghost badge-xs tabular-nums">
             {done.length}
@@ -174,7 +176,7 @@
         </button>
 
         <button class="btn btn-ghost btn-xs" onclick={clearCompleted}>
-          Clear completed
+          {$t("panel.todo.clearCompleted")}
         </button>
       </div>
 

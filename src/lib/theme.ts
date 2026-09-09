@@ -220,6 +220,7 @@ export const resolveMode = (mode: ThemeMode): "dark" | "light" => {
 
 export const applyAppearance = async (a: Appearance) => {
   const root = document.documentElement
+  const dock = root.dataset.surface === "dock"
   const systemHue = a.useSystemAccent
     ? await systemAccentHue().catch(() => null)
     : null
@@ -227,17 +228,21 @@ export const applyAppearance = async (a: Appearance) => {
 
   root.dataset.theme = mode === "light" ? "eris-light" : "eris"
   root.dataset.mode = mode
-  root.dataset.background = a.background
+  root.dataset.background =
+    dock && a.dockBackground !== "inherit" ? a.dockBackground : a.background
   root.dataset.density = a.density
   root.dataset.motion = String(a.motion)
+  root.dataset.dockBorder = String(a.dockBorder)
+  root.dataset.dockAura = String(a.dockAura)
 
   const vars = {
     "--accent-hue": systemHue ?? a.accentHue,
     "--accent-spread": a.accentSpread,
     "--vividness": a.vividness,
     "--texture": a.texture,
-    "--radius-scale": a.radius,
-    "--blur-scale": a.blur,
+    "--radius-scale": a.radius * (dock ? a.dockRadius : 1),
+    "--blur-scale": a.blur * (dock ? a.dockBlur : 1),
+    "--dock-tint": a.dockTint,
     "--font-scale": a.fontScale,
     "--surface-opacity": a.surfaceOpacity,
     "--dock-opacity": a.dockOpacity,

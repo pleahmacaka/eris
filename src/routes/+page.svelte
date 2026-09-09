@@ -37,6 +37,9 @@
     subscribeTimers,
     type Timer,
   } from "$lib/launcher/timers"
+  import EditSpot from "$lib/edit/EditSpot.svelte"
+  import { editing, watchEdit } from "$lib/edit/edit.svelte"
+  import Segmented from "$lib/settings-ui/Segmented.svelte"
   import {
     kindLabel,
     type Result,
@@ -67,6 +70,8 @@
     onProfile,
     type Profile,
     saveDevice,
+    saveProfile,
+    type WebSearchEngine,
   } from "$lib/settings"
   import { t } from "svelte-i18n"
 
@@ -140,6 +145,7 @@
     refresh()
 
     const stopTimers = subscribeTimers(items => (timers = items))
+    const stopEditWatch = watchEdit()
 
     const stops = [
       onProfile(p => (profile = p)),
@@ -158,6 +164,7 @@
 
     return () => {
       stopTimers()
+      stopEditWatch()
 
       for (const stop of stops) {
         stop.then(fn => fn())
@@ -168,6 +175,28 @@
   $effect(() => {
     input?.focus()
   })
+
+  type LauncherBool = "showWindows" | "showCommands" | "showTodos" | "calculator"
+
+  const patchLauncher = <K extends keyof Profile["launcher"]>(
+    key: K,
+    value: Profile["launcher"][K],
+  ) => {
+    profile = { ...profile, launcher: { ...profile.launcher, [key]: value } }
+    saveProfile($state.snapshot(profile)).catch(() => undefined)
+  }
+
+  const ENGINE_NAMES: Record<WebSearchEngine, string> = {
+    google: "Google",
+    duckduckgo: "DuckDuckGo",
+    bing: "Bing",
+    naver: "Naver",
+  }
+
+  const engineOptions = Object.entries(ENGINE_NAMES).map(([value, label]) => ({
+    value: value as WebSearchEngine,
+    label,
+  }))
 
   const route = $derived.by((): Route => {
     const parsed = parseQuery(query)
@@ -648,7 +677,7 @@
       return
     }
 
-    if (e.button === 0 && !target.closest("[data-launcher]")) {
+    if (e.button === 0 && !editing.on && !target.closest("[data-launcher]")) {
       hideWindow("main").catch(() => undefined)
     }
   }
@@ -708,10 +737,67 @@
 
 <svelte:window {onkeydown} {onmousedown} onfocus={() => input?.focus()} />
 
+{#snippet launcherToggle(key: LauncherBool, label: string)}
+  <label class="flex items-center justify-between gap-3 py-1 text-xs">
+    <span>{label}</span>
+
+    <input
+      type="checkbox"
+      class="toggle toggle-primary toggle-xs"
+      checked={profile.launcher[key]}
+      onchange={e => patchLauncher(key, e.currentTarget.checked)}
+    />
+  </label>
+{/snippet}
+
+{#snippet searchOptions()}
+  <label class="flex flex-col gap-1 py-1 text-xs">
+    <span class="flex justify-between">
+      <span>{$t("settings.rows.resultsPerGroup")}</span>
+
+      <span class="text-base-content/60 tabular-nums">{profile.launcher.maxResults}</span>
+    </span>
+
+    <input
+      type="range"
+      class="range range-primary range-xs"
+      min="3"
+      max="12"
+      step="1"
+      value={profile.launcher.maxResults}
+      onchange={e => patchLauncher("maxResults", Number(e.currentTarget.value))}
+    />
+  </label>
+
+  {@render launcherToggle("showWindows", $t("settings.rows.openWindows"))}
+  {@render launcherToggle("showCommands", $t("settings.rows.commands"))}
+  {@render launcherToggle("showTodos", $t("settings.rows.todos"))}
+  {@render launcherToggle("calculator", $t("settings.rows.calculator"))}
+
+  <div class="flex items-center justify-between gap-3 py-1 text-xs">
+    <span>{$t("settings.rows.webSearch")}</span>
+
+    <Segmented value={profile.launcher.webSearch} options={engineOptions} onchange={v => patchLauncher("webSearch", v)} />
+  </div>
+
+  <label class="flex items-center justify-between gap-3 py-1 text-xs">
+    <span>{$t("settings.rows.showKeymap")}</span>
+
+    <input
+      type="checkbox"
+      class="toggle toggle-primary toggle-xs"
+      checked={device.showKeymap}
+      onchange={e => saveDevice({ ...$state.snapshot(device), showKeymap: e.currentTarget.checked })}
+    />
+  </label>
+{/snippet}
+
+
 <main
   class="relative flex min-h-0 grow select-none flex-col gap-3 p-4"
   oncontextmenu={openBackdropMenu}
 >
+  <EditSpot id="search" label={$t("edit.spots.search")} placement="down" align="start" options={searchOptions}>
   <label
     data-launcher
     class="input input-lg flex h-14 w-full shrink-0 items-center gap-3 rounded-box border border-base-content/10 bg-base-100/60 px-4 shadow-lg outline-none backdrop-blur-xl transition-[border-color,box-shadow] duration-150 focus-within:border-primary/40 focus-within:outline-none focus-within:ring-2 focus-within:ring-primary/20"
@@ -746,6 +832,7 @@
       </button>
     {/if}
   </label>
+  </EditSpot>
 
   <div
     data-launcher

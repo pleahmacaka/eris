@@ -1,3 +1,4 @@
+import { currentLocale, tr } from "../i18n/locale"
 import type { CalendarEvent, Recurrence } from "./types"
 
 const DAY = 86_400_000
@@ -208,10 +209,10 @@ export const upcoming = (events: CalendarEvent[], from: Date, days: number) => {
 }
 
 const formatTime = (d: Date) =>
-  d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
+  d.toLocaleTimeString(currentLocale(), { hour: "numeric", minute: "2-digit" })
 
 const formatDay = (d: Date) =>
-  d.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+  d.toLocaleDateString(currentLocale(), { month: "short", day: "numeric" })
 
 export const formatRange = (event: CalendarEvent) => {
   const start = parseLocal(event.start)
@@ -219,7 +220,9 @@ export const formatRange = (event: CalendarEvent) => {
   const sameDay = dateKey(start) === dateKey(end)
 
   if (event.allDay) {
-    return sameDay ? "All day" : `${formatDay(start)} – ${formatDay(end)}`
+    return sameDay
+      ? tr("panel.allDay")
+      : `${formatDay(start)} – ${formatDay(end)}`
   }
 
   if (sameDay) {

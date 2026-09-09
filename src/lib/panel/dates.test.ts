@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test"
+import { tr } from "$lib/i18n/locale"
 import { rangeError } from "./dates"
+
+const startRequired = tr("panel.errors.startRequired")
+const endRequired = tr("panel.errors.endRequired")
+const endBeforeStart = tr("panel.errors.endBeforeStart")
 
 describe("rangeError", () => {
   test("accepts ordered timed and all-day ranges", () => {
@@ -8,15 +13,15 @@ describe("rangeError", () => {
   })
 
   test("rejects unparseable dates", () => {
-    expect(rangeError("", "2026-09-03")).toBe("Start date required")
-    expect(rangeError("T09:00", "T10:00")).toBe("Start date required")
-    expect(rangeError("2026-09-03", "")).toBe("End date required")
+    expect(rangeError("", "2026-09-03")).toBe(startRequired)
+    expect(rangeError("T09:00", "T10:00")).toBe(startRequired)
+    expect(rangeError("2026-09-03", "")).toBe(endRequired)
   })
 
   test("rejects end before start", () => {
     expect(rangeError("2026-09-03T10:00", "2026-09-03T09:00")).toBe(
-      "End is before start",
+      endBeforeStart,
     )
-    expect(rangeError("2026-09-04", "2026-09-03")).toBe("End is before start")
+    expect(rangeError("2026-09-04", "2026-09-03")).toBe(endBeforeStart)
   })
 })

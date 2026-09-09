@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test"
+import { tr } from "../i18n/locale"
 import {
   eventsOn,
   formatRange,
@@ -69,7 +70,7 @@ describe("recurring all-day events across DST (America/New_York)", () => {
     const [hit] = on(list, "2026-11-01")
 
     expect(hit.end).toBe("2026-11-01")
-    expect(formatRange(hit)).toBe("All day")
+    expect(formatRange(hit)).toBe(tr("panel.allDay"))
   })
 
   test("weekly timed event keeps its wall-clock slot across DST", () => {

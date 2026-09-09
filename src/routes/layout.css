@@ -161,6 +161,26 @@
     display: none;
   }
 
+  :root[data-surface="dock"][data-dock-aura="true"] .siri-aura {
+    animation: siri-breathe 11s steps(330) infinite alternate;
+  }
+
+  :root[data-surface="dock"][data-dock-aura="true"] .siri-orb,
+  :root[data-surface="dock"][data-dock-aura="true"] .siri-veil {
+    display: block;
+  }
+
+  :root[data-surface="edit"] .siri-shell {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    opacity: 1;
+  }
+
+  :root[data-surface="edit"] .siri-aura {
+    display: none;
+  }
+
   :root[data-surface="overlay"] .siri-shell {
     border-radius: var(--radius-box);
   }
@@ -258,7 +278,7 @@
       oklch(0% 0 0 / 0.85) 82%,
       transparent 100%
     );
-    animation: siri-breathe 11s steps(110) infinite alternate;
+    animation: siri-breathe 11s steps(330) infinite alternate;
   }
 
   .siri-orb {
@@ -272,18 +292,37 @@
     border-radius: 50%;
     opacity: var(--glow);
     --hue: calc(var(--accent-hue) + var(--offset) * var(--accent-spread) / 120);
+    --chroma: calc(var(--vividness) * 2 + 0.02);
     background: radial-gradient(
       closest-side,
-      oklch(var(--aura-orb-l) calc(var(--vividness) * 0.7) var(--hue) / 0.55),
-      oklch(72% var(--vividness) var(--hue) / 0.42) 25%,
-      oklch(60% var(--vividness) var(--hue) / 0.22) 50%,
-      oklch(50% var(--vividness) var(--hue) / 0.08) 75%,
-      oklch(45% var(--vividness) var(--hue) / 0) 100%
+      oklch(calc(var(--aura-orb-l) + 6%) var(--chroma) var(--hue) / 0.85),
+      oklch(var(--aura-orb-l) var(--chroma) var(--hue) / 0.55) 22%,
+      oklch(66% var(--chroma) var(--hue) / 0.28) 48%,
+      oklch(56% var(--chroma) var(--hue) / 0.1) 72%,
+      oklch(50% var(--chroma) var(--hue) / 0) 100%
     );
     animation:
       siri-orbit var(--dur) steps(var(--steps)) var(--delay) infinite alternate,
       siri-pulse var(--pulse) steps(var(--pulse-steps)) var(--delay) infinite
         alternate;
+  }
+
+  .siri-orb::after {
+    content: "";
+    position: absolute;
+    inset: -35%;
+    border-radius: 50%;
+    background: radial-gradient(
+      closest-side,
+      oklch(82% var(--chroma) var(--hue) / 0.32),
+      oklch(74% var(--chroma) var(--hue) / 0.12) 45%,
+      oklch(70% var(--chroma) var(--hue) / 0) 100%
+    );
+    animation: siri-bloom var(--pulse) steps(var(--pulse-steps)) var(--delay) infinite alternate;
+  }
+
+  :root[data-mode="dark"] .siri-orb {
+    mix-blend-mode: screen;
   }
 
   .siri-grain {
@@ -302,7 +341,7 @@
       radial-gradient(120% 90% at 50% -20%, var(--veil-sheen), transparent 60%),
       radial-gradient(100% 80% at 50% 120%, var(--veil-shade), transparent 65%);
     mask-image: radial-gradient(78% 70% at 50% 50%, black 55%, transparent 100%);
-    animation: siri-sheen 14s steps(140) infinite alternate;
+    animation: siri-sheen 14s steps(420) infinite alternate;
   }
 
   .prose-chat {
@@ -368,6 +407,17 @@
     }
     to {
       opacity: var(--glow);
+    }
+  }
+
+  @keyframes siri-bloom {
+    from {
+      transform: scale(0.85);
+      opacity: 0.45;
+    }
+    to {
+      transform: scale(1.12);
+      opacity: 1;
     }
   }
 

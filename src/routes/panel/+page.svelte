@@ -2,6 +2,7 @@
   import Icon from "@iconify/svelte"
   import { emit, listen } from "@tauri-apps/api/event"
   import { getCurrentWindow } from "@tauri-apps/api/window"
+  import { t } from "svelte-i18n"
   import {
     atMinutes,
     dateKey,
@@ -22,6 +23,7 @@
   import { dayLabel, longDate } from "$lib/panel/dates"
   import EventEditor from "$lib/panel/EventEditor.svelte"
   import Notes from "$lib/panel/Notes.svelte"
+  import Notifications from "$lib/panel/Notifications.svelte"
   import PanelSearch from "$lib/panel/PanelSearch.svelte"
   import QuickAdd from "$lib/panel/QuickAdd.svelte"
   import TodoItem from "$lib/panel/TodoItem.svelte"
@@ -53,6 +55,18 @@
   let field = $state<HTMLInputElement>()
   let query = $state("")
   let openNoteId = $state<string | null>(null)
+  let noticeView = $state(false)
+
+  const takeIntent = () => {
+    native
+      .noticesTakeIntent()
+      .then(wanted => {
+        if (wanted) {
+          noticeView = true
+        }
+      })
+      .catch(() => undefined)
+  }
 
   const todayKey = $derived(dateKey(now))
 
@@ -60,10 +74,10 @@
 
   const greeting = $derived(
     now.getHours() < 12
-      ? "Good morning"
+      ? $t("panel.greeting.morning")
       : now.getHours() < 18
-        ? "Good afternoon"
-        : "Good evening",
+        ? $t("panel.greeting.afternoon")
+        : $t("panel.greeting.evening"),
   )
 
   const nextEvents = $derived(upcoming(eventLive.items, now, LOOKAHEAD_DAYS))
@@ -98,8 +112,8 @@
   const summary = $derived.by(() => {
     const todayEvents = eventDays.find(d => d.key === todayKey)?.events ?? []
     const parts = [
-      `${todayEvents.length} ${todayEvents.length === 1 ? "event" : "events"}`,
-      `${dueTodos.length} ${dueTodos.length === 1 ? "todo" : "todos"} due`,
+      $t("panel.summary.events", { values: { count: todayEvents.length } }),
+      $t("panel.summary.todosDue", { values: { count: dueTodos.length } }),
     ]
 
     return parts.join(" · ")
@@ -233,8 +247,11 @@
         selected = startOfDay(now)
         query = ""
         quickAdd?.focus()
+        takeIntent()
       }),
     ]
+
+    takeIntent()
     const tick = setInterval(() => {
       now = new Date()
     }, 60_000)
@@ -267,7 +284,7 @@
 
       <button
         class="btn btn-ghost btn-square btn-sm"
-        aria-label="Close"
+        aria-label={$t("common.close")}
         onclick={hide}
       >
         <Icon icon="lucide:x" class="size-4" />
@@ -283,8 +300,8 @@
         bind:this={field}
         bind:value={query}
         type="text"
-        placeholder="Search todos and events"
-        aria-label="Search todos and events"
+        placeholder={$t("panel.searchPlaceholder")}
+        aria-label={$t("panel.searchPlaceholder")}
         spellcheck="false"
         autocomplete="off"
         onkeydown={onSearchKey}
@@ -293,7 +310,7 @@
       {#if searching}
         <button
           class="btn btn-ghost btn-circle btn-xs"
-          aria-label="Clear search"
+          aria-label={$t("panel.clearSearch")}
           onclick={() => {
             query = ""
           }}
@@ -305,6 +322,16 @@
       {/if}
     </label>
 
+    <button
+      type="button"
+      class={["btn btn-ghost btn-square btn-sm", noticeView && "bg-base-content/10"]}
+      title={$t("panel.notifications.toggle")}
+      aria-label={$t("panel.notifications.toggle")}
+      aria-pressed={noticeView}
+      onclick={() => (noticeView = !noticeView)}
+    >
+      <Icon icon="lucide:bell" class="size-4" />
+    </button>
   </header>
 
   {#if searching}
@@ -320,7 +347,7 @@
     </section>
   {:else}
     <div class="flex min-h-0 grow gap-3 px-4 pb-4">
-      <section class="min-w-0 grow overflow-y-auto" aria-label="Calendar">
+      <section class="min-w-0 grow overflow-y-auto" aria-label={$t("panel.calendarAria")}>
         <Calendar
           events={eventLive.items}
           todos={todoLive.items}
@@ -335,7 +362,7 @@
 
       <aside
         class="flex w-[22rem] shrink-0 flex-col gap-3 overflow-y-auto pr-0.5"
-        aria-label="Panel cards"
+        aria-label={$t("panel.cardsAria")}
       >
         <section
           class="flex flex-col gap-3 rounded-box border border-base-content/10 bg-base-100/50 p-3"
@@ -360,9 +387,9 @@
             />
           {:else}
             <Agenda
-              title="Next 7 days"
+              title={$t("panel.calendar.nextDays", { values: { count: LOOKAHEAD_DAYS } })}
               events={[]}
-              empty="No upcoming events"
+              empty={$t("panel.calendar.noUpcoming")}
               onedit={editEvent}
             />
           {/each}
@@ -371,7 +398,7 @@
             <h3
               class="px-2 text-[11px] font-semibold tracking-wide text-base-content/50"
             >
-              Due
+              {$t("panel.due")}
             </h3>
 
             {#if dueTodos.length > 0}
@@ -381,25 +408,45 @@
                 {/each}
               </ul>
             {:else}
-              <p class="px-2 py-2 text-sm text-base-content/45">Nothing due</p>
+              <p class="px-2 py-2 text-sm text-base-content/45">
+                {$t("panel.nothingDue")}
+              </p>
             {/if}
           </div>
         </section>
 
-        <section
-          class="rounded-box border border-base-content/10 bg-base-100/50 p-3"
-          aria-label="Todo"
-        >
-          <TodoList items={todoLive.items} {profile} {now} />
-        </section>
+        {#if noticeView}
+          <section
+            class="rounded-box border border-base-content/10 bg-base-100/50 p-3"
+            aria-label={$t("panel.notifications.title")}
+          >
+            <Notifications />
 
-        <section
-          bind:this={notesCard}
-          class="rounded-box border border-base-content/10 bg-base-100/50 p-3"
-          aria-label="Notes"
-        >
-          <Notes openId={openNoteId} />
-        </section>
+            <button
+              type="button"
+              class="btn btn-ghost btn-xs mt-2"
+              onclick={() => (noticeView = false)}
+            >
+              <Icon icon="lucide:arrow-left" class="size-3.5" />
+              {$t("panel.notifications.back")}
+            </button>
+          </section>
+        {:else}
+          <section
+            class="rounded-box border border-base-content/10 bg-base-100/50 p-3"
+            aria-label={$t("panel.todoAria")}
+          >
+            <TodoList items={todoLive.items} {profile} {now} />
+          </section>
+
+          <section
+            bind:this={notesCard}
+            class="rounded-box border border-base-content/10 bg-base-100/50 p-3"
+            aria-label={$t("panel.notesAria")}
+          >
+            <Notes openId={openNoteId} />
+          </section>
+        {/if}
       </aside>
     </div>
   {/if}

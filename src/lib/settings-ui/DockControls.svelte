@@ -5,7 +5,8 @@
     type MonitorInfo,
     usageBridgeInstalled,
   } from "$lib/native"
-  import type { DeviceSettings, DockAlign, DockStyle } from "$lib/settings"
+  import { startEdit } from "$lib/edit/edit.svelte"
+  import type { ClockAlign, DeviceSettings, DockAlign, DockStyle } from "$lib/settings"
   import DockPreview from "./DockPreview.svelte"
   import Row from "./Row.svelte"
   import Segmented from "./Segmented.svelte"
@@ -27,6 +28,7 @@
   type ToggleKey =
     | "showLauncherButton"
     | "showRunningApps"
+    | "dockSeparators"
     | "showTrayIcons"
     | "showKeymap"
     | "showClaudeUsage"
@@ -44,6 +46,7 @@
   const toggles: ToggleKey[] = [
     "showLauncherButton",
     "showRunningApps",
+    "dockSeparators",
     "showTrayIcons",
     "showClaudeUsage",
     "claudeUsageStacked",
@@ -59,7 +62,20 @@
     "showSeconds",
   ]
 
+  const CLOCK_ALIGNMENTS: { value: ClockAlign; icon: string }[] = [
+    { value: "start", icon: "lucide:align-left" },
+    { value: "center", icon: "lucide:align-center" },
+    { value: "end", icon: "lucide:align-right" },
+  ]
+
   const mac = $derived(device.dockStyle === "mac")
+
+  const clockAlignments = $derived(
+    CLOCK_ALIGNMENTS.map(a => ({
+      ...a,
+      label: $t(`settings.dock.align${a.value[0].toUpperCase()}${a.value.slice(1)}`),
+    })),
+  )
 
   const alignments = $derived(
     ALIGNMENTS.filter(a => !mac || a.value !== "start").map(a => ({
@@ -346,6 +362,36 @@
 </Row>
 
 {#if !subset}
+  <Row label={$t("settings.rows.clockAlign")} hint={$t("settings.hints.clockAlign")}>
+    <Segmented
+      label={$t("settings.rows.clockAlign")}
+      bind:value={device.clockAlign}
+      options={clockAlignments}
+    />
+  </Row>
+
+  <Row label={$t("settings.rows.editMode")} hint={$t("settings.hints.editMode")}>
+    <div class="flex items-center gap-2">
+      <span class="badge badge-soft badge-warning badge-xs">{$t("settings.dock.experimental")}</span>
+
+      <button
+        type="button"
+        class="btn btn-ghost btn-xs"
+        disabled={!device.editMode}
+        onclick={startEdit}
+      >
+        {$t("settings.dock.openEditMode")}
+      </button>
+
+      <input
+        type="checkbox"
+        class="toggle toggle-primary"
+        aria-label={$t("settings.rows.editMode")}
+        bind:checked={device.editMode}
+      />
+    </div>
+  </Row>
+
   {#each toggles as toggle (toggle)}
     <Row label={$t(`settings.rows.${toggle}`)} hint={$t(`settings.hints.${toggle}`)}>
       <input

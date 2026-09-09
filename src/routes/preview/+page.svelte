@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { emit, listen } from "@tauri-apps/api/event"
+  import { t } from "svelte-i18n"
   import * as native from "$lib/native"
 
   type Slot = {
@@ -76,18 +77,18 @@
         type="button"
         class="absolute inset-0 transition-shadow duration-150"
         class:selected={hovered === slot.hwnd}
-        aria-label="Switch to window"
+        aria-label={$t("dock.preview.switchTo")}
         onclick={() => pick(slot)}
       ></button>
 
       {#if hovered === slot.hwnd}
         <button
           type="button"
-          class="btn btn-circle btn-xs absolute top-1 right-1 border-0 bg-base-100/90 text-base-content shadow hover:bg-error hover:text-error-content"
-          aria-label="Close window"
+          class="btn btn-circle btn-sm absolute top-1.5 right-1.5 border-0 bg-base-content text-base-100 shadow-lg ring-2 ring-base-100/60 hover:bg-error hover:text-error-content"
+          aria-label={$t("dock.preview.close")}
           onclick={() => close(slot)}
         >
-          <Icon icon="lucide:x" class="size-3" />
+          <Icon icon="lucide:x" class="size-4" />
         </button>
       {/if}
     </div>

@@ -1,6 +1,7 @@
 <script lang="ts">
   import * as native from "$lib/native"
   import Icon from "@iconify/svelte"
+  import { t } from "svelte-i18n"
   import { saveProfileSynced } from "$lib/data/store"
   import { ensureDevice } from "$lib/device"
   import {
@@ -30,51 +31,29 @@
   import { applyAppearance } from "$lib/theme"
 
   const steps = [
-    { id: "welcome", title: "Welcome" },
-    { id: "features", title: "Features" },
-    { id: "style", title: "Style" },
-    { id: "dock", title: "Dock" },
-    { id: "hotkeys", title: "Hotkeys" },
-    { id: "sync", title: "Sync" },
-    { id: "tips", title: "Tips" },
-    { id: "done", title: "Done" },
+    "welcome",
+    "features",
+    "style",
+    "dock",
+    "hotkeys",
+    "sync",
+    "tips",
+    "done",
   ]
 
   const tips = [
-    {
-      icon: "lucide:keyboard",
-      title: "Win opens Eris",
-      text: "Tap it anywhere. Win combos keep working.",
-    },
-    {
-      icon: "lucide:terminal",
-      title: "Type > to run",
-      text: "A command runs straight from the search box.",
-    },
-    {
-      icon: "lucide:clock",
-      title: "Click the clock",
-      text: "The calendar and your todo list slide out.",
-    },
+    { id: "win", icon: "lucide:keyboard" },
+    { id: "run", icon: "lucide:terminal" },
+    { id: "clock", icon: "lucide:clock" },
   ]
 
   const features = [
-    {
-      icon: "lucide:search",
-      title: "Launcher",
-      text: "Tap Win, type, press Enter. Apps, windows, todos, math, and the web.",
-    },
-    {
-      icon: "lucide:panel-bottom",
-      title: "Dock",
-      text: "Pinned and running apps on a bar that replaces the Windows taskbar.",
-    },
-    {
-      icon: "lucide:calendar-check",
-      title: "Calendar and todos",
-      text: "One click on the clock opens your day, your events, and your list.",
-    },
+    { id: "launcher", icon: "lucide:search" },
+    { id: "dock", icon: "lucide:panel-bottom" },
+    { id: "calendar", icon: "lucide:calendar-check" },
   ]
+
+  const kbd = (key: string) => `<kbd class="kbd kbd-sm">${key}</kbd>`
 
   let at = $state(0)
   let device = $state<DeviceSettings>(structuredClone(defaultDevice))
@@ -113,14 +92,17 @@
   const last = $derived(at === steps.length - 1)
 
   const presetName = $derived(
-    allPresets([]).find(p => p.id === profile.presetId)?.name ?? "Custom",
+    allPresets([]).find(p => p.id === profile.presetId)?.name ??
+      $t("onboarding.custom"),
   )
 
   const triggerLabel = $derived(
     {
-      win: "Win key",
+      win: $t("settings.options.win"),
       shortcut: device.launcherShortcut,
-      both: `Win key or ${device.launcherShortcut}`,
+      both: $t("onboarding.hotkeys.winOr", {
+        values: { shortcut: device.launcherShortcut },
+      }),
     }[device.launcherTrigger],
   )
 
@@ -182,17 +164,34 @@
   }
 
   const summary = $derived([
-    { icon: "lucide:palette", label: "Style", value: presetName },
+    {
+      icon: "lucide:palette",
+      label: $t("onboarding.steps.style"),
+      value: presetName,
+    },
     {
       icon: "lucide:panel-bottom",
-      label: "Dock",
-      value: `${device.dockStyle === "mac" ? "Mac" : "Windows"} style, ${device.dockEdge} edge${device.dockAutoHide ? ", auto-hide" : ""}`,
+      label: $t("onboarding.steps.dock"),
+      value: $t("onboarding.done.dockValue", {
+        values: {
+          style: $t(`settings.dock.styles.${device.dockStyle}.label`),
+          edge: $t(`onboarding.done.edges.${device.dockEdge}`),
+          autoHide: device.dockAutoHide ? "yes" : "no",
+        },
+      }),
     },
-    { icon: "lucide:keyboard", label: "Launcher", value: triggerLabel },
+    {
+      icon: "lucide:keyboard",
+      label: $t("onboarding.welcome.launcher.title"),
+      value: triggerLabel,
+    },
     {
       icon: "lucide:refresh-cw",
-      label: "Sync",
-      value: device.sync.enabled && device.sync.url ? device.sync.url : "Off",
+      label: $t("onboarding.steps.sync"),
+      value:
+        device.sync.enabled && device.sync.url
+          ? device.sync.url
+          : $t("common.off"),
     },
   ])
 </script>
@@ -211,13 +210,13 @@
         <Icon icon="lucide:sparkles" class="size-4" />
       </div>
 
-      <span class="text-sm font-semibold">Eris setup</span>
+      <span class="text-sm font-semibold">{$t("onboarding.title")}</span>
     </div>
 
     <span data-tauri-drag-region class="grow"></span>
 
-    <ol class="flex items-center gap-2" aria-label="Progress">
-      {#each steps as s, i (s.id)}
+    <ol class="flex items-center gap-2" aria-label={$t("onboarding.progressAria")}>
+      {#each steps as s, i (s)}
         <li class="flex">
           <button
             type="button"
@@ -229,7 +228,7 @@
                   ? "w-1.5 bg-primary/50 hover:bg-primary/80"
                   : "w-1.5 bg-base-content/20 hover:bg-base-content/40",
             ]}
-            aria-label={s.title}
+            aria-label={$t(`onboarding.steps.${s}`)}
             aria-current={i === at ? "step" : undefined}
             disabled={finishing}
             onclick={() => (at = i)}
@@ -243,8 +242,8 @@
     <button
       type="button"
       class="btn btn-ghost btn-circle btn-sm"
-      aria-label="Skip setup"
-      title="Skip setup"
+      aria-label={$t("onboarding.skipSetup")}
+      title={$t("onboarding.skipSetup")}
       disabled={finishing}
       onclick={finish}
     >
@@ -256,7 +255,7 @@
     {#if ready}
       {#key at}
         <div class="step flex h-full flex-col">
-          {#if step.id === "welcome"}
+          {#if step === "welcome"}
             <div
               class="flex h-full flex-col items-center justify-center gap-8 text-center"
             >
@@ -268,16 +267,16 @@
 
               <div>
                 <h2 class="text-3xl font-semibold tracking-tight">
-                  Welcome to Eris
+                  {$t("onboarding.welcome.title")}
                 </h2>
 
                 <p class="mt-2 text-base text-base-content/70">
-                  A launcher, a dock, and a calendar that live on your desktop.
+                  {$t("onboarding.welcome.tagline")}
                 </p>
               </div>
 
               <ul class="grid w-full max-w-2xl grid-cols-3 gap-3 text-left">
-                {#each features as f (f.title)}
+                {#each features as f (f.id)}
                   <li
                     class="flex flex-col gap-2 rounded-box border border-base-content/10 bg-base-100/60 p-4 backdrop-blur-md"
                   >
@@ -287,58 +286,68 @@
                       <Icon icon={f.icon} class="size-4" />
                     </div>
 
-                    <span class="text-sm font-semibold">{f.title}</span>
+                    <span class="text-sm font-semibold">
+                      {$t(`onboarding.welcome.${f.id}.title`)}
+                    </span>
 
-                    <span class="text-xs text-base-content/60">{f.text}</span>
+                    <span class="text-xs text-base-content/60">
+                      {$t(`onboarding.welcome.${f.id}.text`)}
+                    </span>
                   </li>
                 {/each}
               </ul>
             </div>
-          {:else if step.id === "features"}
+          {:else if step === "features"}
             <div class="mb-4">
-              <h2 class="text-2xl font-semibold tracking-tight">Choose what runs</h2>
+              <h2 class="text-2xl font-semibold tracking-tight">
+                {$t("onboarding.features.title")}
+              </h2>
 
               <p class="text-sm text-base-content/60">
-                Pick a preset, then switch single parts on or off. Everything can change later in settings.
+                {$t("onboarding.features.blurb")}
               </p>
             </div>
 
-            <Section title="Features">
+            <Section title={$t("settings.groups.features.title")}>
               <FeatureControls bind:device presets />
             </Section>
-          {:else if step.id === "style"}
+          {:else if step === "style"}
             <div class="mb-4 flex items-end justify-between gap-4">
               <div>
-                <h2 class="text-2xl font-semibold tracking-tight">Pick a look</h2>
+                <h2 class="text-2xl font-semibold tracking-tight">
+                  {$t("onboarding.style.title")}
+                </h2>
 
                 <p class="text-sm text-base-content/60">
-                  Changes preview live. Fine-tune every color later in settings.
+                  {$t("onboarding.style.blurb")}
                 </p>
               </div>
 
               <Segmented
-                label="Mode"
+                label={$t("settings.rows.mode")}
                 bind:value={profile.appearance.mode}
                 options={[
-                  { value: "dark", label: "Dark", icon: "lucide:moon" },
-                  { value: "light", label: "Light", icon: "lucide:sun" },
-                  { value: "system", label: "System", icon: "lucide:monitor" },
+                  { value: "dark", label: $t("settings.options.dark"), icon: "lucide:moon" },
+                  { value: "light", label: $t("settings.options.light"), icon: "lucide:sun" },
+                  { value: "system", label: $t("settings.options.system"), icon: "lucide:monitor" },
                 ]}
               />
             </div>
 
             <PresetGrid bind:profile />
-          {:else if step.id === "dock"}
+          {:else if step === "dock"}
             <div class="mb-4">
-              <h2 class="text-2xl font-semibold tracking-tight">Shape the dock</h2>
+              <h2 class="text-2xl font-semibold tracking-tight">
+                {$t("onboarding.dock.title")}
+              </h2>
 
               <p class="text-sm text-base-content/60">
-                Fine-tune sizes and contents later in settings.
+                {$t("onboarding.dock.blurb")}
               </p>
             </div>
 
             <div class="grid grid-cols-[1fr_16rem] items-start gap-5">
-              <Section title="Dock">
+              <Section title={$t("settings.groups.dock")}>
                 <DockControls bind:device subset />
               </Section>
 
@@ -387,38 +396,46 @@
 
                 <p class="text-center text-xs text-base-content/60">
                   {device.dockAutoHide
-                    ? "Hidden until the cursor touches the edge"
+                    ? $t("onboarding.dock.autoHide")
                     : device.hideSystemTaskbar
-                      ? "Eris replaces the Windows taskbar"
-                      : "The Windows taskbar stays visible"}
+                      ? $t("onboarding.dock.replaces")
+                      : $t("onboarding.dock.taskbarStays")}
                 </p>
               </div>
             </div>
-          {:else if step.id === "hotkeys"}
+          {:else if step === "hotkeys"}
             <div class="mb-4">
-              <h2 class="text-2xl font-semibold tracking-tight">Open Eris</h2>
+              <h2 class="text-2xl font-semibold tracking-tight">
+                {$t("onboarding.hotkeys.title")}
+              </h2>
 
               <p class="text-sm text-base-content/60">
-                Choose how the launcher comes up.
+                {$t("onboarding.hotkeys.blurb")}
               </p>
             </div>
 
             <div class="flex flex-col gap-4">
-              <Section title="Launcher hotkey">
-                <Row label="Open with" hint="Which keys bring up the launcher">
+              <Section title={$t("settings.groups.hotkey.title")}>
+                <Row
+                  label={$t("settings.rows.openWith")}
+                  hint={$t("settings.hints.openWith")}
+                >
                   <Segmented
-                    label="Open with"
+                    label={$t("settings.rows.openWith")}
                     bind:value={device.launcherTrigger}
                     options={[
-                      { value: "win", label: "Win key" },
-                      { value: "shortcut", label: "Shortcut" },
-                      { value: "both", label: "Both" },
+                      { value: "win", label: $t("settings.options.win") },
+                      { value: "shortcut", label: $t("settings.options.shortcut") },
+                      { value: "both", label: $t("settings.options.both") },
                     ]}
                   />
                 </Row>
 
                 {#if device.launcherTrigger !== "win"}
-                  <Row label="Shortcut" hint="Click, then press the combination">
+                  <Row
+                    label={$t("settings.rows.shortcut")}
+                    hint={$t("settings.hints.shortcut")}
+                  >
                     <HotkeyPicker bind:value={device.launcherShortcut} />
                   </Row>
                 {/if}
@@ -430,51 +447,58 @@
                 <Icon icon="lucide:info" class="mt-0.5 size-4 shrink-0 text-primary" />
 
                 <p class="text-base-content/80">
-                  Tapping <kbd class="kbd kbd-sm">Win</kbd> alone opens Eris.
-                  Combos such as <kbd class="kbd kbd-sm">Win</kbd> +
-                  <kbd class="kbd kbd-sm">E</kbd> keep working as usual.
+                  {@html $t("onboarding.hotkeys.info", {
+                    values: { win: kbd("Win"), e: kbd("E") },
+                  })}
                 </p>
               </div>
             </div>
-          {:else if step.id === "sync"}
+          {:else if step === "sync"}
             <div class="mb-4">
-              <h2 class="text-2xl font-semibold tracking-tight">Sync across devices</h2>
+              <h2 class="text-2xl font-semibold tracking-tight">
+                {$t("onboarding.sync.title")}
+              </h2>
 
               <p class="text-sm text-base-content/60">
-                Optional. Point Eris at your own sync server, or skip and set it
-                up later.
+                {$t("onboarding.sync.blurb")}
               </p>
             </div>
 
             <div class="flex flex-col gap-4">
               <SyncPanel bind:device compact />
             </div>
-          {:else if step.id === "tips"}
+          {:else if step === "tips"}
             <div
               class="flex h-full flex-col items-center justify-center gap-8 text-center"
             >
               <div>
-                <h2 class="text-3xl font-semibold tracking-tight">A few tips</h2>
+                <h2 class="text-3xl font-semibold tracking-tight">
+                  {$t("onboarding.tips.title")}
+                </h2>
 
                 <p class="mt-2 text-base text-base-content/70">
-                  Three things worth knowing before you start.
+                  {$t("onboarding.tips.blurb")}
                 </p>
               </div>
 
               <ul class="grid w-full max-w-2xl grid-cols-3 gap-3 text-left">
-                {#each tips as t (t.title)}
+                {#each tips as tip (tip.id)}
                   <li
                     class="flex flex-col gap-2 rounded-box border border-base-content/10 bg-base-100/60 p-4 backdrop-blur-md"
                   >
                     <div
                       class="flex size-8 items-center justify-center rounded-field bg-primary/15 text-primary"
                     >
-                      <Icon icon={t.icon} class="size-4" />
+                      <Icon icon={tip.icon} class="size-4" />
                     </div>
 
-                    <span class="text-sm font-semibold">{t.title}</span>
+                    <span class="text-sm font-semibold">
+                      {$t(`onboarding.tips.${tip.id}.title`)}
+                    </span>
 
-                    <span class="text-xs text-base-content/60">{t.text}</span>
+                    <span class="text-xs text-base-content/60">
+                      {$t(`onboarding.tips.${tip.id}.text`)}
+                    </span>
                   </li>
                 {/each}
               </ul>
@@ -490,10 +514,12 @@
               </div>
 
               <div>
-                <h2 class="text-3xl font-semibold tracking-tight">All set</h2>
+                <h2 class="text-3xl font-semibold tracking-tight">
+                  {$t("onboarding.done.title")}
+                </h2>
 
                 <p class="mt-2 text-base text-base-content/70">
-                  Everything below can change later in settings.
+                  {$t("onboarding.done.blurb")}
                 </p>
               </div>
 
@@ -529,12 +555,12 @@
       onclick={back}
     >
       <Icon icon="lucide:arrow-left" class="size-4" />
-      Back
+      {$t("common.back")}
     </button>
 
     <div class="flex items-center gap-2">
       <span class="mr-2 hidden text-xs text-base-content/50 sm:inline">
-        Enter continues
+        {$t("onboarding.enterContinues")}
       </span>
 
       {#if at > 0 && !last}
@@ -544,7 +570,7 @@
           disabled={finishing}
           onclick={skip}
         >
-          Skip
+          {$t("common.skip")}
         </button>
       {/if}
 
@@ -558,7 +584,11 @@
           <span class="loading loading-spinner loading-xs"></span>
         {/if}
 
-        {at === 0 ? "Get started" : last ? "Start using Eris" : "Next"}
+        {at === 0
+          ? $t("onboarding.getStarted")
+          : last
+            ? $t("onboarding.startUsing")
+            : $t("common.next")}
 
         {#if !last && !finishing}
           <Icon icon="lucide:arrow-right" class="size-4" />

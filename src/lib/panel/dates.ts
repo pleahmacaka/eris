@@ -1,4 +1,5 @@
 import { parseLocal, startOfDay } from "$lib/data/calendar"
+import { currentLocale, tr } from "$lib/i18n/locale"
 
 const DAY = 86_400_000
 
@@ -7,15 +8,15 @@ export const rangeError = (start: string, end: string) => {
   const to = parseLocal(end).getTime()
 
   if (Number.isNaN(from)) {
-    return "Start date required"
+    return tr("panel.errors.startRequired")
   }
 
   if (Number.isNaN(to)) {
-    return "End date required"
+    return tr("panel.errors.endRequired")
   }
 
   if (to < from) {
-    return "End is before start"
+    return tr("panel.errors.endBeforeStart")
   }
 
   return null
@@ -27,18 +28,18 @@ export const dayLabel = (day: Date, now = new Date()) => {
   )
 
   if (distance === 0) {
-    return "Today"
+    return tr("dates.today")
   }
 
   if (distance === 1) {
-    return "Tomorrow"
+    return tr("dates.tomorrow")
   }
 
   if (distance === -1) {
-    return "Yesterday"
+    return tr("dates.yesterday")
   }
 
-  return day.toLocaleDateString("en-US", {
+  return day.toLocaleDateString(currentLocale(), {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -46,7 +47,7 @@ export const dayLabel = (day: Date, now = new Date()) => {
 }
 
 export const longDate = (day: Date) =>
-  day.toLocaleDateString("en-US", {
+  day.toLocaleDateString(currentLocale(), {
     weekday: "long",
     month: "long",
     day: "numeric",

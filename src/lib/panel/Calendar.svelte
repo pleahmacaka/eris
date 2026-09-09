@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { load } from "@tauri-apps/plugin-store"
+  import { t } from "svelte-i18n"
   import {
     addDays,
     dateKey,
@@ -11,6 +12,7 @@
     upcoming,
   } from "$lib/data/calendar"
   import type { CalendarEvent, Todo } from "$lib/data/types"
+  import { currentLocale } from "$lib/i18n/locale"
   import Segmented from "$lib/settings-ui/Segmented.svelte"
   import Agenda from "./Agenda.svelte"
   import { dayLabel, longDate } from "./dates"
@@ -46,11 +48,7 @@
   const VIEW_FILE = "panel.json"
   const VIEW_KEY = "calendarView"
 
-  const MODES: { value: Mode; label: string }[] = [
-    { value: "month", label: "Month" },
-    { value: "week", label: "Week" },
-    { value: "agenda", label: "Agenda" },
-  ]
+  const MODES: Mode[] = ["month", "week", "agenda"]
 
   const ARROWS: Record<string, number> = {
     ArrowLeft: -1,
@@ -60,6 +58,10 @@
   }
 
   let mode = $state<Mode>("month")
+
+  const modes = $derived(
+    MODES.map(value => ({ value, label: $t(`panel.calendar.${value}`) })),
+  )
 
   let view = $derived({
     year: selected.getFullYear(),
@@ -94,11 +96,11 @@
   })
 
   const short = (day: Date) =>
-    day.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    day.toLocaleDateString(currentLocale(), { month: "short", day: "numeric" })
 
   const label = $derived.by(() => {
     if (mode === "month") {
-      return new Date(view.year, view.month, 1).toLocaleDateString("en-US", {
+      return new Date(view.year, view.month, 1).toLocaleDateString(currentLocale(), {
         month: "long",
         year: "numeric",
       })
@@ -108,7 +110,7 @@
       return `${short(weekDays[0])} – ${short(weekDays[6])}`
     }
 
-    return `From ${short(selected)}`
+    return $t("panel.calendar.from", { values: { date: short(selected) } })
   })
 
   const onToday = $derived.by(() => {
@@ -126,7 +128,7 @@
   const weekdays = $derived(
     Array.from({ length: 7 }, (_, i) =>
       new Date(2024, 0, 7 + ((i + weekStartsOn) % 7))
-        .toLocaleDateString("en-US", { weekday: "short" })
+        .toLocaleDateString(currentLocale(), { weekday: "short" })
         .slice(0, 2),
     ),
   )
@@ -218,7 +220,7 @@
     load(VIEW_FILE)
       .then(store => store.get<Mode>(VIEW_KEY))
       .then(saved => {
-        if (saved && MODES.some(option => option.value === saved)) {
+        if (saved && MODES.includes(saved)) {
           mode = saved
         }
       })
@@ -232,7 +234,7 @@
 
     <button
       class="btn btn-ghost btn-square btn-sm"
-      aria-label="Previous"
+      aria-label={$t("common.previous")}
       onclick={() => shift(-1)}
     >
       <Icon icon="lucide:chevron-left" class="size-4" />
@@ -240,7 +242,7 @@
 
     <button
       class="btn btn-ghost btn-square btn-sm"
-      aria-label="Next"
+      aria-label={$t("common.next")}
       onclick={() => shift(1)}
     >
       <Icon icon="lucide:chevron-right" class="size-4" />
@@ -248,8 +250,8 @@
 
     <button
       class="btn btn-primary btn-square btn-sm"
-      aria-label="New event"
-      title="New event"
+      aria-label={$t("panel.event.new")}
+      title={$t("panel.event.new")}
       onclick={() => onadd(selected)}
     >
       <Icon icon="lucide:plus" class="size-4" />
@@ -261,8 +263,8 @@
   <div class="flex items-center gap-2">
     <Segmented
       bind:value={mode}
-      options={MODES}
-      label="Calendar view"
+      options={modes}
+      label={$t("panel.calendar.viewAria")}
       onchange={setMode}
     />
 
@@ -270,7 +272,7 @@
 
     {#if !onToday}
       <button class="btn btn-soft btn-primary btn-xs rounded-full" onclick={goToday}>
-        Today
+        {$t("dates.today")}
       </button>
     {/if}
   </div>
@@ -282,7 +284,7 @@
         showWeekNumbers ? "grid-cols-[1.5rem_repeat(7,1fr)]" : "grid-cols-7",
       ]}
       role="grid"
-      aria-label="Month"
+      aria-label={$t("panel.calendar.month")}
       tabindex="0"
       {onkeydown}
     >
@@ -357,7 +359,7 @@
       title={longDate(selected)}
       events={selectedEvents}
       todos={selectedTodos}
-      empty="Nothing scheduled"
+      empty={$t("panel.calendar.nothingScheduled")}
       {now}
       {onedit}
     />
@@ -368,9 +370,9 @@
       <Agenda title={day.label} events={day.events} {now} {onedit} />
     {:else}
       <Agenda
-        title="Next {AGENDA_DAYS} days"
+        title={$t("panel.calendar.nextDays", { values: { count: AGENDA_DAYS } })}
         events={[]}
-        empty="No upcoming events"
+        empty={$t("panel.calendar.noUpcoming")}
         {now}
         {onedit}
       />

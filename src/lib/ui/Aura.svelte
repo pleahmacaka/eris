@@ -1,10 +1,10 @@
 <script lang="ts">
   const ORBS = [
-    { x: "18%", y: "24%", size: "46vmax", offset: 0, depth: "-9rem", glow: 0.85, travel: "7%", dur: 19, delay: "0s" },
-    { x: "78%", y: "18%", size: "40vmax", offset: 65, depth: "-5.6rem", glow: 0.8, travel: "9%", dur: 23, delay: "-6s" },
-    { x: "70%", y: "80%", size: "44vmax", offset: 120, depth: "-2.5rem", glow: 0.75, travel: "8%", dur: 17, delay: "-3s" },
-    { x: "24%", y: "76%", size: "36vmax", offset: -180, depth: "1.25rem", glow: 0.7, travel: "6%", dur: 27, delay: "-11s" },
-    { x: "50%", y: "50%", size: "28vmax", offset: -55, depth: "5rem", glow: 0.55, travel: "11%", dur: 13, delay: "-8s" },
+    { x: "18%", y: "24%", size: "46vmax", offset: 0, depth: "-9rem", glow: 0.9, travel: "16%", dur: 14, delay: "0s" },
+    { x: "78%", y: "18%", size: "40vmax", offset: 65, depth: "-5.6rem", glow: 0.85, travel: "20%", dur: 18, delay: "-6s" },
+    { x: "70%", y: "80%", size: "44vmax", offset: 120, depth: "-2.5rem", glow: 0.8, travel: "18%", dur: 12, delay: "-3s" },
+    { x: "24%", y: "76%", size: "36vmax", offset: -180, depth: "1.25rem", glow: 0.75, travel: "14%", dur: 20, delay: "-11s" },
+    { x: "50%", y: "50%", size: "28vmax", offset: -55, depth: "5rem", glow: 0.6, travel: "24%", dur: 10, delay: "-8s" },
   ]
 
   const pulse = (dur: number) => Math.round((dur / 2.7) * 10) / 10
@@ -19,9 +19,9 @@
       `--glow:${o.glow}`,
       `--travel:${o.travel}`,
       `--dur:${o.dur}s`,
-      `--steps:${o.dur * 10}`,
+      `--steps:${o.dur * 30}`,
       `--pulse:${pulse(o.dur)}s`,
-      `--pulse-steps:${pulse(o.dur) * 10}`,
+      `--pulse-steps:${Math.round(pulse(o.dur) * 30)}`,
       `--delay:${o.delay}`,
     ].join("; ")
 </script>

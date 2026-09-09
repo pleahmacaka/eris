@@ -1,7 +1,9 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { t } from "svelte-i18n"
   import { type Meters, runCommand, systemMeters } from "$lib/native"
   import type { DockEdge } from "$lib/settings"
+  import Network from "./Network.svelte"
 
   type Props = {
     showMeters: boolean
@@ -20,7 +22,7 @@
   }: Props = $props()
 
   const POLL = 3_000
-  const IDLE_POLL = 30_000
+  const IDLE_POLL = 10_000
 
   let meters = $state<Meters | null>(null)
 
@@ -94,28 +96,24 @@
 
   const ram = $derived(percent(meters?.memory ?? 0))
 
-  const usageLabel = $derived.by(() => {
-    if (!meters) {
-      return ""
-    }
+  const memoryLabel = $derived(
+    meters
+      ? $t("tray.meters.of", {
+          values: { used: gb(meters.memoryUsedMb), total: gb(meters.memoryTotalMb) },
+        })
+      : "",
+  )
 
-    const used = `${gb(meters.memoryUsedMb)} of ${gb(meters.memoryTotalMb)}`
-
-    return `CPU ${cpu}% · RAM ${ram}% · ${used}`
-  })
+  const usageLabel = $derived(
+    meters ? `CPU ${cpu}% · RAM ${ram}% · ${memoryLabel}` : "",
+  )
 
   const network = $derived(meters?.network ?? null)
 
-  const networkIcon = $derived(
-    !network || !network.connected || network.kind === "none"
-      ? "lucide:wifi-off"
-      : network.kind === "ethernet"
-        ? "lucide:ethernet-port"
-        : "lucide:wifi",
-  )
-
   const networkLabel = $derived(
-    !network || !network.connected ? "No network" : network.name || "Connected",
+    !network || !network.connected
+      ? $t("tray.network.none")
+      : network.ssid || network.name || $t("tray.network.connected"),
   )
 </script>
 
@@ -149,7 +147,7 @@
               edge === "top" ? "top-full mt-2" : "bottom-full mb-2",
             ]}
             role="dialog"
-            aria-label="System usage"
+            aria-label={$t("tray.meters.title")}
           >
             <div class="space-y-3 text-xs">
               <div>
@@ -165,7 +163,7 @@
 
               <div>
                 <div class="flex items-center justify-between">
-                  <span class="text-base-content/70">Memory</span>
+                  <span class="text-base-content/70">{$t("tray.meters.memory")}</span>
 
                   <span class="tabular-nums">{ram}%</span>
                 </div>
@@ -173,13 +171,11 @@
                 <progress class="progress progress-secondary mt-1 w-full" value={ram} max="100"
                 ></progress>
 
-                <p class="mt-1 text-base-content/55 tabular-nums">
-                  {gb(meters.memoryUsedMb)} of {gb(meters.memoryTotalMb)}
-                </p>
+                <p class="mt-1 text-base-content/55 tabular-nums">{memoryLabel}</p>
               </div>
 
               <div class="flex items-center justify-between border-t border-base-content/10 pt-2">
-                <span class="text-base-content/70">Network</span>
+                <span class="text-base-content/70">{$t("tray.network.title")}</span>
 
                 <span class="truncate pl-2 text-right">{networkLabel}</span>
               </div>
@@ -194,7 +190,7 @@
               >
                 <Icon icon="lucide:activity" class="size-4" />
 
-                Task Manager
+                {$t("tray.meters.taskManager")}
               </button>
             </div>
           </div>
@@ -203,14 +199,7 @@
     {/if}
 
     {#if showNetwork}
-      <div
-        class="flex items-center rounded-field px-1.5 py-1 text-base-content/80"
-        title={networkLabel}
-        aria-label={networkLabel}
-        role="status"
-      >
-        <Icon icon={networkIcon} class="size-4" />
-      </div>
+      <Network {network} {edge} {onmenu} onrefresh={refresh} />
     {/if}
   </div>
 {/if}

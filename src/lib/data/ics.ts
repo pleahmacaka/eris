@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale"
 import { addDays, dateKey, dateTimeKey, parseLocal } from "./calendar"
 import type { CalendarEvent, Recurrence } from "./types"
 
@@ -478,7 +479,7 @@ const finish = (draft: Draft): CalendarEvent | null => {
 
   return {
     id: eventId(draft.uid),
-    title: draft.title.trim() || "Untitled",
+    title: draft.title.trim() || tr("panel.untitled"),
     notes: draft.notes,
     start: allDay ? dateKey(from) : dateTimeKey(from),
     end: allDay ? dateKey(end) : dateTimeKey(end),
