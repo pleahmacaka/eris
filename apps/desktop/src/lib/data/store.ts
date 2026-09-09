@@ -1,3 +1,4 @@
+import type { CalendarEvent, Note, Preset, Todo } from "@eris/data"
 import { loadDevice, type Profile, saveProfile } from "@eris/settings"
 import {
   type LocalItem,
@@ -12,7 +13,6 @@ import type {
 } from "@eris/sync/protocol"
 import { emit, listen } from "@tauri-apps/api/event"
 import { load, type Store } from "@tauri-apps/plugin-store"
-import type { CalendarEvent, Note, Preset, Todo } from "./types"
 
 export const DATA_EVENT = "data-changed"
 

@@ -1,8 +1,8 @@
+import type { Todo } from "@eris/data"
+import { dueLabel, parseQuickAdd } from "@eris/data"
 import { currentLocale, tr } from "@eris/i18n"
 import type { WebSearchEngine } from "@eris/settings"
-import { newId, todos } from "../data/store"
-import { dueLabel, parseQuickAdd } from "../data/todo"
-import type { Todo } from "../data/types"
+import { newId, todos } from "$lib/data"
 import { toggleDockPin } from "../dock/dock.svelte"
 import {
   type AppEntry,

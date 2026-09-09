@@ -1,6 +1,6 @@
 import { loadDevice } from "@eris/settings"
 import { emit, listen } from "@tauri-apps/api/event"
-import { pendingOutbox, syncMeta } from "../data/store"
+import { pendingOutbox, syncMeta } from "$lib/data"
 
 export type SyncState = "idle" | "syncing" | "error" | "disabled"
 
