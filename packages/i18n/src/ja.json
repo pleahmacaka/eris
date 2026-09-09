@@ -1,0 +1,1298 @@
+{
+  "common": {
+    "close": "閉じる",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "reset": "リセット",
+    "open": "開く",
+    "clear": "クリア",
+    "back": "戻る",
+    "submit": "送信",
+    "none": "なし",
+    "search": "検索",
+    "noMatches": "一致なし",
+    "delete": "削除",
+    "confirm": "確認",
+    "settings": "設定",
+    "done": "完了",
+    "next": "次へ",
+    "skip": "スキップ",
+    "on": "オン",
+    "off": "オフ",
+    "previous": "前へ",
+    "partial": "一部対応",
+    "experimental": "試験的"
+  },
+  "languages": {
+    "system": "システム",
+    "en": "English",
+    "ko": "한국어",
+    "ja": "日本語",
+    "zh": "中文"
+  },
+  "settings": {
+    "title": "設定",
+    "searchAria": "設定を検索",
+    "sections": {
+      "general": {
+        "label": "全般",
+        "blurb": "このデバイス、スタートアップ、ランチャーのホットキー"
+      },
+      "dock": {
+        "label": "ドック",
+        "blurb": "Windows タスクバーの代わりになるバー"
+      },
+      "launcher": {
+        "label": "ランチャー",
+        "blurb": "結果のグループとウェブ検索エンジン"
+      },
+      "appearance": {
+        "label": "外観",
+        "blurb": "すべてのウィンドウのプリセット、色、背景"
+      },
+      "calendar": {
+        "label": "カレンダーとタスク",
+        "blurb": "週の表示、リマインダー、リストの並び順"
+      },
+      "sync": {
+        "label": "同期",
+        "blurb": "自分のサーバー経由でデバイスを同期"
+      },
+      "advanced": {
+        "label": "詳細設定",
+        "blurb": "保存データ、キャッシュ、リセット"
+      },
+      "about": {
+        "label": "バージョン情報",
+        "blurb": "バージョンとキーボードショートカット"
+      },
+      "keymap": {
+        "label": "キーマップ",
+        "blurb": "ランチャー、チャット、パネルのショートカット"
+      }
+    },
+    "groups": {
+      "device": "このデバイス",
+      "features": {
+        "title": "機能",
+        "description": "Eris の機能をまとめてオン/オフにします。"
+      },
+      "chat": {
+        "title": "チャットバブル",
+        "description": "バブルが画面の端にスナップする距離"
+      },
+      "hotkey": {
+        "title": "ランチャーのホットキー",
+        "description": "Win キーを単独で押すと Eris が開きます。Win の組み合わせはそのまま使えます。"
+      },
+      "backup": {
+        "title": "バックアップ",
+        "description": "設定、プリセット、タスク、予定を1つの JSON ファイルに"
+      },
+      "dock": "ドック",
+      "results": "結果",
+      "presets": {
+        "title": "プリセット",
+        "description": "外観を選んでから、下で微調整します。"
+      },
+      "fineTune": {
+        "title": "微調整",
+        "description": "変更はすぐに反映され、プリセットはカスタム扱いになります。"
+      },
+      "calendar": "カレンダー",
+      "todo": "タスク",
+      "storedData": {
+        "title": "保存データ",
+        "description": "Eris がこのデバイスに保存しているもの"
+      },
+      "resets": "リセット",
+      "shortcuts": {
+        "title": "キーボードショートカット",
+        "description": "Eris が受け付けるすべてのキー操作"
+      },
+      "dockLook": {
+        "title": "ドック",
+        "description": "ドックをテーマにどうなじませるか"
+      },
+      "chatHotkey": {
+        "title": "チャット",
+        "description": "チャットバブルのグローバルショートカット"
+      },
+      "tray": "Windows トレイ"
+    },
+    "rows": {
+      "deviceName": "デバイス名",
+      "autostart": "Windows 起動時に開始",
+      "hideTaskbar": "Windows タスクバーを隠す",
+      "language": "言語",
+      "featureDock": "ドック",
+      "featureLauncher": "ランチャー",
+      "featureChat": "チャットバブル",
+      "snapDistance": "スナップ距離",
+      "setupWizard": "セットアップウィザード",
+      "openWith": "呼び出しキー",
+      "shortcut": "ショートカット",
+      "backup": "バックアップ",
+      "resultsPerGroup": "グループごとの結果数",
+      "openWindows": "開いているウィンドウ",
+      "commands": "コマンド",
+      "todos": "タスク",
+      "calculator": "電卓",
+      "webSearch": "ウェブ検索",
+      "presets": "プリセット",
+      "mode": "モード",
+      "background": "背景",
+      "followAccent": "Windows のアクセントカラーに従う",
+      "accentHue": "アクセントの色相",
+      "colorSpread": "色の広がり",
+      "vividness": "鮮やかさ",
+      "texture": "テクスチャ",
+      "cornerRadius": "角の丸み",
+      "blur": "ぼかし",
+      "fontSize": "フォントサイズ",
+      "windowOpacity": "ウィンドウの不透明度",
+      "dockOpacity": "ドックの不透明度",
+      "density": "密度",
+      "motion": "モーション",
+      "weekStartsOn": "週の開始日",
+      "weekNumbers": "週番号",
+      "defaultReminder": "既定のリマインダー",
+      "showCompleted": "完了済みを表示",
+      "sortBy": "並べ替え",
+      "storedData": "保存データ",
+      "dataFolder": "データフォルダー",
+      "iconCache": "アイコンキャッシュ",
+      "resetAppearance": "外観をリセット",
+      "resetAll": "すべての設定をリセット",
+      "version": "バージョン",
+      "keyboardShortcuts": "キーボードショートカット",
+      "style": "スタイル",
+      "display": "ディスプレイ",
+      "edge": "位置",
+      "alignment": "配置",
+      "height": "高さ",
+      "width": "幅",
+      "iconSize": "アイコンサイズ",
+      "pinDesktop": "デスクトップに固定",
+      "autoHide": "自動的に隠す",
+      "showLauncherButton": "ランチャーボタンを表示",
+      "showRunningApps": "実行中のアプリを表示",
+      "showTrayIcons": "トレイアイコンを表示",
+      "showClaudeUsage": "Claude の使用量を表示",
+      "claudeUsageStacked": "Claude の使用量を縦に並べる",
+      "showSettingsButton": "設定ボタンを表示",
+      "showKeymap": "キーボードヒントを表示",
+      "showBattery": "バッテリーを表示",
+      "showVolume": "音量を表示",
+      "showMedia": "メディアコントロールを表示",
+      "showSpectrum": "サウンドスペクトラムを表示",
+      "showMeters": "CPU とメモリを表示",
+      "showNetwork": "ネットワークを表示",
+      "clock24h": "24時間表示",
+      "showSeconds": "秒を表示",
+      "spectrumStyle": "スペクトラムのスタイル",
+      "claudeUsageSide": "Claude の使用量",
+      "claudeBridge": "Claude ステータスラインブリッジ",
+      "usageSnapshot": "使用量スナップショット",
+      "mediaSide": "メディアコントロール",
+      "serverUrl": "サーバー URL",
+      "token": "トークン",
+      "enableSync": "同期を有効にする",
+      "interval": "間隔",
+      "collections": "コレクション",
+      "replaceLocal": "ローカルデータをサーバーの内容で置き換える",
+      "resetCollection": "サーバー上のコレクションをリセット",
+      "unlinkDevice": "このデバイスのリンクを解除",
+      "dockSeparators": "区切り線",
+      "clockAlign": "時計の配置",
+      "editMode": "編集モード",
+      "dockBackground": "ドックの背景",
+      "dockBlur": "ドックのぼかし",
+      "dockRadius": "ドックの角",
+      "dockTint": "ドックの色合い",
+      "dockBorder": "ドックの枠線",
+      "chatShortcut": "チャットのショートカット",
+      "updates": "更新",
+      "showBluetooth": "Bluetooth を表示",
+      "showNotifications": "通知ベルを表示",
+      "showDesktopButton": "デスクトップボタンを表示",
+      "showTaskView": "タスクビューボタンを表示",
+      "showInputLanguage": "入力言語を表示",
+      "chatModel": "モデル",
+      "chatEffort": "思考の強さ",
+      "chatPermission": "権限モード",
+      "chatThinking": "拡張思考",
+      "chatAutoCompact": "自動コンパクト",
+      "chatLanguage": "応答言語",
+      "chatBudget": "セッションごとの予算",
+      "chatSystemPrompt": "追加のシステムプロンプト",
+      "chatHover": "ホバー時",
+      "chatMultiBubble": "複数のバブル",
+      "chatBubbleColors": "バブルの色",
+      "chatQueueMode": "送信予約"
+    },
+    "hints": {
+      "deviceName": "同期のデバイス一覧に表示されます。",
+      "autostart": "サインイン時に Eris を非表示で起動します。",
+      "hideTaskbar": "画面の端を Eris が使います。",
+      "language": "選択しない限り Windows の言語に従います。",
+      "featureDock": "Windows タスクバーの代わりになるバーです。",
+      "featureLauncher": "Win キーでアプリ、ウィンドウ、コマンドを検索します。",
+      "featureChat": "Claude と Claude Code をフローティングバブルで使えます。",
+      "setupWizard": "初回起動時のセットアップをもう一度実行します。",
+      "openWith": "ランチャーを呼び出すキーを選びます。",
+      "shortcut": "クリックしてからキーの組み合わせを押してください。",
+      "openWindows": "実行中のウィンドウに名前で切り替えます。",
+      "commands": "ロック、スリープ、ごみ箱を空にするなどを実行できます。",
+      "todos": "検索ボックスから直接タスクを追加できます。",
+      "calculator": "式を入力すると計算します。",
+      "webSearch": "他に一致するものがない検索語に使うエンジンです。",
+      "weekNumbers": "月表示に週番号を表示します。",
+      "defaultReminder": "予定の開始前に通知します。",
+      "showCompleted": "完了した項目をリストに残します。",
+      "mode": "ダーク、ライト、または Windows に従います。",
+      "background": "すべてのウィンドウの背後の質感です。",
+      "followAccent": "Windows の設定のアクセントカラーを使います。",
+      "colorSpread": "アクセントカラー同士の色相の距離です。",
+      "vividness": "背景に染み込む色の濃さです。",
+      "texture": "背景に重ねる粒子感です。",
+      "cornerRadius": "すべての要素の角の丸みです。",
+      "blur": "すりガラス効果の強さです。",
+      "fontSize": "すべての文字の大きさを変えます。",
+      "windowOpacity": "すべての Eris ウィンドウの不透明度です。",
+      "dockOpacity": "ドックのバーの不透明度です。",
+      "density": "リストやボタン内の余白です。",
+      "motion": "アニメーション背景と画面遷移です。",
+      "dataFolder": "設定、タスク、予定、キャッシュしたアイコンが入っています。",
+      "iconCache": "アプリのアイコンが見つからないときに再構築されます。",
+      "resetAppearance": "既定のプリセットとスライダーに戻します。",
+      "resetAll": "デバイス名、同期、保存データは残ります。",
+      "display": "ドックを表示するディスプレイです。",
+      "edge": "ドックを配置する画面の端です。",
+      "alignment": "バー上でアプリを並べる位置です。",
+      "pinDesktop": "ウィンドウがドックに重なることがあります。自動的に隠す設定では、画面の端に触れると前面に出ます。",
+      "autoHide": "カーソルが画面の端に触れるまで隠れます。",
+      "showLauncherButton": "非表示でも Win キーでランチャーを開けます。",
+      "showRunningApps": "開いているウィンドウをピン留めしたアプリの隣に表示します。",
+      "showTrayIcons": "バックグラウンドのプログラムの通知アイコンです。",
+      "showClaudeUsage": "5時間と週ごとのセッション上限を表示します。",
+      "claudeUsageStacked": "横並びではなく、5時間を週の上に表示します。",
+      "showSettingsButton": "バーを右クリックしても同じメニューを開けます。",
+      "showKeymap": "ランチャーのフッターと結果の行にショートカットキーを表示します。",
+      "showBattery": "ノート PC でのみ表示されます。",
+      "showVolume": "上でスクロールすると音量を変えられます。",
+      "showMedia": "再生中のトラックを再生、一時停止、スキップできます。",
+      "showSpectrum": "メディアコントロールの隣に出力レベルをリアルタイム表示します。",
+      "showMeters": "使用率をリアルタイム表示します。",
+      "showNetwork": "Wi-Fi またはイーサネットの状態です。",
+      "clock24h": "午後6:30 ではなく 18:30 と表示します。",
+      "showSeconds": "1秒ごとに更新します。",
+      "spectrumStyle": "バンドの描き方です。",
+      "claudeUsageSide": "バーのどちら側に表示するかです。",
+      "claudeBridge": "Claude Code が報告する5時間と週の枠を書き出します。",
+      "usageSnapshot": "ブリッジが書き出すファイル、または URL です。",
+      "mediaSide": "バーのどちら側に表示するかです。",
+      "serverUrl": "Eris 同期サーバーの場所です。",
+      "token": "サーバー起動時に指定した ERIS_TOKEN です。",
+      "enableSync": "Eris の起動中にバックグラウンドで実行します。",
+      "interval": "サーバーを確認する頻度です。",
+      "collections": "このデバイスが送受信する内容です。",
+      "replaceLocal": "ローカルの{collections}を破棄し、すべて取得し直します。",
+      "resetCollection": "すべてのレコードを削除済みにして、全デバイスから消します。",
+      "unlinkDevice": "このデバイスのサーバー、トークン、保留中の変更を破棄します。",
+      "dockSeparators": "ランチャー、アプリ、トレイの間の細い線です。",
+      "clockAlign": "時刻と日付の揃え方です。",
+      "editMode": "画面を暗くし、Eris の各部分をクリックしてオプションを変更します。",
+      "dockBackground": "ウィンドウの背景に従うか、ドック専用に選びます。",
+      "dockBlur": "ウィンドウのぼかしを基準にした、ドック背後のぼかしの強さです。",
+      "dockRadius": "ウィンドウの角を基準にした、フローティングドックの角の丸みです。",
+      "dockTint": "ドックに重ねるアクセントカラーです。",
+      "dockBorder": "ドックの周りの細い線です。",
+      "chatShortcut": "どこからでも Claude チャットを開閉します。",
+      "updates": "インストーラーをダウンロードし、新しいバージョンで Eris を再起動します。",
+      "showBluetooth": "無線のオン/オフと接続済みデバイスです。",
+      "showNotifications": "Windows の通知センターを開きます。",
+      "showDesktopButton": "右端の細い領域をクリックするとデスクトップを表示します。",
+      "showTaskView": "Windows のタスクビューを開きます。",
+      "showInputLanguage": "アクティブなウィンドウのキーボードレイアウトです。レイアウトが2つ以上あるときのみ表示されます。",
+      "chatModel": "sonnet などのエイリアス、または完全なモデル ID です。末尾に [1m] を付けると 1M コンテキストになります。",
+      "chatEffort": "--effort として渡します。既定では Claude Code の設定に従います。",
+      "chatPermission": "ツール呼び出しの承認方法です。",
+      "chatThinking": "対応モデルで拡張思考を使います。",
+      "chatAutoCompact": "コンテキストがいっぱいになると自動的にコンパクトします。",
+      "chatLanguage": "korean や english のように指定します。",
+      "chatBudget": "USD 単位です。0 は無制限です。",
+      "chatSystemPrompt": "既定のシステムプロンプトの末尾に追加されます。",
+      "chatHover": "ポインターを乗せたときにバブルに表示する内容です。",
+      "chatMultiBubble": "バブルの端のプラスボタンで別のセッションを開けます。",
+      "chatBubbleColors": "バブルごとに異なるリングの色が付きます。",
+      "chatQueueMode": "返信中に入力したメッセージを送信するタイミングです。"
+    },
+    "options": {
+      "win": "Win キー",
+      "shortcut": "ショートカット",
+      "both": "両方",
+      "monday": "月曜日",
+      "sunday": "日曜日",
+      "manual": "手動",
+      "due": "期限",
+      "priority": "優先度",
+      "dark": "ダーク",
+      "light": "ライト",
+      "system": "システム",
+      "aura": "オーラ",
+      "glass": "ガラス",
+      "solid": "単色",
+      "cozy": "ゆったり",
+      "compact": "コンパクト",
+      "minBefore": "{minutes}分前",
+      "deg": "{value} deg",
+      "runSetup": "セットアップを実行",
+      "inherit": "ウィンドウと同じ"
+    },
+    "featurePresets": {
+      "all": {
+        "name": "すべて",
+        "hint": "ドック、ランチャー、チャット"
+      },
+      "desk": {
+        "name": "デスク",
+        "hint": "ドックとランチャー、チャットなし"
+      },
+      "search": {
+        "name": "ランチャーのみ",
+        "hint": "Windows タスクバーを残す"
+      },
+      "bubble": {
+        "name": "チャットのみ",
+        "hint": "Claude バブルだけ"
+      },
+      "aria": "機能プリセット"
+    },
+    "toasts": {
+      "shortcutFailed": "ショートカットを登録できませんでした: {error}",
+      "autostartFailed": "自動起動に失敗しました: {error}",
+      "presetSaved": "プリセット「{name}」を保存しました。",
+      "dataFolderFailed": "データフォルダーを開けませんでした: {error}",
+      "iconCacheCleared": "アイコンキャッシュをクリアしました。",
+      "iconCacheFailed": "アイコンキャッシュをクリアできませんでした: {error}",
+      "appearanceReset": "外観をリセットしました。",
+      "settingsReset": "設定をリセットしました。"
+    },
+    "about": {
+      "tagline": "Windows 11 のためのランチャー、ドック、カレンダー",
+      "checkUpdates": "更新を確認",
+      "checking": "確認中",
+      "upToDate": "最新の状態です",
+      "available": "バージョン {version} が利用できます",
+      "installRestart": "インストールして再起動",
+      "downloading": "ダウンロード中 {percent}%",
+      "installing": "インストール中",
+      "failed": "更新に失敗しました: {error}"
+    },
+    "shortcuts": {
+      "launcher": "ランチャー",
+      "panel": "カレンダーパネル",
+      "setup": "セットアップと設定",
+      "openLauncher": "ランチャーを開く",
+      "moveSelection": "選択を移動",
+      "movePage": "ページを移動",
+      "nextGroup": "次のグループ",
+      "previousGroup": "前のグループ",
+      "openResult": "選択した結果を開く",
+      "openAdmin": "管理者として開く",
+      "openLocation": "ファイルの場所を開く",
+      "openNumbered": "番号の結果を開く",
+      "actionMenu": "アクションメニューを開く",
+      "clearThenClose": "入力をクリアしてから閉じる",
+      "switchTabs": "タブを切り替え",
+      "moveDay": "選択した日を移動",
+      "addEvent": "その日に予定を追加",
+      "renameTodo": "タスクの名前を変更",
+      "saveEvent": "予定を保存",
+      "closePanel": "パネルを閉じる",
+      "nextStep": "次のセットアップ手順",
+      "closeWindow": "このウィンドウを閉じる",
+      "keys": {
+        "up": "↑",
+        "down": "↓",
+        "pageUp": "PageUp",
+        "pageDown": "PageDown",
+        "left": "←",
+        "right": "→",
+        "arrows": "矢印キー",
+        "menu": "Menu"
+      },
+      "chat": "チャット",
+      "toggleChat": "チャットを開閉"
+    },
+    "appearance": {
+      "presetDescriptions": {
+        "aurora": "深い青に漂うオーブ",
+        "glass": "明るいすりガラス",
+        "mica": "Windows のアクセントを使った単色",
+        "nord": "冷たい北極の青",
+        "catppuccin": "やわらかなパステルモーブ",
+        "dracula": "チャコールに紫とピンク",
+        "solarized": "アンバーのアクセントの温かい紙色",
+        "mono": "グレースケール、アクセントなし",
+        "neon": "鮮やかなマゼンタとシアンの光",
+        "sunset": "夕暮れにオレンジとゴールド",
+        "forest": "粒子感のある苔の緑",
+        "ocean": "深いティールの潮流",
+        "user": "設定から保存"
+      },
+      "followingAccent": "Windows のアクセントに追従中",
+      "baseColor": "テーマ全体のベースカラー",
+      "resetTo": "{name} にリセット",
+      "preset": "プリセット",
+      "saveAsPreset": "プリセットとして保存",
+      "savePreset": "プリセットを保存",
+      "savePresetBody": "現在の外観をグリッドのカードとして保存します。",
+      "presetName": "プリセット名",
+      "deletePreset": "プリセット {name} を削除"
+    },
+    "hotkey": {
+      "addModifier": "Ctrl や Alt などの修飾キーを追加してください",
+      "recording": "ショートカットを記録中",
+      "change": "ショートカットを変更",
+      "pressKeys": "キーを押してください",
+      "escCancels": "Esc でキャンセル"
+    },
+    "advanced": {
+      "todos": "タスク",
+      "events": "予定",
+      "presets": "プリセット",
+      "resetAllTitle": "すべての設定をリセットしますか?",
+      "resetAllBody": "すべての設定が既定値に戻ります。タスク、予定、プリセット、同期の接続は残ります。"
+    },
+    "dock": {
+      "styles": {
+        "windows": {
+          "label": "Windows",
+          "hint": "画面の端に沿った全幅のバー"
+        },
+        "mac": {
+          "label": "Mac",
+          "hint": "中央に浮かぶドック"
+        }
+      },
+      "styleAria": "ドックのスタイル",
+      "automatic": "自動 (プライマリ)",
+      "notConnected": "未接続",
+      "primary": "プライマリ",
+      "start": "先頭",
+      "center": "中央",
+      "uchiwa": "うちわ",
+      "bottom": "下",
+      "top": "上",
+      "bars": "バー",
+      "mirror": "ミラー",
+      "wave": "ウェーブ",
+      "dots": "ドット",
+      "left": "左",
+      "right": "右",
+      "connect": "接続",
+      "disconnect": "切断",
+      "alignStart": "左",
+      "alignCenter": "中央",
+      "alignEnd": "右",
+      "experimental": "試験的",
+      "openEditMode": "開く"
+    },
+    "sync": {
+      "server": {
+        "title": "サーバー",
+        "description": "{collections}をデバイス間で同期します。"
+      },
+      "status": "状態",
+      "devices": {
+        "title": "デバイス",
+        "description": "このサーバーに登録されているすべてのデバイス"
+      },
+      "danger": {
+        "title": "危険な操作",
+        "description": "これらの操作は元に戻せません。"
+      },
+      "collections": {
+        "todos": "タスク",
+        "events": "予定",
+        "profile": "プロファイル",
+        "presets": "プリセット",
+        "notes": "メモ"
+      },
+      "hideToken": "トークンを隠す",
+      "revealToken": "トークンを表示",
+      "testConnection": "接続をテスト",
+      "connected": "接続済み、サーバー {version}、seq {seq}",
+      "everyHour": "1時間ごと",
+      "everyMinutes": "{minutes}分ごと",
+      "states": {
+        "idle": "最新",
+        "syncing": "同期中",
+        "error": "エラー",
+        "disabled": "オフ"
+      },
+      "lastSync": "最終同期: {when}",
+      "neverSynced": "未同期",
+      "pending": "{count}件保留中",
+      "justNow": "たった今",
+      "syncNow": "今すぐ同期",
+      "noDevices": "デバイスなし",
+      "setServerFirst": "先にサーバー URL とトークンを設定してください",
+      "seen": "最終確認: {when}",
+      "thisDevice": "このデバイス",
+      "forget": "削除",
+      "replace": "置き換え",
+      "unlink": "リンク解除",
+      "collection": "コレクション",
+      "toasts": {
+        "failed": "同期に失敗しました。",
+        "enableFirst": "先に同期を有効にしてサーバーを入力してください。",
+        "synced": "同期しました: 送信 {pushed}、受信 {pulled}",
+        "deviceForgotten": "デバイスを削除しました。",
+        "localReplaced": "ローカルデータをサーバーの内容で置き換えました。",
+        "recordsCleared": "{count}件のレコードを消去しました。",
+        "collectionReset": "サーバー上の{collection}をリセットしました。",
+        "unlinked": "デバイスのリンクを解除しました。"
+      },
+      "confirm": {
+        "replaceTitle": "ローカルデータを置き換えますか?",
+        "replaceBody": "ローカルの{collections}を削除し、サーバーの内容で置き換えます。未同期の変更は失われます。",
+        "resetTitle": "サーバー上の{collection}をリセットしますか?",
+        "resetBody": "このコレクションのすべてのレコードがサーバー上で削除済みになり、同期中のすべてのデバイスから削除されます。",
+        "unlinkTitle": "このデバイスのリンクを解除しますか?",
+        "unlinkBody": "同期がオフになり、サーバーアドレス、トークン、保留中の変更が消去されます。ローカルデータは残ります。"
+      }
+    },
+    "backup": {
+      "exportJson": "JSON をエクスポート",
+      "copyJson": "JSON をコピー",
+      "importJson": "JSON をインポート",
+      "exportStarted": "エクスポートを開始しました。",
+      "copied": "JSON をクリップボードにコピーしました。",
+      "notBackup": "Eris のバックアップではありません。",
+      "nothing": "インポートするものがありません。",
+      "imported": "{count}件をインポートしました。"
+    },
+    "sectionsAria": "セクション"
+  },
+  "launcher": {
+    "placeholder": "アプリ、ウィンドウ、コマンドを検索",
+    "clear": "クリア",
+    "results": "結果",
+    "moreActions": "その他の操作",
+    "menuAria": "ランチャーメニュー",
+    "resultCount": "{count, plural, other {#件の結果}}",
+    "enter": {
+      "paste": "貼り付け",
+      "copy": "コピー",
+      "open": "開く"
+    },
+    "footer": {
+      "admin": "管理者",
+      "location": "場所",
+      "groups": "グループ"
+    },
+    "sections": {
+      "recent": "最近",
+      "pinned": "ピン留め",
+      "timers": "タイマー",
+      "running": "実行中"
+    },
+    "modes": {
+      "run": "実行",
+      "todo": "タスク",
+      "calc": "計算",
+      "clip": "クリップ",
+      "emoji": "絵文字",
+      "timer": "タイマー",
+      "alarm": "アラーム"
+    },
+    "hints": {
+      "run": "実行",
+      "todo": "タスク",
+      "calc": "計算",
+      "emoji": "絵文字",
+      "clip": "クリップボード",
+      "timer": "タイマー"
+    },
+    "empty": {
+      "run": "コマンドを入力",
+      "todo": "タスクを入力",
+      "calc": "式または単位変換を入力",
+      "alarm": "時刻を入力 (例: 7:30 起床)",
+      "timer": "時間を入力 (例: 5m お茶)",
+      "emoji": "絵文字が見つかりません",
+      "clip": "クリップボード履歴なし",
+      "noResults": "結果なし",
+      "start": "アプリ、ウィンドウ、コマンドを検索",
+      "loading": "アプリを読み込み中"
+    },
+    "couldNotOpen": "{title} を開けませんでした ({error})",
+    "backdrop": {
+      "clearSearch": "検索をクリア",
+      "focusSearch": "検索にフォーカス",
+      "hideKeymap": "キーボードヒントを隠す",
+      "showKeymap": "キーボードヒントを表示",
+      "settings": "Eris の設定"
+    },
+    "groups": {
+      "app": "アプリ",
+      "window": "ウィンドウ",
+      "command": "コマンド",
+      "calc": "電卓",
+      "unit": "単位変換",
+      "todo": "タスク",
+      "timer": "タイマー",
+      "emoji": "絵文字",
+      "web": "ウェブ",
+      "run": "実行",
+      "setting": "設定",
+      "clip": "クリップボード"
+    },
+    "kinds": {
+      "app": "アプリ",
+      "window": "ウィンドウ",
+      "command": "コマンド",
+      "calc": "計算",
+      "unit": "変換",
+      "todo": "タスク",
+      "timer": "タイマー",
+      "emoji": "絵文字",
+      "web": "ウェブ",
+      "run": "実行",
+      "setting": "設定",
+      "clip": "クリップ"
+    },
+    "actions": {
+      "admin": "管理者として実行",
+      "location": "ファイルの場所を開く",
+      "cancel": "キャンセル",
+      "closeWindow": "ウィンドウを閉じる",
+      "pinDock": "ドックにピン留め",
+      "unpinDock": "ドックからピン留めを外す",
+      "copyOnly": "コピーのみ",
+      "pin": "ピン留め",
+      "unpin": "ピン留めを外す",
+      "delete": "削除",
+      "paste": "貼り付け",
+      "open": "開く"
+    },
+    "chips": {
+      "minimized": "最小化",
+      "enterCopies": "Enter でコピー",
+      "priority": "優先度 {level}"
+    },
+    "timer": {
+      "setAlarm": "アラームを設定: {label}",
+      "startTimer": "タイマーを開始: {label}",
+      "firesAt": "{time} に通知",
+      "left": "残り{remaining} · {time}",
+      "alarm": "アラーム",
+      "timer": "タイマー"
+    },
+    "todo": {
+      "add": "タスクを追加: {title}",
+      "saves": "タスクリストに保存"
+    },
+    "web": {
+      "search": "「{query}」をウェブで検索"
+    },
+    "run": {
+      "title": "{command} を実行",
+      "subtitle": "コマンドライン"
+    },
+    "open": {
+      "title": "{target} を開く",
+      "link": "リンク",
+      "path": "パス"
+    },
+    "clip": {
+      "whitespace": "空白",
+      "justNow": "たった今",
+      "lines": "{count, plural, other {#行}}",
+      "chars": "{count, plural, other {#文字}}",
+      "clearHistory": "履歴をクリア",
+      "keepsPinned": "ピン留めした項目は保持"
+    },
+    "calcErrors": {
+      "divisionByZero": "ゼロ除算",
+      "undefined": "未定義",
+      "outOfRange": "範囲外"
+    },
+    "subtitles": {
+      "power": "電源",
+      "windowsSettings": "Windows の設定",
+      "windows": "Windows",
+      "folder": "フォルダー",
+      "system": "システム",
+      "eris": "Eris",
+      "erisSettings": "Eris の設定"
+    },
+    "commands": {
+      "lock": "ロック",
+      "sleep": "スリープ",
+      "hibernate": "休止状態",
+      "shutdown": "シャットダウン",
+      "restart": "再起動",
+      "signout": "サインアウト",
+      "recycle": "ごみ箱を空にする",
+      "erisFiles": "ファイルを開く",
+      "erisSettings": "Eris の設定を開く",
+      "erisPanel": "カレンダーパネルを開く",
+      "erisNote": "新しいメモ",
+      "erisQuit": "Eris を終了",
+      "erisClipboard": "クリップボードの履歴",
+      "display": "ディスプレイ",
+      "bluetooth": "Bluetooth",
+      "wifi": "Wi-Fi",
+      "sound": "サウンド",
+      "notifications": "通知",
+      "personalization": "個人用設定",
+      "apps": "アプリ",
+      "update": "更新",
+      "taskmgr": "タスク マネージャー",
+      "explorer": "エクスプローラー",
+      "terminal": "ターミナル",
+      "control": "コントロール パネル",
+      "screenclip": "画面領域切り取り",
+      "snippingtool": "Snipping Tool",
+      "clipboard": "クリップボード",
+      "quiethours": "集中モード",
+      "printers": "プリンター",
+      "defaultapps": "既定のアプリ",
+      "storage": "ストレージ",
+      "powersleep": "電源とバッテリー",
+      "mouse": "マウス",
+      "keyboard": "キーボード",
+      "dateandtime": "日付と時刻",
+      "regionlanguage": "地域と言語",
+      "startupapps": "スタートアップ アプリ",
+      "security": "Windows セキュリティ",
+      "devmgmt": "デバイス マネージャー",
+      "diskmgmt": "ディスクの管理",
+      "services": "サービス",
+      "regedit": "レジストリ エディター",
+      "eventvwr": "イベント ビューアー",
+      "msinfo32": "システム情報",
+      "charmap": "文字コード表",
+      "calc": "電卓",
+      "notepad": "メモ帳",
+      "mspaint": "ペイント",
+      "downloads": "ダウンロード",
+      "documents": "ドキュメント",
+      "desktop": "デスクトップ",
+      "recyclebin": "ごみ箱",
+      "thispc": "PC",
+      "erisEdit": "レイアウトを編集"
+    }
+  },
+  "dates": {
+    "today": "今日",
+    "tomorrow": "明日",
+    "yesterday": "昨日"
+  },
+  "dock": {
+    "dockAria": "ドック",
+    "dockMenu": "ドックメニュー",
+    "apps": "アプリ",
+    "launcher": "ランチャー",
+    "openLauncher": "ランチャーを開く",
+    "more": "他{count}件",
+    "moreApps": "その他のアプリ",
+    "taskManager": "タスク マネージャー",
+    "hideRunning": "実行中のアプリを隠す",
+    "showRunning": "実行中のアプリを表示",
+    "hideSettingsButton": "設定ボタンを隠す",
+    "showSettingsButton": "設定ボタンを表示",
+    "settings": "Eris の設定",
+    "editLayout": "レイアウトを編集",
+    "calendar": "カレンダー",
+    "openCalendar": "カレンダーを開く",
+    "menu": {
+      "pin": "ドックにピン留め",
+      "unpin": "ドックからピン留めを外す",
+      "newWindow": "新しいウィンドウを開く",
+      "closeAll": "すべて閉じる",
+      "openLocation": "ファイルの場所を開く"
+    },
+    "preview": {
+      "switchTo": "ウィンドウに切り替え",
+      "close": "ウィンドウを閉じる"
+    }
+  },
+  "edit": {
+    "title": "レイアウトを編集",
+    "hint": "強調表示された部分をクリックして変更します。Esc または「完了」で終了します。",
+    "done": "完了",
+    "spots": {
+      "launcher": "ランチャーボタン",
+      "apps": "アプリ",
+      "tray": "トレイと時計",
+      "widgets": "ウィジェット",
+      "search": "ランチャー",
+      "bubble": "チャットバブル"
+    }
+  },
+  "menu": {
+    "label": "メニュー",
+    "cut": "切り取り",
+    "copy": "コピー",
+    "paste": "貼り付け",
+    "selectAll": "すべて選択"
+  },
+  "panel": {
+    "allDay": "終日",
+    "untitled": "無題",
+    "title": "タイトル",
+    "events": "予定",
+    "todos": "タスク",
+    "errors": {
+      "startRequired": "開始日を入力してください。",
+      "endRequired": "終了日を入力してください。",
+      "endBeforeStart": "終了が開始より前です。"
+    },
+    "greeting": {
+      "morning": "おはようございます",
+      "afternoon": "こんにちは",
+      "evening": "こんばんは"
+    },
+    "summary": {
+      "events": "{count, plural, other {予定#件}}",
+      "todosDue": "{count, plural, other {期限のタスク#件}}"
+    },
+    "searchPlaceholder": "タスクと予定を検索",
+    "clearSearch": "検索をクリア",
+    "calendarAria": "カレンダー",
+    "cardsAria": "パネルのカード",
+    "todoAria": "タスク",
+    "notesAria": "メモ",
+    "due": "期限",
+    "nothingDue": "期限のタスクなし",
+    "colors": {
+      "default": "既定",
+      "secondary": "セカンダリ",
+      "accent": "アクセント",
+      "success": "成功",
+      "warning": "警告",
+      "error": "エラー"
+    },
+    "calendar": {
+      "month": "月",
+      "week": "週",
+      "agenda": "一覧",
+      "from": "{date} から",
+      "viewAria": "カレンダー表示",
+      "nothingScheduled": "予定なし",
+      "nextDays": "今後{count}日間",
+      "noUpcoming": "今後の予定なし"
+    },
+    "week": {
+      "slot": "{day} {time} に新しい予定"
+    },
+    "event": {
+      "new": "新しい予定",
+      "edit": "予定を編集",
+      "start": "開始",
+      "end": "終了",
+      "color": "色",
+      "reminder": "リマインダー",
+      "repeat": "繰り返し",
+      "notes": "メモ",
+      "reminders": {
+        "atStart": "開始時",
+        "minutesBefore": "{count}分前",
+        "hourBefore": "1時間前",
+        "dayBefore": "1日前"
+      },
+      "recurrences": {
+        "none": "繰り返さない",
+        "daily": "毎日",
+        "weekdays": "平日",
+        "weekly": "毎週",
+        "monthly": "毎月",
+        "yearly": "毎年"
+      }
+    },
+    "ics": {
+      "options": "カレンダーのオプション",
+      "import": ".ics をインポート",
+      "export": ".ics をエクスポート",
+      "copy": ".ics をコピー",
+      "importFile": "カレンダーファイルをインポート",
+      "exported": "{count, plural, other {#件の予定}}をエクスポートしました。",
+      "imported": "{count, plural, other {#件の予定}}をインポートしました。",
+      "copied": "カレンダーをクリップボードにコピーしました。",
+      "noEvents": "予定が見つかりませんでした。"
+    },
+    "notes": {
+      "search": "メモを検索",
+      "new": "新しいメモ",
+      "pinned": "ピン留め",
+      "noNotes": "メモなし",
+      "conflict": "別のデバイスの新しいバージョンで再読み込みしました。",
+      "titleAria": "メモのタイトル",
+      "pin": "メモをピン留め",
+      "unpin": "メモのピン留めを外す",
+      "delete": "メモを削除",
+      "bodyPlaceholder": "メモを入力",
+      "bodyAria": "メモの本文",
+      "select": "メモを選択してください"
+    },
+    "quickAdd": {
+      "todo": "タスクを追加",
+      "auto": "タスクを追加、/ で予定",
+      "eventBadge": "予定",
+      "todoBadge": "タスク"
+    },
+    "todo": {
+      "overdue": "期限切れ",
+      "upcoming": "今後",
+      "noDate": "日付なし",
+      "markDone": "完了にする",
+      "markNotDone": "未完了に戻す",
+      "titleAria": "タスクのタイトル",
+      "editHint": "ダブルクリックで編集",
+      "delete": "タスクを削除",
+      "allDone": "すべて完了",
+      "completed": "完了済み",
+      "clearCompleted": "完了済みをクリア"
+    },
+    "notifications": {
+      "title": "通知",
+      "empty": "通知なし",
+      "clearAll": "すべてクリア",
+      "dismiss": "閉じる",
+      "dismissApp": "{app} の通知をすべて閉じる",
+      "focusAssist": "集中モード",
+      "settings": "通知の設定",
+      "windowsCenter": "Windows の通知センター",
+      "toggle": "通知を表示",
+      "back": "タスクに戻る"
+    }
+  },
+  "files": {
+    "forward": "進む",
+    "up": "上へ",
+    "refresh": "更新",
+    "pathAria": "パス",
+    "searchPlaceholder": "このフォルダーを検索",
+    "toggleHidden": "隠しファイルの表示を切り替え",
+    "hiddenItems": "隠し項目",
+    "filesAria": "ファイル",
+    "menuAria": "ファイルメニュー",
+    "newFolder": "新しいフォルダー",
+    "paste": "貼り付け",
+    "open": "開く",
+    "rename": "名前の変更",
+    "copy": "コピー",
+    "cut": "切り取り",
+    "copyPath": "パスのコピー",
+    "columns": {
+      "name": "名前",
+      "modified": "更新日時",
+      "size": "サイズ"
+    },
+    "loading": "読み込み中",
+    "empty": "空のフォルダー",
+    "itemCount": "{count, plural, other {#個の項目}}",
+    "selectedCount": "{count}個を選択"
+  },
+  "onboarding": {
+    "title": "Eris のセットアップ",
+    "progressAria": "進行状況",
+    "skipSetup": "セットアップをスキップ",
+    "custom": "カスタム",
+    "enterContinues": "Enter で続行",
+    "getStarted": "始める",
+    "startUsing": "Eris を使い始める",
+    "steps": {
+      "welcome": "ようこそ",
+      "features": "機能",
+      "style": "スタイル",
+      "dock": "ドック",
+      "hotkeys": "ホットキー",
+      "sync": "同期",
+      "tips": "ヒント",
+      "done": "完了"
+    },
+    "welcome": {
+      "title": "Eris へようこそ",
+      "tagline": "デスクトップに常駐するランチャー、ドック、カレンダーです。",
+      "launcher": {
+        "title": "ランチャー",
+        "text": "Win を押して入力し、Enter を押すだけです。アプリ、ウィンドウ、タスク、計算、ウェブまで。"
+      },
+      "dock": {
+        "title": "ドック",
+        "text": "Windows タスクバーの代わりになるバーに、ピン留めしたアプリと実行中のアプリを表示します。"
+      },
+      "calendar": {
+        "title": "カレンダーとタスク",
+        "text": "時計をクリックするだけで、今日の予定とタスクリストが開きます。"
+      }
+    },
+    "features": {
+      "title": "使う機能を選ぶ",
+      "blurb": "プリセットを選んでから、個別の機能をオン/オフできます。あとから設定で変更できます。"
+    },
+    "style": {
+      "title": "外観を選ぶ",
+      "blurb": "変更はすぐに反映されます。色の微調整はあとから設定でできます。"
+    },
+    "dock": {
+      "title": "ドックを整える",
+      "blurb": "サイズと内容の微調整はあとから設定でできます。",
+      "autoHide": "カーソルが画面の端に触れるまで隠れます。",
+      "replaces": "Eris が Windows タスクバーの代わりになります。",
+      "taskbarStays": "Windows タスクバーはそのまま表示されます。"
+    },
+    "hotkeys": {
+      "title": "Eris を開く",
+      "blurb": "ランチャーの呼び出し方を選んでください。",
+      "info": "{win} を単独で押すと Eris が開きます。{win} + {e} などの組み合わせは通常どおり使えます。",
+      "winOr": "Win キーまたは {shortcut}"
+    },
+    "sync": {
+      "title": "デバイス間で同期",
+      "blurb": "省略できます。自分の同期サーバーを指定するか、スキップしてあとで設定してください。"
+    },
+    "tips": {
+      "title": "いくつかのヒント",
+      "blurb": "始める前に知っておきたい3つのことです。",
+      "win": {
+        "title": "Win で Eris を開く",
+        "text": "どこでも押すだけです。Win の組み合わせはそのまま使えます。"
+      },
+      "run": {
+        "title": "> を入力して実行",
+        "text": "検索ボックスから直接コマンドを実行します。"
+      },
+      "clock": {
+        "title": "時計をクリック",
+        "text": "カレンダーとタスクリストが表示されます。"
+      }
+    },
+    "done": {
+      "title": "準備完了",
+      "blurb": "以下はすべて、あとから設定で変更できます。",
+      "dockValue": "{style} スタイル、{edge}{autoHide, select, yes {、自動的に隠す} other {}}",
+      "edges": {
+        "top": "上端",
+        "bottom": "下端"
+      }
+    }
+  },
+  "tray": {
+    "taskView": "タスクビュー",
+    "showDesktop": "デスクトップの表示",
+    "openSettings": "設定を開く",
+    "menu": {
+      "title": "Eris メニュー",
+      "calendar": "カレンダー",
+      "lock": "ロック",
+      "sleep": "スリープ",
+      "restart": "再起動",
+      "shutdown": "シャットダウン",
+      "quit": "Eris を終了"
+    },
+    "widgets": {
+      "title": "トレイとウィジェット",
+      "open": "トレイとウィジェットを表示",
+      "claude": "Claude",
+      "tray": "トレイ",
+      "media": "メディア",
+      "input": "入力",
+      "meters": "システム",
+      "bluetooth": "Bluetooth",
+      "battery": "バッテリー",
+      "volume": "サウンド"
+    },
+    "battery": {
+      "level": "バッテリー {percent}%",
+      "charging": "充電中"
+    },
+    "sync": {
+      "failed": "同期に失敗しました: {error}",
+      "unknownError": "不明なエラー",
+      "syncing": "同期中",
+      "pending": "同期: {count}件保留中",
+      "synced": "同期済み: {time}",
+      "ready": "同期の準備完了"
+    },
+    "notifications": {
+      "title": "通知",
+      "open": "通知センターを開く",
+      "quickSettings": "クイック設定",
+      "focusAssist": "集中モード",
+      "settings": "通知の設定",
+      "windowsCenter": "Windows の通知センター",
+      "unseen": "新着 {count}件"
+    },
+    "network": {
+      "title": "ネットワーク",
+      "none": "ネットワークなし",
+      "connected": "接続済み",
+      "ethernet": "イーサネット",
+      "wifi": "Wi-Fi",
+      "signal": "電波強度 {bars}/5",
+      "available": "利用可能なネットワーク",
+      "settings": "ネットワーク設定",
+      "airplane": "機内モード",
+      "noRadio": "Wi-Fi アダプターなし",
+      "deniedUser": "Windows のプライバシー設定で無線へのアクセスがブロックされています。",
+      "deniedSystem": "システムによって無線へのアクセスがブロックされています。",
+      "radioFailed": "無線を切り替えられませんでした。"
+    },
+    "bluetooth": {
+      "title": "Bluetooth",
+      "off": "Bluetooth オフ",
+      "connected": "接続済みデバイス",
+      "noDevices": "接続済みデバイスなし",
+      "addDevice": "デバイスの追加",
+      "settings": "Bluetooth 設定"
+    },
+    "input": {
+      "title": "入力言語: {label}"
+    },
+    "icons": {
+      "icon": "トレイアイコン",
+      "hidden": "非表示のトレイアイコン",
+      "hiddenCount": "非表示のアイコン{count}個",
+      "hide": "非表示にする",
+      "unhide": "オーバーフローに表示",
+      "showAll": "すべて表示",
+      "allHidden": "{count}個のアイコンを非表示中"
+    },
+    "meters": {
+      "title": "システム使用率",
+      "memory": "メモリ",
+      "of": "{used} / {total}",
+      "taskManager": "タスク マネージャー"
+    },
+    "media": {
+      "title": "メディア",
+      "previous": "前のトラック",
+      "next": "次のトラック",
+      "play": "再生",
+      "pause": "一時停止",
+      "failed": "メディア操作に失敗しました。",
+      "nowPlaying": "再生中",
+      "nothing": "再生中のメディアなし",
+      "noInfo": "詳細なし"
+    },
+    "volume": {
+      "title": "音量",
+      "sound": "サウンド",
+      "muted": "ミュート中",
+      "level": "音量 {percent}%",
+      "mute": "ミュート",
+      "unmute": "ミュート解除",
+      "output": "出力デバイス",
+      "noDevices": "デバイスなし"
+    },
+    "claude": {
+      "unmeasured": "Claude の使用量は未計測",
+      "fiveHour": "5時間 {percent}%",
+      "weekly": "週 {percent}%",
+      "leftHours": "残り{hours}時間{minutes}分",
+      "leftMinutes": "残り{minutes}分"
+    }
+  },
+  "chat": {
+    "title": "Claude",
+    "rename": "チャットの名前を変更",
+    "closeFolder": "フォルダーを閉じる",
+    "openFolder": "フォルダーを開く",
+    "newChat": "新しいチャット",
+    "newBubble": "新しいバブル",
+    "cliMissing": "Claude Code CLI がインストールされていません",
+    "placeholder": "メッセージ",
+    "queuePlaceholder": "メッセージを送信予約",
+    "send": "送信",
+    "queueSend": "送信予約",
+    "stop": "停止",
+    "deny": "拒否",
+    "allow": "許可",
+    "allowAlways": "常に許可",
+    "usageUnknown": "使用量を取得できません",
+    "context": "コンテキスト {percent}% ({used} / {total} トークン)",
+    "empty": {
+      "ask": "何でも聞いてください",
+      "askHint": "コーディングを始めるにはフォルダーを開いてください",
+      "code": "コードの変更を依頼してください",
+      "codeHint": "/ でコマンド、@ でファイル"
+    },
+    "history": {
+      "title": "履歴",
+      "home": "ホーム",
+      "current": "進行中",
+      "untitled": "無題",
+      "empty": "履歴なし",
+      "recentFolders": "最近のフォルダー",
+      "meta": "{count}件のメッセージ、{when}"
+    },
+    "usage": {
+      "fiveHour": "5時間",
+      "sevenDay": "7日間",
+      "resets": "{time} にリセット"
+    },
+    "config": {
+      "title": "Claude Code の設定",
+      "model": "モデル",
+      "modelDefault": "既定のモデル",
+      "modelCustom": "カスタム…",
+      "effort": "思考の強さ",
+      "permission": "権限モード",
+      "thinking": "拡張思考",
+      "autoCompact": "自動コンパクト",
+      "language": "応答言語",
+      "languageDefault": "既定",
+      "budget": "セッションごとの予算 (USD)",
+      "budgetNone": "無制限",
+      "systemPrompt": "追加のシステムプロンプト",
+      "restartHint": "適用するにはセッションを再起動してください",
+      "restart": "再起動"
+    },
+    "effort": {
+      "default": "既定の強さ",
+      "low": "低",
+      "medium": "中",
+      "high": "高",
+      "xhigh": "超高",
+      "max": "最大"
+    },
+    "permission": {
+      "default": "都度確認",
+      "acceptEdits": "編集を許可",
+      "plan": "プラン",
+      "auto": "自動",
+      "dontAsk": "確認しない",
+      "bypassPermissions": "バイパス"
+    },
+    "tri": {
+      "default": "既定",
+      "on": "オン",
+      "off": "オフ"
+    },
+    "hover": {
+      "none": "なし",
+      "title": "タイトル",
+      "preview": "最後のメッセージ"
+    },
+    "queue": {
+      "afterTool": "ツール完了後",
+      "afterReply": "返信後",
+      "toggle": "送信タイミングを切り替え"
+    },
+    "commands": {
+      "clear": "会話をクリアして最初からやり直す",
+      "resume": "以前のセッションを選ぶ",
+      "usage": "プランの使用量上限を表示",
+      "model": "モデルを選ぶ",
+      "effort": "思考の強さを選ぶ",
+      "config": "Claude Code の設定"
+    }
+  }
+}

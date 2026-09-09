@@ -1,0 +1,26 @@
+{
+  "name": "@eris/settings",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "check": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@eris/i18n": "workspace:*",
+    "@eris/sync": "workspace:*"
+  },
+  "peerDependencies": {
+    "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/plugin-store": "^2.4.4"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}

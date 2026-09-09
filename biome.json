@@ -2,15 +2,16 @@
   "$schema": "https://biomejs.dev/schemas/2.5.10/schema.json",
   "files": {
     "includes": [
-      "src/**/*.ts",
-      "scripts/**",
       "*.ts",
       "*.json",
       "*.jsonc",
-      "server/src/**",
-      "server/test/**",
-      "server/*.ts",
-      "server/*.json"
+      "apps/*/src/**/*.ts",
+      "apps/*/scripts/**",
+      "apps/*/test/**",
+      "apps/*/*.ts",
+      "apps/*/*.json",
+      "packages/*/src/**/*.ts",
+      "packages/*/*.json"
     ]
   },
   "formatter": {
