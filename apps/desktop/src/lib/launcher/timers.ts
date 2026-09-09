@@ -1,4 +1,5 @@
 import { currentLocale, tr } from "@eris/i18n"
+import type { TimerKind } from "@eris/launcher-core"
 import { emit, listen } from "@tauri-apps/api/event"
 import {
   isPermissionGranted,
@@ -7,7 +8,7 @@ import {
 } from "@tauri-apps/plugin-notification"
 import { load } from "@tauri-apps/plugin-store"
 
-export type TimerKind = "timer" | "alarm"
+export type { TimerKind }
 
 export type Timer = {
   id: string

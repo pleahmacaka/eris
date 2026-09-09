@@ -2,7 +2,7 @@
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
   import { type Launcher, MENU_WIDTH } from "./launcher.svelte"
-  import { kindLabel, type Result } from "./types"
+  import { kindLabel, type Result } from "@eris/launcher-core"
 
   let {
     launcher,

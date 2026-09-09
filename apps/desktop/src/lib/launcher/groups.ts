@@ -1,8 +1,15 @@
+import type { Result, ResultGroup, ResultKind } from "@eris/launcher-core"
+import {
+  groupResults,
+  looksLikeMath,
+  openTarget,
+  type Route,
+  rank,
+} from "@eris/launcher-core"
 import type { Profile } from "@eris/settings"
 import type { AppEntry } from "$lib/native/apps"
 import type { ClipEntry } from "$lib/native/clipboard"
 import type { WindowEntry } from "$lib/native/windows"
-import { looksLikeMath } from "./calc"
 import { boost } from "./frecency"
 import {
   appResult,
@@ -19,9 +26,7 @@ import {
   webResult,
   windowResult,
 } from "./providers"
-import { groupResults, openTarget, type Route, rank } from "./search"
 import { parseTimer, type Timer } from "./timers"
-import type { Result, ResultGroup, ResultKind } from "./types"
 
 export const RECENT = 6
 

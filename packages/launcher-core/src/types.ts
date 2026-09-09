@@ -48,3 +48,5 @@ export type ResultGroup = {
 export const groupLabel = (kind: ResultKind) => tr(`launcher.groups.${kind}`)
 
 export const kindLabel = (kind: ResultKind) => tr(`launcher.kinds.${kind}`)
+
+export type TimerKind = "timer" | "alarm"

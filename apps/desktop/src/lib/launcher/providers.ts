@@ -1,6 +1,14 @@
 import type { Todo } from "@eris/data"
 import { dueLabel, parseQuickAdd } from "@eris/data"
 import { currentLocale, tr } from "@eris/i18n"
+import type { Result } from "@eris/launcher-core"
+import {
+  convert,
+  evaluate,
+  formatNumber,
+  matchEmoji,
+  plainNumber,
+} from "@eris/launcher-core"
 import type { WebSearchEngine } from "@eris/settings"
 import { newId, todos } from "$lib/data"
 import { toggleDockPin } from "../dock/dock.svelte"
@@ -20,8 +28,6 @@ import {
   runCommand,
   type WindowEntry,
 } from "../native"
-import { evaluate, formatNumber, plainNumber } from "./calc"
-import { matchEmoji } from "./emoji"
 import {
   addTimer,
   cancelTimer,
@@ -30,8 +36,6 @@ import {
   type Timer,
   type TimerKind,
 } from "./timers"
-import type { Result } from "./types"
-import { convert } from "./units"
 
 const FALLBACK_ICON = "lucide:app-window"
 

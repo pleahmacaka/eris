@@ -16,6 +16,7 @@
       "dependencies": {
         "@eris/data": "workspace:*",
         "@eris/i18n": "workspace:*",
+        "@eris/launcher-core": "workspace:*",
         "@eris/settings": "workspace:*",
         "@eris/sync": "workspace:*",
         "@eris/ui": "workspace:*",
@@ -91,6 +92,17 @@
         "svelte-i18n": "^4.0.1",
       },
     },
+    "packages/launcher-core": {
+      "name": "@eris/launcher-core",
+      "version": "0.0.0",
+      "dependencies": {
+        "@eris/i18n": "workspace:*",
+        "es-hangul": "^2.4.0",
+      },
+      "devDependencies": {
+        "typescript": "^6.0.3",
+      },
+    },
     "packages/settings": {
       "name": "@eris/settings",
       "version": "0.0.0",
@@ -153,6 +165,8 @@
     "@eris/data": ["@eris/data@workspace:packages/data"],
 
     "@eris/i18n": ["@eris/i18n@workspace:packages/i18n"],
+
+    "@eris/launcher-core": ["@eris/launcher-core@workspace:packages/launcher-core"],
 
     "@eris/settings": ["@eris/settings@workspace:packages/settings"],
 
