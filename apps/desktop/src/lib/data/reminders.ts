@@ -1,11 +1,11 @@
+import type { CalendarEvent } from "@eris/data"
+import { formatRange, parseLocal, upcoming } from "@eris/data"
 import type { Profile } from "@eris/settings"
 import {
   isPermissionGranted,
   requestPermission,
   sendNotification,
 } from "@tauri-apps/plugin-notification"
-import { formatRange, parseLocal, upcoming } from "./calendar"
-import type { CalendarEvent } from "./types"
 
 const TICK = 30_000
 const CATCH_UP = 5 * 60_000

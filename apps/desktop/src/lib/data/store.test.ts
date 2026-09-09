@@ -1,6 +1,6 @@
 import { afterAll, expect, mock, setSystemTime, test } from "bun:test"
+import type { Todo } from "@eris/data"
 import type { StoredRecord } from "@eris/sync/protocol"
-import type { Todo } from "./types"
 
 const files = new Map<string, Map<string, unknown>>()
 

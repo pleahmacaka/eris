@@ -1,6 +1,6 @@
 import { afterAll, expect, mock, setSystemTime, test } from "bun:test"
+import type { CalendarEvent } from "@eris/data"
 import type { Profile } from "@eris/settings"
-import type { CalendarEvent } from "./types"
 
 const sent: string[] = []
 

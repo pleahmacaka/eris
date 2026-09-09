@@ -32,7 +32,7 @@ import {
   pendingOutbox,
   takeOutbox,
   updateSyncMeta,
-} from "../data/store"
+} from "$lib/data"
 import { ensureDevice } from "../device"
 import { http } from "../http"
 import { setSyncStatus } from "./status.svelte"
