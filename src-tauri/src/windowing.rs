@@ -213,40 +213,93 @@ fn center_on_cursor_monitor(window: &WebviewWindow) -> tauri::Result<()> {
 }
 
 #[derive(Clone, Copy, serde::Serialize)]
-pub struct ChatArea {
+pub struct ChatRect {
+    pub x: f64,
+    pub y: f64,
     pub width: f64,
     pub height: f64,
 }
 
-struct ChatMonitor {
-    origin: PhysicalPosition<i32>,
-    size: PhysicalSize<u32>,
-    scale: f64,
+#[derive(Clone, serde::Serialize)]
+pub struct ChatArea {
+    pub width: f64,
+    pub height: f64,
+    pub monitors: Vec<ChatRect>,
+    pub home: usize,
 }
 
-static CHAT_MONITOR: Mutex<Option<ChatMonitor>> = Mutex::new(None);
+struct ChatSpace {
+    origin: PhysicalPosition<i32>,
+    scale: f64,
+    area: ChatArea,
+}
 
+static CHAT_SPACE: Mutex<Option<ChatSpace>> = Mutex::new(None);
+
+// every monitor's work area maps into one logical plane, scaled like the primary; the bubble parks on the cursor's monitor
 fn park_chat(window: &WebviewWindow) -> tauri::Result<()> {
     let cursor = window.cursor_position()?;
+    let monitors = window.available_monitors()?;
 
-    let Some(monitor) = window.monitor_from_point(cursor.x, cursor.y)? else {
+    if monitors.is_empty() {
         return Ok(());
-    };
+    }
 
-    let work = monitor.work_area();
-    let scale = monitor.scale_factor();
+    let scale = window
+        .primary_monitor()?
+        .map(|monitor| monitor.scale_factor())
+        .unwrap_or(1.0);
+    let works: Vec<(PhysicalPosition<i32>, PhysicalSize<u32>)> = monitors
+        .iter()
+        .map(|monitor| {
+            let work = monitor.work_area();
+
+            (work.position, work.size)
+        })
+        .collect();
+    let origin = PhysicalPosition::new(
+        works.iter().map(|(p, _)| p.x).min().unwrap_or(0),
+        works.iter().map(|(p, _)| p.y).min().unwrap_or(0),
+    );
+    let right = works.iter().map(|(p, s)| p.x + s.width as i32).max().unwrap_or(0);
+    let bottom = works.iter().map(|(p, s)| p.y + s.height as i32).max().unwrap_or(0);
+    let home = works
+        .iter()
+        .position(|(p, s)| {
+            cursor.x >= f64::from(p.x)
+                && cursor.x < f64::from(p.x + s.width as i32)
+                && cursor.y >= f64::from(p.y)
+                && cursor.y < f64::from(p.y + s.height as i32)
+        })
+        .unwrap_or(0);
+    let rects = works
+        .iter()
+        .map(|(p, s)| ChatRect {
+            x: f64::from(p.x - origin.x) / scale,
+            y: f64::from(p.y - origin.y) / scale,
+            width: f64::from(s.width) / scale,
+            height: f64::from(s.height) / scale,
+        })
+        .collect();
+
+    *CHAT_SPACE.lock().unwrap() = Some(ChatSpace {
+        origin,
+        scale,
+        area: ChatArea {
+            width: f64::from(right - origin.x) / scale,
+            height: f64::from(bottom - origin.y) / scale,
+            monitors: rects,
+            home,
+        },
+    });
+
+    let (position, size) = works[home];
     let bubble = (BUBBLE_SIZE * scale).round() as i32;
     let edge = (BUBBLE_EDGE * scale).round() as i32;
 
-    *CHAT_MONITOR.lock().unwrap() = Some(ChatMonitor {
-        origin: work.position,
-        size: work.size,
-        scale,
-    });
-
     window.set_position(PhysicalPosition::new(
-        work.position.x + work.size.width as i32 - bubble - edge,
-        work.position.y + work.size.height as i32 - bubble - edge,
+        position.x + size.width as i32 - bubble - edge,
+        position.y + size.height as i32 - bubble - edge,
     ))?;
     window.set_size(PhysicalSize::new(bubble as u32, bubble as u32))?;
     region::apply(
@@ -260,10 +313,11 @@ fn park_chat(window: &WebviewWindow) -> tauri::Result<()> {
 
 #[tauri::command]
 pub fn chat_area() -> Option<ChatArea> {
-    CHAT_MONITOR.lock().unwrap().as_ref().map(|m| ChatArea {
-        width: f64::from(m.size.width) / m.scale,
-        height: f64::from(m.size.height) / m.scale,
-    })
+    CHAT_SPACE
+        .lock()
+        .unwrap()
+        .as_ref()
+        .map(|space| space.area.clone())
 }
 
 #[tauri::command]
@@ -272,8 +326,8 @@ pub fn chat_frame(app: AppHandle, frame: [f64; 4], rects: Vec<[f64; 5]>) {
         return;
     };
 
-    let (origin, scale) = match CHAT_MONITOR.lock().unwrap().as_ref() {
-        Some(m) => (m.origin, m.scale),
+    let (origin, scale) = match CHAT_SPACE.lock().unwrap().as_ref() {
+        Some(space) => (space.origin, space.scale),
         None => return,
     };
 

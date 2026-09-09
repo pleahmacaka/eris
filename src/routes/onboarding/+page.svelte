@@ -18,6 +18,7 @@
     saveDevice,
   } from "$lib/settings"
   import DockControls from "$lib/settings-ui/DockControls.svelte"
+  import FeatureControls from "$lib/settings-ui/FeatureControls.svelte"
   import HotkeyPicker from "$lib/settings-ui/HotkeyPicker.svelte"
   import PresetGrid from "$lib/settings-ui/PresetGrid.svelte"
   import { allPresets } from "$lib/settings-ui/presets"
@@ -30,6 +31,7 @@
 
   const steps = [
     { id: "welcome", title: "Welcome" },
+    { id: "features", title: "Features" },
     { id: "style", title: "Style" },
     { id: "dock", title: "Dock" },
     { id: "hotkeys", title: "Hotkeys" },
@@ -292,6 +294,18 @@
                 {/each}
               </ul>
             </div>
+          {:else if step.id === "features"}
+            <div class="mb-4">
+              <h2 class="text-2xl font-semibold tracking-tight">Choose what runs</h2>
+
+              <p class="text-sm text-base-content/60">
+                Pick a preset, then switch single parts on or off. Everything can change later in settings.
+              </p>
+            </div>
+
+            <Section title="Features">
+              <FeatureControls bind:device presets />
+            </Section>
           {:else if step.id === "style"}
             <div class="mb-4 flex items-end justify-between gap-4">
               <div>
