@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.0](https://github.com/pleahmacaka/eris/compare/0.1.3...0.2.0) (2026-09-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* split into apps and packages workspaces
+
+### Code Refactoring
+
+* split into apps and packages workspaces ([461a096](https://github.com/pleahmacaka/eris/commit/461a0967651aeaad4c7158cdc795a241e95e5a35))
+
 ## [0.1.3](https://github.com/pleahmacaka/eris/compare/0.1.2...0.1.3) (2026-09-09)
 
 
