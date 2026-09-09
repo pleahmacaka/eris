@@ -1,10 +1,6 @@
 <script lang="ts">
-  import {
-    installUsageBridge,
-    listMonitors,
-    type MonitorInfo,
-    usageBridgeInstalled,
-  } from "$lib/native"
+  import { listMonitors, type MonitorInfo } from "$lib/native/windows"
+  import { installUsageBridge, usageBridgeInstalled } from "$lib/native/usage"
   import { startEdit } from "$lib/edit/edit.svelte"
   import type { ClockAlign, DeviceSettings, DockAlign, DockStyle } from "@eris/settings"
   import DockPreview from "./DockPreview.svelte"

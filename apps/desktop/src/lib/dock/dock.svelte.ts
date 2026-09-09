@@ -1,12 +1,6 @@
 import { loadDevice, saveDevice } from "@eris/settings"
-import {
-  type AppEntry,
-  appIcon,
-  listApps,
-  listWindows,
-  pinnedApps,
-  type WindowEntry,
-} from "$lib/native"
+import { type AppEntry, appIcon, listApps, pinnedApps } from "$lib/native/apps"
+import { listWindows, type WindowEntry } from "$lib/native/windows"
 
 export type DockPin = "windows" | "device" | null
 

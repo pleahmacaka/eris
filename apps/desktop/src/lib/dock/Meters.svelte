@@ -1,7 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
-  import { type Meters, runCommand, systemMeters } from "$lib/native"
+  import { type Meters, runCommand, systemMeters } from "$lib/native/system"
   import type { DockEdge } from "@eris/settings"
   import Network from "./Network.svelte"
 

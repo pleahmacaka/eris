@@ -1,7 +1,8 @@
 <script lang="ts">
   import { live } from "$lib/data/live.svelte"
   import { events, presets, todos } from "$lib/data/store"
-  import { clearIconCache, openDataFolder } from "$lib/native"
+  import { clearIconCache } from "$lib/native/apps"
+  import { openDataFolder } from "$lib/native/system"
   import {
     defaultAppearance,
     defaultDevice,
