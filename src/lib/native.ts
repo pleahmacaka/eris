@@ -185,7 +185,12 @@ export type ChatArea = {
   home: number
 }
 
-export type Transcript = { id: string; title: string; modified: number }
+export type Transcript = {
+  id: string
+  title: string
+  modified: number
+  messages: number
+}
 
 export type TranscriptMessage = { role: string; text: string }
 

@@ -115,7 +115,7 @@
       {
         "label": "chat",
         "url": "/chat",
-        "title": "Claude Code",
+        "title": "Claude",
         "width": 1280,
         "height": 800,
         "resizable": false,

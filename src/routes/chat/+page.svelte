@@ -9,14 +9,13 @@
   import Markdown from "$lib/claude/Markdown.svelte"
   import {
     ClaudeSession,
+    type Command,
     type PermissionMode,
     type Question,
   } from "$lib/claude/session.svelte"
   import { ensureDevice } from "$lib/device"
   import * as native from "$lib/native"
   import { onDevice } from "$lib/settings"
-
-  type Mode = "claude" | "code"
 
   const MENTION_DELAY = 150
   const RECENT_LIMIT = 8
@@ -43,14 +42,18 @@
     { value: "bypassPermissions", label: "Bypass" },
   ]
 
+  const LOCAL: Command[] = [
+    { name: "clear", description: "Clear the conversation and start over" },
+    { name: "resume", description: "Pick a previous session" },
+    { name: "usage", description: "Show plan usage limits" },
+  ]
+
   const stored = JSON.parse(localStorage.getItem(STORAGE) ?? "{}") as {
-    mode?: Mode
     folder?: string
     recent?: string[]
     permission?: PermissionMode
   }
 
-  let mode = $state<Mode>(stored.mode ?? "claude")
   let permission = $state<PermissionMode>(stored.permission ?? "default")
   let folder = $state(stored.folder ?? "")
   let recent = $state<string[]>(stored.recent ?? [])
@@ -92,9 +95,9 @@
     panel ? Number.parseFloat(getComputedStyle(panel).borderTopLeftRadius) : px(1),
   )
 
-  const cwd = $derived(mode === "code" && folder ? folder : null)
+  const cwd = $derived(folder || null)
 
-  const title = $derived(mode === "code" ? "Claude Code" : "Claude")
+  const title = "Claude"
 
   const folderName = $derived(
     folder.replaceAll("\\", "/").split("/").filter(Boolean).at(-1) ?? "",
@@ -169,7 +172,12 @@
   const commands = $derived(
     slashTerm === null
       ? []
-      : (session?.info.commands ?? [])
+      : [
+          ...LOCAL,
+          ...(session?.info.commands ?? []).filter(
+            command => !LOCAL.some(local => local.name === command.name),
+          ),
+        ]
           .filter(command => command.name.startsWith(slashTerm))
           .sort((a, b) => Number(b.name === slashTerm) - Number(a.name === slashTerm))
           .slice(0, 8),
@@ -250,7 +258,7 @@
 
     localStorage.setItem(
       STORAGE,
-      JSON.stringify({ mode, folder, recent, permission }),
+      JSON.stringify({ folder, recent, permission }),
     )
   }
 
@@ -275,7 +283,7 @@
       .start({
         cwd,
         resume,
-        plain: mode === "claude",
+        plain: !folder,
         permissionMode: permission,
         history: past,
       })
@@ -300,32 +308,48 @@
     }
 
     folder = choice
-    mode = "code"
     remember()
     await fresh()
   }
 
   const useFolder = async (path: string) => {
     folder = path
-    mode = "code"
     remember()
     await fresh()
   }
 
-  const switchMode = async (next: Mode) => {
-    if (next === mode) {
-      return
-    }
-
-    if (next === "code" && !folder) {
-      await chooseFolder()
-
-      return
-    }
-
-    mode = next
+  const closeFolder = async () => {
+    folder = ""
     remember()
     await fresh()
+  }
+
+  const showUsage = async () => {
+    if (!session) {
+      await fresh()
+    }
+
+    const fallback = session?.usage
+      ? null
+      : await native.claudeUsage(null).catch(() => null)
+
+    session?.showUsage(fallback)
+  }
+
+  const runLocal = async (text: string) => {
+    const name = text.slice(1).split(" ")[0]
+
+    if (name === "clear") {
+      await fresh()
+    } else if (name === "resume") {
+      await loadHistory()
+    } else if (name === "usage") {
+      await showUsage()
+    } else {
+      return false
+    }
+
+    return true
   }
 
   const send = async () => {
@@ -335,11 +359,16 @@
       return
     }
 
+    draft = ""
+
+    if (text.startsWith("/") && (await runLocal(text))) {
+      return
+    }
+
     if (!session) {
       await fresh()
     }
 
-    draft = ""
     await session?.send(text)
   }
 
@@ -687,39 +716,41 @@
       ></div>
 
       <header class="flex shrink-0 items-center gap-1 px-4 pt-3 pb-2">
-        <div
-          class="inline-flex gap-0.5 rounded-field border border-base-content/10 bg-base-content/5 p-0.5"
-          role="radiogroup"
-          aria-label="Mode"
-        >
-          {#each [["claude", "Claude"], ["code", "Claude Code"]] as const as [value, label] (value)}
-            <button
-              type="button"
-              role="radio"
-              aria-checked={mode === value}
-              class={[
-                "rounded-field px-2.5 py-1 text-xs transition-colors duration-150",
-                mode === value
-                  ? "bg-base-100 text-base-content shadow-sm"
-                  : "text-base-content/60 hover:text-base-content",
-              ]}
-              onclick={() => switchMode(value)}
-            >
-              {label}
-            </button>
-          {/each}
-        </div>
+        <span class="text-sm font-medium tracking-tight">{title}</span>
 
-        {#if mode === "code"}
-          <button
-            type="button"
-            class="btn btn-ghost btn-xs max-w-32 gap-1 truncate font-normal"
-            title={folder}
-            onclick={chooseFolder}
+        {#if folder}
+          <span
+            class="inline-flex max-w-40 items-center rounded-field bg-base-content/5 pl-2 text-xs"
           >
             <Icon icon="lucide:folder" class="size-3.5 shrink-0" />
 
-            <span class="truncate">{folderName || "Folder"}</span>
+            <button
+              type="button"
+              class="truncate px-1 py-1"
+              title={folder}
+              onclick={chooseFolder}
+            >
+              {folderName}
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-circle btn-ghost btn-xs"
+              aria-label="Close folder"
+              onclick={closeFolder}
+            >
+              <Icon icon="lucide:x" class="size-3" />
+            </button>
+          </span>
+        {:else}
+          <button
+            type="button"
+            class="btn btn-ghost btn-xs gap-1 font-normal"
+            onclick={chooseFolder}
+          >
+            <Icon icon="lucide:folder-open" class="size-3.5" />
+
+            Open folder
           </button>
         {/if}
 
@@ -809,7 +840,9 @@
                 >
                   <span class="line-clamp-1 text-sm">{item.title || "Untitled"}</span>
 
-                  <span class="text-2xs text-base-content/50">{when(item.modified)}</span>
+                  <span class="text-2xs text-base-content/50">
+                    {item.messages} messages, {when(item.modified)}
+                  </span>
                 </button>
               </li>
             {:else}
@@ -858,10 +891,12 @@
               <Icon icon={claudeIcon} class="size-8 text-primary/70" />
 
               <p class="text-sm text-base-content/50">
-                {mode === "code" ? "코드 작업을 요청하세요" : "무엇이든 물어보세요"}
+                {folder ? "코드 작업을 요청하세요" : "무엇이든 물어보세요"}
               </p>
 
-              <p class="text-xs text-base-content/40">/ 명령, @ 파일</p>
+              <p class="text-xs text-base-content/40">
+                {folder ? "/ 명령, @ 파일" : "폴더를 열어 코드 작업을 시작하세요"}
+              </p>
             </div>
           {:else}
             {#each session.turns as turn (turn.id)}
@@ -873,7 +908,35 @@
                 </div>
               {:else}
                 {#each turn.blocks as block, index (index)}
-                  {#if block.kind === "text" && block.text.trim()}
+                  {#if block.kind === "usage"}
+                    <div
+                      class="flex w-64 max-w-11/12 flex-col gap-2 self-start rounded-box border border-base-content/10 bg-base-100/60 p-3 text-xs"
+                    >
+                      {#each [["5시간", block.usage.fiveHour], ["주간", block.usage.sevenDay]] as const as [name, window] (name)}
+                        {#if window}
+                          <div>
+                            <div class="flex items-center justify-between">
+                              <span class="text-base-content/70">{name}</span>
+
+                              <span class="tabular-nums">{Math.round(window.used)}%</span>
+                            </div>
+
+                            <progress
+                              class="progress progress-primary mt-1 w-full"
+                              value={Math.round(window.used)}
+                              max="100"
+                            ></progress>
+
+                            {#if window.resetsAt}
+                              <p class="mt-0.5 text-base-content/50">
+                                {new Date(window.resetsAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} 초기화
+                              </p>
+                            {/if}
+                          </div>
+                        {/if}
+                      {/each}
+                    </div>
+                  {:else if block.kind === "text" && block.text.trim()}
                     <div
                       class="max-w-11/12 self-start rounded-box rounded-bl-md bg-base-content/10 px-4 py-2.5 text-sm leading-relaxed"
                     >
