@@ -1,3 +1,5 @@
+import type { Result, SecondaryAction } from "@eris/launcher-core"
+import { parseQuery, type Route } from "@eris/launcher-core"
 import {
   type DeviceSettings,
   defaultDevice,
@@ -14,9 +16,7 @@ import { settingsLinks, systemCommands } from "./commands"
 import { record, top } from "./frecency"
 import { buildGroups, RECENT } from "./groups"
 import { alignApps, mergeApps } from "./providers"
-import { parseQuery, type Route } from "./search"
 import type { Timer } from "./timers"
-import type { Result, SecondaryAction } from "./types"
 
 export const MENU_WIDTH = 208
 

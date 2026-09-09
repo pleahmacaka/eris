@@ -1,10 +1,10 @@
 import { getChoseong } from "es-hangul"
-import type { TimerKind } from "./timers"
 import {
   groupLabel,
   type Result,
   type ResultGroup,
   type ResultKind,
+  type TimerKind,
 } from "./types"
 
 export type Route =

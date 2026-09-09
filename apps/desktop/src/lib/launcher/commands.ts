@@ -1,4 +1,5 @@
 import { tr } from "@eris/i18n"
+import type { Result } from "@eris/launcher-core"
 import { emit } from "@tauri-apps/api/event"
 import { exit } from "@tauri-apps/plugin-process"
 import {
@@ -11,7 +12,6 @@ import {
   showWindow,
 } from "../native"
 import { sections } from "../settings-ui/search"
-import type { Result } from "./types"
 
 const command = (
   id: string,

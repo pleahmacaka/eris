@@ -4,7 +4,7 @@ mock.module("../dock/dock.svelte", () => ({ toggleDockPin: () => undefined }))
 
 const { alignApps, appResult, calcResult, openResult, pendingTimerResult } =
   await import("./providers")
-const { score } = await import("./search")
+const { score } = await import("@eris/launcher-core")
 
 type Entry = Parameters<typeof appResult>[0]
 
