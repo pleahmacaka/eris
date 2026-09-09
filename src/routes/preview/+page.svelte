@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from "@iconify/svelte"
   import { emit, listen } from "@tauri-apps/api/event"
   import * as native from "$lib/native"
 
@@ -42,6 +43,16 @@
     native.activateWindow(slot.hwnd).catch(() => undefined)
     native.previewHide().catch(() => undefined)
   }
+
+  const close = (slot: Slot) => {
+    native.closeWindow(slot.hwnd).catch(() => undefined)
+    slots = slots.filter(other => other.hwnd !== slot.hwnd)
+
+    if (slots.length === 0) {
+      setHover(false)
+      native.previewHide().catch(() => undefined)
+    }
+  }
 </script>
 
 <div
@@ -51,19 +62,35 @@
   onmouseleave={() => setHover(false)}
 >
   {#each slots as slot (slot.hwnd)}
-    <button
-      type="button"
-      class="absolute transition-shadow duration-150"
-      class:selected={hovered === slot.hwnd}
+    <div
+      class="absolute"
       style:left="{slot.x}px"
       style:top="{slot.y}px"
       style:width="{slot.width}px"
       style:height="{slot.height}px"
-      aria-label="Switch to window"
+      role="group"
       onmouseenter={() => (hovered = slot.hwnd)}
       onmouseleave={() => (hovered = null)}
-      onclick={() => pick(slot)}
-    ></button>
+    >
+      <button
+        type="button"
+        class="absolute inset-0 transition-shadow duration-150"
+        class:selected={hovered === slot.hwnd}
+        aria-label="Switch to window"
+        onclick={() => pick(slot)}
+      ></button>
+
+      {#if hovered === slot.hwnd}
+        <button
+          type="button"
+          class="btn btn-circle btn-xs absolute top-1 right-1 border-0 bg-base-100/90 text-base-content shadow hover:bg-error hover:text-error-content"
+          aria-label="Close window"
+          onclick={() => close(slot)}
+        >
+          <Icon icon="lucide:x" class="size-3" />
+        </button>
+      {/if}
+    </div>
   {/each}
 </div>
 

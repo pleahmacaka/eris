@@ -6,7 +6,11 @@
   import { scale } from "svelte/transition"
   import { claudeIcon } from "$lib/claude-icon"
   import Markdown from "$lib/claude/Markdown.svelte"
-  import { ClaudeSession, type Question } from "$lib/claude/session.svelte"
+  import {
+    ClaudeSession,
+    type PermissionMode,
+    type Question,
+  } from "$lib/claude/session.svelte"
   import * as native from "$lib/native"
 
   type Mode = "claude" | "code"
@@ -28,13 +32,22 @@
   let grabY = 0
   let travel = 0
 
+  const PERMISSIONS: { value: PermissionMode; label: string }[] = [
+    { value: "default", label: "Ask" },
+    { value: "acceptEdits", label: "Accept edits" },
+    { value: "plan", label: "Plan" },
+    { value: "bypassPermissions", label: "Bypass" },
+  ]
+
   const stored = JSON.parse(localStorage.getItem(STORAGE) ?? "{}") as {
     mode?: Mode
     folder?: string
     recent?: string[]
+    permission?: PermissionMode
   }
 
   let mode = $state<Mode>(stored.mode ?? "claude")
+  let permission = $state<PermissionMode>(stored.permission ?? "default")
   let folder = $state(stored.folder ?? "")
   let recent = $state<string[]>(stored.recent ?? [])
   let session = $state<ClaudeSession | null>(null)
@@ -209,7 +222,16 @@
       recent = [folder, ...recent].slice(0, RECENT_LIMIT)
     }
 
-    localStorage.setItem(STORAGE, JSON.stringify({ mode, folder, recent }))
+    localStorage.setItem(
+      STORAGE,
+      JSON.stringify({ mode, folder, recent, permission }),
+    )
+  }
+
+  const setPermission = async (next: PermissionMode) => {
+    permission = next
+    remember()
+    await session?.setPermissionMode(next)
   }
 
   const fresh = async (resume: string | null = null) => {
@@ -224,7 +246,13 @@
     const past = resume ? await native.claudeTranscript(cwd, resume).catch(() => []) : []
 
     await next
-      .start({ cwd, resume, plain: mode === "claude", history: past })
+      .start({
+        cwd,
+        resume,
+        plain: mode === "claude",
+        permissionMode: permission,
+        history: past,
+      })
       .catch(e => {
         next.error = String(e)
       })
@@ -629,6 +657,18 @@
           </button>
         {/if}
 
+        <select
+          class="select select-ghost select-xs w-auto max-w-28 text-xs"
+          aria-label="Permission mode"
+          title="Permission mode"
+          value={permission}
+          onchange={e => setPermission((e.currentTarget as HTMLSelectElement).value as PermissionMode)}
+        >
+          {#each PERMISSIONS as option (option.value)}
+            <option value={option.value}>{option.label}</option>
+          {/each}
+        </select>
+
         <span class="grow"></span>
 
         <button
@@ -663,12 +703,38 @@
 
       {#if historyOpen}
         <div class="flex min-h-0 grow flex-col px-3 pb-3">
-          <p class="px-2 pb-1 text-xs text-base-content/50">
-            {cwd ?? "Home"}
-          </p>
+          <div class="flex items-center justify-between px-2 pb-1">
+            <p class="text-xs text-base-content/50">{cwd ?? "Home"}</p>
+
+            <button
+              type="button"
+              class="btn btn-ghost btn-xs"
+              onclick={() => (historyOpen = false)}
+            >
+              <Icon icon="lucide:arrow-left" class="size-3.5" />
+
+              Back
+            </button>
+          </div>
 
           <ul class="min-h-0 grow space-y-0.5 overflow-y-auto">
-            {#each history as item (item.id)}
+            {#if session && session.turns.length > 0}
+              <li>
+                <button
+                  type="button"
+                  class="flex w-full flex-col items-start gap-0.5 rounded-field border border-primary/30 bg-primary/10 px-2 py-1.5 text-left"
+                  onclick={() => (historyOpen = false)}
+                >
+                  <span class="line-clamp-1 text-sm">
+                    {session.turns[0].blocks[0]?.kind === "text" ? session.turns[0].blocks[0].text : "Current chat"}
+                  </span>
+
+                  <span class="text-2xs text-primary">진행 중</span>
+                </button>
+              </li>
+            {/if}
+
+            {#each history.filter(item => item.id !== session?.info.id) as item (item.id)}
               <li>
                 <button
                   type="button"
@@ -863,7 +929,7 @@
         </div>
       {/if}
 
-      <div class="relative shrink-0 p-3">
+      <div class={["relative shrink-0 p-3", historyOpen && "hidden"]}>
         {#if commands.length > 0 || mentions.length > 0}
           <ul
             class="absolute inset-x-3 bottom-full mb-1 max-h-56 overflow-y-auto rounded-box border border-base-content/10 bg-base-100/95 p-1 text-sm shadow-xl"

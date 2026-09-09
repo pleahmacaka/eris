@@ -537,7 +537,7 @@
         uchiwa || (!mac && device.dockAlign === "center")
           ? "grid grid-cols-[1fr_auto_1fr]"
           : mac
-            ? "flex justify-center"
+            ? "flex justify-between"
             : "grid grid-cols-[auto_1fr_auto]",
       ]}
       style:height="{device.dockHeight}px"
@@ -582,17 +582,19 @@
           mac || uchiwa ? "justify-center" : "justify-self-start",
         ]}
       >
-        <button
-          class="btn btn-ghost btn-square btn-sm"
-          title="Launcher"
-          aria-label="Open launcher"
-          onclick={() => native.toggleWindow("main")}
-        >
-          <Icon icon="lucide:sparkles" class="size-4 text-primary" />
-        </button>
+        {#if device.showLauncherButton}
+          <button
+            class="btn btn-ghost btn-square btn-sm"
+            title="Launcher"
+            aria-label="Open launcher"
+            onclick={() => native.toggleWindow("main")}
+          >
+            <Icon icon="lucide:sparkles" class="size-4 text-primary" />
+          </button>
 
-        {#if mac && !uchiwa}
-          <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
+          {#if mac && !uchiwa}
+            <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
+          {/if}
         {/if}
 
         {#if !uchiwa}

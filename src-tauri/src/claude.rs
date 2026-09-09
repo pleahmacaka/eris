@@ -50,6 +50,7 @@ pub struct Start {
     pub cwd: Option<String>,
     pub resume: Option<String>,
     pub plain: bool,
+    pub permission_mode: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -136,6 +137,15 @@ pub fn claude_start(app: AppHandle, options: Start) -> Result<(), String> {
     if let Some(id) = &options.resume {
         args.push("--resume".into());
         args.push(id.clone());
+    }
+
+    if let Some(mode) = options.permission_mode.as_deref().filter(|mode| *mode != "default") {
+        args.push("--permission-mode".into());
+        args.push(mode.to_string());
+
+        if mode == "bypassPermissions" {
+            args.push("--dangerously-skip-permissions".into());
+        }
     }
 
     let cwd = options

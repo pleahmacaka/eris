@@ -97,6 +97,7 @@ export const index: SearchEntry[] = [
   entry("dock", "Pin to desktop", "mac behind windows wallpaper layer"),
   entry("dock", "Auto-hide", "reveal slide"),
   entry("dock", "Hide Windows taskbar", "system bar"),
+  entry("dock", "Show launcher button", "sparkles win key hide"),
   entry("dock", "Show running apps", "open windows"),
   entry("dock", "Show battery", "power laptop"),
   entry("dock", "Show volume", "audio sound"),

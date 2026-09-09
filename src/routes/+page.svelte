@@ -638,13 +638,6 @@
         }
 
         return
-      case "Backspace":
-        if (e.ctrlKey) {
-          e.preventDefault()
-          setQuery("")
-        }
-
-        return
       case "ContextMenu":
         e.preventDefault()
         openMenuAtActive()

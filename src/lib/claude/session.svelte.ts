@@ -50,10 +50,17 @@ export type Info = {
   cwd: string
 }
 
+export type PermissionMode =
+  | "default"
+  | "acceptEdits"
+  | "plan"
+  | "bypassPermissions"
+
 export type StartOptions = {
   cwd: string | null
   resume: string | null
   plain: boolean
+  permissionMode: PermissionMode
   history: native.TranscriptMessage[]
 }
 
@@ -132,6 +139,7 @@ export class ClaudeSession {
       cwd: options.cwd,
       resume: options.resume,
       plain: options.plain,
+      permissionMode: options.permissionMode,
     })
 
     await this.write({
@@ -159,6 +167,14 @@ export class ClaudeSession {
       message: { role: "user", content: [{ type: "text", text }] },
       parent_tool_use_id: null,
       session_id: this.info.id ?? undefined,
+    })
+  }
+
+  async setPermissionMode(mode: PermissionMode) {
+    await this.write({
+      type: "control_request",
+      request_id: crypto.randomUUID(),
+      request: { subtype: "set_permission_mode", mode },
     })
   }
 
