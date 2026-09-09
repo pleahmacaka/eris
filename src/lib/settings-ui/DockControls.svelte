@@ -370,10 +370,8 @@
     />
   </Row>
 
-  <Row label={$t("settings.rows.editMode")} hint={$t("settings.hints.editMode")}>
+  <Row label={$t("settings.rows.editMode")} hint={$t("settings.hints.editMode")} tag="experimental">
     <div class="flex items-center gap-2">
-      <span class="badge badge-soft badge-warning badge-xs">{$t("settings.dock.experimental")}</span>
-
       <button
         type="button"
         class="btn btn-ghost btn-xs"
@@ -393,7 +391,11 @@
   </Row>
 
   {#each toggles as toggle (toggle)}
-    <Row label={$t(`settings.rows.${toggle}`)} hint={$t(`settings.hints.${toggle}`)}>
+    <Row
+      label={$t(`settings.rows.${toggle}`)}
+      hint={$t(`settings.hints.${toggle}`)}
+      tag={toggle === "showNetwork" ? "partial" : undefined}
+    >
       <input
         type="checkbox"
         class="toggle toggle-primary"

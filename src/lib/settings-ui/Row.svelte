@@ -1,16 +1,21 @@
 <script lang="ts">
   import type { Snippet } from "svelte"
+  import { t } from "svelte-i18n"
+
+  export type RowTag = "experimental" | "partial"
 
   let {
     label,
     hint,
     value,
+    tag,
     stacked = false,
     children,
   }: {
     label: string
     hint?: string
     value?: string
+    tag?: RowTag
     stacked?: boolean
     children: Snippet
   } = $props()
@@ -25,7 +30,20 @@
 >
   <div class="flex min-w-0 grow items-center justify-between gap-3">
     <div class="flex min-w-0 flex-col">
-      <span class="text-sm font-medium">{label}</span>
+      <span class="flex items-center gap-2 text-sm font-medium">
+        {label}
+
+        {#if tag}
+          <span
+            class={[
+              "badge badge-soft badge-xs",
+              tag === "experimental" ? "badge-warning" : "badge-info",
+            ]}
+          >
+            {$t(`common.${tag}`)}
+          </span>
+        {/if}
+      </span>
 
       {#if hint}
         <span class="text-xs text-base-content/60">{hint}</span>

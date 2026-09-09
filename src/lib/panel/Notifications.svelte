@@ -66,7 +66,11 @@
 </script>
 
 <div class="flex items-center justify-between gap-2">
-  <h2 class="text-sm font-semibold">{$t("panel.notifications.title")}</h2>
+  <h2 class="flex items-center gap-2 text-sm font-semibold">
+    {$t("panel.notifications.title")}
+
+    <span class="badge badge-soft badge-info badge-xs">{$t("common.partial")}</span>
+  </h2>
 
   <div class="flex items-center gap-1">
     <button

@@ -557,7 +557,7 @@
                   </datalist>
                 </Row>
 
-                <Row label={$t("settings.rows.chatEffort")} hint={$t("settings.hints.chatEffort")}>
+                <Row label={$t("settings.rows.chatEffort")} hint={$t("settings.hints.chatEffort")} tag="partial">
                   <select
                     class="select select-sm w-40"
                     aria-label={$t("settings.rows.chatEffort")}
@@ -581,7 +581,7 @@
                   </select>
                 </Row>
 
-                <Row label={$t("settings.rows.chatThinking")} hint={$t("settings.hints.chatThinking")}>
+                <Row label={$t("settings.rows.chatThinking")} hint={$t("settings.hints.chatThinking")} tag="partial">
                   <select
                     class="select select-sm w-40"
                     aria-label={$t("settings.rows.chatThinking")}
@@ -593,7 +593,7 @@
                   </select>
                 </Row>
 
-                <Row label={$t("settings.rows.chatAutoCompact")} hint={$t("settings.hints.chatAutoCompact")}>
+                <Row label={$t("settings.rows.chatAutoCompact")} hint={$t("settings.hints.chatAutoCompact")} tag="partial">
                   <select
                     class="select select-sm w-40"
                     aria-label={$t("settings.rows.chatAutoCompact")}
@@ -605,7 +605,7 @@
                   </select>
                 </Row>
 
-                <Row label={$t("settings.rows.chatLanguage")} hint={$t("settings.hints.chatLanguage")}>
+                <Row label={$t("settings.rows.chatLanguage")} hint={$t("settings.hints.chatLanguage")} tag="partial">
                   <input
                     class="input input-sm w-40"
                     placeholder={$t("chat.config.languageDefault")}
@@ -614,7 +614,7 @@
                   />
                 </Row>
 
-                <Row label={$t("settings.rows.chatBudget")} hint={$t("settings.hints.chatBudget")}>
+                <Row label={$t("settings.rows.chatBudget")} hint={$t("settings.hints.chatBudget")} tag="partial">
                   <input
                     type="number"
                     min="0"
@@ -625,7 +625,7 @@
                   />
                 </Row>
 
-                <Row label={$t("settings.rows.chatSystemPrompt")} hint={$t("settings.hints.chatSystemPrompt")} stacked>
+                <Row label={$t("settings.rows.chatSystemPrompt")} hint={$t("settings.hints.chatSystemPrompt")} tag="partial" stacked>
                   <textarea
                     class="textarea textarea-sm w-full"
                     rows="3"
@@ -646,7 +646,7 @@
                   />
                 </Row>
 
-                <Row label={$t("settings.rows.chatMultiBubble")} hint={$t("settings.hints.chatMultiBubble")}>
+                <Row label={$t("settings.rows.chatMultiBubble")} hint={$t("settings.hints.chatMultiBubble")} tag="partial">
                   <input
                     type="checkbox"
                     class="toggle toggle-primary"
@@ -713,7 +713,11 @@
 
             <Section title={$t("settings.groups.tray")}>
               {#each ["showBluetooth", "showNotifications", "showDesktopButton", "showTaskView", "showInputLanguage"] as const as toggle (toggle)}
-                <Row label={$t(`settings.rows.${toggle}`)} hint={$t(`settings.hints.${toggle}`)}>
+                <Row
+                  label={$t(`settings.rows.${toggle}`)}
+                  hint={$t(`settings.hints.${toggle}`)}
+                  tag={toggle === "showBluetooth" || toggle === "showNotifications" ? "partial" : undefined}
+                >
                   <input
                     type="checkbox"
                     class="toggle toggle-primary"
