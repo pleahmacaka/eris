@@ -17,9 +17,12 @@ mod icons;
 mod media;
 mod meters;
 mod monitors;
+mod notices;
 mod notify;
 mod preview;
 mod claude;
+mod edit;
+mod quick;
 mod spectrum;
 mod system;
 mod usage;
@@ -27,6 +30,7 @@ mod windowing;
 mod winkey;
 
 static LAUNCHER_SHORTCUT: Mutex<Option<String>> = Mutex::new(None);
+static CHAT_SHORTCUT: Mutex<Option<String>> = Mutex::new(None);
 static DOCK_ON: AtomicBool = AtomicBool::new(true);
 static LAUNCHER_ON: AtomicBool = AtomicBool::new(true);
 static CHAT_ON: AtomicBool = AtomicBool::new(true);
@@ -163,6 +167,35 @@ fn set_launcher_shortcut(app: AppHandle, shortcut: Option<String>) -> Result<(),
     Ok(())
 }
 
+#[tauri::command]
+fn set_chat_shortcut(app: AppHandle, shortcut: Option<String>) -> Result<(), String> {
+    let shortcuts = app.global_shortcut();
+    let mut current = CHAT_SHORTCUT.lock().unwrap();
+
+    if let Some(previous) = current.take() {
+        let _ = shortcuts.unregister(previous.as_str());
+    }
+
+    let Some(next) = shortcut else {
+        return Ok(());
+    };
+
+    // the panel's open state lives in the page, so ask it to toggle instead of hiding the window
+    shortcuts
+        .on_shortcut(next.as_str(), |app, _, event| {
+            if event.state() == ShortcutState::Pressed && CHAT_ON.load(Ordering::Relaxed) {
+                windowing::show(app, "chat");
+
+                let _ = app.emit("chat-toggle", ());
+            }
+        })
+        .map_err(|e| e.to_string())?;
+
+    *current = Some(next);
+
+    Ok(())
+}
+
 fn onboarded(app: &AppHandle) -> bool {
     app.store("settings.json")
         .ok()
@@ -218,6 +251,7 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             apps::list_apps,
             apps::pinned_apps,
@@ -264,8 +298,15 @@ pub fn run() {
             notify::notify_icons,
             notify::notify_icon_click,
             notify::notify_icon_promote,
+            quick::radios,
+            quick::set_radio,
+            quick::bluetooth_devices,
+            quick::quick_action,
+            quick::input_language,
+            quick::cycle_input_language,
             winkey::set_win_key_capture,
             set_launcher_shortcut,
+            set_chat_shortcut,
             windowing::show_window,
             windowing::hide_window,
             windowing::toggle_window,
@@ -276,6 +317,14 @@ pub fn run() {
             claude::claude_sessions,
             claude::claude_transcript,
             set_features,
+            edit::edit_mode,
+            notices::notices_list,
+            notices::notices_unseen,
+            notices::notices_seen,
+            notices::notices_dismiss,
+            notices::notices_open_panel,
+            notices::notices_take_intent,
+            edit::edit_raise,
             windowing::chat_area,
             windowing::chat_frame,
             clipboard::clipboard_history,
@@ -305,20 +354,7 @@ pub fn run() {
 
             let _ = set_launcher_shortcut(handle.clone(), Some("Alt+Space".into()));
 
-            // the panel's open state lives in the page, so ask it to toggle instead of hiding the window
-            if let Err(error) =
-                handle
-                    .global_shortcut()
-                    .on_shortcut("Ctrl+Space", |app, _, event| {
-                        if event.state() == ShortcutState::Pressed && CHAT_ON.load(Ordering::Relaxed) {
-                            windowing::show(app, "chat");
-
-                            let _ = app.emit("chat-toggle", ());
-                        }
-                    })
-            {
-                trace(&format!("chat shortcut refused: {error}"));
-            }
+            let _ = set_chat_shortcut(handle.clone(), Some("Ctrl+Space".into()));
 
             if let Some(main) = app.get_webview_window("main") {
                 main.on_window_event({

@@ -1,4 +1,5 @@
 import { listen } from "@tauri-apps/api/event"
+import { tr } from "$lib/i18n/locale"
 import * as native from "$lib/native"
 
 export type Usage = Pick<native.ClaudeUsage, "fiveHour" | "sevenDay">
@@ -57,19 +58,43 @@ export type PermissionMode =
   | "default"
   | "acceptEdits"
   | "plan"
+  | "auto"
+  | "dontAsk"
   | "bypassPermissions"
+
+export type Effort = "" | "low" | "medium" | "high" | "xhigh" | "max"
+
+export type Tri = "default" | "on" | "off"
+
+export type QueueMode = "afterTool" | "afterReply"
+
+export type Queued = {
+  id: string
+  text: string
+  mode: QueueMode
+  handed: boolean
+}
 
 export type StartOptions = {
   cwd: string | null
   resume: string | null
   plain: boolean
   permissionMode: PermissionMode
+  model: string
+  effort: Effort
+  thinking: Tri
+  autoCompact: Tri
+  language: string
+  budget: number
+  systemPrompt: string
   history: native.TranscriptMessage[]
 }
 
 type Event = Record<string, unknown>
 
 const STDERR_TAIL = 6
+const CONTEXT_WINDOW = 200_000
+const CONTEXT_WINDOW_1M = 1_000_000
 
 const blockText = (content: unknown): string => {
   if (typeof content === "string") {
@@ -87,6 +112,16 @@ const blockText = (content: unknown): string => {
     .map(part => part.text)
     .join("\n")
 }
+
+const contextOf = (usage: Event | undefined) =>
+  usage
+    ? Number(usage.input_tokens ?? 0) +
+      Number(usage.cache_creation_input_tokens ?? 0) +
+      Number(usage.cache_read_input_tokens ?? 0)
+    : 0
+
+export const contextWindowOf = (model: string) =>
+  model.endsWith("[1m]") ? CONTEXT_WINDOW_1M : CONTEXT_WINDOW
 
 export class ClaudeSession {
   key = crypto.randomUUID()
@@ -107,6 +142,14 @@ export class ClaudeSession {
 
   usage = $state<Usage | null>(null)
 
+  context = $state(0)
+
+  contextWindow = $state(CONTEXT_WINDOW)
+
+  queue = $state<Queued[]>([])
+
+  results = $state(0)
+
   private stops: Promise<() => void>[] = []
 
   private stderr: string[] = []
@@ -120,6 +163,7 @@ export class ClaudeSession {
     }))
     this.error = null
     this.info = { ...this.info, cwd: options.cwd ?? "" }
+    this.contextWindow = contextWindowOf(options.model)
 
     this.stops = [
       listen<{ key: string; line: string }>("claude-line", e => {
@@ -145,6 +189,13 @@ export class ClaudeSession {
       resume: options.resume,
       plain: options.plain,
       permissionMode: options.permissionMode,
+      model: options.model,
+      effort: options.effort,
+      thinking: options.thinking,
+      autoCompact: options.autoCompact,
+      language: options.language,
+      budget: options.budget,
+      systemPrompt: options.systemPrompt,
     })
 
     await this.write({
@@ -167,12 +218,36 @@ export class ClaudeSession {
     this.busy = true
     this.error = null
 
-    await this.write({
-      type: "user",
-      message: { role: "user", content: [{ type: "text", text }] },
-      parent_tool_use_id: null,
-      session_id: this.info.id ?? undefined,
-    })
+    await this.deliver(text)
+  }
+
+  // the cli injects a message it already holds right after the running tool, so afterTool hands it over at once
+  async enqueue(text: string, mode: QueueMode) {
+    const item: Queued = { id: crypto.randomUUID(), text, mode, handed: false }
+
+    this.queue = [...this.queue, item]
+
+    if (mode === "afterTool") {
+      await this.hand(item.id)
+    }
+  }
+
+  async setQueueMode(id: string, mode: QueueMode) {
+    const item = this.queue.find(q => q.id === id)
+
+    if (!item || item.handed) {
+      return
+    }
+
+    item.mode = mode
+
+    if (mode === "afterTool") {
+      await this.hand(id)
+    }
+  }
+
+  cancelQueued(id: string) {
+    this.queue = this.queue.filter(q => q.id !== id || q.handed)
   }
 
   async setPermissionMode(mode: PermissionMode) {
@@ -180,6 +255,16 @@ export class ClaudeSession {
       type: "control_request",
       request_id: crypto.randomUUID(),
       request: { subtype: "set_permission_mode", mode },
+    })
+  }
+
+  async setModel(model: string) {
+    this.contextWindow = contextWindowOf(model)
+
+    await this.write({
+      type: "control_request",
+      request_id: crypto.randomUUID(),
+      request: { subtype: "set_model", model: model || null },
     })
   }
 
@@ -193,7 +278,7 @@ export class ClaudeSession {
         role: "assistant",
         blocks: usage
           ? [{ kind: "usage", usage }]
-          : [{ kind: "text", text: "사용량 미측정" }],
+          : [{ kind: "text", text: tr("chat.usageUnknown") }],
         streaming: false,
       },
     ]
@@ -264,6 +349,45 @@ export class ClaudeSession {
     await native.claudeStop(this.key).catch(() => undefined)
   }
 
+  private async hand(id: string) {
+    const item = this.queue.find(q => q.id === id)
+
+    if (!item || item.handed) {
+      return
+    }
+
+    item.handed = true
+    await this.deliver(item.text)
+  }
+
+  private async deliver(text: string) {
+    await this.write({
+      type: "user",
+      message: { role: "user", content: [{ type: "text", text }] },
+      parent_tool_use_id: null,
+      session_id: this.info.id ?? undefined,
+    })
+  }
+
+  private consume(item: Queued) {
+    this.queue = this.queue.filter(q => q.id !== item.id)
+    this.turns = [
+      ...this.turns,
+      {
+        id: crypto.randomUUID(),
+        role: "user",
+        blocks: [{ kind: "text", text: item.text }],
+        streaming: false,
+      },
+    ]
+  }
+
+  private flushHanded() {
+    for (const item of this.queue.filter(q => q.handed)) {
+      this.consume(item)
+    }
+  }
+
   private async respond(requestId: string, response: Record<string, unknown>) {
     await this.write({
       type: "control_response",
@@ -280,6 +404,7 @@ export class ClaudeSession {
 
   private exited(code: number | null) {
     this.busy = false
+    this.queue = []
 
     if (code !== 0 && code !== null && !this.error) {
       this.error = this.stderr.join("\n") || `claude exited with code ${code}`
@@ -324,7 +449,10 @@ export class ClaudeSession {
   }
 
   private onRateLimit(info: Event) {
-    const windows = (info.unifiedWindows ?? {}) as Record<string, Event | undefined>
+    const windows = (info.unifiedWindows ?? {}) as Record<
+      string,
+      Event | undefined
+    >
     const window = (name: string) => {
       const found = windows[name]
 
@@ -340,7 +468,10 @@ export class ClaudeSession {
       }
     }
 
-    this.usage = { fiveHour: window("five_hour"), sevenDay: window("seven_day") }
+    this.usage = {
+      fiveHour: window("five_hour"),
+      sevenDay: window("seven_day"),
+    }
   }
 
   private onInitialized(response: Event) {
@@ -407,6 +538,8 @@ export class ClaudeSession {
     if (event.type === "message_start") {
       const message = event.message as Event
 
+      this.context =
+        contextOf(message.usage as Event | undefined) || this.context
       this.assistant(String(message.id))
 
       return
@@ -467,6 +600,8 @@ export class ClaudeSession {
         .map(block => [block.id, block]),
     )
 
+    this.context = contextOf(message.usage as Event | undefined) || this.context
+
     turn.blocks = content.flatMap((part): Block[] => {
       if (part.type === "text") {
         return [{ kind: "text", text: String(part.text ?? "") }]
@@ -496,11 +631,14 @@ export class ClaudeSession {
     const content = Array.isArray(message.content)
       ? (message.content as Event[])
       : []
+    let boundary = false
 
     for (const part of content) {
       if (part.type !== "tool_result") {
         continue
       }
+
+      boundary = true
 
       for (const turn of this.turns) {
         for (const block of turn.blocks) {
@@ -511,11 +649,24 @@ export class ClaudeSession {
         }
       }
     }
+
+    if (boundary) {
+      this.flushHanded()
+    }
   }
 
   private onResult(event: Event) {
-    this.busy = false
     this.cost += Number(event.total_cost_usd ?? 0)
+    this.results += 1
+
+    const models = Object.values(
+      (event.modelUsage ?? {}) as Record<string, Event>,
+    )
+    const window = Math.max(0, ...models.map(m => Number(m.contextWindow ?? 0)))
+
+    if (window > 0) {
+      this.contextWindow = window
+    }
 
     const last = this.lastAssistant()
 
@@ -526,6 +677,23 @@ export class ClaudeSession {
     if (event.is_error === true) {
       this.error = String(event.result ?? event.subtype ?? "error")
     }
+
+    if (this.queue.some(q => q.handed)) {
+      this.flushHanded()
+
+      return
+    }
+
+    const next = this.queue[0]
+
+    if (next) {
+      this.consume(next)
+      this.deliver(next.text)
+
+      return
+    }
+
+    this.busy = false
   }
 
   private onControl(event: Event) {

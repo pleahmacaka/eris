@@ -17,6 +17,8 @@ pub struct NetworkInfo {
     pub kind: String,
     pub name: String,
     pub connected: bool,
+    pub ssid: String,
+    pub signal: u8,
 }
 
 #[tauri::command(async)]
@@ -135,34 +137,62 @@ mod win {
         super::ratio(now.0.saturating_sub(base.0), now.1.saturating_sub(base.1))
     }
 
+    #[derive(Default)]
+    struct Active {
+        wireless: bool,
+        name: String,
+        ssid: String,
+        signal: u8,
+    }
+
     pub fn network() -> Option<NetworkInfo> {
         let active = internet_profile();
         let connected = active.is_some();
-        let (wireless, name) = active.unwrap_or_default();
+        let active = active.unwrap_or_default();
 
         Some(NetworkInfo {
-            kind: super::kind(connected, wireless).into(),
-            name,
+            kind: super::kind(connected, active.wireless).into(),
+            name: active.name,
             connected,
+            ssid: active.ssid,
+            signal: active.signal,
         })
     }
 
-    fn internet_profile() -> Option<(bool, String)> {
+    fn internet_profile() -> Option<Active> {
         let profile = NetworkInformation::GetInternetConnectionProfile().ok()?;
 
         if profile.GetNetworkConnectivityLevel().ok()? == NetworkConnectivityLevel::None {
             return None;
         }
 
-        let wireless = profile.IsWlanConnectionProfile().unwrap_or(false)
-            || profile.IsWwanConnectionProfile().unwrap_or(false);
+        let wlan = profile.IsWlanConnectionProfile().unwrap_or(false);
+        let wireless = wlan || profile.IsWwanConnectionProfile().unwrap_or(false);
 
         let name = profile
             .ProfileName()
             .map(|name| name.to_string())
             .unwrap_or_default();
 
-        Some((wireless, name))
+        let ssid = wlan
+            .then(|| profile.WlanConnectionProfileDetails().ok()?.GetConnectedSsid().ok())
+            .flatten()
+            .map(|ssid| ssid.to_string())
+            .unwrap_or_default();
+
+        let signal = profile
+            .GetSignalBars()
+            .ok()
+            .and_then(|bars| bars.Value().ok())
+            .unwrap_or(0)
+            .min(5);
+
+        Some(Active {
+            wireless,
+            name,
+            ssid,
+            signal,
+        })
     }
 
     fn ticks(time: FILETIME) -> u64 {

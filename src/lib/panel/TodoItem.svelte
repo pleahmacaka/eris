@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { t } from "svelte-i18n"
   import { todos } from "$lib/data/store"
   import { dueLabel, isOverdue } from "$lib/data/todo"
   import type { Todo } from "$lib/data/types"
@@ -144,7 +145,7 @@
     class="checkbox checkbox-sm checkbox-primary mt-0.5 rounded-full"
     checked={todo.done}
     onchange={toggle}
-    aria-label={todo.done ? "Mark as not done" : "Mark as done"}
+    aria-label={todo.done ? $t("panel.todo.markNotDone") : $t("panel.todo.markDone")}
   />
 
   <div class="flex min-w-0 grow flex-col gap-0.5">
@@ -154,7 +155,7 @@
         bind:value={draft}
         type="text"
         class="input input-xs w-full"
-        aria-label="Todo title"
+        aria-label={$t("panel.todo.titleAria")}
         onblur={commit}
         onkeydown={onEditKey}
       />
@@ -165,7 +166,7 @@
           "w-full truncate text-left text-sm leading-5",
           todo.done && "line-through",
         ]}
-        title="Double-click to edit"
+        title={$t("panel.todo.editHint")}
         ondblclick={startEdit}
         onkeydown={onTitleKey}
       >
@@ -202,7 +203,7 @@
 
   <button
     class="btn btn-ghost btn-square btn-xs shrink-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100 focus-visible:opacity-100"
-    aria-label="Delete todo"
+    aria-label={$t("panel.todo.delete")}
     onclick={remove}
   >
     <Icon icon="lucide:x" class="size-3.5" />

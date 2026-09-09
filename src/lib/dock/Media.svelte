@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { t } from "svelte-i18n"
   import * as native from "$lib/native"
   import {
     type MediaAction,
@@ -176,7 +177,7 @@
         open ? "bg-base-content/10" : "bg-base-content/5 hover:bg-base-content/10",
       ]}
       role="group"
-      aria-label="Media"
+      aria-label={$t("tray.media.title")}
     >
       {#if spectrum && status.playing}
         <div
@@ -194,8 +195,8 @@
 
       <button
         class="btn btn-ghost btn-square btn-xs"
-        title="Previous"
-        aria-label="Previous track"
+        title={$t("tray.media.previous")}
+        aria-label={$t("tray.media.previous")}
         onclick={() => send("previous")}
       >
         <Icon icon="lucide:skip-back" class="size-3.5" />
@@ -203,8 +204,8 @@
 
       <button
         class={["btn btn-ghost btn-square btn-sm", failed && "text-error"]}
-        title={failed ? "Media command failed" : label}
-        aria-label={status.playing ? "Pause" : "Play"}
+        title={failed ? $t("tray.media.failed") : label}
+        aria-label={status.playing ? $t("tray.media.pause") : $t("tray.media.play")}
         onclick={() => send("playpause")}
       >
         <Icon
@@ -215,8 +216,8 @@
 
       <button
         class="btn btn-ghost btn-square btn-xs"
-        title="Next"
-        aria-label="Next track"
+        title={$t("tray.media.next")}
+        aria-label={$t("tray.media.next")}
         onclick={() => send("next")}
       >
         <Icon icon="lucide:skip-forward" class="size-3.5" />
@@ -237,7 +238,7 @@
         <button
           class="btn btn-ghost btn-square btn-xs"
           title={label}
-          aria-label="Now playing"
+          aria-label={$t("tray.media.nowPlaying")}
           aria-haspopup="dialog"
           aria-expanded={open}
           onclick={() => setOpen(!open)}
@@ -257,7 +258,7 @@
           edge === "top" ? "top-full mt-2" : "bottom-full mb-2",
         ]}
         role="dialog"
-        aria-label="Now playing"
+        aria-label={$t("tray.media.nowPlaying")}
       >
         {#if spectrum && status.playing}
           <div
@@ -274,17 +275,17 @@
         {/if}
 
         <p class="truncate text-sm font-medium">
-          {status.title || "재생 없음"}
+          {status.title || $t("tray.media.nothing")}
         </p>
 
         <p class="mt-0.5 truncate text-xs text-base-content/55">
-          {subtitle || "정보 없음"}
+          {subtitle || $t("tray.media.noInfo")}
         </p>
 
         <div class="mt-3 flex items-center justify-center gap-1">
           <button
             class="btn btn-ghost btn-square btn-sm"
-            aria-label="Previous track"
+            aria-label={$t("tray.media.previous")}
             onclick={() => send("previous")}
           >
             <Icon icon="lucide:skip-back" class="size-4" />
@@ -292,7 +293,7 @@
 
           <button
             class="btn btn-primary btn-square btn-sm"
-            aria-label={status.playing ? "Pause" : "Play"}
+            aria-label={status.playing ? $t("tray.media.pause") : $t("tray.media.play")}
             onclick={() => send("playpause")}
           >
             <Icon
@@ -303,7 +304,7 @@
 
           <button
             class="btn btn-ghost btn-square btn-sm"
-            aria-label="Next track"
+            aria-label={$t("tray.media.next")}
             onclick={() => send("next")}
           >
             <Icon icon="lucide:skip-forward" class="size-4" />
@@ -324,7 +325,7 @@
             min="0"
             max="100"
             value={Math.round((volume?.level ?? 0) * 100)}
-            aria-label="Volume"
+            aria-label={$t("tray.volume.title")}
             oninput={e =>
               setLevel(Number((e.currentTarget as HTMLInputElement).value) / 100)}
           />

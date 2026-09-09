@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { t } from "svelte-i18n"
   import { fromIcs, toIcs } from "$lib/data/ics"
   import { events } from "$lib/data/store"
   import type { CalendarEvent } from "$lib/data/types"
@@ -16,8 +17,6 @@
   const message = (error: unknown) =>
     error instanceof Error ? error.message : String(error)
 
-  const count = (n: number) => `${n} ${n === 1 ? "event" : "events"}`
-
   const download = () => {
     open = false
 
@@ -30,7 +29,7 @@
       link.download = "eris.ics"
       link.click()
       setTimeout(() => URL.revokeObjectURL(url), 1000)
-      toast(`Exported ${count(list.length)}`, "success")
+      toast($t("panel.ics.exported", { values: { count: list.length } }), "success")
     } catch (error) {
       toast(message(error), "error")
     }
@@ -41,7 +40,7 @@
 
     try {
       await navigator.clipboard.writeText(toIcs(list))
-      toast("Calendar copied to the clipboard", "success")
+      toast($t("panel.ics.copied"), "success")
     } catch (error) {
       toast(message(error), "error")
     }
@@ -73,8 +72,8 @@
 
       toast(
         parsed.length === 0
-          ? "No events found"
-          : `Imported ${count(parsed.length)}`,
+          ? $t("panel.ics.noEvents")
+          : $t("panel.ics.imported", { values: { count: parsed.length } }),
         parsed.length === 0 ? "info" : "success",
       )
     } catch (error) {
@@ -96,8 +95,8 @@
   <summary
     class="btn btn-ghost btn-square btn-sm"
     {onkeydown}
-    aria-label="Calendar options"
-    title="Calendar options"
+    aria-label={$t("panel.ics.options")}
+    title={$t("panel.ics.options")}
   >
     {#if busy}
       <span class="loading loading-spinner loading-xs"></span>
@@ -113,7 +112,7 @@
       <button type="button" onclick={pick} {onkeydown}>
         <Icon icon="lucide:upload" class="size-4" />
 
-        Import .ics
+        {$t("panel.ics.import")}
       </button>
     </li>
 
@@ -121,7 +120,7 @@
       <button type="button" onclick={download} {onkeydown}>
         <Icon icon="lucide:download" class="size-4" />
 
-        Export .ics
+        {$t("panel.ics.export")}
       </button>
     </li>
 
@@ -129,7 +128,7 @@
       <button type="button" onclick={copy} {onkeydown}>
         <Icon icon="lucide:clipboard-copy" class="size-4" />
 
-        Copy .ics
+        {$t("panel.ics.copy")}
       </button>
     </li>
   </ul>
@@ -140,7 +139,7 @@
   type="file"
   accept="text/calendar,.ics"
   class="sr-only"
-  aria-label="Import calendar file"
+  aria-label={$t("panel.ics.importFile")}
   onchange={onpick}
   oncancel={() => picker?.blur()}
 />

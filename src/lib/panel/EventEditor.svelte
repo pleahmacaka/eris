@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { untrack } from "svelte"
+  import { t } from "svelte-i18n"
   import { dateKey } from "$lib/data/calendar"
   import { events } from "$lib/data/store"
   import type { CalendarEvent, Recurrence } from "$lib/data/types"
@@ -14,34 +15,51 @@
 
   let { event, isNew, onclose }: Props = $props()
 
-  const COLORS: { value: string | null; label: string }[] = [
-    { value: null, label: "Default" },
-    { value: "var(--color-secondary)", label: "Secondary" },
-    { value: "var(--color-accent)", label: "Accent" },
-    { value: "var(--color-success)", label: "Success" },
-    { value: "var(--color-warning)", label: "Warning" },
-    { value: "var(--color-error)", label: "Error" },
+  const COLORS: { value: string | null; id: string }[] = [
+    { value: null, id: "default" },
+    { value: "var(--color-secondary)", id: "secondary" },
+    { value: "var(--color-accent)", id: "accent" },
+    { value: "var(--color-success)", id: "success" },
+    { value: "var(--color-warning)", id: "warning" },
+    { value: "var(--color-error)", id: "error" },
   ]
 
-  const REMINDERS: { value: number | null; label: string }[] = [
-    { value: null, label: "None" },
-    { value: 0, label: "At start" },
-    { value: 5, label: "5 minutes before" },
-    { value: 10, label: "10 minutes before" },
-    { value: 15, label: "15 minutes before" },
-    { value: 30, label: "30 minutes before" },
-    { value: 60, label: "1 hour before" },
-    { value: 1440, label: "1 day before" },
+  const REMINDERS: (number | null)[] = [null, 0, 5, 10, 15, 30, 60, 1440]
+
+  const RECURRENCES: Recurrence[] = [
+    "none",
+    "daily",
+    "weekdays",
+    "weekly",
+    "monthly",
+    "yearly",
   ]
 
-  const RECURRENCES: { value: Recurrence; label: string }[] = [
-    { value: "none", label: "Does not repeat" },
-    { value: "daily", label: "Daily" },
-    { value: "weekdays", label: "Weekdays" },
-    { value: "weekly", label: "Weekly" },
-    { value: "monthly", label: "Monthly" },
-    { value: "yearly", label: "Yearly" },
-  ]
+  const reminderLabel = (minutes: number | null) => {
+    if (minutes === null) {
+      return $t("common.none")
+    }
+
+    if (minutes === 0) {
+      return $t("panel.event.reminders.atStart")
+    }
+
+    if (minutes === 60) {
+      return $t("panel.event.reminders.hourBefore")
+    }
+
+    if (minutes === 1440) {
+      return $t("panel.event.reminders.dayBefore")
+    }
+
+    return $t("panel.event.reminders.minutesBefore", {
+      values: { count: minutes },
+    })
+  }
+
+  const heading = $derived(
+    isNew ? $t("panel.event.new") : $t("panel.event.edit"),
+  )
 
   let draft = $state(untrack(() => ({ ...event })))
   let title = $state<HTMLInputElement>()
@@ -103,16 +121,16 @@
   class="absolute inset-0 z-20 flex flex-col bg-base-100/90 backdrop-blur-xl"
   role="dialog"
   aria-modal="true"
-  aria-label={isNew ? "New event" : "Edit event"}
+  aria-label={heading}
   tabindex="-1"
   {onkeydown}
 >
   <header class="flex items-center justify-between px-5 pt-5 pb-3">
-    <h2 class="text-base font-semibold">{isNew ? "New event" : "Edit event"}</h2>
+    <h2 class="text-base font-semibold">{heading}</h2>
 
     <button
       class="btn btn-ghost btn-square btn-sm"
-      aria-label="Close"
+      aria-label={$t("common.close")}
       onclick={onclose}
     >
       <Icon icon="lucide:x" class="size-4" />
@@ -125,13 +143,13 @@
       bind:value={draft.title}
       type="text"
       class="input w-full text-base"
-      placeholder="Title"
-      aria-label="Title"
+      placeholder={$t("panel.title")}
+      aria-label={$t("panel.title")}
       spellcheck="false"
     />
 
     <label class="flex items-center justify-between gap-3 text-sm">
-      <span>All day</span>
+      <span>{$t("panel.allDay")}</span>
 
       <input
         type="checkbox"
@@ -143,7 +161,7 @@
 
     <div class="grid grid-cols-2 gap-3">
       <label class="flex flex-col gap-1 text-xs text-base-content/60">
-        Start
+        {$t("panel.event.start")}
 
         {#if draft.allDay}
           <input
@@ -163,7 +181,7 @@
       </label>
 
       <label class="flex flex-col gap-1 text-xs text-base-content/60">
-        End
+        {$t("panel.event.end")}
 
         {#if draft.allDay}
           <input
@@ -188,10 +206,10 @@
     {/if}
 
     <div class="flex flex-col gap-1.5 text-xs text-base-content/60">
-      Color
+      {$t("panel.event.color")}
 
-      <div class="flex items-center gap-2" role="radiogroup" aria-label="Color">
-        {#each COLORS as color (color.label)}
+      <div class="flex items-center gap-2" role="radiogroup" aria-label={$t("panel.event.color")}>
+        {#each COLORS as color (color.id)}
           <button
             class={[
               "size-6 rounded-full transition-transform duration-150 hover:scale-110",
@@ -201,7 +219,7 @@
             style:background={color.value ?? "var(--color-primary)"}
             role="radio"
             aria-checked={draft.color === color.value}
-            aria-label={color.label}
+            aria-label={$t(`panel.colors.${color.id}`)}
             onclick={() => {
               draft.color = color.value
             }}
@@ -212,37 +230,37 @@
 
     <div class="grid grid-cols-2 gap-3">
       <label class="flex flex-col gap-1 text-xs text-base-content/60">
-        Reminder
+        {$t("panel.event.reminder")}
 
         <select
           class="select select-sm w-full"
           bind:value={draft.reminderMinutes}
         >
-          {#each REMINDERS as option (option.label)}
-            <option value={option.value}>{option.label}</option>
+          {#each REMINDERS as minutes (minutes)}
+            <option value={minutes}>{reminderLabel(minutes)}</option>
           {/each}
         </select>
       </label>
 
       <label class="flex flex-col gap-1 text-xs text-base-content/60">
-        Repeat
+        {$t("panel.event.repeat")}
 
         <select class="select select-sm w-full" bind:value={draft.recurrence}>
-          {#each RECURRENCES as option (option.value)}
-            <option value={option.value}>{option.label}</option>
+          {#each RECURRENCES as value (value)}
+            <option {value}>{$t(`panel.event.recurrences.${value}`)}</option>
           {/each}
         </select>
       </label>
     </div>
 
     <label class="flex flex-col gap-1 text-xs text-base-content/60">
-      Notes
+      {$t("panel.event.notes")}
 
       <textarea
         class="textarea textarea-sm w-full"
         rows="3"
         bind:value={draft.notes}
-        placeholder="Notes"
+        placeholder={$t("panel.event.notes")}
       ></textarea>
     </label>
   </div>
@@ -254,16 +272,16 @@
       <button class="btn btn-ghost btn-sm text-error" onclick={remove}>
         <Icon icon="lucide:trash-2" class="size-4" />
 
-        Delete
+        {$t("common.delete")}
       </button>
     {/if}
 
     <span class="grow"></span>
 
-    <button class="btn btn-ghost btn-sm" onclick={onclose}>Cancel</button>
+    <button class="btn btn-ghost btn-sm" onclick={onclose}>{$t("common.cancel")}</button>
 
     <button class="btn btn-primary btn-sm" disabled={!valid} onclick={save}>
-      Save
+      {$t("common.save")}
     </button>
   </footer>
 </div>

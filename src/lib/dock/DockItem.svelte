@@ -5,6 +5,7 @@
 
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { t } from "svelte-i18n"
   import * as native from "$lib/native"
   import type { DockEdge } from "$lib/settings"
   import ContextMenu from "$lib/ui/ContextMenu.svelte"
@@ -193,39 +194,36 @@
         action: () => native.activateWindow(w.hwnd),
       }))
 
-    const pin: MenuItem =
-      group.pinned === "windows"
-        ? {
-            label: hiddenHere ? "Show in dock" : "Hide from dock",
-            icon: hiddenHere ? "lucide:eye" : "lucide:eye-off",
-            hint: "Windows pin",
-            action: () => toggleDockHidden(group.path),
-          }
-        : {
-            label: group.pinned ? "Unpin from dock" : "Pin to dock",
-            icon: group.pinned ? "lucide:pin-off" : "lucide:pin",
-            action: () => toggleDockPin(group.path),
-          }
+    const pinned = group.pinned === "windows" ? !hiddenHere : Boolean(group.pinned)
+
+    const pin: MenuItem = {
+      label: pinned ? $t("dock.menu.unpin") : $t("dock.menu.pin"),
+      icon: pinned ? "lucide:pin-off" : "lucide:pin",
+      action: () =>
+        group.pinned === "windows"
+          ? toggleDockHidden(group.path)
+          : toggleDockPin(group.path),
+    }
 
     return [
       ...windows,
       ...(running ? (["separator"] as MenuItem[]) : []),
       {
-        label: "Open new window",
+        label: $t("dock.menu.newWindow"),
         icon: "lucide:plus",
         action: launch,
       },
       ...(running
         ? ([
             {
-              label: "Close all",
+              label: $t("dock.menu.closeAll"),
               icon: "lucide:x",
               action: closeAll,
             },
           ] as MenuItem[])
         : []),
       {
-        label: "Open file location",
+        label: $t("dock.menu.openLocation"),
         icon: "lucide:folder-open",
         action: () => native.openLocation(group.path),
       },

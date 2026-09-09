@@ -10,7 +10,8 @@
     "onboarding",
     "preview",
     "chat",
-    "files"
+    "files",
+    "edit"
   ],
   "permissions": [
     "core:default",
@@ -36,6 +37,7 @@
     "dialog:allow-open",
     "process:allow-exit",
     "process:allow-restart",
+    "updater:default",
     "clipboard-manager:allow-write-text",
     "clipboard-manager:allow-read-text",
     {

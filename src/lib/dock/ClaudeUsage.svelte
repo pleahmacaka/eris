@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { t } from "svelte-i18n"
   import { claudeIcon } from "$lib/claude-icon"
   import { http } from "$lib/http"
   import { type ClaudeUsage, claudeUsage } from "$lib/native"
@@ -58,17 +59,21 @@
     const minutes = Math.floor(left / 60_000)
     const hours = Math.floor(minutes / 60)
 
-    return hours > 0 ? `${hours}시간 ${minutes % 60}분 남음` : `${minutes}분 남음`
+    return hours > 0
+      ? $t("tray.claude.leftHours", { values: { hours, minutes: minutes % 60 } })
+      : $t("tray.claude.leftMinutes", { values: { minutes } })
   }
 
   const label = $derived.by(() => {
     if (!usage) {
-      return "Claude 사용량 미측정"
+      return $t("tray.claude.unmeasured")
     }
 
     const parts = [
-      usage.fiveHour && `5시간 ${percent(usage.fiveHour.used)}%`,
-      usage.sevenDay && `주간 ${percent(usage.sevenDay.used)}%`,
+      usage.fiveHour &&
+        $t("tray.claude.fiveHour", { values: { percent: percent(usage.fiveHour.used) } }),
+      usage.sevenDay &&
+        $t("tray.claude.weekly", { values: { percent: percent(usage.sevenDay.used) } }),
       usage.fiveHour && countdown(usage.fiveHour.resetsAt),
     ].filter(Boolean)
 

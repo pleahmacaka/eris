@@ -1,6 +1,8 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { listen } from "@tauri-apps/api/event"
+  import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart"
+  import { t } from "svelte-i18n"
   import { untrack } from "svelte"
   import { flip } from "svelte/animate"
   import { Window } from "@tauri-apps/api/window"
@@ -17,6 +19,9 @@
     startDock,
   } from "$lib/dock/dock.svelte"
   import DockItem, { MAGNIFY_BOOST } from "$lib/dock/DockItem.svelte"
+  import EditSpot from "$lib/edit/EditSpot.svelte"
+  import { startEdit, watchEdit } from "$lib/edit/edit.svelte"
+  import Segmented from "$lib/settings-ui/Segmented.svelte"
   import ContextMenu from "$lib/ui/ContextMenu.svelte"
   import type { MenuItem } from "$lib/ui/menu"
   import ClaudeUsage from "$lib/dock/ClaudeUsage.svelte"
@@ -25,7 +30,12 @@
   import { startTimerWatch } from "$lib/launcher/timers"
   import * as native from "$lib/native"
   import {
+    type ClockAlign,
     type DeviceSettings,
+    type DockAlign,
+    type DockSide,
+    type DockStyle,
+    type LauncherTrigger,
     defaultDevice,
     defaultProfile,
     loadProfile,
@@ -40,6 +50,14 @@
   const HIDE_DELAY = 1_200
   const VISIBILITY_POLL = 2_000
   const REOPEN_GUARD = 400
+
+  document.documentElement.dataset.surface = "dock"
+
+  type BoolKey = {
+    [K in keyof DeviceSettings]: DeviceSettings[K] extends boolean ? K : never
+  }[keyof DeviceSettings]
+
+  type RangeKey = "dockIconSize" | "dockHeight" | "dockWidth"
 
   let device = $state<DeviceSettings>(defaultDevice)
   let profile = $state<Profile>(defaultProfile)
@@ -69,6 +87,49 @@
   )
 
   const hidden = $derived(new Set(device.hiddenApps))
+
+  const leftWidgets = $derived(
+    (device.showClaudeUsage && device.claudeUsageSide === "left") ||
+      (device.showMedia && device.mediaSide === "left"),
+  )
+
+  const spotPlacement = $derived(device.dockEdge === "top" ? "down" : "up")
+
+  const patch = <K extends keyof DeviceSettings>(key: K, value: DeviceSettings[K]) => {
+    device = { ...device, [key]: value }
+    saveDevice($state.snapshot(device)).catch(() => undefined)
+  }
+
+  const styleOptions = $derived<{ value: DockStyle; label: string }[]>(
+    (["windows", "mac"] as DockStyle[]).map(value => ({
+      value,
+      label: $t(`settings.dock.styles.${value}.label`),
+    })),
+  )
+
+  const alignOptions = $derived<{ value: DockAlign; label: string }[]>(
+    (["start", "center", "uchiwa"] as DockAlign[])
+      .filter(value => !mac || value !== "start")
+      .map(value => ({ value, label: $t(`settings.dock.${value}`) })),
+  )
+
+  const clockOptions = $derived<{ value: ClockAlign; label: string }[]>([
+    { value: "start", label: $t("settings.dock.alignStart") },
+    { value: "center", label: $t("settings.dock.alignCenter") },
+    { value: "end", label: $t("settings.dock.alignEnd") },
+  ])
+
+  const sideOptions = $derived<{ value: DockSide; label: string }[]>([
+    { value: "left", label: $t("settings.dock.left") },
+    { value: "right", label: $t("settings.dock.right") },
+  ])
+
+  const triggerOptions = $derived<{ value: LauncherTrigger; label: string }[]>(
+    (["win", "shortcut", "both"] as LauncherTrigger[]).map(value => ({
+      value,
+      label: $t(`settings.options.${value}`),
+    })),
+  )
 
   let dragPath = $state<string | null>(null)
   let dropPath = $state<string | null>(null)
@@ -247,27 +308,36 @@
   let barMenuX = $state(0)
 
   const barMenuItems = $derived.by((): MenuItem[] => [
+    ...(device.editMode
+      ? ([
+          {
+            label: $t("dock.editLayout"),
+            icon: "lucide:pencil-ruler",
+            action: startEdit,
+          },
+          "separator",
+        ] as MenuItem[])
+      : []),
     {
-      label: "Task Manager",
+      label: $t("dock.taskManager"),
       icon: "lucide:activity",
       action: () => native.runCommand("taskmgr"),
     },
     {
-      label: device.showRunningApps ? "Hide running apps" : "Show running apps",
+      label: device.showRunningApps ? $t("dock.hideRunning") : $t("dock.showRunning"),
       icon: device.showRunningApps ? "lucide:eye-off" : "lucide:eye",
-      action: () => saveDevice({ ...device, showRunningApps: !device.showRunningApps }),
+      action: () => patch("showRunningApps", !device.showRunningApps),
     },
     {
       label: device.showSettingsButton
-        ? "Hide settings button"
-        : "Show settings button",
+        ? $t("dock.hideSettingsButton")
+        : $t("dock.showSettingsButton"),
       icon: "lucide:settings-2",
-      action: () =>
-        saveDevice({ ...device, showSettingsButton: !device.showSettingsButton }),
+      action: () => patch("showSettingsButton", !device.showSettingsButton),
     },
     "separator",
     {
-      label: "Eris 설정",
+      label: $t("dock.settings"),
       icon: "lucide:settings",
       action: () => native.showWindow("settings"),
     },
@@ -365,6 +435,7 @@
     const stopSync = startAutoSync()
     const stopDock = startDock()
     const stopTimers = startTimerWatch()
+    const stopEditWatch = watchEdit()
     const poll = setInterval(refreshVisibility, VISIBILITY_POLL)
 
     refreshVisibility()
@@ -373,6 +444,7 @@
       stopSync()
       stopDock()
       stopTimers()
+      stopEditWatch()
       clearInterval(poll)
 
       for (const stop of stops) {
@@ -413,6 +485,28 @@
     }
 
     native.setFeatures($state.snapshot(device.features)).catch(() => undefined)
+  })
+
+  $effect(() => {
+    if (!ready) {
+      return
+    }
+
+    native
+      .setChatShortcut(device.features.chat ? device.chatShortcut : null)
+      .catch(() => undefined)
+  })
+
+  $effect(() => {
+    if (!ready) {
+      return
+    }
+
+    const wanted = device.autostart
+
+    isEnabled()
+      .then(on => (on === wanted ? undefined : wanted ? enable() : disable()))
+      .catch(() => undefined)
   })
 
   $effect(() => {
@@ -464,11 +558,128 @@
   }}
 />
 
+{#snippet toggleRow(key: BoolKey, label: string)}
+  <label class="flex items-center justify-between gap-3 py-1 text-xs">
+    <span>{label}</span>
+
+    <input
+      type="checkbox"
+      class="toggle toggle-primary toggle-xs"
+      checked={device[key]}
+      onchange={e => patch(key, e.currentTarget.checked)}
+    />
+  </label>
+{/snippet}
+
+{#snippet rangeRow(key: RangeKey, label: string, min: number, max: number, step: number)}
+  <label class="flex flex-col gap-1 py-1 text-xs">
+    <span class="flex justify-between">
+      <span>{label}</span>
+
+      <span class="text-base-content/60 tabular-nums">{device[key]}</span>
+    </span>
+
+    <input
+      type="range"
+      class="range range-primary range-xs"
+      {min}
+      {max}
+      {step}
+      value={device[key]}
+      oninput={e => (device = { ...device, [key]: Number(e.currentTarget.value) })}
+      onchange={e => patch(key, Number(e.currentTarget.value))}
+    />
+  </label>
+{/snippet}
+
+{#snippet appsOptions()}
+  <div class="flex items-center justify-between gap-3 py-1 text-xs">
+    <span>{$t("settings.rows.style")}</span>
+
+    <Segmented value={device.dockStyle} options={styleOptions} onchange={v => patch("dockStyle", v)} />
+  </div>
+
+  <div class="flex items-center justify-between gap-3 py-1 text-xs">
+    <span>{$t("settings.rows.alignment")}</span>
+
+    <Segmented value={device.dockAlign} options={alignOptions} onchange={v => patch("dockAlign", v)} />
+  </div>
+
+  {@render rangeRow("dockIconSize", $t("settings.rows.iconSize"), 16, 32, 2)}
+  {@render rangeRow("dockHeight", $t("settings.rows.height"), 32, 88, 2)}
+
+  {#if mac}
+    {@render rangeRow("dockWidth", $t("settings.rows.width"), 320, 1400, 20)}
+    {@render toggleRow("dockDesktop", $t("settings.rows.pinDesktop"))}
+  {/if}
+
+  {@render toggleRow("showRunningApps", $t("settings.rows.showRunningApps"))}
+  {@render toggleRow("dockSeparators", $t("settings.rows.dockSeparators"))}
+  {@render toggleRow("dockAutoHide", $t("settings.rows.autoHide"))}
+  {@render toggleRow("hideSystemTaskbar", $t("settings.rows.hideTaskbar"))}
+{/snippet}
+
+{#snippet trayOptions()}
+  {@render toggleRow("clock24h", $t("settings.rows.clock24h"))}
+  {@render toggleRow("showSeconds", $t("settings.rows.showSeconds"))}
+
+  <div class="flex items-center justify-between gap-3 py-1 text-xs">
+    <span>{$t("settings.rows.clockAlign")}</span>
+
+    <Segmented value={device.clockAlign} options={clockOptions} onchange={v => patch("clockAlign", v)} />
+  </div>
+
+  <div class="my-1 border-t border-base-content/10"></div>
+
+  {@render toggleRow("showTrayIcons", $t("settings.rows.showTrayIcons"))}
+  {@render toggleRow("showBattery", $t("settings.rows.showBattery"))}
+  {@render toggleRow("showVolume", $t("settings.rows.showVolume"))}
+  {@render toggleRow("showNetwork", $t("settings.rows.showNetwork"))}
+  {@render toggleRow("showMeters", $t("settings.rows.showMeters"))}
+  {@render toggleRow("showBluetooth", $t("settings.rows.showBluetooth"))}
+  {@render toggleRow("showNotifications", $t("settings.rows.showNotifications"))}
+  {@render toggleRow("showInputLanguage", $t("settings.rows.showInputLanguage"))}
+  {@render toggleRow("showTaskView", $t("settings.rows.showTaskView"))}
+  {@render toggleRow("showDesktopButton", $t("settings.rows.showDesktopButton"))}
+  {@render toggleRow("showSettingsButton", $t("settings.rows.showSettingsButton"))}
+{/snippet}
+
+{#snippet widgetOptions()}
+  {@render toggleRow("showClaudeUsage", $t("settings.rows.showClaudeUsage"))}
+  {@render toggleRow("claudeUsageStacked", $t("settings.rows.claudeUsageStacked"))}
+
+  <div class="flex items-center justify-between gap-3 py-1 text-xs">
+    <span>{$t("settings.rows.claudeUsageSide")}</span>
+
+    <Segmented value={device.claudeUsageSide} options={sideOptions} onchange={v => patch("claudeUsageSide", v)} />
+  </div>
+
+  {@render toggleRow("showMedia", $t("settings.rows.showMedia"))}
+  {@render toggleRow("showSpectrum", $t("settings.rows.showSpectrum"))}
+
+  <div class="flex items-center justify-between gap-3 py-1 text-xs">
+    <span>{$t("settings.rows.mediaSide")}</span>
+
+    <Segmented value={device.mediaSide} options={sideOptions} onchange={v => patch("mediaSide", v)} />
+  </div>
+{/snippet}
+
+{#snippet launcherOptions()}
+  {@render toggleRow("showLauncherButton", $t("settings.rows.showLauncherButton"))}
+
+  <div class="flex items-center justify-between gap-3 py-1 text-xs">
+    <span>{$t("settings.rows.openWith")}</span>
+
+    <Segmented value={device.launcherTrigger} options={triggerOptions} onchange={v => patch("launcherTrigger", v)} />
+  </div>
+{/snippet}
+
 {#snippet apps(list: DockGroup[], offset: number, tail: boolean)}
+  <EditSpot id="apps" label={$t("edit.spots.apps")} placement={spotPlacement} onmenu={extend} options={appsOptions}>
   <div
     role="toolbar"
     tabindex="-1"
-    aria-label="Apps"
+    aria-label={$t("dock.apps")}
     class="flex min-w-0 items-center gap-0.5"
     onpointermove={e => (pointerX = e.clientX)}
     onpointerleave={() => (pointerX = null)}
@@ -507,8 +718,8 @@
         <button
           class="btn btn-ghost btn-square"
           style:--size="{device.dockIconSize + 16}px"
-          title="{spilled.length} more"
-          aria-label="{spilled.length} more apps"
+          title={$t("dock.more", { values: { count: spilled.length } })}
+          aria-label={$t("dock.more", { values: { count: spilled.length } })}
           aria-haspopup="menu"
           aria-expanded={overflowOpen}
           onclick={() => {
@@ -523,12 +734,13 @@
           bind:open={overflowOpen}
           items={overflowItems}
           placement={device.dockEdge === "top" ? "down" : "up"}
-          label="More apps"
+          label={$t("dock.moreApps")}
           onclose={() => extend(0)}
         />
       </div>
     {/if}
   </div>
+  </EditSpot>
 {/snippet}
 
 <div
@@ -552,7 +764,7 @@
             : "grid grid-cols-[auto_1fr_auto]",
       ]}
       style:height="{device.dockHeight}px"
-      aria-label="Dock"
+      aria-label={$t("dock.dockAria")}
       bind:clientWidth={navWidth}
       oncontextmenu={openBarMenu}
     >
@@ -563,22 +775,26 @@
         ]}
       >
         <div class="flex items-center" bind:clientWidth={leadWidth}>
-          {#if device.showClaudeUsage && device.claudeUsageSide === "left"}
-            <ClaudeUsage
-              source={device.claudeUsageSource}
-              compact={device.dockHeight < 40}
-              stacked={device.claudeUsageStacked}
-            />
-          {/if}
+          {#if leftWidgets}
+            <EditSpot id="widgets" label={$t("edit.spots.widgets")} placement={spotPlacement} align="start" onmenu={extend} options={widgetOptions}>
+              {#if device.showClaudeUsage && device.claudeUsageSide === "left"}
+                <ClaudeUsage
+                  source={device.claudeUsageSource}
+                  compact={device.dockHeight < 40}
+                  stacked={device.claudeUsageStacked}
+                />
+              {/if}
 
-          {#if device.showMedia && device.mediaSide === "left"}
-            <Media
-              compact={device.dockHeight < 40}
-              edge={device.dockEdge}
-              spectrum={device.showSpectrum}
-              spectrumStyle={device.spectrumStyle}
-              onmenu={extend}
-            />
+              {#if device.showMedia && device.mediaSide === "left"}
+                <Media
+                  compact={device.dockHeight < 40}
+                  edge={device.dockEdge}
+                  spectrum={device.showSpectrum}
+                  spectrumStyle={device.spectrumStyle}
+                  onmenu={extend}
+                />
+              {/if}
+            </EditSpot>
           {/if}
         </div>
 
@@ -594,16 +810,18 @@
         ]}
       >
         {#if device.showLauncherButton && device.features.launcher}
-          <button
-            class="btn btn-ghost btn-square btn-sm"
-            title="Launcher"
-            aria-label="Open launcher"
-            onclick={() => native.toggleWindow("main")}
-          >
-            <Icon icon="lucide:sparkles" class="size-4 text-primary" />
-          </button>
+          <EditSpot id="launcher" label={$t("edit.spots.launcher")} placement={spotPlacement} onmenu={extend} options={launcherOptions}>
+            <button
+              class="btn btn-ghost btn-square btn-sm"
+              title={$t("dock.launcher")}
+              aria-label={$t("dock.openLauncher")}
+              onclick={() => native.toggleWindow("main")}
+            >
+              <Icon icon="lucide:sparkles" class="size-4 text-primary" />
+            </button>
+          </EditSpot>
 
-          {#if mac && !uchiwa}
+          {#if device.dockSeparators && !uchiwa}
             <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
           {/if}
         {/if}
@@ -624,11 +842,13 @@
         {/if}
 
         <div class="flex items-center" bind:clientWidth={trailWidth}>
-          {#if mac}
+          {#if device.dockSeparators}
             <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
           {/if}
 
-          <Tray {device} {panelOpen} onclock={togglePanel} onmenu={extend} />
+          <EditSpot id="tray" label={$t("edit.spots.tray")} placement={spotPlacement} align="end" onmenu={extend} options={trayOptions}>
+            <Tray {device} {panelOpen} onclock={togglePanel} onmenu={extend} />
+          </EditSpot>
         </div>
       </div>
 
@@ -638,7 +858,7 @@
         x={barMenuX}
         bottom={device.dockHeight + 8}
         width={224}
-        label="Dock menu"
+        label={$t("dock.dockMenu")}
         onsize={height => extend(barMenu ? height + 24 : 0)}
         onclose={() => extend(0)}
       />
@@ -669,5 +889,16 @@
 
   :global(:root[data-background="solid"]) nav {
     background: var(--color-base-100);
+  }
+
+  nav {
+    background-image: linear-gradient(
+      oklch(62% calc(var(--vividness) + 0.08) var(--accent-hue) / var(--dock-tint, 0)),
+      oklch(62% calc(var(--vividness) + 0.08) var(--accent-hue) / var(--dock-tint, 0))
+    );
+  }
+
+  :global(:root[data-dock-border="false"]) nav {
+    border-color: transparent;
   }
 </style>

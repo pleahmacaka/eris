@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { tick, untrack } from "svelte"
+  import { t } from "svelte-i18n"
   import { live } from "$lib/data/live.svelte"
   import {
     blankNote,
@@ -20,13 +21,13 @@
 
   const SAVE_DELAY = 400
 
-  const COLORS: { value: string | null; label: string }[] = [
-    { value: null, label: "Default" },
-    { value: "var(--color-secondary)", label: "Secondary" },
-    { value: "var(--color-accent)", label: "Accent" },
-    { value: "var(--color-success)", label: "Success" },
-    { value: "var(--color-warning)", label: "Warning" },
-    { value: "var(--color-error)", label: "Error" },
+  const COLORS: { value: string | null; id: string }[] = [
+    { value: null, id: "default" },
+    { value: "var(--color-secondary)", id: "secondary" },
+    { value: "var(--color-accent)", id: "accent" },
+    { value: "var(--color-success)", id: "success" },
+    { value: "var(--color-warning)", id: "warning" },
+    { value: "var(--color-error)", id: "error" },
   ]
 
   const noteLive = live(notes)
@@ -210,8 +211,8 @@
         <input
           bind:value={query}
           type="text"
-          placeholder="Search notes"
-          aria-label="Search notes"
+          placeholder={$t("panel.notes.search")}
+          aria-label={$t("panel.notes.search")}
           spellcheck="false"
           autocomplete="off"
         />
@@ -219,8 +220,8 @@
 
       <button
         class="btn btn-ghost btn-square btn-xs"
-        aria-label="New note"
-        title="New note"
+        aria-label={$t("panel.notes.new")}
+        title={$t("panel.notes.new")}
         onclick={create}
       >
         <Icon icon="lucide:plus" class="size-4" />
@@ -255,7 +256,7 @@
                 <Icon
                   icon="lucide:pin"
                   class="size-3 shrink-0 text-primary"
-                  aria-label="Pinned"
+                  aria-label={$t("panel.notes.pinned")}
                 />
               {/if}
             </span>
@@ -269,7 +270,7 @@
         </li>
       {:else}
         <li class="px-2 py-3 text-xs text-base-content/45">
-          {query.trim() ? "No matches" : "No notes"}
+          {query.trim() ? $t("common.noMatches") : $t("panel.notes.noNotes")}
         </li>
       {/each}
     </ul>
@@ -281,7 +282,7 @@
     {#if draft}
       {#if conflict}
         <p class="text-[11px] text-warning">
-          Reloaded with a newer version from another device.
+          {$t("panel.notes.conflict")}
         </p>
       {/if}
 
@@ -291,8 +292,8 @@
           bind:value={draft.title}
           type="text"
           class="input input-sm min-w-0 grow"
-          placeholder="Title"
-          aria-label="Note title"
+          placeholder={$t("panel.title")}
+          aria-label={$t("panel.notes.titleAria")}
           spellcheck="false"
           oninput={edited}
           onkeydown={onEditorKey}
@@ -300,7 +301,7 @@
 
         <button
           class={["btn btn-ghost btn-square btn-sm", draft.pinned && "text-primary"]}
-          aria-label={draft.pinned ? "Unpin note" : "Pin note"}
+          aria-label={draft.pinned ? $t("panel.notes.unpin") : $t("panel.notes.pin")}
           aria-pressed={draft.pinned}
           onkeydown={onEditorKey}
           onclick={() => patch({ pinned: !draft?.pinned })}
@@ -310,7 +311,7 @@
 
         <button
           class="btn btn-ghost btn-square btn-sm text-error"
-          aria-label="Delete note"
+          aria-label={$t("panel.notes.delete")}
           onkeydown={onEditorKey}
           onclick={remove}
         >
@@ -318,8 +319,8 @@
         </button>
       </div>
 
-      <div class="flex items-center gap-1.5" role="radiogroup" aria-label="Color">
-        {#each COLORS as color (color.label)}
+      <div class="flex items-center gap-1.5" role="radiogroup" aria-label={$t("panel.event.color")}>
+        {#each COLORS as color (color.id)}
           <button
             class={[
               "size-4 rounded-full transition-transform duration-150 hover:scale-110",
@@ -329,7 +330,7 @@
             style:background={color.value ?? "var(--color-primary)"}
             role="radio"
             aria-checked={draft.color === color.value}
-            aria-label={color.label}
+            aria-label={$t(`panel.colors.${color.id}`)}
             onkeydown={onEditorKey}
             onclick={() => patch({ color: color.value })}
           ></button>
@@ -339,8 +340,8 @@
       <textarea
         bind:value={draft.body}
         class="textarea textarea-sm min-h-0 w-full grow resize-none leading-relaxed"
-        placeholder="Write something"
-        aria-label="Note body"
+        placeholder={$t("panel.notes.bodyPlaceholder")}
+        aria-label={$t("panel.notes.bodyAria")}
         oninput={edited}
         onkeydown={onEditorKey}
       ></textarea>
@@ -350,10 +351,10 @@
       >
         <Icon icon="lucide:notebook-pen" class="size-6 text-base-content/30" />
 
-        {visible.length > 0 ? "Select a note" : "No notes"}
+        {visible.length > 0 ? $t("panel.notes.select") : $t("panel.notes.noNotes")}
 
         <button class="btn btn-ghost btn-xs gap-1" onclick={create}>
-          New note
+          {$t("panel.notes.new")}
 
           <kbd class="kbd kbd-xs">Ctrl</kbd>
 

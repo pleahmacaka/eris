@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { t } from "svelte-i18n"
   import { formatRange, parseLocal, parseQuickEvent } from "$lib/data/calendar"
   import { events, newId, todos } from "$lib/data/store"
   import { dueLabel, parseQuickAdd } from "$lib/data/todo"
@@ -26,7 +27,8 @@
   }
 
   const hint = $derived(
-    placeholder ?? (mode === "todo" ? "Add a todo" : "Add a todo, / for an event"),
+    placeholder ??
+      (mode === "todo" ? $t("panel.quickAdd.todo") : $t("panel.quickAdd.auto")),
   )
 
   const eventBody = (value: string) => {
@@ -155,7 +157,9 @@
       class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 px-3 text-xs text-base-content/60"
     >
       {#if draft.kind === "event"}
-        <span class="badge badge-xs badge-soft badge-secondary">Event</span>
+        <span class="badge badge-xs badge-soft badge-secondary">
+          {$t("panel.quickAdd.eventBadge")}
+        </span>
 
         <span class="truncate font-medium text-base-content/85">
           {draft.event.title}
@@ -165,7 +169,9 @@
           {dayLabel(parseLocal(draft.event.start))} · {formatRange(draft.event)}
         </span>
       {:else}
-        <span class="badge badge-xs badge-soft badge-primary">Todo</span>
+        <span class="badge badge-xs badge-soft badge-primary">
+          {$t("panel.quickAdd.todoBadge")}
+        </span>
 
         <span class="truncate font-medium text-base-content/85">
           {draft.todo.title}

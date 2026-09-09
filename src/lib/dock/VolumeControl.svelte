@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { t } from "svelte-i18n"
   import * as native from "$lib/native"
   import type { DockEdge } from "$lib/settings"
 
@@ -58,7 +59,11 @@
     return volume.level < 0.5 ? "lucide:volume-1" : "lucide:volume-2"
   })
 
-  const label = $derived(volume.muted ? "Muted" : `Volume ${level}%`)
+  const label = $derived(
+    volume.muted
+      ? $t("tray.volume.muted")
+      : $t("tray.volume.level", { values: { percent: level } }),
+  )
 
   const apply = async (next: number) => {
     const clamped = Math.min(1, Math.max(0, Math.round(next * 100) / 100))
@@ -134,12 +139,12 @@
         edge === "top" ? "top-full mt-2" : "bottom-full mb-2",
       ]}
       role="dialog"
-      aria-label="Sound"
+      aria-label={$t("tray.volume.sound")}
     >
       <div class="flex items-center gap-2">
         <button
           class="btn btn-ghost btn-square btn-sm"
-          aria-label={volume.muted ? "Unmute" : "Mute"}
+          aria-label={volume.muted ? $t("tray.volume.unmute") : $t("tray.volume.mute")}
           onclick={toggleMute}
         >
           <Icon {icon} class="size-4" />
@@ -151,7 +156,7 @@
           min="0"
           max="100"
           value={level}
-          aria-label="Volume"
+          aria-label={$t("tray.volume.title")}
           oninput={onslide}
         />
 
@@ -161,10 +166,10 @@
       </div>
 
       <div class="mt-3 border-t border-base-content/10 pt-2">
-        <p class="px-1 pb-1 text-xs text-base-content/50">Output device</p>
+        <p class="px-1 pb-1 text-xs text-base-content/50">{$t("tray.volume.output")}</p>
 
         {#if devices.length === 0}
-          <p class="px-1 py-2 text-xs text-base-content/40">기기 없음</p>
+          <p class="px-1 py-2 text-xs text-base-content/40">{$t("tray.volume.noDevices")}</p>
         {:else}
           <ul class="max-h-40 space-y-0.5 overflow-y-auto">
             {#each devices as device (device.id)}

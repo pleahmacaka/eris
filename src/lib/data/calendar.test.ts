@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test"
+import { tr } from "../i18n/locale"
 import {
   dateKey,
   eventsOn,
@@ -230,7 +231,7 @@ describe("formatRange", () => {
       formatRange(
         event({ allDay: true, start: "2026-09-02", end: "2026-09-02" }),
       ),
-    ).toBe("All day")
+    ).toBe(tr("panel.allDay"))
   })
 
   test("same day times", () => {

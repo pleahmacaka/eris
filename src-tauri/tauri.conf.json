@@ -145,6 +145,24 @@
         "visible": false,
         "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-gpu-compositing",
         "create": false
+      },
+      {
+        "label": "edit",
+        "url": "/edit",
+        "title": "Eris Edit",
+        "width": 800,
+        "height": 600,
+        "resizable": false,
+        "transparent": true,
+        "decorations": false,
+        "shadow": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "visible": false,
+        "focus": false,
+        "dragDropEnabled": false,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-gpu-compositing",
+        "create": false
       }
     ],
     "security": {
@@ -164,6 +182,18 @@
     ],
     "android": {
       "debugApplicationIdSuffix": ".debug"
+    },
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEIxQTg1M0I3QkZCRDg4QTAKUldTZ2lMMi90MU9vc1V2alhjR3BKdlgxZERmV0dDcm8xSFRzUWk5TGFCdHl4ek1tOUxOcGJiT2UK",
+      "endpoints": [
+        "https://github.com/pleahmacaka/eris/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
     }
   }
 }

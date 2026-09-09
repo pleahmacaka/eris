@@ -61,7 +61,8 @@ mod win {
         GetWindowThreadProcessId, IsWindow, PostMessageW, PostQuitMessage, RegisterClassExW,
         RegisterWindowMessageW, SendMessageTimeoutW, SendNotifyMessageW, SetForegroundWindow,
         SetWindowPos, HWND_BROADCAST, HWND_TOPMOST, MSG, SMTO_ABORTIFHUNG, SWP_NOACTIVATE,
-        SWP_NOMOVE, SWP_NOSIZE, WM_CLOSE, WM_CONTEXTMENU, WM_COPYDATA, WM_DESTROY, WM_LBUTTONDOWN,
+        SWP_NOMOVE, SWP_NOSIZE, WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_COPYDATA, WM_DESTROY,
+        WM_LBUTTONDOWN,
         WM_LBUTTONUP, WM_RBUTTONDOWN, WM_RBUTTONUP, WNDCLASSEXW, WS_EX_TOOLWINDOW, WS_EX_TOPMOST,
         WS_POPUP,
     };
@@ -768,6 +769,11 @@ mod win {
             unsafe { PostQuitMessage(0) };
 
             return LRESULT(0);
+        }
+
+        // IShellDispatch finds this window as Shell_TrayWnd, so its tray commands must reach the real one
+        if message == WM_COMMAND {
+            return unsafe { relay(message, wparam, lparam) };
         }
 
         if message != WM_COPYDATA {

@@ -20,6 +20,9 @@
     | "fontScale"
     | "surfaceOpacity"
     | "dockOpacity"
+    | "dockBlur"
+    | "dockRadius"
+    | "dockTint"
 
   type Slider = {
     key: NumberKey
@@ -41,7 +44,13 @@
     { key: "blur", row: "blur", min: 0, max: 2, step: 0.05, format: times },
     { key: "fontScale", row: "fontSize", min: 0.85, max: 1.25, step: 0.05, format: percent },
     { key: "surfaceOpacity", row: "windowOpacity", min: 0.6, max: 1, step: 0.02, format: percent },
+  ]
+
+  const dockSliders: Slider[] = [
     { key: "dockOpacity", row: "dockOpacity", min: 0.6, max: 1, step: 0.02, format: percent },
+    { key: "dockBlur", row: "dockBlur", min: 0, max: 2, step: 0.05, format: times },
+    { key: "dockRadius", row: "dockRadius", min: 0, max: 2, step: 0.05, format: times },
+    { key: "dockTint", row: "dockTint", min: 0, max: 0.4, step: 0.02, format: v => percent(v / 0.4) },
   ]
 
   const user = live(userPresets)
@@ -180,6 +189,66 @@
     />
   </Row>
 {/each}
+
+<div class="flex flex-col px-4 pt-4 pb-1">
+  <span class="text-sm font-semibold">{$t("settings.groups.dockLook.title")}</span>
+
+  <span class="text-xs text-base-content/60">{$t("settings.groups.dockLook.description")}</span>
+</div>
+
+<Row label={$t("settings.rows.dockBackground")} hint={$t("settings.hints.dockBackground")}>
+  <Segmented
+    label={$t("settings.rows.dockBackground")}
+    bind:value={profile.appearance.dockBackground}
+    onchange={markCustom}
+    options={[
+      { value: "inherit", label: $t("settings.options.inherit") },
+      { value: "aura", label: $t("settings.options.aura") },
+      { value: "glass", label: $t("settings.options.glass") },
+      { value: "solid", label: $t("settings.options.solid") },
+    ]}
+  />
+</Row>
+
+{#each dockSliders as s (s.key)}
+  <Row
+    label={$t(`settings.rows.${s.row}`)}
+    hint={$t(`settings.hints.${s.row}`)}
+    value={s.format(profile.appearance[s.key])}
+    stacked
+  >
+    <input
+      type="range"
+      class="range range-primary range-xs w-full"
+      min={s.min}
+      max={s.max}
+      step={s.step}
+      aria-label={$t(`settings.rows.${s.row}`)}
+      bind:value={profile.appearance[s.key]}
+      oninput={markCustom}
+    />
+  </Row>
+{/each}
+
+<Row label={$t("settings.rows.dockBorder")} hint={$t("settings.hints.dockBorder")}>
+  <input
+    type="checkbox"
+    class="toggle toggle-primary"
+    aria-label={$t("settings.rows.dockBorder")}
+    bind:checked={profile.appearance.dockBorder}
+    onchange={markCustom}
+  />
+</Row>
+
+<Row label={$t("settings.rows.dockAura")} hint={$t("settings.hints.dockAura")}>
+  <input
+    type="checkbox"
+    class="toggle toggle-primary"
+    aria-label={$t("settings.rows.dockAura")}
+    bind:checked={profile.appearance.dockAura}
+    onchange={markCustom}
+  />
+</Row>
 
 <Row label={$t("settings.rows.density")} hint={$t("settings.hints.density")}>
   <Segmented

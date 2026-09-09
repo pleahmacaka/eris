@@ -147,7 +147,7 @@ export const dueLabel = (todo: Todo, now = new Date()) => {
     return label
   }
 
-  const time = due.toLocaleTimeString("en-US", {
+  const time = due.toLocaleTimeString(currentLocale(), {
     hour: "numeric",
     minute: "2-digit",
   })

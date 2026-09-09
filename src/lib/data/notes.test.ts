@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test"
+import { tr } from "../i18n/locale"
 import { notePreview, noteTitle, searchNotes, sortNotes } from "./notes"
 import type { Note } from "./types"
 
@@ -36,6 +37,6 @@ test("search matches title and body regardless of case", () => {
 
 test("an untitled note falls back to its first body line", () => {
   expect(noteTitle(note({ body: "  first line \nsecond" }))).toBe("first line")
-  expect(noteTitle(note())).toBe("Untitled")
+  expect(noteTitle(note())).toBe(tr("panel.untitled"))
   expect(notePreview(note({ body: "one\n\n  two  " }))).toBe("one two")
 })

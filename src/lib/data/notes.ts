@@ -1,3 +1,4 @@
+import { tr } from "../i18n/locale"
 import type { Note } from "./types"
 
 export const blankNote = (): Note => {
@@ -34,7 +35,7 @@ export const searchNotes = (items: Note[], query: string) => {
 export const noteTitle = (note: Note) => {
   const [first = ""] = note.body.split("\n")
 
-  return note.title.trim() || first.trim() || "Untitled"
+  return note.title.trim() || first.trim() || tr("panel.untitled")
 }
 
 export const notePreview = (note: Note) =>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { t } from "svelte-i18n"
   import { isAction, type MenuItem } from "./menu"
 
   type Props = {
@@ -25,7 +26,7 @@
     align = "start",
     bottom,
     width = 224,
-    label = "Menu",
+    label,
     onclose,
     onsize,
   }: Props = $props()
@@ -148,7 +149,7 @@
   <ul
     bind:this={list}
     role="menu"
-    aria-label={label}
+    aria-label={label ?? $t("menu.label")}
     class={[
       "menu z-50 gap-0.5 rounded-box border border-base-content/10 bg-base-100/95 p-2 shadow-2xl backdrop-blur-xl",
       floating

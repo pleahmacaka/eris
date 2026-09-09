@@ -3,7 +3,7 @@
   import Icon from "@iconify/svelte"
   import { tick } from "svelte"
   import { emit, listen } from "@tauri-apps/api/event"
-  import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart"
+  import { disable, enable } from "@tauri-apps/plugin-autostart"
   import { saveProfileSynced } from "$lib/data/store"
   import { ensureDevice } from "$lib/device"
   import {
@@ -26,6 +26,9 @@
   import AppearanceControls from "$lib/settings-ui/AppearanceControls.svelte"
   import DockControls from "$lib/settings-ui/DockControls.svelte"
   import FeatureControls from "$lib/settings-ui/FeatureControls.svelte"
+  import { getVersion } from "@tauri-apps/api/app"
+  import { relaunch } from "@tauri-apps/plugin-process"
+  import { check, type Update } from "@tauri-apps/plugin-updater"
   import HotkeyPicker from "$lib/settings-ui/HotkeyPicker.svelte"
   import ImportExport from "$lib/settings-ui/ImportExport.svelte"
   import PresetGrid from "$lib/settings-ui/PresetGrid.svelte"
@@ -47,7 +50,65 @@
   import { t } from "svelte-i18n"
   import { LANGUAGES } from "$lib/i18n/locale"
 
-  const VERSION = "0.1.0"
+  let version = $state("")
+
+  $effect(() => {
+    getVersion()
+      .then(v => (version = v))
+      .catch(() => undefined)
+  })
+
+  type UpdateState = "idle" | "checking" | "none" | "available" | "downloading" | "installing" | "failed"
+
+  let update = $state<Update | null>(null)
+  let updateState = $state<UpdateState>("idle")
+  let updateError = $state("")
+  let downloaded = $state(0)
+  let downloadTotal = $state(0)
+
+  const downloadPercent = $derived(
+    downloadTotal > 0 ? Math.min(100, Math.round((downloaded / downloadTotal) * 100)) : 0,
+  )
+
+  const checkUpdates = async () => {
+    updateState = "checking"
+    updateError = ""
+
+    try {
+      update = await check()
+      updateState = update ? "available" : "none"
+    } catch (e) {
+      updateError = String(e)
+      updateState = "failed"
+    }
+  }
+
+  const installUpdate = async () => {
+    if (!update) {
+      return
+    }
+
+    updateState = "downloading"
+    downloaded = 0
+    downloadTotal = 0
+
+    try {
+      await update.downloadAndInstall(event => {
+        if (event.event === "Started") {
+          downloadTotal = event.data.contentLength ?? 0
+        } else if (event.event === "Progress") {
+          downloaded += event.data.chunkLength
+        } else {
+          updateState = "installing"
+        }
+      })
+
+      await relaunch()
+    } catch (e) {
+      updateError = String(e)
+      updateState = "failed"
+    }
+  }
   const reminders = [0, 5, 10, 15, 30, 60]
 
   let section = $state<SectionId>("general")
@@ -112,14 +173,6 @@
       device = d
       profile = p
       ready = true
-
-      isEnabled()
-        .then(on => {
-          if (device.autostart !== on) {
-            device.autostart = on
-          }
-        })
-        .catch(() => undefined)
     })
 
     const stops = [
@@ -281,6 +334,10 @@
       ],
     },
     {
+      title: $t("settings.shortcuts.chat"),
+      items: [{ keys: chips(device.chatShortcut), action: $t("settings.shortcuts.toggleChat") }],
+    },
+    {
       title: $t("settings.shortcuts.panel"),
       items: [
         { keys: [key("left"), key("right")], action: $t("settings.shortcuts.switchTabs") },
@@ -331,7 +388,7 @@
   </header>
 
   <div class="flex min-h-0 grow">
-    <nav class="w-44 shrink-0 px-3 pb-4" aria-label="Sections">
+    <nav class="w-44 shrink-0 px-3 pb-4" aria-label={$t("settings.sectionsAria")}>
       <label class="input input-sm mb-2 w-full">
         <Icon icon="lucide:search" class="size-3.5 shrink-0 opacity-50" />
 
@@ -483,6 +540,140 @@
                     oninput={previewSnap}
                   />
                 </Row>
+
+                <Row label={$t("settings.rows.chatModel")} hint={$t("settings.hints.chatModel")}>
+                  <input
+                    class="input input-sm w-40"
+                    list="settings-chat-models"
+                    placeholder={$t("chat.config.modelDefault")}
+                    aria-label={$t("settings.rows.chatModel")}
+                    bind:value={device.chatModel}
+                  />
+
+                  <datalist id="settings-chat-models">
+                    {#each ["fable", "opus", "sonnet", "haiku", "opus[1m]", "sonnet[1m]"] as model (model)}
+                      <option value={model}></option>
+                    {/each}
+                  </datalist>
+                </Row>
+
+                <Row label={$t("settings.rows.chatEffort")} hint={$t("settings.hints.chatEffort")}>
+                  <select
+                    class="select select-sm w-40"
+                    aria-label={$t("settings.rows.chatEffort")}
+                    bind:value={device.chatEffort}
+                  >
+                    {#each ["", "low", "medium", "high", "xhigh", "max"] as effort (effort)}
+                      <option value={effort}>{$t(`chat.effort.${effort || "default"}`)}</option>
+                    {/each}
+                  </select>
+                </Row>
+
+                <Row label={$t("settings.rows.chatPermission")} hint={$t("settings.hints.chatPermission")}>
+                  <select
+                    class="select select-sm w-40"
+                    aria-label={$t("settings.rows.chatPermission")}
+                    bind:value={device.chatPermission}
+                  >
+                    {#each ["default", "acceptEdits", "plan", "auto", "dontAsk", "bypassPermissions"] as mode (mode)}
+                      <option value={mode}>{$t(`chat.permission.${mode}`)}</option>
+                    {/each}
+                  </select>
+                </Row>
+
+                <Row label={$t("settings.rows.chatThinking")} hint={$t("settings.hints.chatThinking")}>
+                  <select
+                    class="select select-sm w-40"
+                    aria-label={$t("settings.rows.chatThinking")}
+                    bind:value={device.chatThinking}
+                  >
+                    {#each ["default", "on", "off"] as tri (tri)}
+                      <option value={tri}>{$t(`chat.tri.${tri}`)}</option>
+                    {/each}
+                  </select>
+                </Row>
+
+                <Row label={$t("settings.rows.chatAutoCompact")} hint={$t("settings.hints.chatAutoCompact")}>
+                  <select
+                    class="select select-sm w-40"
+                    aria-label={$t("settings.rows.chatAutoCompact")}
+                    bind:value={device.chatAutoCompact}
+                  >
+                    {#each ["default", "on", "off"] as tri (tri)}
+                      <option value={tri}>{$t(`chat.tri.${tri}`)}</option>
+                    {/each}
+                  </select>
+                </Row>
+
+                <Row label={$t("settings.rows.chatLanguage")} hint={$t("settings.hints.chatLanguage")}>
+                  <input
+                    class="input input-sm w-40"
+                    placeholder={$t("chat.config.languageDefault")}
+                    aria-label={$t("settings.rows.chatLanguage")}
+                    bind:value={device.chatLanguage}
+                  />
+                </Row>
+
+                <Row label={$t("settings.rows.chatBudget")} hint={$t("settings.hints.chatBudget")}>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    class="input input-sm w-40"
+                    aria-label={$t("settings.rows.chatBudget")}
+                    bind:value={device.chatBudget}
+                  />
+                </Row>
+
+                <Row label={$t("settings.rows.chatSystemPrompt")} hint={$t("settings.hints.chatSystemPrompt")} stacked>
+                  <textarea
+                    class="textarea textarea-sm w-full"
+                    rows="3"
+                    aria-label={$t("settings.rows.chatSystemPrompt")}
+                    bind:value={device.chatSystemPrompt}
+                  ></textarea>
+                </Row>
+
+                <Row label={$t("settings.rows.chatHover")} hint={$t("settings.hints.chatHover")}>
+                  <Segmented
+                    label={$t("settings.rows.chatHover")}
+                    bind:value={device.chatHover}
+                    options={[
+                      { value: "none", label: $t("chat.hover.none") },
+                      { value: "title", label: $t("chat.hover.title") },
+                      { value: "preview", label: $t("chat.hover.preview") },
+                    ]}
+                  />
+                </Row>
+
+                <Row label={$t("settings.rows.chatMultiBubble")} hint={$t("settings.hints.chatMultiBubble")}>
+                  <input
+                    type="checkbox"
+                    class="toggle toggle-primary"
+                    aria-label={$t("settings.rows.chatMultiBubble")}
+                    bind:checked={device.chatMultiBubble}
+                  />
+                </Row>
+
+                <Row label={$t("settings.rows.chatBubbleColors")} hint={$t("settings.hints.chatBubbleColors")}>
+                  <input
+                    type="checkbox"
+                    class="toggle toggle-primary"
+                    aria-label={$t("settings.rows.chatBubbleColors")}
+                    bind:checked={device.chatBubbleColors}
+                  />
+                </Row>
+
+                <Row label={$t("settings.rows.chatQueueMode")} hint={$t("settings.hints.chatQueueMode")}>
+                  <Segmented
+                    label={$t("settings.rows.chatQueueMode")}
+                    bind:value={device.chatQueueMode}
+                    options={[
+                      { value: "afterTool", label: $t("chat.queue.afterTool") },
+                      { value: "afterReply", label: $t("chat.queue.afterReply") },
+                    ]}
+                  />
+                </Row>
               </Section>
             {/if}
 
@@ -518,6 +709,19 @@
           {:else if section === "dock"}
             <Section title={$t("settings.groups.dock")}>
               <DockControls bind:device />
+            </Section>
+
+            <Section title={$t("settings.groups.tray")}>
+              {#each ["showBluetooth", "showNotifications", "showDesktopButton", "showTaskView", "showInputLanguage"] as const as toggle (toggle)}
+                <Row label={$t(`settings.rows.${toggle}`)} hint={$t(`settings.hints.${toggle}`)}>
+                  <input
+                    type="checkbox"
+                    class="toggle toggle-primary"
+                    aria-label={$t(`settings.rows.${toggle}`)}
+                    bind:checked={device[toggle]}
+                  />
+                </Row>
+              {/each}
             </Section>
           {:else if section === "launcher"}
             <Section title={$t("settings.groups.results")}>
@@ -681,7 +885,7 @@
                     <span class="text-base font-semibold">Eris</span>
 
                     <span class="badge badge-soft badge-primary badge-sm">
-                      {VERSION}
+                      {version}
                     </span>
                   </div>
 
@@ -690,6 +894,82 @@
                   </span>
                 </div>
               </div>
+
+              <Row label={$t("settings.rows.updates")} hint={$t("settings.hints.updates")} stacked>
+                <div class="flex flex-wrap items-center gap-2">
+                  {#if updateState === "available" && update}
+                    <span class="text-sm">
+                      {$t("settings.about.available", { values: { version: update.version } })}
+                    </span>
+
+                    <button type="button" class="btn btn-primary btn-sm" onclick={installUpdate}>
+                      <Icon icon="lucide:download" class="size-4" />
+                      {$t("settings.about.installRestart")}
+                    </button>
+                  {:else if updateState === "downloading" || updateState === "installing"}
+                    <progress class="progress progress-primary w-40" value={downloadPercent} max="100"
+                    ></progress>
+
+                    <span class="text-sm text-base-content/70">
+                      {updateState === "installing"
+                        ? $t("settings.about.installing")
+                        : $t("settings.about.downloading", { values: { percent: downloadPercent } })}
+                    </span>
+                  {:else}
+                    <button
+                      type="button"
+                      class="btn btn-sm"
+                      disabled={updateState === "checking"}
+                      onclick={checkUpdates}
+                    >
+                      <Icon icon="lucide:refresh-cw" class={["size-4", updateState === "checking" && "animate-spin"]} />
+                      {updateState === "checking"
+                        ? $t("settings.about.checking")
+                        : $t("settings.about.checkUpdates")}
+                    </button>
+
+                    {#if updateState === "none"}
+                      <span class="text-sm text-success">{$t("settings.about.upToDate")}</span>
+                    {:else if updateState === "failed"}
+                      <span class="text-sm text-error">
+                        {$t("settings.about.failed", { values: { error: updateError } })}
+                      </span>
+                    {/if}
+                  {/if}
+                </div>
+              </Row>
+            </Section>
+          {:else if section === "keymap"}
+            <Section
+              title={$t("settings.groups.hotkey.title")}
+              description={$t("settings.groups.hotkey.description")}
+            >
+              <Row label={$t("settings.rows.openWith")} hint={$t("settings.hints.openWith")}>
+                <Segmented
+                  label={$t("settings.rows.openWith")}
+                  bind:value={device.launcherTrigger}
+                  options={[
+                    { value: "win", label: $t("settings.options.win") },
+                    { value: "shortcut", label: $t("settings.options.shortcut") },
+                    { value: "both", label: $t("settings.options.both") },
+                  ]}
+                />
+              </Row>
+
+              {#if device.launcherTrigger !== "win"}
+                <Row label={$t("settings.rows.shortcut")} hint={$t("settings.hints.shortcut")}>
+                  <HotkeyPicker bind:value={device.launcherShortcut} />
+                </Row>
+              {/if}
+            </Section>
+
+            <Section
+              title={$t("settings.groups.chatHotkey.title")}
+              description={$t("settings.groups.chatHotkey.description")}
+            >
+              <Row label={$t("settings.rows.chatShortcut")} hint={$t("settings.hints.chatShortcut")}>
+                <HotkeyPicker bind:value={device.chatShortcut} fallback="Ctrl+Space" />
+              </Row>
             </Section>
 
             <div data-row={$t("settings.rows.keyboardShortcuts")}>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { t } from "svelte-i18n"
   import { formatRange, parseLocal } from "$lib/data/calendar"
   import type { CalendarEvent, Todo } from "$lib/data/types"
   import { score } from "$lib/launcher/search"
@@ -62,7 +63,7 @@
       <h3
         class="flex items-center gap-2 px-2 text-[11px] font-semibold tracking-wide text-base-content/50"
       >
-        Events
+        {$t("panel.events")}
 
         <span class="badge badge-ghost badge-xs tabular-nums">
           {eventHits.length}
@@ -107,7 +108,7 @@
       <h3
         class="flex items-center gap-2 px-2 text-[11px] font-semibold tracking-wide text-base-content/50"
       >
-        Todos
+        {$t("panel.todos")}
 
         <span class="badge badge-ghost badge-xs tabular-nums">
           {todoHits.length}
@@ -128,7 +129,7 @@
     >
       <Icon icon="lucide:search-x" class="size-6 text-base-content/40" />
 
-      No matches
+      {$t("common.noMatches")}
     </p>
   {/if}
 </div>

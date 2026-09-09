@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "svelte-i18n"
   import {
     readText,
     writeText,
@@ -44,7 +45,7 @@
 
     return [
       {
-        label: "Cut",
+        label: $t("menu.cut"),
         icon: "lucide:scissors",
         disabled: !selected,
         action: async () => {
@@ -53,13 +54,13 @@
         },
       },
       {
-        label: "Copy",
+        label: $t("menu.copy"),
         icon: "lucide:copy",
         disabled: !selected,
         action: () => writeText(selected),
       },
       {
-        label: "Paste",
+        label: $t("menu.paste"),
         icon: "lucide:clipboard",
         action: async () => {
           const text = await readText()
@@ -70,7 +71,7 @@
       },
       "separator",
       {
-        label: "Select all",
+        label: $t("menu.selectAll"),
         icon: "lucide:text-cursor-input",
         disabled: !field.value,
         action: () => {

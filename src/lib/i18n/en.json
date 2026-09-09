@@ -18,7 +18,8 @@
     "next": "Next",
     "skip": "Skip",
     "on": "On",
-    "off": "Off"
+    "off": "Off",
+    "previous": "Previous"
   },
   "languages": {
     "system": "System",
@@ -62,6 +63,10 @@
       "about": {
         "label": "About",
         "blurb": "Version and keyboard shortcuts"
+      },
+      "keymap": {
+        "label": "Keymap",
+        "blurb": "Shortcuts for the launcher, chat and panel"
       }
     },
     "groups": {
@@ -102,7 +107,16 @@
       "shortcuts": {
         "title": "Keyboard shortcuts",
         "description": "Everything Eris listens for"
-      }
+      },
+      "dockLook": {
+        "title": "Dock",
+        "description": "How the dock blends with the rest of the theme"
+      },
+      "chatHotkey": {
+        "title": "Chat",
+        "description": "Global shortcut for the chat bubble"
+      },
+      "tray": "Windows tray"
     },
     "rows": {
       "deviceName": "Device name",
@@ -186,7 +200,35 @@
       "collections": "Collections",
       "replaceLocal": "Replace local data with server",
       "resetCollection": "Reset collection on server",
-      "unlinkDevice": "Unlink this device"
+      "unlinkDevice": "Unlink this device",
+      "dockSeparators": "Separators",
+      "clockAlign": "Clock alignment",
+      "editMode": "Edit mode",
+      "dockBackground": "Dock background",
+      "dockBlur": "Dock blur",
+      "dockRadius": "Dock corners",
+      "dockTint": "Dock tint",
+      "dockBorder": "Dock border",
+      "dockAura": "Dock orbs",
+      "chatShortcut": "Chat shortcut",
+      "updates": "Updates",
+      "showBluetooth": "Show Bluetooth",
+      "showNotifications": "Show notification bell",
+      "showDesktopButton": "Show desktop button",
+      "showTaskView": "Show task view button",
+      "showInputLanguage": "Show input language",
+      "chatModel": "Model",
+      "chatEffort": "Effort",
+      "chatPermission": "Permissions",
+      "chatThinking": "Thinking",
+      "chatAutoCompact": "Auto-compact",
+      "chatLanguage": "Response language",
+      "chatBudget": "Budget per session",
+      "chatSystemPrompt": "Extra system prompt",
+      "chatHover": "On hover",
+      "chatMultiBubble": "Multiple bubbles",
+      "chatBubbleColors": "Bubble colors",
+      "chatQueueMode": "Queued messages"
     },
     "hints": {
       "deviceName": "Shown in the sync device list",
@@ -256,7 +298,35 @@
       "collections": "What this device sends and receives",
       "replaceLocal": "Drops local {collections} and pulls everything again",
       "resetCollection": "Marks every record deleted so all devices clear it",
-      "unlinkDevice": "Forgets the server, token, and pending changes on this device"
+      "unlinkDevice": "Forgets the server, token, and pending changes on this device",
+      "dockSeparators": "Thin lines between the launcher, apps and tray",
+      "clockAlign": "How the time and date line up",
+      "editMode": "Dim the screen and click any part of Eris to change its options",
+      "dockBackground": "Follow the window background or pick one for the dock",
+      "dockBlur": "Blur strength behind the dock, relative to the window blur",
+      "dockRadius": "Corner rounding of the floating dock, relative to the window corners",
+      "dockTint": "Accent color washed over the dock",
+      "dockBorder": "Hairline around the dock",
+      "dockAura": "Animated orbs behind the dock",
+      "chatShortcut": "Opens or closes the Claude chat from anywhere",
+      "updates": "Downloads the installer and restarts Eris on the new version",
+      "showBluetooth": "Radio toggle and connected devices",
+      "showNotifications": "Opens the Windows notification center",
+      "showDesktopButton": "Thin strip at the right end that shows the desktop",
+      "showTaskView": "Opens the Windows task view",
+      "showInputLanguage": "Keyboard layout of the active window; only with two or more layouts",
+      "chatModel": "An alias like sonnet or a full model id; a [1m] suffix picks the 1M context",
+      "chatEffort": "Passed as --effort; Default follows your Claude Code settings",
+      "chatPermission": "How tool calls get approved",
+      "chatThinking": "Extended thinking on supported models",
+      "chatAutoCompact": "Compacts the context automatically as it fills up",
+      "chatLanguage": "For example korean or english",
+      "chatBudget": "USD; 0 means no limit",
+      "chatSystemPrompt": "Appended to the default system prompt",
+      "chatHover": "What a bubble shows while the pointer rests on it",
+      "chatMultiBubble": "A plus button on a bubble's edge opens another session",
+      "chatBubbleColors": "Each bubble gets its own ring color",
+      "chatQueueMode": "When a message typed during a reply gets delivered"
     },
     "options": {
       "win": "Win key",
@@ -277,7 +347,8 @@
       "compact": "Compact",
       "minBefore": "{minutes} min before",
       "deg": "{value} deg",
-      "runSetup": "Run setup"
+      "runSetup": "Run setup",
+      "inherit": "Same as windows"
     },
     "featurePresets": {
       "all": {
@@ -309,7 +380,15 @@
       "settingsReset": "Settings reset"
     },
     "about": {
-      "tagline": "Launcher, dock, and calendar for Windows 11"
+      "tagline": "Launcher, dock, and calendar for Windows 11",
+      "checkUpdates": "Check for updates",
+      "checking": "Checking",
+      "upToDate": "Up to date",
+      "available": "Version {version} is available",
+      "installRestart": "Install and restart",
+      "downloading": "Downloading {percent}%",
+      "installing": "Installing",
+      "failed": "Update failed: {error}"
     },
     "shortcuts": {
       "launcher": "Launcher",
@@ -343,7 +422,9 @@
         "right": "Right",
         "arrows": "Arrows",
         "menu": "Menu"
-      }
+      },
+      "chat": "Chat",
+      "toggleChat": "Open or close the chat"
     },
     "appearance": {
       "presetDescriptions": {
@@ -412,7 +493,12 @@
       "left": "Left",
       "right": "Right",
       "connect": "Connect",
-      "disconnect": "Disconnect"
+      "disconnect": "Disconnect",
+      "alignStart": "Left",
+      "alignCenter": "Center",
+      "alignEnd": "Right",
+      "experimental": "Experimental",
+      "openEditMode": "Open"
     },
     "sync": {
       "server": {
@@ -488,7 +574,8 @@
       "notBackup": "Not an Eris backup",
       "nothing": "Nothing to import",
       "imported": "Imported {count} items"
-    }
+    },
+    "sectionsAria": "Sections"
   },
   "launcher": {
     "placeholder": "Search apps, windows and commands",
@@ -697,12 +784,515 @@
       "documents": "Documents",
       "desktop": "Desktop",
       "recyclebin": "Recycle Bin",
-      "thispc": "This PC"
+      "thispc": "This PC",
+      "erisEdit": "Edit layout"
     }
   },
   "dates": {
     "today": "Today",
     "tomorrow": "Tomorrow",
     "yesterday": "Yesterday"
+  },
+  "dock": {
+    "dockAria": "Dock",
+    "dockMenu": "Dock menu",
+    "apps": "Apps",
+    "launcher": "Launcher",
+    "openLauncher": "Open launcher",
+    "more": "{count} more",
+    "moreApps": "More apps",
+    "taskManager": "Task Manager",
+    "hideRunning": "Hide running apps",
+    "showRunning": "Show running apps",
+    "hideSettingsButton": "Hide settings button",
+    "showSettingsButton": "Show settings button",
+    "settings": "Eris settings",
+    "editLayout": "Edit layout",
+    "calendar": "Calendar",
+    "openCalendar": "Open calendar",
+    "menu": {
+      "pin": "Pin to dock",
+      "unpin": "Unpin from dock",
+      "newWindow": "Open new window",
+      "closeAll": "Close all",
+      "openLocation": "Open file location"
+    },
+    "preview": {
+      "switchTo": "Switch to window",
+      "close": "Close window"
+    }
+  },
+  "edit": {
+    "title": "Edit layout",
+    "hint": "Click a highlighted part to change it. Press Esc or Done to finish.",
+    "done": "Done",
+    "spots": {
+      "launcher": "Launcher button",
+      "apps": "Apps",
+      "tray": "Tray and clock",
+      "widgets": "Widgets",
+      "search": "Launcher",
+      "bubble": "Chat bubble"
+    }
+  },
+  "menu": {
+    "label": "Menu",
+    "cut": "Cut",
+    "copy": "Copy",
+    "paste": "Paste",
+    "selectAll": "Select all"
+  },
+  "panel": {
+    "allDay": "All day",
+    "untitled": "Untitled",
+    "title": "Title",
+    "events": "Events",
+    "todos": "Todos",
+    "errors": {
+      "startRequired": "Start date required",
+      "endRequired": "End date required",
+      "endBeforeStart": "End is before start"
+    },
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "summary": {
+      "events": "{count, plural, one {# event} other {# events}}",
+      "todosDue": "{count, plural, one {# todo due} other {# todos due}}"
+    },
+    "searchPlaceholder": "Search todos and events",
+    "clearSearch": "Clear search",
+    "calendarAria": "Calendar",
+    "cardsAria": "Panel cards",
+    "todoAria": "Todo",
+    "notesAria": "Notes",
+    "due": "Due",
+    "nothingDue": "Nothing due",
+    "colors": {
+      "default": "Default",
+      "secondary": "Secondary",
+      "accent": "Accent",
+      "success": "Success",
+      "warning": "Warning",
+      "error": "Error"
+    },
+    "calendar": {
+      "month": "Month",
+      "week": "Week",
+      "agenda": "Agenda",
+      "from": "From {date}",
+      "viewAria": "Calendar view",
+      "nothingScheduled": "Nothing scheduled",
+      "nextDays": "Next {count} days",
+      "noUpcoming": "No upcoming events"
+    },
+    "week": {
+      "slot": "New event {day} {time}"
+    },
+    "event": {
+      "new": "New event",
+      "edit": "Edit event",
+      "start": "Start",
+      "end": "End",
+      "color": "Color",
+      "reminder": "Reminder",
+      "repeat": "Repeat",
+      "notes": "Notes",
+      "reminders": {
+        "atStart": "At start",
+        "minutesBefore": "{count} minutes before",
+        "hourBefore": "1 hour before",
+        "dayBefore": "1 day before"
+      },
+      "recurrences": {
+        "none": "Does not repeat",
+        "daily": "Daily",
+        "weekdays": "Weekdays",
+        "weekly": "Weekly",
+        "monthly": "Monthly",
+        "yearly": "Yearly"
+      }
+    },
+    "ics": {
+      "options": "Calendar options",
+      "import": "Import .ics",
+      "export": "Export .ics",
+      "copy": "Copy .ics",
+      "importFile": "Import calendar file",
+      "exported": "Exported {count, plural, one {# event} other {# events}}",
+      "imported": "Imported {count, plural, one {# event} other {# events}}",
+      "copied": "Calendar copied to the clipboard",
+      "noEvents": "No events found"
+    },
+    "notes": {
+      "search": "Search notes",
+      "new": "New note",
+      "pinned": "Pinned",
+      "noNotes": "No notes",
+      "conflict": "Reloaded with a newer version from another device.",
+      "titleAria": "Note title",
+      "pin": "Pin note",
+      "unpin": "Unpin note",
+      "delete": "Delete note",
+      "bodyPlaceholder": "Write something",
+      "bodyAria": "Note body",
+      "select": "Select a note"
+    },
+    "quickAdd": {
+      "todo": "Add a todo",
+      "auto": "Add a todo, / for an event",
+      "eventBadge": "Event",
+      "todoBadge": "Todo"
+    },
+    "todo": {
+      "overdue": "Overdue",
+      "upcoming": "Upcoming",
+      "noDate": "No date",
+      "markDone": "Mark as done",
+      "markNotDone": "Mark as not done",
+      "titleAria": "Todo title",
+      "editHint": "Double-click to edit",
+      "delete": "Delete todo",
+      "allDone": "All done",
+      "completed": "Completed",
+      "clearCompleted": "Clear completed"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "empty": "No notifications",
+      "clearAll": "Clear all",
+      "dismiss": "Dismiss",
+      "dismissApp": "Dismiss all from {app}",
+      "focusAssist": "Focus assist",
+      "settings": "Notification settings",
+      "windowsCenter": "Windows notification center",
+      "toggle": "Show notifications",
+      "back": "Back to todos"
+    }
+  },
+  "files": {
+    "forward": "Forward",
+    "up": "Up",
+    "refresh": "Refresh",
+    "pathAria": "Path",
+    "searchPlaceholder": "Search this folder",
+    "toggleHidden": "Toggle hidden files",
+    "hiddenItems": "Hidden items",
+    "filesAria": "Files",
+    "menuAria": "File menu",
+    "newFolder": "New folder",
+    "paste": "Paste",
+    "open": "Open",
+    "rename": "Rename",
+    "copy": "Copy",
+    "cut": "Cut",
+    "copyPath": "Copy path",
+    "columns": {
+      "name": "Name",
+      "modified": "Date modified",
+      "size": "Size"
+    },
+    "loading": "Loading",
+    "empty": "Empty",
+    "itemCount": "{count, plural, one {# item} other {# items}}",
+    "selectedCount": "{count} selected"
+  },
+  "onboarding": {
+    "title": "Eris setup",
+    "progressAria": "Progress",
+    "skipSetup": "Skip setup",
+    "custom": "Custom",
+    "enterContinues": "Enter continues",
+    "getStarted": "Get started",
+    "startUsing": "Start using Eris",
+    "steps": {
+      "welcome": "Welcome",
+      "features": "Features",
+      "style": "Style",
+      "dock": "Dock",
+      "hotkeys": "Hotkeys",
+      "sync": "Sync",
+      "tips": "Tips",
+      "done": "Done"
+    },
+    "welcome": {
+      "title": "Welcome to Eris",
+      "tagline": "A launcher, a dock, and a calendar that live on your desktop.",
+      "launcher": {
+        "title": "Launcher",
+        "text": "Tap Win, type, press Enter. Apps, windows, todos, math, and the web."
+      },
+      "dock": {
+        "title": "Dock",
+        "text": "Pinned and running apps on a bar that replaces the Windows taskbar."
+      },
+      "calendar": {
+        "title": "Calendar and todos",
+        "text": "One click on the clock opens your day, your events, and your list."
+      }
+    },
+    "features": {
+      "title": "Choose what runs",
+      "blurb": "Pick a preset, then switch single parts on or off. Everything can change later in settings."
+    },
+    "style": {
+      "title": "Pick a look",
+      "blurb": "Changes preview live. Fine-tune every color later in settings."
+    },
+    "dock": {
+      "title": "Shape the dock",
+      "blurb": "Fine-tune sizes and contents later in settings.",
+      "autoHide": "Hidden until the cursor touches the edge",
+      "replaces": "Eris replaces the Windows taskbar",
+      "taskbarStays": "The Windows taskbar stays visible"
+    },
+    "hotkeys": {
+      "title": "Open Eris",
+      "blurb": "Choose how the launcher comes up.",
+      "info": "Tapping {win} alone opens Eris. Combos such as {win} + {e} keep working as usual.",
+      "winOr": "Win key or {shortcut}"
+    },
+    "sync": {
+      "title": "Sync across devices",
+      "blurb": "Optional. Point Eris at your own sync server, or skip and set it up later."
+    },
+    "tips": {
+      "title": "A few tips",
+      "blurb": "Three things worth knowing before you start.",
+      "win": {
+        "title": "Win opens Eris",
+        "text": "Tap it anywhere. Win combos keep working."
+      },
+      "run": {
+        "title": "Type > to run",
+        "text": "A command runs straight from the search box."
+      },
+      "clock": {
+        "title": "Click the clock",
+        "text": "The calendar and your todo list slide out."
+      }
+    },
+    "done": {
+      "title": "All set",
+      "blurb": "Everything below can change later in settings.",
+      "dockValue": "{style} style, {edge} edge{autoHide, select, yes {, auto-hide} other {}}",
+      "edges": {
+        "top": "top",
+        "bottom": "bottom"
+      }
+    }
+  },
+  "tray": {
+    "taskView": "Task view",
+    "showDesktop": "Show desktop",
+    "openSettings": "Open settings",
+    "menu": {
+      "title": "Eris menu",
+      "calendar": "Calendar",
+      "lock": "Lock",
+      "sleep": "Sleep",
+      "restart": "Restart",
+      "shutdown": "Shut down",
+      "quit": "Quit Eris"
+    },
+    "widgets": {
+      "title": "Tray and widgets",
+      "open": "Show tray and widgets",
+      "claude": "Claude",
+      "tray": "Tray",
+      "media": "Media",
+      "input": "Input",
+      "meters": "System",
+      "bluetooth": "Bluetooth",
+      "battery": "Battery",
+      "volume": "Sound"
+    },
+    "battery": {
+      "level": "Battery {percent}%",
+      "charging": "charging"
+    },
+    "sync": {
+      "failed": "Sync failed: {error}",
+      "unknownError": "unknown error",
+      "syncing": "Syncing",
+      "pending": "Sync: {count} pending",
+      "synced": "Synced {time}",
+      "ready": "Sync ready"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "open": "Open notification center",
+      "quickSettings": "Quick settings",
+      "focusAssist": "Focus assist",
+      "settings": "Notification settings",
+      "windowsCenter": "Windows notification center",
+      "unseen": "{count} new"
+    },
+    "network": {
+      "title": "Network",
+      "none": "No network",
+      "connected": "Connected",
+      "ethernet": "Ethernet",
+      "wifi": "Wi-Fi",
+      "signal": "Signal {bars}/5",
+      "available": "Available networks",
+      "settings": "Network settings",
+      "airplane": "Airplane mode",
+      "noRadio": "No Wi-Fi adapter",
+      "deniedUser": "Radio access is blocked in Windows privacy settings",
+      "deniedSystem": "Radio access is blocked by the system",
+      "radioFailed": "Could not change the radio"
+    },
+    "bluetooth": {
+      "title": "Bluetooth",
+      "off": "Bluetooth off",
+      "connected": "Connected devices",
+      "noDevices": "No devices connected",
+      "addDevice": "Add device",
+      "settings": "Bluetooth settings"
+    },
+    "input": {
+      "title": "Input language: {label}"
+    },
+    "icons": {
+      "icon": "Tray icon",
+      "hidden": "Hidden tray icons",
+      "hiddenCount": "{count} hidden icons",
+      "hide": "Hide from overflow",
+      "unhide": "Show in overflow",
+      "showAll": "Show all",
+      "allHidden": "{count} icons hidden"
+    },
+    "meters": {
+      "title": "System usage",
+      "memory": "Memory",
+      "of": "{used} of {total}",
+      "taskManager": "Task Manager"
+    },
+    "media": {
+      "title": "Media",
+      "previous": "Previous track",
+      "next": "Next track",
+      "play": "Play",
+      "pause": "Pause",
+      "failed": "Media command failed",
+      "nowPlaying": "Now playing",
+      "nothing": "Nothing playing",
+      "noInfo": "No details"
+    },
+    "volume": {
+      "title": "Volume",
+      "sound": "Sound",
+      "muted": "Muted",
+      "level": "Volume {percent}%",
+      "mute": "Mute",
+      "unmute": "Unmute",
+      "output": "Output device",
+      "noDevices": "No devices"
+    },
+    "claude": {
+      "unmeasured": "Claude usage not measured",
+      "fiveHour": "5-hour {percent}%",
+      "weekly": "Weekly {percent}%",
+      "leftHours": "{hours} h {minutes} min left",
+      "leftMinutes": "{minutes} min left"
+    }
+  },
+  "chat": {
+    "title": "Claude",
+    "rename": "Rename chat",
+    "closeFolder": "Close folder",
+    "openFolder": "Open folder",
+    "newChat": "New chat",
+    "newBubble": "New bubble",
+    "cliMissing": "Claude Code CLI is not installed",
+    "placeholder": "Message",
+    "queuePlaceholder": "Queue a message",
+    "send": "Send",
+    "queueSend": "Queue",
+    "stop": "Stop",
+    "deny": "Deny",
+    "allow": "Allow",
+    "allowAlways": "Always allow",
+    "usageUnknown": "Usage unavailable",
+    "context": "Context {percent}% ({used} / {total} tokens)",
+    "empty": {
+      "ask": "Ask anything",
+      "askHint": "Open a folder to start coding",
+      "code": "Ask for code changes",
+      "codeHint": "/ for commands, @ for files"
+    },
+    "history": {
+      "title": "History",
+      "home": "Home",
+      "current": "In progress",
+      "untitled": "Untitled",
+      "empty": "No history",
+      "recentFolders": "Recent folders",
+      "meta": "{count} messages, {when}"
+    },
+    "usage": {
+      "fiveHour": "5 hours",
+      "sevenDay": "7 days",
+      "resets": "Resets {time}"
+    },
+    "config": {
+      "title": "Claude Code settings",
+      "model": "Model",
+      "modelDefault": "Default model",
+      "modelCustom": "Custom…",
+      "effort": "Effort",
+      "permission": "Permissions",
+      "thinking": "Thinking",
+      "autoCompact": "Auto-compact",
+      "language": "Response language",
+      "languageDefault": "Default",
+      "budget": "Budget per session (USD)",
+      "budgetNone": "No limit",
+      "systemPrompt": "Extra system prompt",
+      "restartHint": "Restart the session to apply",
+      "restart": "Restart"
+    },
+    "effort": {
+      "default": "Default effort",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "xhigh": "Extra high",
+      "max": "Max"
+    },
+    "permission": {
+      "default": "Ask",
+      "acceptEdits": "Accept edits",
+      "plan": "Plan",
+      "auto": "Auto",
+      "dontAsk": "Don't ask",
+      "bypassPermissions": "Bypass"
+    },
+    "tri": {
+      "default": "Default",
+      "on": "On",
+      "off": "Off"
+    },
+    "hover": {
+      "none": "Nothing",
+      "title": "Title",
+      "preview": "Last message"
+    },
+    "queue": {
+      "afterTool": "After tool",
+      "afterReply": "After reply",
+      "toggle": "Switch delivery"
+    },
+    "commands": {
+      "clear": "Clear the conversation and start over",
+      "resume": "Pick a previous session",
+      "usage": "Show plan usage limits",
+      "model": "Pick the model",
+      "effort": "Pick the effort level",
+      "config": "Claude Code settings"
+    }
   }
 }

@@ -121,6 +121,9 @@ export const setWinKeyCapture = (enabled: boolean) =>
 export const setLauncherShortcut = (shortcut: string | null) =>
   invoke<void>("set_launcher_shortcut", { shortcut })
 
+export const setChatShortcut = (shortcut: string | null) =>
+  invoke<void>("set_chat_shortcut", { shortcut })
+
 export const showWindow = (label: WindowLabel) =>
   invoke<void>("show_window", { label })
 
@@ -200,6 +203,13 @@ export type ClaudeStart = {
   resume: string | null
   plain: boolean
   permissionMode: string
+  model: string
+  effort: string
+  thinking: string
+  autoCompact: string
+  language: string
+  budget: number
+  systemPrompt: string
 }
 
 export const claudeWhich = () => invoke<string | null>("claude_which")
@@ -309,7 +319,38 @@ export type NetworkInfo = {
   kind: "wifi" | "ethernet" | "none"
   name: string
   connected: boolean
+  ssid: string
+  signal: number
 }
+
+export type RadioKind = "wifi" | "bluetooth" | "other"
+
+export type RadioState = "on" | "off" | "disabled" | "unknown"
+
+export type RadioInfo = { kind: RadioKind; state: RadioState }
+
+export const radios = () => invoke<RadioInfo[]>("radios")
+
+export const setRadio = (kind: RadioKind, on: boolean) =>
+  invoke<void>("set_radio", { kind, on })
+
+export const bluetoothDevices = () => invoke<string[]>("bluetooth_devices")
+
+export type QuickAction =
+  | "notifications"
+  | "quicksettings"
+  | "taskview"
+  | "desktop"
+
+export const quickAction = (action: QuickAction) =>
+  invoke<void>("quick_action", { action })
+
+export type InputLanguage = { label: string; layouts: number }
+
+export const inputLanguage = () =>
+  invoke<InputLanguage | null>("input_language")
+
+export const cycleInputLanguage = () => invoke<void>("cycle_input_language")
 
 export type Meters = {
   cpu: number
@@ -364,3 +405,28 @@ export const notifyIconPromote = (id: string, promoted: boolean) =>
 
 export const onTrayIcons = (handler: () => void) =>
   listen("tray-icons", () => handler())
+
+export const editMode = (on: boolean) => invoke<void>("edit_mode", { on })
+
+export const editRaise = () => invoke<void>("edit_raise")
+
+export type Notice = {
+  id: number
+  app: string
+  title: string
+  body: string
+  arrived: number
+}
+
+export const noticesList = () => invoke<Notice[]>("notices_list")
+
+export const noticesUnseen = () => invoke<number>("notices_unseen")
+
+export const noticesSeen = () => invoke<void>("notices_seen")
+
+export const noticesDismiss = (ids: number[]) =>
+  invoke<void>("notices_dismiss", { ids })
+
+export const noticesOpenPanel = () => invoke<void>("notices_open_panel")
+
+export const noticesTakeIntent = () => invoke<boolean>("notices_take_intent")
