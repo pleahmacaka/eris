@@ -1,10 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
-  import { dateKey } from "$lib/data/calendar"
-  import { todos } from "$lib/data/store"
-  import { isOverdue, sortTodos } from "$lib/data/todo"
-  import type { Todo } from "$lib/data/types"
+  import { dateKey, todos, isOverdue, sortTodos, type Todo } from "$lib/data"
   import type { Profile } from "@eris/settings"
   import QuickAdd from "./QuickAdd.svelte"
   import TodoItem from "./TodoItem.svelte"

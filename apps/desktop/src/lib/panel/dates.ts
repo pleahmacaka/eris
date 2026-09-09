@@ -1,5 +1,5 @@
 import { currentLocale, tr } from "@eris/i18n"
-import { parseLocal, startOfDay } from "$lib/data/calendar"
+import { parseLocal, startOfDay } from "$lib/data"
 
 const DAY = 86_400_000
 

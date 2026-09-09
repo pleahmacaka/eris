@@ -1,5 +1,5 @@
 import { type Appearance, defaultAppearance } from "@eris/settings"
-import type { Preset } from "$lib/data/types"
+import type { Preset } from "$lib/data"
 import { presets as builtIn, type PresetDefinition } from "$lib/theme"
 
 export const CUSTOM = "custom"

@@ -6,8 +6,11 @@
     presets,
     saveProfileSynced,
     todos,
-  } from "$lib/data/store"
-  import type { CalendarEvent, Note, Preset, Todo } from "$lib/data/types"
+    type CalendarEvent,
+    type Note,
+    type Preset,
+    type Todo,
+  } from "$lib/data"
   import {
     defaultDevice,
     defaultProfile,

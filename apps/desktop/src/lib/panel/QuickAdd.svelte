@@ -1,10 +1,18 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
-  import { formatRange, parseLocal, parseQuickEvent } from "$lib/data/calendar"
-  import { events, newId, todos } from "$lib/data/store"
-  import { dueLabel, parseQuickAdd } from "$lib/data/todo"
-  import type { CalendarEvent, Todo } from "$lib/data/types"
+  import {
+    formatRange,
+    parseLocal,
+    parseQuickEvent,
+    events,
+    newId,
+    todos,
+    dueLabel,
+    parseQuickAdd,
+    type CalendarEvent,
+    type Todo,
+  } from "$lib/data"
   import { dayLabel } from "./dates"
 
   type Props = {

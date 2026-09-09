@@ -33,7 +33,27 @@
     "rules": {
       "preset": "recommended",
       "style": {
-        "useBlockStatements": "error"
+        "useBlockStatements": "error",
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "patterns": [
+              {
+                "group": [
+                  "$lib/dock/*",
+                  "$lib/launcher/*",
+                  "$lib/panel/*",
+                  "$lib/claude/*",
+                  "$lib/edit/*",
+                  "$lib/sync/*",
+                  "$lib/data/*",
+                  "$lib/settings-ui/*"
+                ],
+                "message": "Import the feature's index ($lib/<feature>) instead of a file inside it."
+              }
+            ]
+          }
+        }
       },
       "suspicious": {
         "noExplicitAny": "off"

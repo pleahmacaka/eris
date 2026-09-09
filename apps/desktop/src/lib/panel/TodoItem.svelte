@@ -1,9 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
-  import { todos } from "$lib/data/store"
-  import { dueLabel, isOverdue } from "$lib/data/todo"
-  import type { Todo } from "$lib/data/types"
+  import { todos, dueLabel, isOverdue, type Todo } from "$lib/data"
 
   type Props = {
     todo: Todo

@@ -10,14 +10,14 @@
     syncNow,
     testConnection,
     unlinkDevice,
-  } from "$lib/sync/engine"
+    syncStatus,
+  } from "$lib/sync"
   import {
     type DeviceInfo,
     type HealthResponse,
     type SyncedCollection,
     syncedCollections,
   } from "@eris/sync/protocol"
-  import { syncStatus } from "$lib/sync/status.svelte"
   import { Confirm, Row, Section } from "@eris/ui"
   import { toast } from "@eris/ui"
   import { locale, t } from "svelte-i18n"

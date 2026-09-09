@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 import { type Appearance, defaultAppearance } from "@eris/settings"
-import type { Preset } from "$lib/data/types"
+import type { Preset } from "$lib/data"
 import { fromUser } from "./presets"
 
 const stored = (appearance: Partial<Appearance>) =>

@@ -10,8 +10,9 @@
     parseLocal,
     startOfDay,
     upcoming,
-  } from "$lib/data/calendar"
-  import type { CalendarEvent, Todo } from "$lib/data/types"
+    type CalendarEvent,
+    type Todo,
+  } from "$lib/data"
   import { currentLocale } from "@eris/i18n"
   import { Segmented } from "@eris/ui"
   import Agenda from "./Agenda.svelte"

@@ -4,7 +4,7 @@
   import { tick } from "svelte"
   import { emit, listen } from "@tauri-apps/api/event"
   import { disable, enable } from "@tauri-apps/plugin-autostart"
-  import { saveProfileSynced } from "$lib/data/store"
+  import { saveProfileSynced } from "$lib/data"
   import { ensureDevice } from "$lib/device"
   import { onWindowShown, showWindow } from "$lib/native/windows"
   import { setLauncherShortcut, setWinKeyCapture } from "$lib/native/dock"
@@ -18,26 +18,26 @@
     type Profile,
     saveDevice,
   } from "@eris/settings"
-  import Advanced from "$lib/settings-ui/Advanced.svelte"
-  import AppearanceControls from "$lib/settings-ui/AppearanceControls.svelte"
-  import DockControls from "$lib/settings-ui/DockControls.svelte"
-  import FeatureControls from "$lib/settings-ui/FeatureControls.svelte"
-  import { getVersion } from "@tauri-apps/api/app"
-  import { relaunch } from "@tauri-apps/plugin-process"
-  import { check, type Update } from "@tauri-apps/plugin-updater"
-  import HotkeyPicker from "$lib/settings-ui/HotkeyPicker.svelte"
-  import ImportExport from "$lib/settings-ui/ImportExport.svelte"
-  import PresetGrid from "$lib/settings-ui/PresetGrid.svelte"
-  import { Row, Section, Segmented, Toasts } from "@eris/ui"
-  import SyncPanel from "$lib/settings-ui/SyncPanel.svelte"
-  import { stableJson } from "$lib/settings-ui/json"
   import {
+    Advanced,
+    AppearanceControls,
+    DockControls,
+    FeatureControls,
+    HotkeyPicker,
+    ImportExport,
+    PresetGrid,
+    SyncPanel,
+    stableJson,
     searchRows,
     searchSections,
     type SearchEntry,
     type SectionId,
     sections,
-  } from "$lib/settings-ui/search"
+  } from "$lib/settings-ui"
+  import { getVersion } from "@tauri-apps/api/app"
+  import { relaunch } from "@tauri-apps/plugin-process"
+  import { check, type Update } from "@tauri-apps/plugin-updater"
+  import { Row, Section, Segmented, Toasts } from "@eris/ui"
   import { toast } from "@eris/ui"
   import { applyAppearance } from "$lib/theme"
   import { t } from "svelte-i18n"

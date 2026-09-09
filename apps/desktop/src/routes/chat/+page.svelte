@@ -7,15 +7,15 @@
   import { cubicOut } from "svelte/easing"
   import { scale } from "svelte/transition"
   import { t } from "svelte-i18n"
-  import { claudeIcon } from "$lib/claude-icon"
-  import { editing, watchEdit } from "$lib/edit/edit.svelte"
+  import { claudeIcon } from "$lib/claude"
+  import { editing, watchEdit } from "$lib/edit"
   import { Segmented } from "@eris/ui"
-  import Markdown from "$lib/claude/Markdown.svelte"
   import {
+    Markdown,
     ClaudeSession,
     type Command,
     type Question,
-  } from "$lib/claude/session.svelte"
+  } from "$lib/claude"
   import { ensureDevice } from "$lib/device"
   import { currentLocale } from "@eris/i18n"
   import * as native from "$lib/native"

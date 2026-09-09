@@ -4,10 +4,14 @@
   import { listen } from "@tauri-apps/api/event"
   import { appIcon } from "$lib/apps"
   import { ensureDevice } from "$lib/device"
-  import { looksLikeMath } from "$lib/launcher/calc"
-  import { settingsLinks, systemCommands } from "$lib/launcher/commands"
-  import { boost, loadFrecency, record, top } from "$lib/launcher/frecency"
   import {
+    looksLikeMath,
+    settingsLinks,
+    systemCommands,
+    boost,
+    loadFrecency,
+    record,
+    top,
     alignApps,
     appResult,
     calcResult,
@@ -24,31 +28,30 @@
     unitResult,
     webResult,
     windowResult,
-  } from "$lib/launcher/providers"
-  import {
     groupResults,
     openTarget,
     parseQuery,
     rank,
     type Route,
-  } from "$lib/launcher/search"
-  import {
     parseTimer,
     subscribeTimers,
     type Timer,
-  } from "$lib/launcher/timers"
-  import EditSpot from "$lib/edit/EditSpot.svelte"
-  import { editing, watchEdit } from "$lib/edit/edit.svelte"
-  import { ContextMenu, Segmented } from "@eris/ui"
-  import {
     kindLabel,
     type Result,
     type ResultGroup,
     type ResultKind,
     type SecondaryAction,
-  } from "$lib/launcher/types"
+  } from "$lib/launcher"
+  import { EditSpot, editing, watchEdit } from "$lib/edit"
+  import { ContextMenu, Segmented } from "@eris/ui"
   import { type AppEntry, listApps, pinnedApps } from "$lib/native/apps"
-  import { hideWindow, listWindows, onWindowShown, showWindow, type WindowEntry } from "$lib/native/windows"
+  import {
+    hideWindow,
+    listWindows,
+    onWindowShown,
+    showWindow,
+    type WindowEntry,
+  } from "$lib/native/windows"
   import { type ClipEntry, clipboardHistory } from "$lib/native/clipboard"
   import type { MenuItem } from "@eris/ui"
   import {

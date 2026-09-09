@@ -1,7 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { formatRange } from "$lib/data/calendar"
-  import type { CalendarEvent, Todo } from "$lib/data/types"
+  import { formatRange, type CalendarEvent, type Todo } from "$lib/data"
   import TodoItem from "./TodoItem.svelte"
 
   type Props = {

@@ -1,9 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
-  import { fromIcs, toIcs } from "$lib/data/ics"
-  import { events } from "$lib/data/store"
-  import type { CalendarEvent } from "$lib/data/types"
+  import { fromIcs, toIcs, events, type CalendarEvent } from "$lib/data"
   import { toast } from "@eris/ui"
 
   type Props = { list: CalendarEvent[] }

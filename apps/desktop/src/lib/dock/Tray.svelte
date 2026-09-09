@@ -6,7 +6,7 @@
   import { currentLocale } from "@eris/i18n"
   import * as native from "$lib/native"
   import { type DeviceSettings, saveDevice } from "@eris/settings"
-  import { syncStatus } from "$lib/sync/status.svelte"
+  import { syncStatus } from "$lib/sync"
   import { ContextMenu } from "@eris/ui"
   import type { MenuItem } from "@eris/ui"
   import Bluetooth from "./Bluetooth.svelte"
