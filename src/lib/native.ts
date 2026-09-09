@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core"
 import { listen } from "@tauri-apps/api/event"
+import type { Features } from "$lib/settings"
 
 export type AppKind = "shortcut" | "store" | "exe"
 
@@ -175,7 +176,14 @@ export const transferEntries = (
   cut: boolean,
 ) => invoke<void>("transfer_entries", { paths, target, cut })
 
-export type ChatArea = { width: number; height: number }
+export type ChatRect = { x: number; y: number; width: number; height: number }
+
+export type ChatArea = {
+  width: number
+  height: number
+  monitors: ChatRect[]
+  home: number
+}
 
 export type Transcript = { id: string; title: string; modified: number }
 
@@ -206,6 +214,9 @@ export const claudeTranscript = (cwd: string | null, id: string) =>
   invoke<TranscriptMessage[]>("claude_transcript", { cwd, id })
 
 export const chatArea = () => invoke<ChatArea | null>("chat_area")
+
+export const setFeatures = (features: Features) =>
+  invoke<void>("set_features", { features })
 
 export const chatFrame = (frame: number[], rects: number[][]) =>
   invoke<void>("chat_frame", { frame, rects })

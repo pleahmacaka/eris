@@ -397,11 +397,22 @@
     }
 
     const [trigger, shortcut] = hotkey.split("|")
+    const launcher = device.features.launcher
 
     native
-      .setLauncherShortcut(trigger === "win" ? null : shortcut)
+      .setLauncherShortcut(launcher && trigger !== "win" ? shortcut : null)
       .catch(() => undefined)
-    native.setWinKeyCapture(trigger !== "shortcut").catch(() => undefined)
+    native
+      .setWinKeyCapture(launcher && trigger !== "shortcut")
+      .catch(() => undefined)
+  })
+
+  $effect(() => {
+    if (!ready) {
+      return
+    }
+
+    native.setFeatures($state.snapshot(device.features)).catch(() => undefined)
   })
 
   $effect(() => {
@@ -522,7 +533,7 @@
 
 <div
   class={[
-    "flex h-full flex-col",
+    "flex h-full select-none flex-col",
     device.dockEdge === "top" ? "justify-start" : "justify-end",
   ]}
 >
@@ -582,7 +593,7 @@
           mac || uchiwa ? "justify-center" : "justify-self-start",
         ]}
       >
-        {#if device.showLauncherButton}
+        {#if device.showLauncherButton && device.features.launcher}
           <button
             class="btn btn-ghost btn-square btn-sm"
             title="Launcher"

@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { listen } from "@tauri-apps/api/event"
   import { getCurrentWindow } from "@tauri-apps/api/window"
   import { open as pickDirectory } from "@tauri-apps/plugin-dialog"
   import { cubicOut } from "svelte/easing"
@@ -11,18 +12,21 @@
     type PermissionMode,
     type Question,
   } from "$lib/claude/session.svelte"
+  import { ensureDevice } from "$lib/device"
   import * as native from "$lib/native"
+  import { onDevice } from "$lib/settings"
 
   type Mode = "claude" | "code"
 
   const MENTION_DELAY = 150
-  const SNAP = 0.15
   const RECENT_LIMIT = 8
   const STORAGE = "eris.chat"
 
   const appWindow = getCurrentWindow()
 
-  let area = $state({ width: 0, height: 0 })
+  let area = $state<native.ChatArea>({ width: 0, height: 0, monitors: [], home: 0 })
+  let snap = $state(0.15)
+  let previewing = $state<number | null>(null)
   let left = $state(0)
   let top = $state(0)
   let corner = $state({ right: true, bottom: true })
@@ -96,8 +100,23 @@
     folder.replaceAll("\\", "/").split("/").filter(Boolean).at(-1) ?? "",
   )
 
-  const targetX = $derived(area.width / 2)
-  const targetY = $derived(area.height - TARGET_BOTTOM - TARGET / 2)
+  const whole = $derived<native.ChatRect>({ x: 0, y: 0, width: area.width, height: area.height })
+
+  const monitorAt = (x: number, y: number) =>
+    area.monitors.find(m => x >= m.x && x < m.x + m.width && y >= m.y && y < m.y + m.height) ??
+    area.monitors.reduce<native.ChatRect | null>((best, m) => {
+      const distance = Math.hypot(m.x + m.width / 2 - x, m.y + m.height / 2 - y)
+
+      return best && Math.hypot(best.x + best.width / 2 - x, best.y + best.height / 2 - y) <= distance
+        ? best
+        : m
+    }, null) ??
+    whole
+
+  const screen = $derived(monitorAt(left + BUBBLE / 2, top + BUBBLE / 2))
+
+  const targetX = $derived(screen.x + screen.width / 2)
+  const targetY = $derived(screen.y + screen.height - TARGET_BOTTOM - TARGET / 2)
 
   const overTarget = $derived(
     dragging &&
@@ -107,15 +126,15 @@
 
   const panelLeft = $derived(
     Math.min(
-      Math.max(EDGE, corner.right ? left - GAP - PANEL_WIDTH : left + BUBBLE + GAP),
-      area.width - PANEL_WIDTH - EDGE,
+      Math.max(screen.x + EDGE, corner.right ? left - GAP - PANEL_WIDTH : left + BUBBLE + GAP),
+      screen.x + screen.width - PANEL_WIDTH - EDGE,
     ),
   )
 
   const panelTop = $derived(
     Math.min(
-      Math.max(EDGE, corner.bottom ? top + BUBBLE - PANEL_HEIGHT : top),
-      area.height - PANEL_HEIGHT - EDGE,
+      Math.max(screen.y + EDGE, corner.bottom ? top + BUBBLE - PANEL_HEIGHT : top),
+      screen.y + screen.height - PANEL_HEIGHT - EDGE,
     ),
   )
 
@@ -124,7 +143,7 @@
   )
 
   const frame = $derived.by(() => {
-    if (dragging) {
+    if (dragging || previewing !== null) {
       return { x: 0, y: 0, width: area.width, height: area.height }
     }
 
@@ -170,32 +189,39 @@
   })
 
   const place = () => {
-    left = corner.right ? area.width - BUBBLE - EDGE : EDGE
-    top = corner.bottom ? area.height - BUBBLE - EDGE : EDGE
+    const home = area.monitors[area.home] ?? whole
+
+    left = corner.right ? home.x + home.width - BUBBLE - EDGE : home.x + EDGE
+    top = corner.bottom ? home.y + home.height - BUBBLE - EDGE : home.y + EDGE
   }
 
   const settle = () => {
     const centerX = left + BUBBLE / 2
     const centerY = top + BUBBLE / 2
-    const maxLeft = area.width - BUBBLE - EDGE
-    const maxTop = area.height - BUBBLE - EDGE
+    const m = monitorAt(centerX, centerY)
+    const minLeft = m.x + EDGE
+    const minTop = m.y + EDGE
+    const maxLeft = m.x + m.width - BUBBLE - EDGE
+    const maxTop = m.y + m.height - BUBBLE - EDGE
+    const fromLeft = (centerX - m.x) / m.width
+    const fromTop = (centerY - m.y) / m.height
 
-    corner = { right: centerX >= area.width / 2, bottom: centerY >= area.height / 2 }
+    corner = { right: fromLeft >= 0.5, bottom: fromTop >= 0.5 }
 
-    if (centerX < area.width * SNAP) {
-      left = EDGE
-    } else if (centerX > area.width * (1 - SNAP)) {
+    if (fromLeft < snap) {
+      left = minLeft
+    } else if (fromLeft > 1 - snap) {
       left = maxLeft
     }
 
-    if (centerY < area.height * SNAP) {
-      top = EDGE
-    } else if (centerY > area.height * (1 - SNAP)) {
+    if (fromTop < snap) {
+      top = minTop
+    } else if (fromTop > 1 - snap) {
       top = maxTop
     }
 
-    left = Math.min(Math.max(EDGE, left), maxLeft)
-    top = Math.min(Math.max(EDGE, top), maxTop)
+    left = Math.min(Math.max(minLeft, left), maxLeft)
+    top = Math.min(Math.max(minTop, top), maxTop)
   }
 
   const load = async () => {
@@ -415,9 +441,19 @@
       cli = path
     })
 
+    ensureDevice().then(d => {
+      snap = d.chatSnap / 100
+    })
+
     const stops = [
       native.onWindowShown("chat", load),
       native.onChatToggle(() => toggle()),
+      onDevice(d => {
+        snap = d.chatSnap / 100
+      }),
+      listen<{ percent: number; on: boolean }>("chat-snap-preview", e => {
+        previewing = e.payload.on ? e.payload.percent : null
+      }),
     ]
 
     return () => {
@@ -470,9 +506,12 @@
       radius: number,
     ) => [x - frame.x, y - frame.y, x - frame.x + width, y - frame.y + height, radius]
 
-    const rects = [box(left, top, BUBBLE, BUBBLE, BUBBLE / 2)]
+    const rects =
+      previewing !== null
+        ? [[0, 0, frame.width, frame.height, 0]]
+        : [box(left, top, BUBBLE, BUBBLE, BUBBLE / 2)]
 
-    if (open && !dragging) {
+    if (open && !dragging && previewing === null) {
       rects.push(box(panelLeft, panelTop, PANEL_WIDTH, PANEL_HEIGHT, panelRadius))
     }
 
@@ -603,6 +642,33 @@
 <svelte:window {onkeydown} />
 
 <div class="absolute" style:left="{-frame.x}px" style:top="{-frame.y}px">
+  {#if previewing !== null}
+    {#each area.monitors as m, index (index)}
+      {@const bandX = (m.width * previewing) / 100}
+      {@const bandY = (m.height * previewing) / 100}
+
+      {#each [[m.x, m.y, m.width, bandY], [m.x, m.y + m.height - bandY, m.width, bandY], [m.x, m.y, bandX, m.height], [m.x + m.width - bandX, m.y, bandX, m.height]] as [x, y, w, h], side (side)}
+        <div
+          class="pointer-events-none absolute border border-primary/40 bg-primary/15"
+          style:left="{x}px"
+          style:top="{y}px"
+          style:width="{w}px"
+          style:height="{h}px"
+          aria-hidden="true"
+        ></div>
+      {/each}
+
+      <div
+        class="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-box bg-base-100 px-4 py-2 text-lg font-medium tabular-nums shadow-xl"
+        style:left="{m.x + m.width / 2}px"
+        style:top="{m.y + m.height / 2}px"
+        aria-hidden="true"
+      >
+        {previewing}%
+      </div>
+    {/each}
+  {/if}
+
   {#if open && !dragging}
     <section
       bind:this={panel}

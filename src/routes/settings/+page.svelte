@@ -2,7 +2,7 @@
   import * as native from "$lib/native"
   import Icon from "@iconify/svelte"
   import { tick } from "svelte"
-  import { listen } from "@tauri-apps/api/event"
+  import { emit, listen } from "@tauri-apps/api/event"
   import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart"
   import { saveProfileSynced } from "$lib/data/store"
   import { ensureDevice } from "$lib/device"
@@ -25,6 +25,7 @@
   import Advanced from "$lib/settings-ui/Advanced.svelte"
   import AppearanceControls from "$lib/settings-ui/AppearanceControls.svelte"
   import DockControls from "$lib/settings-ui/DockControls.svelte"
+  import FeatureControls from "$lib/settings-ui/FeatureControls.svelte"
   import HotkeyPicker from "$lib/settings-ui/HotkeyPicker.svelte"
   import ImportExport from "$lib/settings-ui/ImportExport.svelte"
   import PresetGrid from "$lib/settings-ui/PresetGrid.svelte"
@@ -48,6 +49,15 @@
   const reminders = [0, 5, 10, 15, 30, 60]
 
   let section = $state<SectionId>("general")
+  let snapTimer: ReturnType<typeof setTimeout> | undefined
+
+  const previewSnap = () => {
+    clearTimeout(snapTimer)
+    emit("chat-snap-preview", { percent: device.chatSnap, on: true }).catch(() => undefined)
+    snapTimer = setTimeout(() => {
+      emit("chat-snap-preview", { percent: device.chatSnap, on: false }).catch(() => undefined)
+    }, 1500)
+  }
   let query = $state("")
   let device = $state<DeviceSettings>(structuredClone(defaultDevice))
   let profile = $state<Profile>(structuredClone(defaultProfile))
@@ -438,6 +448,30 @@
                 </button>
               </Row>
             </Section>
+
+            <Section title="Features" description="Turn whole parts of Eris on or off">
+              <FeatureControls bind:device />
+            </Section>
+
+            {#if device.features.chat}
+              <Section
+                title="Chat bubble"
+                description="How close to a screen edge the bubble has to be to snap"
+              >
+                <Row label="Snap distance" value="{device.chatSnap}%" stacked>
+                  <input
+                    type="range"
+                    class="range range-primary range-xs w-full"
+                    min="5"
+                    max="40"
+                    step="1"
+                    aria-label="Snap distance"
+                    bind:value={device.chatSnap}
+                    oninput={previewSnap}
+                  />
+                </Row>
+              </Section>
+            {/if}
 
             <Section
               title="Launcher hotkey"

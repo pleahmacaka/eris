@@ -156,6 +156,11 @@
     animation: none;
   }
 
+  :root[data-surface="dock"] .siri-orb,
+  :root[data-surface="dock"] .siri-veil {
+    display: none;
+  }
+
   :root[data-surface="overlay"] .siri-shell {
     border-radius: var(--radius-box);
   }

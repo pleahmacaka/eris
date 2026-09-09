@@ -12,6 +12,7 @@ export type LauncherTrigger = "win" | "shortcut" | "both"
 export type ThemeMode = "dark" | "light" | "system"
 export type Background = "aura" | "glass" | "solid"
 export type Density = "compact" | "cozy"
+export type Features = { dock: boolean; launcher: boolean; chat: boolean }
 export type WebSearchEngine = "google" | "duckduckgo" | "bing" | "naver"
 export type TodoSort = "manual" | "due" | "priority"
 
@@ -35,6 +36,8 @@ export type DeviceSettings = {
   dockIconSize: number
   dockAutoHide: boolean
   dockDesktop: boolean
+  features: Features
+  chatSnap: number
   dockMonitor: string | null
   hideSystemTaskbar: boolean
   showLauncherButton: boolean
@@ -106,7 +109,7 @@ export type Profile = {
 }
 
 export const defaultAppearance: Appearance = {
-  mode: "dark",
+  mode: "system",
   background: "aura",
   useSystemAccent: true,
   accentHue: 215,
@@ -170,6 +173,8 @@ export const defaultDevice: DeviceSettings = {
   dockIconSize: 24,
   dockAutoHide: false,
   dockDesktop: false,
+  features: { dock: true, launcher: true, chat: true },
+  chatSnap: 15,
   dockMonitor: null,
   hideSystemTaskbar: true,
   showLauncherButton: true,
@@ -214,6 +219,7 @@ export const loadDevice = async (): Promise<DeviceSettings> => {
   return {
     ...defaultDevice,
     ...saved,
+    features: { ...defaultDevice.features, ...saved?.features },
     sync: {
       ...defaultSync,
       ...saved?.sync,
