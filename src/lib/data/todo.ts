@@ -1,3 +1,4 @@
+import { currentLocale, tr } from "../i18n/locale"
 import type { TodoSort } from "../settings"
 import {
   addDays,
@@ -112,22 +113,22 @@ const dayLabel = (day: Date, today: Date) => {
   const distance = Math.round((day.getTime() - today.getTime()) / 86_400_000)
 
   if (distance === 0) {
-    return "Today"
+    return tr("dates.today")
   }
 
   if (distance === 1) {
-    return "Tomorrow"
+    return tr("dates.tomorrow")
   }
 
   if (distance === -1) {
-    return "Yesterday"
+    return tr("dates.yesterday")
   }
 
   if (distance > 1 && distance < 7) {
-    return day.toLocaleDateString("en-US", { weekday: "short" })
+    return day.toLocaleDateString(currentLocale(), { weekday: "short" })
   }
 
-  return day.toLocaleDateString("en-US", {
+  return day.toLocaleDateString(currentLocale(), {
     month: "short",
     day: "numeric",
     year: day.getFullYear() === today.getFullYear() ? undefined : "numeric",

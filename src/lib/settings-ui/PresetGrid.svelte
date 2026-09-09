@@ -5,6 +5,7 @@
   import type { Profile } from "$lib/settings"
   import { type PresetDefinition, presets as builtIn } from "$lib/theme"
   import { allPresets, matchPreset } from "./presets"
+  import { t } from "svelte-i18n"
 
   let { profile = $bindable() }: { profile: Profile } = $props()
 
@@ -58,7 +59,7 @@
         </div>
 
         <span class="line-clamp-2 text-xs text-base-content/60">
-          {p.description}
+          {$t(`settings.appearance.presetDescriptions.${builtInIds.has(p.id) ? p.id : "user"}`)}
         </span>
       </button>
 
@@ -66,7 +67,7 @@
         <button
           type="button"
           class="btn btn-circle btn-ghost btn-xs absolute top-2 right-2 opacity-0 transition-opacity duration-150 group-hover:opacity-100 focus-visible:opacity-100"
-          aria-label="Delete preset {p.name}"
+          aria-label={$t("settings.appearance.deletePreset", { values: { name: p.name } })}
           onclick={() => userPresets.remove(p.id)}
         >
           <Icon icon="lucide:trash-2" class="size-3.5" />

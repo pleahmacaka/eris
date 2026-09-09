@@ -2,13 +2,12 @@
   import Icon from "@iconify/svelte"
   import type { DeviceSettings } from "$lib/settings"
   import Row from "./Row.svelte"
+  import { t } from "svelte-i18n"
 
   type Feature = keyof DeviceSettings["features"]
 
   type Preset = {
     id: string
-    name: string
-    hint: string
     icon: string
     features: DeviceSettings["features"]
   }
@@ -18,17 +17,17 @@
     presets = false,
   }: { device: DeviceSettings; presets?: boolean } = $props()
 
-  const FEATURES: { key: Feature; label: string; hint: string; icon: string }[] = [
-    { key: "dock", label: "Dock", hint: "The bar that replaces the Windows taskbar", icon: "lucide:panel-bottom" },
-    { key: "launcher", label: "Launcher", hint: "Win key search for apps, windows, and commands", icon: "lucide:search" },
-    { key: "chat", label: "Chat bubble", hint: "Claude and Claude Code in a floating bubble", icon: "lucide:message-circle" },
+  const FEATURES: { key: Feature; row: string; icon: string }[] = [
+    { key: "dock", row: "featureDock", icon: "lucide:panel-bottom" },
+    { key: "launcher", row: "featureLauncher", icon: "lucide:search" },
+    { key: "chat", row: "featureChat", icon: "lucide:message-circle" },
   ]
 
   const PRESETS: Preset[] = [
-    { id: "all", name: "Everything", hint: "Dock, launcher, and chat", icon: "lucide:layout-grid", features: { dock: true, launcher: true, chat: true } },
-    { id: "desk", name: "Desk", hint: "Dock and launcher, no chat", icon: "lucide:panel-bottom", features: { dock: true, launcher: true, chat: false } },
-    { id: "search", name: "Launcher only", hint: "Keep the Windows taskbar", icon: "lucide:search", features: { dock: false, launcher: true, chat: false } },
-    { id: "bubble", name: "Chat only", hint: "Just the Claude bubble", icon: "lucide:message-circle", features: { dock: false, launcher: false, chat: true } },
+    { id: "all", icon: "lucide:layout-grid", features: { dock: true, launcher: true, chat: true } },
+    { id: "desk", icon: "lucide:panel-bottom", features: { dock: true, launcher: true, chat: false } },
+    { id: "search", icon: "lucide:search", features: { dock: false, launcher: true, chat: false } },
+    { id: "bubble", icon: "lucide:message-circle", features: { dock: false, launcher: false, chat: true } },
   ]
 
   const same = (a: DeviceSettings["features"], b: DeviceSettings["features"]) =>
@@ -36,7 +35,7 @@
 </script>
 
 {#if presets}
-  <div class="grid grid-cols-2 gap-3 px-4 pt-3" role="radiogroup" aria-label="Feature preset">
+  <div class="grid grid-cols-2 gap-3 px-4 pt-3" role="radiogroup" aria-label={$t("settings.featurePresets.aria")}>
     {#each PRESETS as preset (preset.id)}
       {@const active = same(device.features, preset.features)}
 
@@ -55,9 +54,9 @@
         <Icon icon={preset.icon} class="mt-0.5 size-5 shrink-0 text-primary" />
 
         <span class="min-w-0">
-          <span class="block text-sm font-medium">{preset.name}</span>
+          <span class="block text-sm font-medium">{$t(`settings.featurePresets.${preset.id}.name`)}</span>
 
-          <span class="block text-xs text-base-content/60">{preset.hint}</span>
+          <span class="block text-xs text-base-content/60">{$t(`settings.featurePresets.${preset.id}.hint`)}</span>
         </span>
       </button>
     {/each}
@@ -65,11 +64,11 @@
 {/if}
 
 {#each FEATURES as feature (feature.key)}
-  <Row label={feature.label} hint={feature.hint}>
+  <Row label={$t(`settings.rows.${feature.row}`)} hint={$t(`settings.hints.${feature.row}`)}>
     <input
       type="checkbox"
       class="toggle toggle-primary"
-      aria-label={feature.label}
+      aria-label={$t(`settings.rows.${feature.row}`)}
       bind:checked={device.features[feature.key]}
     />
   </Row>

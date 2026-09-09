@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core"
 import { emit, listen } from "@tauri-apps/api/event"
 import { load } from "@tauri-apps/plugin-store"
+import type { Language } from "./i18n/locale"
 import type { SyncedCollection } from "./sync/protocol"
 
 export type DockStyle = "windows" | "mac"
@@ -28,6 +29,7 @@ export type DeviceSettings = {
   deviceId: string
   deviceName: string
   onboarded: boolean
+  language: Language
   dockStyle: DockStyle
   dockEdge: DockEdge
   dockAlign: DockAlign
@@ -165,6 +167,7 @@ export const defaultDevice: DeviceSettings = {
   deviceId: "",
   deviceName: "",
   onboarded: false,
+  language: "system",
   dockStyle: "windows",
   dockEdge: "bottom",
   dockAlign: "center",

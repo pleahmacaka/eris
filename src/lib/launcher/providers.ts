@@ -18,6 +18,7 @@ import {
   runCommand,
   type WindowEntry,
 } from "../native"
+import { currentLocale, tr } from "../i18n/locale"
 import type { WebSearchEngine } from "../settings"
 import { evaluate, formatNumber, plainNumber } from "./calc"
 import { matchEmoji } from "./emoji"
@@ -31,10 +32,6 @@ import {
 } from "./timers"
 import type { Result } from "./types"
 import { convert } from "./units"
-
-export const ADMIN = "Run as administrator"
-export const LOCATION = "Open file location"
-export const CANCEL = "Cancel"
 
 const FALLBACK_ICON = "lucide:app-window"
 
@@ -79,12 +76,18 @@ export const appResult = (
   iconPath: app.path,
   action: () => launchApp(app.path),
   secondaryActions: [
-    { label: ADMIN, run: () => launchApp(app.path, true) },
+    { id: "admin", label: tr("launcher.actions.admin"), run: () => launchApp(app.path, true) },
     ...(app.kind === "store"
       ? []
-      : [{ label: LOCATION, run: () => openLocation(app.path) }]),
+      : [
+          {
+            id: "location" as const,
+            label: tr("launcher.actions.location"),
+            run: () => openLocation(app.path),
+          },
+        ]),
     {
-      label: dockPinned ? "Unpin from dock" : "Pin to dock",
+      label: dockPinned ? tr("launcher.actions.unpinDock") : tr("launcher.actions.pinDock"),
       run: () => toggleDockPin(app.path),
     },
   ],
@@ -98,10 +101,10 @@ export const windowResult = (entry: WindowEntry, icon?: string): Result => ({
   subtitle: fileName(entry.process),
   icon: icon || FALLBACK_ICON,
   iconPath: entry.process,
-  chips: entry.minimized ? ["Minimized"] : undefined,
+  chips: entry.minimized ? [tr("launcher.chips.minimized")] : undefined,
   action: () => activateWindow(entry.hwnd),
   secondaryActions: [
-    { label: "Close window", run: () => closeWindow(entry.hwnd) },
+    { label: tr("launcher.actions.closeWindow"), run: () => closeWindow(entry.hwnd) },
   ],
   score: 0,
 })
@@ -125,7 +128,7 @@ export const calcResult = (expression: string): Result | null => {
   if ("error" in outcome) {
     return {
       ...base,
-      title: outcome.error,
+      title: tr(`launcher.calcErrors.${outcome.error}`),
       action: () => undefined,
       stay: true,
     }
@@ -134,7 +137,7 @@ export const calcResult = (expression: string): Result | null => {
   return {
     ...base,
     title: formatNumber(outcome.value),
-    chips: ["Enter copies"],
+    chips: [tr("launcher.chips.enterCopies")],
     action: () => navigator.clipboard.writeText(plainNumber(outcome.value)),
   }
 }
@@ -152,7 +155,7 @@ export const unitResult = (expression: string): Result | null => {
     title: converted.formatted,
     subtitle: expression.trim(),
     icon: "lucide:arrow-left-right",
-    chips: ["Enter copies"],
+    chips: [tr("launcher.chips.enterCopies")],
     action: () => navigator.clipboard.writeText(converted.formatted),
     secondaryActions: [],
     score: 2100,
@@ -166,7 +169,7 @@ export const emojiResults = (query: string): Result[] =>
     title: match.name,
     subtitle: match.char,
     icon: match.char,
-    chips: ["Enter copies"],
+    chips: [tr("launcher.chips.enterCopies")],
     action: () => navigator.clipboard.writeText(match.char),
     secondaryActions: [],
     score: match.score,
@@ -175,11 +178,10 @@ export const emojiResults = (query: string): Result[] =>
 export const newTimerResult = (draft: Omit<Timer, "id">): Result => ({
   id: "timer:new",
   kind: "timer",
-  title:
-    draft.kind === "alarm"
-      ? `Set alarm: ${draft.label}`
-      : `Start timer: ${draft.label}`,
-  subtitle: `Fires at ${formatClock(draft.fireAt)}`,
+  title: tr(draft.kind === "alarm" ? "launcher.timer.setAlarm" : "launcher.timer.startTimer", {
+    label: draft.label,
+  }),
+  subtitle: tr("launcher.timer.firesAt", { time: formatClock(draft.fireAt) }),
   icon: draft.kind === "alarm" ? "lucide:alarm-clock" : "lucide:timer",
   action: () => addTimer(draft),
   secondaryActions: [],
@@ -190,18 +192,26 @@ export const pendingTimerResult = (timer: Timer, now = Date.now()): Result => ({
   id: `timer:${timer.id}`,
   kind: "timer",
   title: timer.label,
-  subtitle: `${remaining(timer, now)} left · ${formatClock(timer.fireAt)}`,
+  subtitle: tr("launcher.timer.left", {
+    remaining: remaining(timer, now),
+    time: formatClock(timer.fireAt),
+  }),
   icon: timer.kind === "alarm" ? "lucide:alarm-clock" : "lucide:hourglass",
   action: () => undefined,
   secondaryActions: [
-    { label: CANCEL, run: () => cancelTimer(timer.id), stay: true },
+    {
+      id: "cancel",
+      label: tr("launcher.actions.cancel"),
+      run: () => cancelTimer(timer.id),
+      stay: true,
+    },
   ],
   stay: true,
   score: Math.max(1, 1999 - Math.floor((timer.fireAt - now) / 1000)),
 })
 
 export const timerKindLabel = (kind: TimerKind) =>
-  kind === "alarm" ? "Alarm" : "Timer"
+  tr(kind === "alarm" ? "launcher.timer.alarm" : "launcher.timer.timer")
 
 const buildTodo = (parsed: Partial<Todo>, title: string): Todo => {
   const now = Date.now()
@@ -232,15 +242,15 @@ export const todoResult = (text: string): Result | null => {
   const todo = buildTodo(parsed, title)
   const chips = [
     ...(todo.due ? [dueLabel(todo)] : []),
-    ...(todo.priority ? [`Priority ${todo.priority}`] : []),
+    ...(todo.priority ? [tr("launcher.chips.priority", { level: todo.priority })] : []),
     ...todo.tags.map(tag => `#${tag}`),
   ]
 
   return {
     id: "todo",
     kind: "todo",
-    title: `Add todo: ${title}`,
-    subtitle: "Saves to your todo list",
+    title: tr("launcher.todo.add", { title }),
+    subtitle: tr("launcher.todo.saves"),
     icon: "lucide:list-plus",
     chips,
     action: async () => {
@@ -267,7 +277,7 @@ export const webResult = (query: string, engine: WebSearchEngine): Result => {
   return {
     id: "web",
     kind: "web",
-    title: `Search the web for "${query}"`,
+    title: tr("launcher.web.search", { query }),
     subtitle: name,
     icon: "lucide:globe",
     action: () => openUrl(url + encodeURIComponent(query)),
@@ -279,8 +289,8 @@ export const webResult = (query: string, engine: WebSearchEngine): Result => {
 export const runResult = (command: string): Result => ({
   id: "run",
   kind: "run",
-  title: `Run ${command}`,
-  subtitle: "Command line",
+  title: tr("launcher.run.title", { command }),
+  subtitle: tr("launcher.run.subtitle"),
   icon: "lucide:terminal",
   action: () => runCommand(command),
   secondaryActions: [],
@@ -293,8 +303,8 @@ export const openResult = (target: string): Result => {
   return {
     id: "open",
     kind: "run",
-    title: `Open ${target}`,
-    subtitle: link ? "Link" : "Path",
+    title: tr("launcher.open.title", { target }),
+    subtitle: link ? tr("launcher.open.link") : tr("launcher.open.path"),
     icon: link ? "lucide:external-link" : "lucide:folder-open",
     action: () => openUrl(target),
     secondaryActions: [],
@@ -302,7 +312,6 @@ export const openResult = (target: string): Result => {
   }
 }
 
-const RELATIVE = new Intl.RelativeTimeFormat("en", { numeric: "auto" })
 const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
   ["day", 86_400_000],
   ["hour", 3_600_000],
@@ -314,11 +323,12 @@ export const relativeTime = (at: number, now = Date.now()) => {
   const unit = UNITS.find(([, ms]) => gap >= ms)
 
   return unit
-    ? RELATIVE.format(-Math.floor(gap / unit[1]), unit[0])
-    : "just now"
+    ? new Intl.RelativeTimeFormat(currentLocale(), { numeric: "auto" }).format(
+        -Math.floor(gap / unit[1]),
+        unit[0],
+      )
+    : tr("launcher.clip.justNow")
 }
-
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`
 
 const clipTitle = (text: string) =>
   text.trim().split("\n")[0].split(/\s+/).join(" ").slice(0, 120)
@@ -326,23 +336,23 @@ const clipTitle = (text: string) =>
 const clipResult = (entry: ClipEntry, score: number): Result => {
   const lines = entry.text.trim().split("\n").length
   const when = relativeTime(entry.at)
-  const size = `${plural(lines, "line")} · ${plural(entry.text.length, "char")}`
+  const size = `${tr("launcher.clip.lines", { count: lines })} · ${tr("launcher.clip.chars", { count: entry.text.length })}`
 
   return {
     id: `clip:${entry.id}`,
     kind: "clip",
-    title: clipTitle(entry.text) || "Whitespace",
+    title: clipTitle(entry.text) || tr("launcher.clip.whitespace"),
     subtitle: `${when} · ${size}`,
     icon: entry.pinned ? "lucide:pin" : "lucide:clipboard",
     action: () => clipboardPaste(entry.id),
     secondaryActions: [
-      { label: "Copy only", run: () => clipboardCopy(entry.id) },
+      { label: tr("launcher.actions.copyOnly"), run: () => clipboardCopy(entry.id) },
       {
-        label: entry.pinned ? "Unpin" : "Pin",
+        label: entry.pinned ? tr("launcher.actions.unpin") : tr("launcher.actions.pin"),
         run: () => clipboardPin(entry.id, !entry.pinned),
         stay: true,
       },
-      { label: "Delete", run: () => clipboardRemove(entry.id), stay: true },
+      { label: tr("launcher.actions.delete"), run: () => clipboardRemove(entry.id), stay: true },
     ],
     score,
   }
@@ -360,8 +370,8 @@ export const clipResults = (entries: ClipEntry[], query: string): Result[] => {
 export const clearClipsResult = (): Result => ({
   id: "clip:clear",
   kind: "command",
-  title: "Clear history",
-  subtitle: "Keeps pinned items",
+  title: tr("launcher.clip.clearHistory"),
+  subtitle: tr("launcher.clip.keepsPinned"),
   icon: "lucide:trash-2",
   action: clipboardClear,
   secondaryActions: [],

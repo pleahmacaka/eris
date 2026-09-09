@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "svelte-i18n"
   import Icon from "@iconify/svelte"
 
   let { value = $bindable() }: { value: string } = $props()
@@ -102,7 +103,7 @@
     ].filter(Boolean)
 
     if (modifiers.length === 0) {
-      error = "Add a modifier such as Ctrl or Alt"
+      error = $t("settings.hotkey.addModifier")
 
       return
     }
@@ -126,14 +127,14 @@
         "btn btn-sm gap-1 transition-colors duration-150",
         recording ? "btn-primary" : "btn-soft",
       ]}
-      aria-label={recording ? "Recording shortcut" : "Change shortcut"}
+      aria-label={recording ? $t("settings.hotkey.recording") : $t("settings.hotkey.change")}
       onclick={toggle}
       {onkeydown}
       onblur={() => (recording = false)}
     >
       {#if recording}
         <Icon icon="lucide:circle-dot" class="size-4 animate-pulse" />
-        Press keys
+        {$t("settings.hotkey.pressKeys")}
       {:else}
         {#each chips as chip, at (at)}
           <kbd class="kbd kbd-sm">{chip}</kbd>
@@ -147,13 +148,13 @@
       disabled={value === DEFAULT}
       onclick={() => (value = DEFAULT)}
     >
-      Reset
+      {$t("common.reset")}
     </button>
   </div>
 
   {#if error}
     <span class="text-xs text-error">{error}</span>
   {:else if recording}
-    <span class="text-xs text-base-content/60">Esc cancels</span>
+    <span class="text-xs text-base-content/60">{$t("settings.hotkey.escCancels")}</span>
   {/if}
 </div>

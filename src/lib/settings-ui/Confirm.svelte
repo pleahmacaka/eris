@@ -1,9 +1,11 @@
 <script lang="ts">
+  import { t } from "svelte-i18n"
+
   let {
     open = $bindable(false),
     title,
     body,
-    action = "Confirm",
+    action,
     onconfirm,
   }: {
     open?: boolean
@@ -43,11 +45,11 @@
 
     <div class="modal-action">
       <button type="button" class="btn btn-ghost btn-sm" onclick={() => (open = false)}>
-        Cancel
+        {$t("common.cancel")}
       </button>
 
       <button type="button" class="btn btn-error btn-sm" onclick={confirm}>
-        {action}
+        {action ?? $t("common.confirm")}
       </button>
     </div>
   </div>

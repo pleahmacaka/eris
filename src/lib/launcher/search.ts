@@ -1,7 +1,7 @@
 import { getChoseong } from "es-hangul"
 import type { TimerKind } from "./timers"
 import {
-  groupLabels,
+  groupLabel,
   type Result,
   type ResultGroup,
   type ResultKind,
@@ -323,7 +323,7 @@ export const groupResults = (
       .sort((a, b) => b.score - a.score)
       .slice(0, limit(kind))
 
-    return [{ kind, label: groupLabels[kind], start: 0, items: sorted }]
+    return [{ kind, label: groupLabel(kind), start: 0, items: sorted }]
   })
 
   groups.sort((a, b) => {

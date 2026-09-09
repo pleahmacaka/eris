@@ -1,0 +1,708 @@
+{
+  "common": {
+    "close": "Close",
+    "cancel": "Cancel",
+    "save": "Save",
+    "reset": "Reset",
+    "open": "Open",
+    "clear": "Clear",
+    "back": "Back",
+    "submit": "Submit",
+    "none": "None",
+    "search": "Search",
+    "noMatches": "No matches",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "settings": "Settings",
+    "done": "Done",
+    "next": "Next",
+    "skip": "Skip",
+    "on": "On",
+    "off": "Off"
+  },
+  "languages": {
+    "system": "System",
+    "en": "English",
+    "ko": "한국어",
+    "ja": "日本語",
+    "zh": "中文"
+  },
+  "settings": {
+    "title": "Settings",
+    "searchAria": "Search settings",
+    "sections": {
+      "general": {
+        "label": "General",
+        "blurb": "This device, startup, and the launcher hotkey"
+      },
+      "dock": {
+        "label": "Dock",
+        "blurb": "The bar that replaces the Windows taskbar"
+      },
+      "launcher": {
+        "label": "Launcher",
+        "blurb": "Result groups and the web search engine"
+      },
+      "appearance": {
+        "label": "Appearance",
+        "blurb": "Presets, colors, and surfaces for every window"
+      },
+      "calendar": {
+        "label": "Calendar & todo",
+        "blurb": "Week layout, reminders, and list order"
+      },
+      "sync": {
+        "label": "Sync",
+        "blurb": "Devices in step through your own server"
+      },
+      "advanced": {
+        "label": "Advanced",
+        "blurb": "Stored data, caches, and resets"
+      },
+      "about": {
+        "label": "About",
+        "blurb": "Version and keyboard shortcuts"
+      }
+    },
+    "groups": {
+      "device": "This device",
+      "features": {
+        "title": "Features",
+        "description": "Turn whole parts of Eris on or off"
+      },
+      "chat": {
+        "title": "Chat bubble",
+        "description": "How close to a screen edge the bubble has to be to snap"
+      },
+      "hotkey": {
+        "title": "Launcher hotkey",
+        "description": "A Win tap opens Eris. Win combos keep working."
+      },
+      "backup": {
+        "title": "Backup",
+        "description": "Settings, presets, todos, and events as one JSON file"
+      },
+      "dock": "Dock",
+      "results": "Results",
+      "presets": {
+        "title": "Presets",
+        "description": "Pick a look, then fine-tune below"
+      },
+      "fineTune": {
+        "title": "Fine-tune",
+        "description": "Changes preview live and mark the preset as custom"
+      },
+      "calendar": "Calendar",
+      "todo": "Todo",
+      "storedData": {
+        "title": "Stored data",
+        "description": "What Eris keeps on this device"
+      },
+      "resets": "Resets",
+      "shortcuts": {
+        "title": "Keyboard shortcuts",
+        "description": "Everything Eris listens for"
+      }
+    },
+    "rows": {
+      "deviceName": "Device name",
+      "autostart": "Start with Windows",
+      "hideTaskbar": "Hide Windows taskbar",
+      "language": "Language",
+      "featureDock": "Dock",
+      "featureLauncher": "Launcher",
+      "featureChat": "Chat bubble",
+      "snapDistance": "Snap distance",
+      "setupWizard": "Setup wizard",
+      "openWith": "Open with",
+      "shortcut": "Shortcut",
+      "backup": "Backup",
+      "resultsPerGroup": "Results per group",
+      "openWindows": "Open windows",
+      "commands": "Commands",
+      "todos": "Todos",
+      "calculator": "Calculator",
+      "webSearch": "Web search",
+      "presets": "Presets",
+      "mode": "Mode",
+      "background": "Background",
+      "followAccent": "Follow Windows accent",
+      "accentHue": "Accent hue",
+      "colorSpread": "Color spread",
+      "vividness": "Vividness",
+      "texture": "Texture",
+      "cornerRadius": "Corner radius",
+      "blur": "Blur",
+      "fontSize": "Font size",
+      "windowOpacity": "Window opacity",
+      "dockOpacity": "Dock opacity",
+      "density": "Density",
+      "motion": "Motion",
+      "weekStartsOn": "Week starts on",
+      "weekNumbers": "Week numbers",
+      "defaultReminder": "Default reminder",
+      "showCompleted": "Show completed",
+      "sortBy": "Sort by",
+      "storedData": "Stored data",
+      "dataFolder": "Data folder",
+      "iconCache": "Icon cache",
+      "resetAppearance": "Reset appearance",
+      "resetAll": "Reset all settings",
+      "version": "Version",
+      "keyboardShortcuts": "Keyboard shortcuts",
+      "style": "Style",
+      "display": "Display",
+      "edge": "Edge",
+      "alignment": "Alignment",
+      "height": "Height",
+      "width": "Width",
+      "iconSize": "Icon size",
+      "pinDesktop": "Pin to desktop",
+      "autoHide": "Auto-hide",
+      "showLauncherButton": "Show launcher button",
+      "showRunningApps": "Show running apps",
+      "showTrayIcons": "Show tray icons",
+      "showClaudeUsage": "Show Claude usage",
+      "claudeUsageStacked": "Stack Claude usage",
+      "showSettingsButton": "Show settings button",
+      "showKeymap": "Show keyboard hints",
+      "showBattery": "Show battery",
+      "showVolume": "Show volume",
+      "showMedia": "Show media controls",
+      "showSpectrum": "Show sound spectrum",
+      "showMeters": "Show CPU and memory",
+      "showNetwork": "Show network",
+      "clock24h": "24-hour clock",
+      "showSeconds": "Show seconds",
+      "spectrumStyle": "Spectrum style",
+      "claudeUsageSide": "Claude usage",
+      "claudeBridge": "Claude statusline bridge",
+      "usageSnapshot": "Usage snapshot",
+      "mediaSide": "Media controls",
+      "serverUrl": "Server URL",
+      "token": "Token",
+      "enableSync": "Enable sync",
+      "interval": "Interval",
+      "collections": "Collections",
+      "replaceLocal": "Replace local data with server",
+      "resetCollection": "Reset collection on server",
+      "unlinkDevice": "Unlink this device"
+    },
+    "hints": {
+      "deviceName": "Shown in the sync device list",
+      "autostart": "Launches Eris hidden at sign-in",
+      "hideTaskbar": "Eris takes over the edge",
+      "language": "Follows Windows unless you pick one",
+      "featureDock": "The bar that replaces the Windows taskbar",
+      "featureLauncher": "Win key search for apps, windows, and commands",
+      "featureChat": "Claude and Claude Code in a floating bubble",
+      "setupWizard": "Runs the first-start setup again",
+      "openWith": "Which keys bring up the launcher",
+      "shortcut": "Click, then press the combination",
+      "openWindows": "Switch to running windows by name",
+      "commands": "Lock, sleep, empty the recycle bin, and more",
+      "todos": "Add a todo straight from the search box",
+      "calculator": "Type an expression to evaluate it",
+      "webSearch": "Engine for queries nothing else matches",
+      "weekNumbers": "Show week numbers in the month grid",
+      "defaultReminder": "Before an event starts",
+      "showCompleted": "Keep done items in the list",
+      "mode": "Dark, light, or follow Windows",
+      "background": "Surface treatment behind every window",
+      "followAccent": "Use the accent color from Windows settings",
+      "colorSpread": "Hue distance between the accent colors",
+      "vividness": "Color soaked into surfaces",
+      "texture": "Grain over the background",
+      "cornerRadius": "Roundness of every surface",
+      "blur": "Strength of the frosted glass",
+      "fontSize": "Scales all text",
+      "windowOpacity": "Opacity of every Eris window",
+      "dockOpacity": "Opacity of the dock band",
+      "density": "Spacing inside lists and buttons",
+      "motion": "Animated backgrounds and transitions",
+      "dataFolder": "Settings, todos, events, and cached icons",
+      "iconCache": "Rebuilt whenever an app icon is missing",
+      "resetAppearance": "Back to the default preset and sliders",
+      "resetAll": "Device name, sync, and stored data stay",
+      "display": "Screen the dock sits on",
+      "edge": "Screen edge the dock sits on",
+      "alignment": "Where the apps sit along the bar",
+      "pinDesktop": "Windows may cover the dock; with auto-hide, touching the edge brings it forward",
+      "autoHide": "Slides away until the cursor touches the edge",
+      "showLauncherButton": "The Win key still opens the launcher",
+      "showRunningApps": "Open windows appear next to pinned apps",
+      "showTrayIcons": "Notification icons from background programs",
+      "showClaudeUsage": "5-hour and weekly session limits",
+      "claudeUsageStacked": "5-hour above weekly instead of side by side",
+      "showSettingsButton": "Right-click the bar for the same menu",
+      "showKeymap": "Shortcut keys in the launcher footer and result rows",
+      "showBattery": "Only on laptops",
+      "showVolume": "Scroll over it to change the level",
+      "showMedia": "Play, pause, and skip the current track",
+      "showSpectrum": "Live output levels next to the media controls",
+      "showMeters": "Live usage readout",
+      "showNetwork": "Wi-Fi or ethernet status",
+      "clock24h": "18:30 instead of 6:30 PM",
+      "showSeconds": "Ticks once a second",
+      "spectrumStyle": "How the bands are drawn",
+      "claudeUsageSide": "Which end of the bar it sits on",
+      "claudeBridge": "Writes the 5-hour and weekly windows Claude Code reports",
+      "usageSnapshot": "File written by the bridge, or a URL",
+      "mediaSide": "Which end of the bar they sit on",
+      "serverUrl": "Where the Eris sync server runs",
+      "token": "The ERIS_TOKEN the server was started with",
+      "enableSync": "Runs in the background while Eris is open",
+      "interval": "How often to check the server",
+      "collections": "What this device sends and receives",
+      "replaceLocal": "Drops local {collections} and pulls everything again",
+      "resetCollection": "Marks every record deleted so all devices clear it",
+      "unlinkDevice": "Forgets the server, token, and pending changes on this device"
+    },
+    "options": {
+      "win": "Win key",
+      "shortcut": "Shortcut",
+      "both": "Both",
+      "monday": "Monday",
+      "sunday": "Sunday",
+      "manual": "Manual",
+      "due": "Due date",
+      "priority": "Priority",
+      "dark": "Dark",
+      "light": "Light",
+      "system": "System",
+      "aura": "Aura",
+      "glass": "Glass",
+      "solid": "Solid",
+      "cozy": "Cozy",
+      "compact": "Compact",
+      "minBefore": "{minutes} min before",
+      "deg": "{value} deg",
+      "runSetup": "Run setup"
+    },
+    "featurePresets": {
+      "all": {
+        "name": "Everything",
+        "hint": "Dock, launcher, and chat"
+      },
+      "desk": {
+        "name": "Desk",
+        "hint": "Dock and launcher, no chat"
+      },
+      "search": {
+        "name": "Launcher only",
+        "hint": "Keep the Windows taskbar"
+      },
+      "bubble": {
+        "name": "Chat only",
+        "hint": "Just the Claude bubble"
+      },
+      "aria": "Feature preset"
+    },
+    "toasts": {
+      "shortcutFailed": "Shortcut not registered: {error}",
+      "autostartFailed": "Autostart failed: {error}",
+      "presetSaved": "Saved preset \"{name}\"",
+      "dataFolderFailed": "Data folder not opened: {error}",
+      "iconCacheCleared": "Icon cache cleared",
+      "iconCacheFailed": "Icon cache not cleared: {error}",
+      "appearanceReset": "Appearance reset",
+      "settingsReset": "Settings reset"
+    },
+    "about": {
+      "tagline": "Launcher, dock, and calendar for Windows 11"
+    },
+    "shortcuts": {
+      "launcher": "Launcher",
+      "panel": "Calendar panel",
+      "setup": "Setup and settings",
+      "openLauncher": "Open the launcher",
+      "moveSelection": "Move the selection",
+      "movePage": "Move a page",
+      "nextGroup": "Next group",
+      "previousGroup": "Previous group",
+      "openResult": "Open the selected result",
+      "openAdmin": "Open as administrator",
+      "openLocation": "Open the file location",
+      "openNumbered": "Open a numbered result",
+      "actionMenu": "Open the action menu",
+      "clearThenClose": "Clear the query, then close",
+      "switchTabs": "Switch tabs",
+      "moveDay": "Move the selected day",
+      "addEvent": "Add an event on that day",
+      "renameTodo": "Rename the todo",
+      "saveEvent": "Save the event",
+      "closePanel": "Close the panel",
+      "nextStep": "Next setup step",
+      "closeWindow": "Close this window",
+      "keys": {
+        "up": "Up",
+        "down": "Down",
+        "pageUp": "Page up",
+        "pageDown": "Page down",
+        "left": "Left",
+        "right": "Right",
+        "arrows": "Arrows",
+        "menu": "Menu"
+      }
+    },
+    "appearance": {
+      "presetDescriptions": {
+        "aurora": "Drifting orbs on deep blue",
+        "glass": "Light frosted surface",
+        "mica": "Solid surface with the Windows accent",
+        "nord": "Cool arctic blues",
+        "catppuccin": "Soft pastel mauve",
+        "dracula": "Purple and pink on charcoal",
+        "solarized": "Warm paper with amber accent",
+        "mono": "Greyscale, no accent",
+        "neon": "Vivid magenta and cyan glow",
+        "sunset": "Orange and gold on dusk",
+        "forest": "Mossy greens with grain",
+        "ocean": "Deep teal currents",
+        "user": "Saved from your settings"
+      },
+      "followingAccent": "Following the Windows accent",
+      "baseColor": "Base color for the whole theme",
+      "resetTo": "Reset to {name}",
+      "preset": "preset",
+      "saveAsPreset": "Save as preset",
+      "savePreset": "Save preset",
+      "savePresetBody": "Keeps the current appearance as a card in the grid.",
+      "presetName": "Preset name",
+      "deletePreset": "Delete preset {name}"
+    },
+    "hotkey": {
+      "addModifier": "Add a modifier such as Ctrl or Alt",
+      "recording": "Recording shortcut",
+      "change": "Change shortcut",
+      "pressKeys": "Press keys",
+      "escCancels": "Esc cancels"
+    },
+    "advanced": {
+      "todos": "Todos",
+      "events": "Events",
+      "presets": "Presets",
+      "resetAllTitle": "Reset all settings?",
+      "resetAllBody": "Every setting goes back to its default. Todos, events, presets, and the sync connection stay."
+    },
+    "dock": {
+      "styles": {
+        "windows": {
+          "label": "Windows",
+          "hint": "Full-width bar on the edge"
+        },
+        "mac": {
+          "label": "Mac",
+          "hint": "Floating centered dock"
+        }
+      },
+      "styleAria": "Dock style",
+      "automatic": "Automatic (primary)",
+      "notConnected": "Not connected",
+      "primary": "Primary",
+      "start": "Start",
+      "center": "Center",
+      "uchiwa": "Uchiwa",
+      "bottom": "Bottom",
+      "top": "Top",
+      "bars": "Bars",
+      "mirror": "Mirror",
+      "wave": "Wave",
+      "dots": "Dots",
+      "left": "Left",
+      "right": "Right",
+      "connect": "Connect",
+      "disconnect": "Disconnect"
+    },
+    "sync": {
+      "server": {
+        "title": "Server",
+        "description": "Keeps {collections} in step across devices."
+      },
+      "status": "Status",
+      "devices": {
+        "title": "Devices",
+        "description": "Everything registered with this server"
+      },
+      "danger": {
+        "title": "Danger zone",
+        "description": "These cannot be undone"
+      },
+      "collections": {
+        "todos": "Todos",
+        "events": "Events",
+        "profile": "Profile",
+        "presets": "Presets",
+        "notes": "Notes"
+      },
+      "hideToken": "Hide token",
+      "revealToken": "Reveal token",
+      "testConnection": "Test connection",
+      "connected": "Connected, server {version}, seq {seq}",
+      "everyHour": "Every hour",
+      "everyMinutes": "Every {minutes} min",
+      "states": {
+        "idle": "Up to date",
+        "syncing": "Syncing",
+        "error": "Error",
+        "disabled": "Off"
+      },
+      "lastSync": "Last sync {when}",
+      "neverSynced": "Never synced",
+      "pending": "{count} pending",
+      "justNow": "just now",
+      "syncNow": "Sync now",
+      "noDevices": "No devices yet",
+      "setServerFirst": "Set a server URL and token first",
+      "seen": "Seen {when}",
+      "thisDevice": "This device",
+      "forget": "Forget",
+      "replace": "Replace",
+      "unlink": "Unlink",
+      "collection": "Collection",
+      "toasts": {
+        "failed": "Sync failed",
+        "enableFirst": "Enable sync and fill in the server first",
+        "synced": "Synced: {pushed} pushed, {pulled} pulled",
+        "deviceForgotten": "Device forgotten",
+        "localReplaced": "Local data replaced from the server",
+        "recordsCleared": "{count} records cleared",
+        "collectionReset": "{collection} reset on the server",
+        "unlinked": "Device unlinked"
+      },
+      "confirm": {
+        "replaceTitle": "Replace local data?",
+        "replaceBody": "Local {collections} are deleted and replaced with what the server has. Unsynced changes are lost.",
+        "resetTitle": "Reset {collection} on the server?",
+        "resetBody": "Every record in this collection is marked deleted on the server and removed from all synced devices.",
+        "unlinkTitle": "Unlink this device?",
+        "unlinkBody": "Sync is turned off and the server address, token, and pending changes are cleared. Local data stays."
+      }
+    },
+    "backup": {
+      "exportJson": "Export JSON",
+      "copyJson": "Copy JSON",
+      "importJson": "Import JSON",
+      "exportStarted": "Export started",
+      "copied": "JSON copied to the clipboard",
+      "notBackup": "Not an Eris backup",
+      "nothing": "Nothing to import",
+      "imported": "Imported {count} items"
+    }
+  },
+  "launcher": {
+    "placeholder": "Search apps, windows and commands",
+    "clear": "Clear",
+    "results": "Results",
+    "moreActions": "More actions",
+    "menuAria": "Launcher menu",
+    "resultCount": "{count, plural, one {# result} other {# results}}",
+    "enter": {
+      "paste": "Paste",
+      "copy": "Copy",
+      "open": "Open"
+    },
+    "footer": {
+      "admin": "Admin",
+      "location": "Location",
+      "groups": "Groups"
+    },
+    "sections": {
+      "recent": "Recent",
+      "pinned": "Pinned",
+      "timers": "Timers",
+      "running": "Running"
+    },
+    "modes": {
+      "run": "Run",
+      "todo": "Todo",
+      "calc": "Calc",
+      "clip": "Clip",
+      "emoji": "Emoji",
+      "timer": "Timer",
+      "alarm": "Alarm"
+    },
+    "hints": {
+      "run": "Run",
+      "todo": "Todo",
+      "calc": "Calc",
+      "emoji": "Emoji",
+      "clip": "Clipboard",
+      "timer": "Timer"
+    },
+    "empty": {
+      "run": "Type a command",
+      "todo": "Type a task",
+      "calc": "Type an expression or a conversion",
+      "alarm": "Type a time, like 7:30 wake up",
+      "timer": "Type a duration, like 5m tea",
+      "emoji": "No emoji found",
+      "clip": "Clipboard history is empty",
+      "noResults": "No results",
+      "start": "Search apps, windows and commands",
+      "loading": "Loading apps"
+    },
+    "couldNotOpen": "Could not open {title} ({error})",
+    "backdrop": {
+      "clearSearch": "Clear search",
+      "focusSearch": "Focus search",
+      "hideKeymap": "Hide keyboard hints",
+      "showKeymap": "Show keyboard hints",
+      "settings": "Eris settings"
+    },
+    "groups": {
+      "app": "Apps",
+      "window": "Windows",
+      "command": "Commands",
+      "calc": "Calculator",
+      "unit": "Conversion",
+      "todo": "Todo",
+      "timer": "Timers",
+      "emoji": "Emoji",
+      "web": "Web",
+      "run": "Run",
+      "setting": "Settings",
+      "clip": "Clipboard"
+    },
+    "kinds": {
+      "app": "App",
+      "window": "Window",
+      "command": "Command",
+      "calc": "Calc",
+      "unit": "Conversion",
+      "todo": "Todo",
+      "timer": "Timer",
+      "emoji": "Emoji",
+      "web": "Web",
+      "run": "Run",
+      "setting": "Setting",
+      "clip": "Clip"
+    },
+    "actions": {
+      "admin": "Run as administrator",
+      "location": "Open file location",
+      "cancel": "Cancel",
+      "closeWindow": "Close window",
+      "pinDock": "Pin to dock",
+      "unpinDock": "Unpin from dock",
+      "copyOnly": "Copy only",
+      "pin": "Pin",
+      "unpin": "Unpin",
+      "delete": "Delete",
+      "paste": "Paste",
+      "open": "Open"
+    },
+    "chips": {
+      "minimized": "Minimized",
+      "enterCopies": "Enter copies",
+      "priority": "Priority {level}"
+    },
+    "timer": {
+      "setAlarm": "Set alarm: {label}",
+      "startTimer": "Start timer: {label}",
+      "firesAt": "Fires at {time}",
+      "left": "{remaining} left · {time}",
+      "alarm": "Alarm",
+      "timer": "Timer"
+    },
+    "todo": {
+      "add": "Add todo: {title}",
+      "saves": "Saves to your todo list"
+    },
+    "web": {
+      "search": "Search the web for \"{query}\""
+    },
+    "run": {
+      "title": "Run {command}",
+      "subtitle": "Command line"
+    },
+    "open": {
+      "title": "Open {target}",
+      "link": "Link",
+      "path": "Path"
+    },
+    "clip": {
+      "whitespace": "Whitespace",
+      "justNow": "just now",
+      "lines": "{count, plural, one {# line} other {# lines}}",
+      "chars": "{count, plural, one {# char} other {# chars}}",
+      "clearHistory": "Clear history",
+      "keepsPinned": "Keeps pinned items"
+    },
+    "calcErrors": {
+      "divisionByZero": "Division by zero",
+      "undefined": "Undefined",
+      "outOfRange": "Out of range"
+    },
+    "subtitles": {
+      "power": "Power",
+      "windowsSettings": "Windows settings",
+      "windows": "Windows",
+      "folder": "Folder",
+      "system": "System",
+      "eris": "Eris",
+      "erisSettings": "Eris settings"
+    },
+    "commands": {
+      "lock": "Lock",
+      "sleep": "Sleep",
+      "hibernate": "Hibernate",
+      "shutdown": "Shut down",
+      "restart": "Restart",
+      "signout": "Sign out",
+      "recycle": "Empty recycle bin",
+      "erisFiles": "Open files",
+      "erisSettings": "Open Eris settings",
+      "erisPanel": "Open calendar panel",
+      "erisNote": "New note",
+      "erisQuit": "Quit Eris",
+      "erisClipboard": "Clipboard history",
+      "display": "Display",
+      "bluetooth": "Bluetooth",
+      "wifi": "Wi-Fi",
+      "sound": "Sound",
+      "notifications": "Notifications",
+      "personalization": "Personalization",
+      "apps": "Apps",
+      "update": "Update",
+      "taskmgr": "Task Manager",
+      "explorer": "File Explorer",
+      "terminal": "Terminal",
+      "control": "Control Panel",
+      "screenclip": "Screenshot region",
+      "snippingtool": "Snipping Tool",
+      "clipboard": "Clipboard",
+      "quiethours": "Focus assist",
+      "printers": "Printers",
+      "defaultapps": "Default apps",
+      "storage": "Storage",
+      "powersleep": "Power and battery",
+      "mouse": "Mouse",
+      "keyboard": "Keyboard",
+      "dateandtime": "Date and time",
+      "regionlanguage": "Region and language",
+      "startupapps": "Startup apps",
+      "security": "Windows Security",
+      "devmgmt": "Device Manager",
+      "diskmgmt": "Disk Management",
+      "services": "Services",
+      "regedit": "Registry Editor",
+      "eventvwr": "Event Viewer",
+      "msinfo32": "System information",
+      "charmap": "Character map",
+      "calc": "Calculator",
+      "notepad": "Notepad",
+      "mspaint": "Paint",
+      "downloads": "Downloads",
+      "documents": "Documents",
+      "desktop": "Desktop",
+      "recyclebin": "Recycle Bin",
+      "thispc": "This PC"
+    }
+  },
+  "dates": {
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "yesterday": "Yesterday"
+  }
+}

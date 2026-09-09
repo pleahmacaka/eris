@@ -17,6 +17,7 @@
     saveDevice,
   } from "$lib/settings"
   import { toast } from "./toast.svelte"
+  import { t } from "svelte-i18n"
 
   let busy = $state(false)
   let picker = $state<HTMLInputElement>()
@@ -59,7 +60,7 @@
       link.download = `eris-backup-${new Date().toISOString().slice(0, 10)}.json`
       link.click()
       setTimeout(() => URL.revokeObjectURL(url), 1000)
-      toast("Export started", "success")
+      toast($t("settings.backup.exportStarted"), "success")
     } catch (error) {
       toast(message(error), "error")
     } finally {
@@ -74,7 +75,7 @@
       await navigator.clipboard.writeText(
         JSON.stringify(await bundle(), null, 2),
       )
-      toast("JSON copied to the clipboard", "success")
+      toast($t("settings.backup.copied"), "success")
     } catch (error) {
       toast(message(error), "error")
     } finally {
@@ -157,13 +158,15 @@
       const data: unknown = JSON.parse(await file.text())
 
       if (!isRecord(data)) {
-        throw new Error("Not an Eris backup")
+        throw new Error($t("settings.backup.notBackup"))
       }
 
       const count = await importBundle(data)
 
       toast(
-        count === 0 ? "Nothing to import" : `Imported ${count} items`,
+        count === 0
+          ? $t("settings.backup.nothing")
+          : $t("settings.backup.imported", { values: { count } }),
         count === 0 ? "info" : "success",
       )
     } catch (error) {
@@ -174,15 +177,15 @@
   }
 </script>
 
-<div data-row="Backup" class="flex flex-wrap items-center gap-2 px-4 py-3">
+<div data-row={$t("settings.rows.backup")} class="flex flex-wrap items-center gap-2 px-4 py-3">
   <button type="button" class="btn btn-soft btn-sm" disabled={busy} onclick={download}>
     <Icon icon="lucide:download" class="size-4" />
-    Export JSON
+    {$t("settings.backup.exportJson")}
   </button>
 
   <button type="button" class="btn btn-ghost btn-sm" disabled={busy} onclick={copy}>
     <Icon icon="lucide:clipboard-copy" class="size-4" />
-    Copy JSON
+    {$t("settings.backup.copyJson")}
   </button>
 
   <span class="grow"></span>
@@ -198,7 +201,7 @@
     {:else}
       <Icon icon="lucide:upload" class="size-4" />
     {/if}
-    Import JSON
+    {$t("settings.backup.importJson")}
   </button>
 
   <input

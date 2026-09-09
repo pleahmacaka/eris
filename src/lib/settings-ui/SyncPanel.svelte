@@ -22,22 +22,19 @@
   import Row from "./Row.svelte"
   import Section from "./Section.svelte"
   import { toast } from "./toast.svelte"
+  import { locale, t } from "svelte-i18n"
 
   let {
     device = $bindable(),
     compact = false,
   }: { device: DeviceSettings; compact?: boolean } = $props()
 
-  const collectionLabels: Record<SyncedCollection, string> = {
-    todos: "Todos",
-    events: "Events",
-    profile: "Profile",
-    presets: "Presets",
-    notes: "Notes",
-  }
+  const collectionLabel = (name: SyncedCollection) => $t(`settings.sync.collections.${name}`)
 
-  const collectionList = new Intl.ListFormat("en").format(
-    syncedCollections.map(name => collectionLabels[name].toLowerCase()),
+  const collectionList = $derived(
+    new Intl.ListFormat($locale ?? "en").format(
+      syncedCollections.map(name => collectionLabel(name).toLowerCase()),
+    ),
   )
 
   const intervals = [1, 5, 15, 60]
@@ -69,13 +66,13 @@
     return () => clearInterval(timer)
   })
 
-  const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" })
+  const rtf = $derived(new Intl.RelativeTimeFormat($locale ?? "en", { numeric: "auto" }))
 
   const relative = (at: number) => {
     const seconds = Math.round((at - now) / 1000)
 
     if (Math.abs(seconds) < 60) {
-      return "just now"
+      return $t("settings.sync.justNow")
     }
 
     const minutes = Math.round(seconds / 60)
@@ -144,12 +141,14 @@
       const result = await syncNow()
 
       if (syncStatus.state === "error") {
-        toast(syncStatus.lastError ?? "Sync failed", "error")
+        toast(syncStatus.lastError ?? $t("settings.sync.toasts.failed"), "error")
       } else if (syncStatus.state === "disabled") {
-        toast("Enable sync and fill in the server first", "info")
+        toast($t("settings.sync.toasts.enableFirst"), "info")
       } else {
         toast(
-          `Synced: ${result.pushed} pushed, ${result.pulled} pulled`,
+          $t("settings.sync.toasts.synced", {
+            values: { pushed: result.pushed, pulled: result.pulled },
+          }),
           "success",
         )
       }
@@ -164,7 +163,7 @@
     try {
       await forgetDevice(id)
       devices = devices.filter(d => d.id !== id)
-      toast("Device forgotten", "success")
+      toast($t("settings.sync.toasts.deviceForgotten"), "success")
     } catch (error) {
       toast(message(error), "error")
     }
@@ -186,55 +185,56 @@
   }
 
   const replaceLocal = () =>
-    guarded(resetFromServer, "Local data replaced from the server")
+    guarded(resetFromServer, $t("settings.sync.toasts.localReplaced"))
 
   const resetRemote = () =>
-    guarded(async () => {
-      const result = await resetServer(resetCollection)
+    guarded(
+      async () => {
+        const result = await resetServer(resetCollection)
 
-      toast(`${result.tombstoned} records cleared`, "info")
-    }, `${collectionLabels[resetCollection]} reset on the server`)
+        toast(
+          $t("settings.sync.toasts.recordsCleared", { values: { count: result.tombstoned } }),
+          "info",
+        )
+      },
+      $t("settings.sync.toasts.collectionReset", {
+        values: { collection: collectionLabel(resetCollection) },
+      }),
+    )
 
   const unlink = () =>
     guarded(async () => {
       await unlinkDevice()
       devices = []
       health = null
-    }, "Device unlinked")
+    }, $t("settings.sync.toasts.unlinked"))
 
-  const stateLabel = $derived(
-    {
-      idle: "Up to date",
-      syncing: "Syncing",
-      error: "Error",
-      disabled: "Off",
-    }[syncStatus.state],
-  )
+  const stateLabel = $derived($t(`settings.sync.states.${syncStatus.state}`))
 </script>
 
 <Section
-  title="Server"
-  description="Keeps {collectionList} in step across devices."
+  title={$t("settings.sync.server.title")}
+  description={$t("settings.sync.server.description", { values: { collections: collectionList } })}
 >
-  <Row label="Server URL" hint="Where the Eris sync server runs" stacked>
+  <Row label={$t("settings.rows.serverUrl")} hint={$t("settings.hints.serverUrl")} stacked>
     <input
       class="input input-sm w-full"
       type="url"
       placeholder="https://sync.example.com"
-      aria-label="Server URL"
+      aria-label={$t("settings.rows.serverUrl")}
       autocomplete="off"
       spellcheck="false"
       bind:value={device.sync.url}
     />
   </Row>
 
-  <Row label="Token" hint="The ERIS_TOKEN the server was started with" stacked>
+  <Row label={$t("settings.rows.token")} hint={$t("settings.hints.token")} stacked>
     <div class="join w-full">
       <input
         class="input input-sm join-item w-full"
         type={showToken ? "text" : "password"}
-        placeholder="Token"
-        aria-label="Token"
+        placeholder={$t("settings.rows.token")}
+        aria-label={$t("settings.rows.token")}
         autocomplete="off"
         spellcheck="false"
         value={device.sync.token}
@@ -244,7 +244,7 @@
       <button
         type="button"
         class="btn btn-sm join-item"
-        aria-label={showToken ? "Hide token" : "Reveal token"}
+        aria-label={showToken ? $t("settings.sync.hideToken") : $t("settings.sync.revealToken")}
         onclick={() => (showToken = !showToken)}
       >
         <Icon icon={showToken ? "lucide:eye-off" : "lucide:eye"} class="size-4" />
@@ -264,44 +264,46 @@
       {:else}
         <Icon icon="lucide:plug-zap" class="size-4" />
       {/if}
-      Test connection
+      {$t("settings.sync.testConnection")}
     </button>
 
     {#if health}
       <span class="flex items-center gap-1 text-xs text-success">
         <Icon icon="lucide:check" class="size-3.5" />
-        Connected, server {health.version}, seq {health.seq}
+        {$t("settings.sync.connected", { values: { version: health.version, seq: health.seq } })}
       </span>
     {:else if testError}
       <span class="text-xs text-error">{testError}</span>
     {/if}
   </div>
 
-  <Row label="Enable sync" hint="Runs in the background while Eris is open">
+  <Row label={$t("settings.rows.enableSync")} hint={$t("settings.hints.enableSync")}>
     <input
       type="checkbox"
       class="toggle toggle-primary"
-      aria-label="Enable sync"
+      aria-label={$t("settings.rows.enableSync")}
       bind:checked={device.sync.enabled}
     />
   </Row>
 
   {#if !compact}
-    <Row label="Interval" hint="How often to check the server">
+    <Row label={$t("settings.rows.interval")} hint={$t("settings.hints.interval")}>
       <select
         class="select select-sm w-32"
-        aria-label="Interval"
+        aria-label={$t("settings.rows.interval")}
         bind:value={device.sync.intervalMinutes}
       >
         {#each intervals as minutes (minutes)}
           <option value={minutes}>
-            {minutes === 60 ? "Every hour" : `Every ${minutes} min`}
+            {minutes === 60
+              ? $t("settings.sync.everyHour")
+              : $t("settings.sync.everyMinutes", { values: { minutes } })}
           </option>
         {/each}
       </select>
     </Row>
 
-    <Row label="Collections" hint="What this device sends and receives" stacked>
+    <Row label={$t("settings.rows.collections")} hint={$t("settings.hints.collections")} stacked>
       <div class="flex flex-wrap gap-2">
         {#each syncedCollections as name (name)}
           <label
@@ -312,7 +314,7 @@
               class="checkbox checkbox-primary checkbox-xs"
               bind:checked={device.sync.collections[name]}
             />
-            {collectionLabels[name]}
+            {collectionLabel(name)}
           </label>
         {/each}
       </div>
@@ -321,7 +323,7 @@
 </Section>
 
 {#if !compact}
-  <Section title="Status">
+  <Section title={$t("settings.sync.status")}>
     <div class="flex items-center justify-between gap-4 px-4 py-3">
       <div class="flex min-w-0 flex-col gap-1">
         <div class="flex items-center gap-2 text-sm">
@@ -339,13 +341,13 @@
 
           <span class="text-base-content/70">
             {syncStatus.lastSyncAt
-              ? `Last sync ${relative(syncStatus.lastSyncAt)}`
-              : "Never synced"}
+              ? $t("settings.sync.lastSync", { values: { when: relative(syncStatus.lastSyncAt) } })
+              : $t("settings.sync.neverSynced")}
           </span>
 
           {#if syncStatus.pending > 0}
             <span class="text-base-content/70 tabular-nums">
-              {syncStatus.pending} pending
+              {$t("settings.sync.pending", { values: { count: syncStatus.pending } })}
             </span>
           {/if}
         </div>
@@ -366,17 +368,20 @@
         {:else}
           <Icon icon="lucide:refresh-cw" class="size-4" />
         {/if}
-        Sync now
+        {$t("settings.sync.syncNow")}
       </button>
     </div>
   </Section>
 
-  <Section title="Devices" description="Everything registered with this server">
+  <Section
+    title={$t("settings.sync.devices.title")}
+    description={$t("settings.sync.devices.description")}
+  >
     {#if devicesError}
       <p class="px-4 py-3 text-xs text-error">{devicesError}</p>
     {:else if devices.length === 0}
       <p class="px-4 py-3 text-sm text-base-content/60">
-        {configured ? "No devices yet" : "Set a server URL and token first"}
+        {configured ? $t("settings.sync.noDevices") : $t("settings.sync.setServerFirst")}
       </p>
     {:else}
       {#each devices as d (d.id)}
@@ -393,12 +398,12 @@
               <span class="truncate text-sm">{d.name || d.id}</span>
 
               <span class="text-xs text-base-content/60">
-                Seen {relative(d.lastSeen)}
+                {$t("settings.sync.seen", { values: { when: relative(d.lastSeen) } })}
               </span>
             </div>
 
             {#if own}
-              <span class="badge badge-primary badge-soft badge-xs">This device</span>
+              <span class="badge badge-primary badge-soft badge-xs">{$t("settings.sync.thisDevice")}</span>
             {/if}
           </div>
 
@@ -408,7 +413,7 @@
               class="btn btn-ghost btn-xs"
               onclick={() => forget(d.id)}
             >
-              Forget
+              {$t("settings.sync.forget")}
             </button>
           {/if}
         </div>
@@ -416,10 +421,10 @@
     {/if}
   </Section>
 
-  <Section title="Danger zone" description="These cannot be undone">
+  <Section title={$t("settings.sync.danger.title")} description={$t("settings.sync.danger.description")}>
     <Row
-      label="Replace local data with server"
-      hint="Drops local {collectionList} and pulls everything again"
+      label={$t("settings.rows.replaceLocal")}
+      hint={$t("settings.hints.replaceLocal", { values: { collections: collectionList } })}
     >
       <button
         type="button"
@@ -427,22 +432,19 @@
         disabled={!configured || busy}
         onclick={() => (confirmReplace = true)}
       >
-        Replace
+        {$t("settings.sync.replace")}
       </button>
     </Row>
 
-    <Row
-      label="Reset collection on server"
-      hint="Marks every record deleted so all devices clear it"
-    >
+    <Row label={$t("settings.rows.resetCollection")} hint={$t("settings.hints.resetCollection")}>
       <div class="join">
         <select
           class="select select-sm join-item w-28"
-          aria-label="Collection"
+          aria-label={$t("settings.sync.collection")}
           bind:value={resetCollection}
         >
           {#each syncedCollections as name (name)}
-            <option value={name}>{collectionLabels[name]}</option>
+            <option value={name}>{collectionLabel(name)}</option>
           {/each}
         </select>
 
@@ -452,47 +454,46 @@
           disabled={!configured || busy}
           onclick={() => (confirmReset = true)}
         >
-          Reset
+          {$t("common.reset")}
         </button>
       </div>
     </Row>
 
-    <Row
-      label="Unlink this device"
-      hint="Forgets the server, token, and pending changes on this device"
-    >
+    <Row label={$t("settings.rows.unlinkDevice")} hint={$t("settings.hints.unlinkDevice")}>
       <button
         type="button"
         class="btn btn-outline btn-error btn-sm"
         disabled={busy}
         onclick={() => (confirmUnlink = true)}
       >
-        Unlink
+        {$t("settings.sync.unlink")}
       </button>
     </Row>
   </Section>
 
   <Confirm
     bind:open={confirmReplace}
-    title="Replace local data?"
-    body="Local {collectionList} are deleted and replaced with what the server has. Unsynced changes are lost."
-    action="Replace"
+    title={$t("settings.sync.confirm.replaceTitle")}
+    body={$t("settings.sync.confirm.replaceBody", { values: { collections: collectionList } })}
+    action={$t("settings.sync.replace")}
     onconfirm={replaceLocal}
   />
 
   <Confirm
     bind:open={confirmReset}
-    title="Reset {collectionLabels[resetCollection]} on the server?"
-    body="Every record in this collection is marked deleted on the server and removed from all synced devices."
-    action="Reset"
+    title={$t("settings.sync.confirm.resetTitle", {
+      values: { collection: collectionLabel(resetCollection) },
+    })}
+    body={$t("settings.sync.confirm.resetBody")}
+    action={$t("common.reset")}
     onconfirm={resetRemote}
   />
 
   <Confirm
     bind:open={confirmUnlink}
-    title="Unlink this device?"
-    body="Sync is turned off and the server address, token, and pending changes are cleared. Local data stays."
-    action="Unlink"
+    title={$t("settings.sync.confirm.unlinkTitle")}
+    body={$t("settings.sync.confirm.unlinkBody")}
+    action={$t("settings.sync.unlink")}
     onconfirm={unlink}
   />
 {/if}

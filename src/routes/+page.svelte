@@ -8,14 +8,12 @@
   import { settingsLinks, systemCommands } from "$lib/launcher/commands"
   import { boost, loadFrecency, record, top } from "$lib/launcher/frecency"
   import {
-    ADMIN,
     alignApps,
     appResult,
     calcResult,
     clearClipsResult,
     clipResults,
     emojiResults,
-    LOCATION,
     mergeApps,
     newTimerResult,
     openResult,
@@ -40,7 +38,7 @@
     type Timer,
   } from "$lib/launcher/timers"
   import {
-    kindLabels,
+    kindLabel,
     type Result,
     type ResultGroup,
     type ResultKind,
@@ -70,13 +68,19 @@
     type Profile,
     saveDevice,
   } from "$lib/settings"
+  import { t } from "svelte-i18n"
 
   const PAGE = 5
   const RECENT = 6
   const MENU_WIDTH = 208
-  const extrasById = new Map(
-    [...systemCommands, ...settingsLinks].map(r => [r.id, r]),
-  )
+
+  const commandRows = $derived.by(() => {
+    void $t
+
+    return [...systemCommands(), ...settingsLinks()]
+  })
+
+  const extrasById = $derived(new Map(commandRows.map(r => [r.id, r])))
 
   let profile = $state<Profile>(defaultProfile)
   let device = $state<DeviceSettings>(defaultDevice)
@@ -178,10 +182,10 @@
   const clipMode = $derived(route.mode === "clip")
   const enterLabel = $derived(
     route.mode === "clip"
-      ? "Paste"
+      ? $t("launcher.enter.paste")
       : route.mode === "emoji"
-        ? "Copy"
-        : "Open",
+        ? $t("launcher.enter.copy")
+        : $t("launcher.enter.open"),
   )
   const dockPinned = $derived(new Set(device.pinnedApps))
 
@@ -246,7 +250,7 @@
     if (starred.length) {
       groups.push({
         kind: "app",
-        label: recent.length ? "Recent" : "Pinned",
+        label: recent.length ? $t("launcher.sections.recent") : $t("launcher.sections.pinned"),
         start: 0,
         items: starred,
       })
@@ -255,7 +259,7 @@
     if (timers.length) {
       groups.push({
         kind: "timer",
-        label: "Timers",
+        label: $t("launcher.sections.timers"),
         start: 0,
         items: timers.map(t => pendingTimerResult(t)),
       })
@@ -264,7 +268,7 @@
     if (running.length) {
       groups.push({
         kind: "window",
-        label: "Running",
+        label: $t("launcher.sections.running"),
         start: 0,
         items: running,
       })
@@ -333,7 +337,7 @@
       ...(launcher.showWindows
         ? windows.map(w => windowResult(w, icons[w.process]))
         : []),
-      ...(launcher.showCommands ? [...systemCommands, ...settingsLinks] : []),
+      ...(launcher.showCommands ? commandRows : []),
     ]
     const extras: Result[] = []
     const conversion = launcher.calculator ? unitResult(text) : null
@@ -364,54 +368,32 @@
   const active = $derived(Math.min(cursor, Math.max(flat.length - 1, 0)))
   const compact = $derived(profile.appearance.density === "compact")
 
-  const MODE_LABELS: Record<Route["mode"], string> = {
-    run: "Run",
-    todo: "Todo",
-    calc: "Calc",
-    clip: "Clip",
-    emoji: "Emoji",
-    timer: "Timer",
-    search: "",
-  }
-
   const modeLabel = $derived(
     route.mode === "timer"
       ? timerKindLabel(route.kind)
-      : MODE_LABELS[route.mode],
+      : route.mode === "search"
+        ? ""
+        : $t(`launcher.modes.${route.mode}`),
   )
 
   const emptyMessage = $derived.by(() => {
-    if (route.mode === "run") {
-      return "Type a command"
-    }
-
-    if (route.mode === "todo") {
-      return "Type a task"
-    }
-
-    if (route.mode === "calc") {
-      return "Type an expression or a conversion"
-    }
-
     if (route.mode === "timer") {
-      return route.kind === "alarm"
-        ? "Type a time, like 7:30 wake up"
-        : "Type a duration, like 5m tea"
+      return $t(route.kind === "alarm" ? "launcher.empty.alarm" : "launcher.empty.timer")
     }
 
-    if (route.mode === "emoji") {
-      return "No emoji found"
+    if (route.mode === "run" || route.mode === "todo" || route.mode === "calc" || route.mode === "emoji") {
+      return $t(`launcher.empty.${route.mode}`)
     }
 
     if (route.mode === "clip" && !route.text) {
-      return "Clipboard history is empty"
+      return $t("launcher.empty.clip")
     }
 
     if (route.text) {
-      return "No results"
+      return $t("launcher.empty.noResults")
     }
 
-    return apps.length ? "Search apps, windows and commands" : "Loading apps"
+    return apps.length ? $t("launcher.empty.start") : $t("launcher.empty.loading")
   })
 
   $effect(() => {
@@ -452,7 +434,7 @@
     try {
       await run()
     } catch (e) {
-      error = `Could not open ${item.title} (${e})`
+      error = $t("launcher.couldNotOpen", { values: { title: item.title, error: String(e) } })
 
       return
     }
@@ -473,8 +455,8 @@
     await hide()
   }
 
-  const secondary = (item: Result | undefined, label: string) =>
-    item?.secondaryActions.find(a => a.label === label)
+  const secondary = (item: Result | undefined, id: "admin" | "location") =>
+    item?.secondaryActions.find(a => a.id === id)
 
   const run = (
     item: Result | undefined,
@@ -486,9 +468,9 @@
 
     const alt =
       variant === "admin"
-        ? secondary(item, ADMIN)
+        ? secondary(item, "admin")
         : variant === "location"
-          ? secondary(item, LOCATION)
+          ? secondary(item, "location")
           : undefined
 
     perform(item, alt?.run ?? item.action, alt?.stay ?? item.stay)
@@ -521,7 +503,7 @@
     return item
       ? [
           {
-            label: item.kind === "clip" ? "Paste" : "Open",
+            label: item.kind === "clip" ? $t("launcher.actions.paste") : $t("launcher.actions.open"),
             run: item.action,
             stay: item.stay,
           },
@@ -677,7 +659,7 @@
 
   const backdropItems = $derived.by((): MenuItem[] => [
     {
-      label: query ? "Clear search" : "Focus search",
+      label: query ? $t("launcher.backdrop.clearSearch") : $t("launcher.backdrop.focusSearch"),
       icon: query ? "lucide:eraser" : "lucide:search",
       action: () => {
         setQuery("")
@@ -685,13 +667,13 @@
       },
     },
     {
-      label: device.showKeymap ? "Hide keyboard hints" : "Show keyboard hints",
+      label: device.showKeymap ? $t("launcher.backdrop.hideKeymap") : $t("launcher.backdrop.showKeymap"),
       icon: device.showKeymap ? "lucide:eye-off" : "lucide:eye",
       action: () => saveDevice({ ...device, showKeymap: !device.showKeymap }),
     },
     "separator",
     {
-      label: "Eris 설정",
+      label: $t("launcher.backdrop.settings"),
       icon: "lucide:settings",
       action: () => showWindow("settings"),
     },
@@ -710,12 +692,12 @@
   }
 
   const HINTS: [string, string][] = [
-    [">", "Run"],
-    ["t", "Todo"],
-    ["=", "Calc"],
-    [":", "Emoji"],
-    ["v", "Clipboard"],
-    ["timer", "Timer"],
+    [">", "run"],
+    ["t", "todo"],
+    ["=", "calc"],
+    [":", "emoji"],
+    ["v", "clip"],
+    ["timer", "timer"],
   ]
 
   const insertPrefix = (prefix: string) => {
@@ -741,7 +723,7 @@
       bind:value={query}
       oninput={reset}
       type="text"
-      placeholder="Search apps, windows and commands"
+      placeholder={$t("launcher.placeholder")}
       spellcheck="false"
       autocomplete="off"
       autocapitalize="off"
@@ -756,7 +738,7 @@
       <button
         type="button"
         class="btn btn-circle btn-ghost btn-xs shrink-0"
-        aria-label="Clear"
+        aria-label={$t("launcher.clear")}
         tabindex="-1"
         onclick={() => setQuery("")}
       >
@@ -772,7 +754,7 @@
     <div
       bind:this={list}
       role="listbox"
-      aria-label="Results"
+      aria-label={$t("launcher.results")}
       tabindex="-1"
       class={["min-h-0 grow overflow-y-auto", compact ? "p-1" : "p-1.5"]}
     >
@@ -849,7 +831,7 @@
             {/if}
 
             <span class="badge badge-ghost badge-sm shrink-0">
-              {kindLabels[item.kind]}
+              {kindLabel(item.kind)}
             </span>
 
             <button
@@ -858,7 +840,7 @@
                 "btn btn-circle btn-ghost btn-xs shrink-0 transition-opacity duration-150",
                 i === active ? "opacity-100" : "opacity-0 group-hover:opacity-100",
               ]}
-              aria-label="More actions"
+              aria-label={$t("launcher.moreActions")}
               tabindex="-1"
               onclick={e => {
                 e.stopPropagation()
@@ -897,8 +879,7 @@
       <span class="truncate text-error">{error}</span>
     {:else if query}
       <span class="tabular-nums">
-        {flat.length}
-        {flat.length === 1 ? "result" : "results"}
+        {$t("launcher.resultCount", { values: { count: flat.length } })}
       </span>
     {:else if device.showKeymap}
       <div class="flex items-center gap-x-3 overflow-hidden">
@@ -910,7 +891,7 @@
             onclick={() => insertPrefix(key === ":" ? key : `${key} `)}
           >
             <kbd class="kbd kbd-xs">{key}</kbd>
-            {label}
+            {$t(`launcher.hints.${label}`)}
           </button>
         {/each}
       </div>
@@ -923,21 +904,21 @@
           {enterLabel}
         </span>
 
-        {#if secondary(flat[active], ADMIN)}
+        {#if secondary(flat[active], "admin")}
           <span class="flex items-center gap-1">
-            <kbd class="kbd kbd-xs">⇧↵</kbd> Admin
+            <kbd class="kbd kbd-xs">⇧↵</kbd> {$t("launcher.footer.admin")}
           </span>
         {/if}
 
-        {#if secondary(flat[active], LOCATION)}
+        {#if secondary(flat[active], "location")}
           <span class="flex items-center gap-1">
-            <kbd class="kbd kbd-xs">⌃↵</kbd> Location
+            <kbd class="kbd kbd-xs">⌃↵</kbd> {$t("launcher.footer.location")}
           </span>
         {/if}
       </div>
     {:else if groups.length > 1 && device.showKeymap}
       <span class="flex shrink-0 items-center gap-1">
-        <kbd class="kbd kbd-xs">Tab</kbd> Groups
+        <kbd class="kbd kbd-xs">Tab</kbd> {$t("launcher.footer.groups")}
       </span>
     {/if}
     </footer>
@@ -951,7 +932,7 @@
     y={backdropMenuY}
     placement="down"
     width={224}
-    label="Launcher menu"
+    label={$t("launcher.menuAria")}
   />
 
   {#if menu}
