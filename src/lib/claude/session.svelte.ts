@@ -1,8 +1,11 @@
 import { listen } from "@tauri-apps/api/event"
 import * as native from "$lib/native"
 
+export type Usage = Pick<native.ClaudeUsage, "fiveHour" | "sevenDay">
+
 export type Block =
   | { kind: "text"; text: string }
+  | { kind: "usage"; usage: Usage }
   | {
       kind: "tool"
       id: string
@@ -102,6 +105,8 @@ export class ClaudeSession {
 
   cost = $state(0)
 
+  usage = $state<Usage | null>(null)
+
   private stops: Promise<() => void>[] = []
 
   private stderr: string[] = []
@@ -176,6 +181,22 @@ export class ClaudeSession {
       request_id: crypto.randomUUID(),
       request: { subtype: "set_permission_mode", mode },
     })
+  }
+
+  showUsage(fallback: Usage | null) {
+    const usage = this.usage ?? fallback
+
+    this.turns = [
+      ...this.turns,
+      {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        blocks: usage
+          ? [{ kind: "usage", usage }]
+          : [{ kind: "text", text: "사용량 미측정" }],
+        streaming: false,
+      },
+    ]
   }
 
   async interrupt() {
@@ -296,7 +317,30 @@ export class ClaudeSession {
       case "control_response":
         this.onInitialized(event.response as Event)
         break
+      case "rate_limit_event":
+        this.onRateLimit((event.rate_limit_info ?? {}) as Event)
+        break
     }
+  }
+
+  private onRateLimit(info: Event) {
+    const windows = (info.unifiedWindows ?? {}) as Record<string, Event | undefined>
+    const window = (name: string) => {
+      const found = windows[name]
+
+      if (!found) {
+        return null
+      }
+
+      const resets = Number(found.resetsAt ?? 0)
+
+      return {
+        used: Number(found.utilization ?? 0) * 100,
+        resetsAt: resets > 0 ? new Date(resets * 1000).toISOString() : null,
+      }
+    }
+
+    this.usage = { fiveHour: window("five_hour"), sevenDay: window("seven_day") }
   }
 
   private onInitialized(response: Event) {

@@ -59,6 +59,7 @@ pub struct Transcript {
     pub id: String,
     pub title: String,
     pub modified: u64,
+    pub messages: usize,
 }
 
 #[derive(Serialize)]
@@ -328,8 +329,9 @@ pub fn claude_sessions(cwd: Option<String>) -> Vec<Transcript> {
                 .duration_since(std::time::UNIX_EPOCH)
                 .ok()?
                 .as_secs();
-            let title = messages_of(&path)
-                .into_iter()
+            let messages = messages_of(&path);
+            let title = messages
+                .iter()
                 .find(|message| message.role == "user")?
                 .text
                 .lines()
@@ -343,6 +345,7 @@ pub fn claude_sessions(cwd: Option<String>) -> Vec<Transcript> {
                 id,
                 title,
                 modified,
+                messages: messages.len(),
             })
         })
         .collect();
