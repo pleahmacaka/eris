@@ -1,42 +1,23 @@
-# sv
+<div align="center">
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+# Eris
 
-## Creating a project
+**A new shell for Windows.**
 
-If you're seeing this, you've probably already done this step. Congrats!
+Dock. Launcher. Calendar. Claude in a bubble.
 
-```sh
-# create a new project
-npx sv create my-app
-```
+[Download](https://github.com/pleahmacaka/eris/releases)
 
-To recreate this project with the same configuration:
+</div>
 
-```sh
-# recreate this project
-npx sv@0.17.0 create --template minimal --types ts --no-install .
-```
+- **Dock** that replaces the taskbar: Windows or mac style, live previews, every tray feature, its own look
+- **Launcher** on the Win key: apps, windows, commands, math, timers, clipboard, web
+- **Panel** on the clock: calendar, todos, notes, notifications
+- **Claude bubble** that runs Claude Code on your files: multiple sessions, live model switch, message queue
+- **Edit mode**: dim the screen, click anything, change it there
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Under 400 MB idle. Near-zero GPU. English, 한국어, 日本語, 中文.
 
 ```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+bun install && bun tauri dev
 ```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
