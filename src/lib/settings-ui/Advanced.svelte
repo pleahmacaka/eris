@@ -13,6 +13,7 @@
   import Row from "./Row.svelte"
   import Section from "./Section.svelte"
   import { toast } from "./toast.svelte"
+  import { t } from "svelte-i18n"
 
   let {
     device = $bindable(),
@@ -30,9 +31,9 @@
   })
 
   const counts = $derived([
-    { label: "Todos", value: todoList.items.length },
-    { label: "Events", value: eventList.items.length },
-    { label: "Presets", value: presetList.items.length },
+    { label: $t("settings.advanced.todos"), value: todoList.items.length },
+    { label: $t("settings.advanced.events"), value: eventList.items.length },
+    { label: $t("settings.advanced.presets"), value: presetList.items.length },
   ])
 
   let confirming = $state(false)
@@ -45,7 +46,7 @@
     try {
       await openDataFolder()
     } catch (error) {
-      toast(`Data folder not opened: ${message(error)}`, "error")
+      toast($t("settings.toasts.dataFolderFailed", { values: { error: message(error) } }), "error")
     }
   }
 
@@ -54,9 +55,9 @@
 
     try {
       await clearIconCache()
-      toast("Icon cache cleared", "success")
+      toast($t("settings.toasts.iconCacheCleared"), "success")
     } catch (error) {
-      toast(`Icon cache not cleared: ${message(error)}`, "error")
+      toast($t("settings.toasts.iconCacheFailed", { values: { error: message(error) } }), "error")
     } finally {
       clearing = false
     }
@@ -65,7 +66,7 @@
   const resetAppearance = () => {
     profile.appearance = { ...defaultAppearance }
     profile.presetId = defaultProfile.presetId
-    toast("Appearance reset", "success")
+    toast($t("settings.toasts.appearanceReset"), "success")
   }
 
   const resetAll = () => {
@@ -90,12 +91,15 @@
       dockMonitor,
     }
     profile = structuredClone(defaultProfile)
-    toast("Settings reset", "success")
+    toast($t("settings.toasts.settingsReset"), "success")
   }
 </script>
 
-<Section title="Stored data" description="What Eris keeps on this device">
-  <div data-row="Stored data" class="grid grid-cols-3 gap-3 px-4 py-3">
+<Section
+  title={$t("settings.groups.storedData.title")}
+  description={$t("settings.groups.storedData.description")}
+>
+  <div data-row={$t("settings.rows.storedData")} class="grid grid-cols-3 gap-3 px-4 py-3">
     {#each counts as c (c.label)}
       <div
         class="flex flex-col rounded-box border border-base-content/10 bg-base-100/40 px-3 py-2"
@@ -107,13 +111,13 @@
     {/each}
   </div>
 
-  <Row label="Data folder" hint="Settings, todos, events, and cached icons">
+  <Row label={$t("settings.rows.dataFolder")} hint={$t("settings.hints.dataFolder")}>
     <button type="button" class="btn btn-soft btn-sm" onclick={openFolder}>
-      Open
+      {$t("common.open")}
     </button>
   </Row>
 
-  <Row label="Icon cache" hint="Rebuilt whenever an app icon is missing">
+  <Row label={$t("settings.rows.iconCache")} hint={$t("settings.hints.iconCache")}>
     <button
       type="button"
       class="btn btn-soft btn-sm"
@@ -124,36 +128,33 @@
         <span class="loading loading-spinner loading-xs"></span>
       {/if}
 
-      Clear
+      {$t("common.clear")}
     </button>
   </Row>
 </Section>
 
-<Section title="Resets">
-  <Row label="Reset appearance" hint="Back to the default preset and sliders">
+<Section title={$t("settings.groups.resets")}>
+  <Row label={$t("settings.rows.resetAppearance")} hint={$t("settings.hints.resetAppearance")}>
     <button type="button" class="btn btn-soft btn-sm" onclick={resetAppearance}>
-      Reset
+      {$t("common.reset")}
     </button>
   </Row>
 
-  <Row
-    label="Reset all settings"
-    hint="Device name, sync, and stored data stay"
-  >
+  <Row label={$t("settings.rows.resetAll")} hint={$t("settings.hints.resetAll")}>
     <button
       type="button"
       class="btn btn-error btn-sm"
       onclick={() => (confirming = true)}
     >
-      Reset
+      {$t("common.reset")}
     </button>
   </Row>
 </Section>
 
 <Confirm
   bind:open={confirming}
-  title="Reset all settings?"
-  body="Every setting goes back to its default. Todos, events, presets, and the sync connection stay."
-  action="Reset"
+  title={$t("settings.advanced.resetAllTitle")}
+  body={$t("settings.advanced.resetAllBody")}
+  action={$t("common.reset")}
   onconfirm={resetAll}
 />

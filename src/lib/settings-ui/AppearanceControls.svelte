@@ -7,6 +7,7 @@
   import Row from "./Row.svelte"
   import Segmented from "./Segmented.svelte"
   import { toast } from "./toast.svelte"
+  import { t } from "svelte-i18n"
 
   let { profile = $bindable() }: { profile: Profile } = $props()
 
@@ -22,8 +23,7 @@
 
   type Slider = {
     key: NumberKey
-    label: string
-    hint: string
+    row: string
     min: number
     max: number
     step: number
@@ -34,78 +34,14 @@
   const times = (v: number) => `${v.toFixed(2)}x`
 
   const sliders: Slider[] = [
-    {
-      key: "accentSpread",
-      label: "Color spread",
-      hint: "Hue distance between the accent colors",
-      min: 0,
-      max: 120,
-      step: 1,
-      format: v => `${v} deg`,
-    },
-    {
-      key: "vividness",
-      label: "Vividness",
-      hint: "Color soaked into surfaces",
-      min: 0,
-      max: 0.25,
-      step: 0.01,
-      format: v => percent(v / 0.25),
-    },
-    {
-      key: "texture",
-      label: "Texture",
-      hint: "Grain over the background",
-      min: 0,
-      max: 1,
-      step: 0.05,
-      format: percent,
-    },
-    {
-      key: "radius",
-      label: "Corner radius",
-      hint: "Roundness of every surface",
-      min: 0,
-      max: 2,
-      step: 0.05,
-      format: times,
-    },
-    {
-      key: "blur",
-      label: "Blur",
-      hint: "Strength of the frosted glass",
-      min: 0,
-      max: 2,
-      step: 0.05,
-      format: times,
-    },
-    {
-      key: "fontScale",
-      label: "Font size",
-      hint: "Scales all text",
-      min: 0.85,
-      max: 1.25,
-      step: 0.05,
-      format: percent,
-    },
-    {
-      key: "surfaceOpacity",
-      label: "Window opacity",
-      hint: "Opacity of every Eris window",
-      min: 0.6,
-      max: 1,
-      step: 0.02,
-      format: percent,
-    },
-    {
-      key: "dockOpacity",
-      label: "Dock opacity",
-      hint: "Opacity of the dock band",
-      min: 0.6,
-      max: 1,
-      step: 0.02,
-      format: percent,
-    },
+    { key: "accentSpread", row: "colorSpread", min: 0, max: 120, step: 1, format: v => `${v}°` },
+    { key: "vividness", row: "vividness", min: 0, max: 0.25, step: 0.01, format: v => percent(v / 0.25) },
+    { key: "texture", row: "texture", min: 0, max: 1, step: 0.05, format: percent },
+    { key: "radius", row: "cornerRadius", min: 0, max: 2, step: 0.05, format: times },
+    { key: "blur", row: "blur", min: 0, max: 2, step: 0.05, format: times },
+    { key: "fontScale", row: "fontSize", min: 0.85, max: 1.25, step: 0.05, format: percent },
+    { key: "surfaceOpacity", row: "windowOpacity", min: 0.6, max: 1, step: 0.02, format: percent },
+    { key: "dockOpacity", row: "dockOpacity", min: 0.6, max: 1, step: 0.02, format: percent },
   ]
 
   const user = live(userPresets)
@@ -163,55 +99,52 @@
 
     profile.presetId = id
     dialog?.close()
-    toast(`Saved preset "${title}"`, "success")
+    toast($t("settings.toasts.presetSaved", { values: { name: title } }), "success")
   }
 </script>
 
-<Row label="Mode" hint="Dark, light, or follow Windows">
+<Row label={$t("settings.rows.mode")} hint={$t("settings.hints.mode")}>
   <Segmented
-    label="Mode"
+    label={$t("settings.rows.mode")}
     bind:value={profile.appearance.mode}
     onchange={markCustom}
     options={[
-      { value: "dark", label: "Dark", icon: "lucide:moon" },
-      { value: "light", label: "Light", icon: "lucide:sun" },
-      { value: "system", label: "System", icon: "lucide:monitor" },
+      { value: "dark", label: $t("settings.options.dark"), icon: "lucide:moon" },
+      { value: "light", label: $t("settings.options.light"), icon: "lucide:sun" },
+      { value: "system", label: $t("settings.options.system"), icon: "lucide:monitor" },
     ]}
   />
 </Row>
 
-<Row label="Background" hint="Surface treatment behind every window">
+<Row label={$t("settings.rows.background")} hint={$t("settings.hints.background")}>
   <Segmented
-    label="Background"
+    label={$t("settings.rows.background")}
     bind:value={profile.appearance.background}
     onchange={markCustom}
     options={[
-      { value: "aura", label: "Aura" },
-      { value: "glass", label: "Glass" },
-      { value: "solid", label: "Solid" },
+      { value: "aura", label: $t("settings.options.aura") },
+      { value: "glass", label: $t("settings.options.glass") },
+      { value: "solid", label: $t("settings.options.solid") },
     ]}
   />
 </Row>
 
-<Row
-  label="Follow Windows accent"
-  hint="Use the accent color from Windows settings"
->
+<Row label={$t("settings.rows.followAccent")} hint={$t("settings.hints.followAccent")}>
   <input
     type="checkbox"
     class="toggle toggle-primary"
-    aria-label="Follow Windows accent"
+    aria-label={$t("settings.rows.followAccent")}
     bind:checked={profile.appearance.useSystemAccent}
     onchange={markCustom}
   />
 </Row>
 
 <Row
-  label="Accent hue"
+  label={$t("settings.rows.accentHue")}
   hint={profile.appearance.useSystemAccent
-    ? "Following the Windows accent"
-    : "Base color for the whole theme"}
-  value="{profile.appearance.accentHue} deg"
+    ? $t("settings.appearance.followingAccent")
+    : $t("settings.appearance.baseColor")}
+  value="{profile.appearance.accentHue}°"
   stacked
 >
   <input
@@ -220,7 +153,7 @@
     min="0"
     max="360"
     step="1"
-    aria-label="Accent hue"
+    aria-label={$t("settings.rows.accentHue")}
     style="--hue: {profile.appearance.accentHue}"
     disabled={profile.appearance.useSystemAccent}
     bind:value={profile.appearance.accentHue}
@@ -230,8 +163,8 @@
 
 {#each sliders as s (s.key)}
   <Row
-    label={s.label}
-    hint={s.hint}
+    label={$t(`settings.rows.${s.row}`)}
+    hint={$t(`settings.hints.${s.row}`)}
     value={s.format(profile.appearance[s.key])}
     stacked
   >
@@ -241,30 +174,30 @@
       min={s.min}
       max={s.max}
       step={s.step}
-      aria-label={s.label}
+      aria-label={$t(`settings.rows.${s.row}`)}
       bind:value={profile.appearance[s.key]}
       oninput={markCustom}
     />
   </Row>
 {/each}
 
-<Row label="Density" hint="Spacing inside lists and buttons">
+<Row label={$t("settings.rows.density")} hint={$t("settings.hints.density")}>
   <Segmented
-    label="Density"
+    label={$t("settings.rows.density")}
     bind:value={profile.appearance.density}
     onchange={markCustom}
     options={[
-      { value: "cozy", label: "Cozy" },
-      { value: "compact", label: "Compact" },
+      { value: "cozy", label: $t("settings.options.cozy") },
+      { value: "compact", label: $t("settings.options.compact") },
     ]}
   />
 </Row>
 
-<Row label="Motion" hint="Animated backgrounds and transitions">
+<Row label={$t("settings.rows.motion")} hint={$t("settings.hints.motion")}>
   <input
     type="checkbox"
     class="toggle toggle-primary"
-    aria-label="Motion"
+    aria-label={$t("settings.rows.motion")}
     bind:checked={profile.appearance.motion}
     onchange={markCustom}
   />
@@ -278,12 +211,14 @@
     onclick={reset}
   >
     <Icon icon="lucide:rotate-ccw" class="size-4" />
-    Reset to {basePreset?.name ?? "preset"}
+    {$t("settings.appearance.resetTo", {
+      values: { name: basePreset?.name ?? $t("settings.appearance.preset") },
+    })}
   </button>
 
   <button type="button" class="btn btn-primary btn-sm" onclick={openSave}>
     <Icon icon="lucide:bookmark-plus" class="size-4" />
-    Save as preset
+    {$t("settings.appearance.saveAsPreset")}
   </button>
 </div>
 
@@ -293,16 +228,16 @@
     class="modal-box max-w-sm border border-base-content/10 bg-base-100/90 backdrop-blur-xl"
     onsubmit={save}
   >
-    <h3 class="text-base font-semibold">Save preset</h3>
+    <h3 class="text-base font-semibold">{$t("settings.appearance.savePreset")}</h3>
 
     <p class="mt-1 text-sm text-base-content/70">
-      Keeps the current appearance as a card in the grid.
+      {$t("settings.appearance.savePresetBody")}
     </p>
 
     <input
       class="input mt-4 w-full"
-      placeholder="Preset name"
-      aria-label="Preset name"
+      placeholder={$t("settings.appearance.presetName")}
+      aria-label={$t("settings.appearance.presetName")}
       maxlength="40"
       bind:value={name}
     />
@@ -313,7 +248,7 @@
         class="btn btn-ghost btn-sm"
         onclick={() => dialog?.close()}
       >
-        Cancel
+        {$t("common.cancel")}
       </button>
 
       <button
@@ -321,7 +256,7 @@
         class="btn btn-primary btn-sm"
         disabled={!name.trim()}
       >
-        Save
+        {$t("common.save")}
       </button>
     </div>
   </form>

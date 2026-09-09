@@ -10,156 +10,112 @@ export type SectionId =
 
 export type NavSection = {
   id: SectionId
-  label: string
   icon: string
-  blurb: string
 }
 
 export type SearchEntry = {
   section: SectionId
-  label: string
+  key: string
   keywords: string
 }
 
+export type Translate = (key: string) => string
+
 export const sections: NavSection[] = [
-  {
-    id: "general",
-    label: "General",
-    icon: "lucide:sliders-horizontal",
-    blurb: "This device, startup, and the launcher hotkey",
-  },
-  {
-    id: "dock",
-    label: "Dock",
-    icon: "lucide:panel-bottom",
-    blurb: "The bar that replaces the Windows taskbar",
-  },
-  {
-    id: "launcher",
-    label: "Launcher",
-    icon: "lucide:search",
-    blurb: "Result groups and the web search engine",
-  },
-  {
-    id: "appearance",
-    label: "Appearance",
-    icon: "lucide:palette",
-    blurb: "Presets, colors, and surfaces for every window",
-  },
-  {
-    id: "calendar",
-    label: "Calendar & todo",
-    icon: "lucide:calendar-check",
-    blurb: "Week layout, reminders, and list order",
-  },
-  {
-    id: "sync",
-    label: "Sync",
-    icon: "lucide:refresh-cw",
-    blurb: "Devices in step through your own server",
-  },
-  {
-    id: "advanced",
-    label: "Advanced",
-    icon: "lucide:wrench",
-    blurb: "Stored data, caches, and resets",
-  },
-  {
-    id: "about",
-    label: "About",
-    icon: "lucide:info",
-    blurb: "Version and keyboard shortcuts",
-  },
+  { id: "general", icon: "lucide:sliders-horizontal" },
+  { id: "dock", icon: "lucide:panel-bottom" },
+  { id: "launcher", icon: "lucide:search" },
+  { id: "appearance", icon: "lucide:palette" },
+  { id: "calendar", icon: "lucide:calendar-check" },
+  { id: "sync", icon: "lucide:refresh-cw" },
+  { id: "advanced", icon: "lucide:wrench" },
+  { id: "about", icon: "lucide:info" },
 ]
 
 const entry = (
   section: SectionId,
-  label: string,
+  row: string,
   keywords = "",
-): SearchEntry => ({ section, label, keywords })
+): SearchEntry => ({ section, key: `settings.rows.${row}`, keywords })
 
 export const index: SearchEntry[] = [
-  entry("general", "Device name", "identity machine computer sync"),
-  entry("general", "Start with Windows", "autostart startup boot sign in"),
-  entry("general", "Hide Windows taskbar", "system bar edge"),
-  entry("general", "Language", "english locale"),
-  entry("general", "Dock", "feature enable disable"),
-  entry("general", "Launcher", "feature enable disable"),
-  entry("general", "Chat bubble", "feature enable disable claude"),
-  entry("general", "Snap distance", "chat bubble edge percent"),
-  entry("general", "Setup wizard", "onboarding first run"),
-  entry("general", "Open with", "hotkey trigger win key launcher"),
-  entry("general", "Shortcut", "hotkey keybinding combination"),
-  entry("general", "Backup", "export import json file restore"),
-  entry("dock", "Style", "windows mac floating"),
-  entry("dock", "Display", "monitor screen multiple external primary"),
-  entry("dock", "Edge", "bottom top screen side"),
-  entry("dock", "Alignment", "start center uchiwa fan launcher middle"),
-  entry("dock", "Height", "size thickness"),
-  entry("dock", "Width", "size mac"),
-  entry("dock", "Icon size", "icons"),
-  entry("dock", "Pin to desktop", "mac behind windows wallpaper layer"),
-  entry("dock", "Auto-hide", "reveal slide"),
-  entry("dock", "Hide Windows taskbar", "system bar"),
-  entry("dock", "Show launcher button", "sparkles win key hide"),
-  entry("dock", "Show running apps", "open windows"),
-  entry("dock", "Show battery", "power laptop"),
-  entry("dock", "Show volume", "audio sound"),
-  entry("dock", "Show media controls", "music play pause track spotify"),
-  entry("dock", "Show CPU and memory", "meters usage ram performance"),
-  entry("dock", "Show network", "wifi ethernet adapter connection"),
-  entry("dock", "24-hour clock", "time format"),
-  entry("dock", "Show seconds", "clock time"),
-  entry("launcher", "Results per group", "max count"),
-  entry("launcher", "Open windows", "switch running"),
-  entry("launcher", "Commands", "lock sleep recycle bin power"),
-  entry("launcher", "Todos", "quick add task"),
-  entry("launcher", "Calculator", "math expression"),
-  entry("launcher", "Web search", "google duckduckgo bing naver engine"),
-  entry("appearance", "Presets", "theme look aurora glass nord"),
-  entry("appearance", "Mode", "dark light system theme"),
-  entry("appearance", "Background", "aura glass solid surface"),
-  entry("appearance", "Follow Windows accent", "accent color system"),
-  entry("appearance", "Accent hue", "color"),
-  entry("appearance", "Color spread", "hue accent"),
-  entry("appearance", "Vividness", "saturation color"),
-  entry("appearance", "Texture", "grain noise"),
-  entry("appearance", "Corner radius", "rounded corners"),
-  entry("appearance", "Blur", "frosted glass"),
-  entry("appearance", "Font size", "text scale"),
-  entry("appearance", "Window opacity", "transparency translucent alpha"),
-  entry("appearance", "Dock opacity", "transparency translucent taskbar"),
-  entry("appearance", "Density", "compact cozy spacing"),
-  entry("appearance", "Motion", "animation reduced"),
-  entry("calendar", "Week starts on", "monday sunday"),
-  entry("calendar", "Week numbers", "grid"),
-  entry("calendar", "Default reminder", "notification minutes alert"),
-  entry("calendar", "Show completed", "done todo"),
-  entry("calendar", "Sort by", "order manual due priority"),
-  entry("sync", "Server URL", "address host endpoint"),
-  entry("sync", "Token", "secret auth bearer"),
-  entry("sync", "Enable sync", "background"),
-  entry("sync", "Interval", "minutes frequency"),
-  entry("sync", "Collections", "todos events presets profile"),
-  entry("sync", "Replace local data with server", "reset pull danger"),
-  entry("sync", "Reset collection on server", "danger wipe"),
-  entry("sync", "Unlink this device", "disconnect forget danger"),
-  entry("advanced", "Stored data", "counts todos events presets"),
-  entry(
-    "advanced",
-    "Data folder",
-    "open data folder explorer files storage appdata",
-  ),
-  entry("advanced", "Icon cache", "clear icons rebuild thumbnails"),
-  entry("advanced", "Reset appearance", "theme default preset"),
-  entry("advanced", "Reset all settings", "defaults factory wipe"),
-  entry("about", "Version", "build release eris"),
-  entry("about", "Keyboard shortcuts", "keys hotkeys launcher panel"),
+  entry("general", "deviceName", "identity machine computer sync"),
+  entry("general", "autostart", "autostart startup boot sign in"),
+  entry("general", "hideTaskbar", "system bar edge"),
+  entry("general", "language", "english korean japanese chinese locale"),
+  entry("general", "featureDock", "feature enable disable"),
+  entry("general", "featureLauncher", "feature enable disable"),
+  entry("general", "featureChat", "feature enable disable claude"),
+  entry("general", "snapDistance", "chat bubble edge percent"),
+  entry("general", "setupWizard", "onboarding first run"),
+  entry("general", "openWith", "hotkey trigger win key launcher"),
+  entry("general", "shortcut", "hotkey keybinding combination"),
+  entry("general", "backup", "export import json file restore"),
+  entry("dock", "style", "windows mac floating"),
+  entry("dock", "display", "monitor screen multiple external primary"),
+  entry("dock", "edge", "bottom top screen side"),
+  entry("dock", "alignment", "start center uchiwa fan launcher middle"),
+  entry("dock", "height", "size thickness"),
+  entry("dock", "width", "size mac"),
+  entry("dock", "iconSize", "icons"),
+  entry("dock", "pinDesktop", "mac behind windows wallpaper layer"),
+  entry("dock", "autoHide", "reveal slide"),
+  entry("dock", "hideTaskbar", "system bar"),
+  entry("dock", "showLauncherButton", "sparkles win key hide"),
+  entry("dock", "showRunningApps", "open windows"),
+  entry("dock", "showBattery", "power laptop"),
+  entry("dock", "showVolume", "audio sound"),
+  entry("dock", "showMedia", "music play pause track spotify"),
+  entry("dock", "showMeters", "meters usage ram performance cpu memory"),
+  entry("dock", "showNetwork", "wifi ethernet adapter connection"),
+  entry("dock", "clock24h", "time format 24-hour"),
+  entry("dock", "showSeconds", "clock time"),
+  entry("launcher", "resultsPerGroup", "max count"),
+  entry("launcher", "openWindows", "switch running"),
+  entry("launcher", "commands", "lock sleep recycle bin power"),
+  entry("launcher", "todos", "quick add task"),
+  entry("launcher", "calculator", "math expression"),
+  entry("launcher", "webSearch", "google duckduckgo bing naver engine"),
+  entry("appearance", "presets", "theme look aurora glass nord"),
+  entry("appearance", "mode", "dark light system theme"),
+  entry("appearance", "background", "aura glass solid surface"),
+  entry("appearance", "followAccent", "accent color system"),
+  entry("appearance", "accentHue", "color"),
+  entry("appearance", "colorSpread", "hue accent"),
+  entry("appearance", "vividness", "saturation color"),
+  entry("appearance", "texture", "grain noise"),
+  entry("appearance", "cornerRadius", "rounded corners"),
+  entry("appearance", "blur", "frosted glass"),
+  entry("appearance", "fontSize", "text scale"),
+  entry("appearance", "windowOpacity", "transparency translucent alpha"),
+  entry("appearance", "dockOpacity", "transparency translucent taskbar"),
+  entry("appearance", "density", "compact cozy spacing"),
+  entry("appearance", "motion", "animation reduced"),
+  entry("calendar", "weekStartsOn", "monday sunday"),
+  entry("calendar", "weekNumbers", "grid"),
+  entry("calendar", "defaultReminder", "notification minutes alert"),
+  entry("calendar", "showCompleted", "done todo"),
+  entry("calendar", "sortBy", "order manual due priority"),
+  entry("sync", "serverUrl", "address host endpoint"),
+  entry("sync", "token", "secret auth bearer"),
+  entry("sync", "enableSync", "background"),
+  entry("sync", "interval", "minutes frequency"),
+  entry("sync", "collections", "todos events presets profile"),
+  entry("sync", "replaceLocal", "reset pull danger"),
+  entry("sync", "resetCollection", "danger wipe"),
+  entry("sync", "unlinkDevice", "disconnect forget danger"),
+  entry("advanced", "storedData", "counts todos events presets"),
+  entry("advanced", "dataFolder", "open data folder explorer files storage appdata"),
+  entry("advanced", "iconCache", "clear icons rebuild thumbnails"),
+  entry("advanced", "resetAppearance", "theme default preset"),
+  entry("advanced", "resetAll", "defaults factory wipe"),
+  entry("about", "version", "build release eris"),
+  entry("about", "keyboardShortcuts", "keys hotkeys launcher panel"),
 ]
 
 const clean = (query: string) => query.trim().toLowerCase()
 
-export const searchRows = (query: string) => {
+export const searchRows = (query: string, t: Translate) => {
   const text = clean(query)
 
   if (!text) {
@@ -167,20 +123,24 @@ export const searchRows = (query: string) => {
   }
 
   return index.filter(e =>
-    `${e.label} ${e.keywords}`.toLowerCase().includes(text),
+    `${t(e.key)} ${e.keywords}`.toLowerCase().includes(text),
   )
 }
 
-export const searchSections = (query: string) => {
+export const searchSections = (query: string, t: Translate) => {
   const text = clean(query)
 
   if (!text) {
     return sections
   }
 
-  const hits = new Set(searchRows(text).map(e => e.section))
+  const hits = new Set(searchRows(text, t).map(e => e.section))
 
   return sections.filter(
-    s => hits.has(s.id) || `${s.label} ${s.blurb}`.toLowerCase().includes(text),
+    s =>
+      hits.has(s.id) ||
+      `${t(`settings.sections.${s.id}.label`)} ${t(`settings.sections.${s.id}.blurb`)}`
+        .toLowerCase()
+        .includes(text),
   )
 }

@@ -2,10 +2,13 @@
   import { addCollection } from "@iconify/svelte"
   import favicon from "$lib/assets/favicon.svg"
   import { lucideSubset } from "$lib/icons"
+  import { setupI18n } from "$lib/i18n/locale"
   import {
     type Appearance,
     defaultAppearance,
+    loadDevice,
     loadProfile,
+    onDevice,
     onProfile,
   } from "$lib/settings"
   import { applyAppearance } from "$lib/theme"
@@ -33,13 +36,20 @@
     }
 
     loadProfile().then(p => apply(p.appearance))
+    loadDevice().then(d => setupI18n(d.language))
 
-    const stop = onProfile(p => apply(p.appearance))
+    const stops = [
+      onProfile(p => apply(p.appearance)),
+      onDevice(d => setupI18n(d.language)),
+    ]
 
     scheme.addEventListener("change", onScheme)
 
     return () => {
-      stop.then(unlisten => unlisten())
+      for (const stop of stops) {
+        stop.then(unlisten => unlisten())
+      }
+
       scheme.removeEventListener("change", onScheme)
     }
   })

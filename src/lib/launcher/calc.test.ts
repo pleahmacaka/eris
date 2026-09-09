@@ -58,11 +58,11 @@ describe("evaluate", () => {
   })
 
   test("reports impossible values instead of hiding them", () => {
-    expect(evaluate("1 / 0")).toEqual({ error: "Division by zero" })
-    expect(evaluate("0 / 0")).toEqual({ error: "Division by zero" })
-    expect(evaluate("5 % 0")).toEqual({ error: "Division by zero" })
-    expect(evaluate("9 ^ 9 ^ 9")).toEqual({ error: "Out of range" })
-    expect(evaluate("sqrt(-1)")).toEqual({ error: "Undefined" })
+    expect(evaluate("1 / 0")).toEqual({ error: "divisionByZero" })
+    expect(evaluate("0 / 0")).toEqual({ error: "divisionByZero" })
+    expect(evaluate("5 % 0")).toEqual({ error: "divisionByZero" })
+    expect(evaluate("9 ^ 9 ^ 9")).toEqual({ error: "outOfRange" })
+    expect(evaluate("sqrt(-1)")).toEqual({ error: "undefined" })
     expect(evaluate("hello")).toBeNull()
   })
 })

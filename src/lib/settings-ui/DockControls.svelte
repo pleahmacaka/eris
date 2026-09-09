@@ -9,21 +9,19 @@
   import DockPreview from "./DockPreview.svelte"
   import Row from "./Row.svelte"
   import Segmented from "./Segmented.svelte"
+  import { t } from "svelte-i18n"
 
   let {
     device = $bindable(),
     subset = false,
   }: { device: DeviceSettings; subset?: boolean } = $props()
 
-  const styles: { value: DockStyle; label: string; hint: string }[] = [
-    { value: "windows", label: "Windows", hint: "Full-width bar on the edge" },
-    { value: "mac", label: "Mac", hint: "Floating centered dock" },
-  ]
+  const styles: DockStyle[] = ["windows", "mac"]
 
-  const ALIGNMENTS: { value: DockAlign; label: string; icon: string }[] = [
-    { value: "start", label: "Start", icon: "lucide:align-start-horizontal" },
-    { value: "center", label: "Center", icon: "lucide:align-center-horizontal" },
-    { value: "uchiwa", label: "Uchiwa", icon: "lucide:fan" },
+  const ALIGNMENTS: { value: DockAlign; icon: string }[] = [
+    { value: "start", icon: "lucide:align-start-horizontal" },
+    { value: "center", icon: "lucide:align-center-horizontal" },
+    { value: "uchiwa", icon: "lucide:fan" },
   ]
 
   type ToggleKey =
@@ -43,76 +41,32 @@
     | "clock24h"
     | "showSeconds"
 
-  const toggles: { key: ToggleKey; label: string; hint: string }[] =
-    [
-      {
-        key: "showLauncherButton",
-        label: "Show launcher button",
-        hint: "The Win key still opens the launcher",
-      },
-      {
-        key: "showRunningApps",
-        label: "Show running apps",
-        hint: "Open windows appear next to pinned apps",
-      },
-      {
-        key: "showTrayIcons",
-        label: "Show tray icons",
-        hint: "Notification icons from background programs",
-      },
-      {
-        key: "showClaudeUsage",
-        label: "Show Claude usage",
-        hint: "5-hour and weekly session limits",
-      },
-      {
-        key: "claudeUsageStacked",
-        label: "Stack Claude usage",
-        hint: "5-hour above weekly instead of side by side",
-      },
-      {
-        key: "showSettingsButton",
-        label: "Show settings button",
-        hint: "Right-click the bar for the same menu",
-      },
-      {
-        key: "showKeymap",
-        label: "Show keyboard hints",
-        hint: "Shortcut keys in the launcher footer and result rows",
-      },
-      { key: "showBattery", label: "Show battery", hint: "Only on laptops" },
-      {
-        key: "showVolume",
-        label: "Show volume",
-        hint: "Scroll over it to change the level",
-      },
-      {
-        key: "showMedia",
-        label: "Show media controls",
-        hint: "Play, pause, and skip the current track",
-      },
-      {
-        key: "showSpectrum",
-        label: "Show sound spectrum",
-        hint: "Live output levels next to the media controls",
-      },
-      {
-        key: "showMeters",
-        label: "Show CPU and memory",
-        hint: "Live usage readout",
-      },
-      {
-        key: "showNetwork",
-        label: "Show network",
-        hint: "Wi-Fi or ethernet status",
-      },
-      { key: "clock24h", label: "24-hour clock", hint: "18:30 instead of 6:30 PM" },
-      { key: "showSeconds", label: "Show seconds", hint: "Ticks once a second" },
-    ]
+  const toggles: ToggleKey[] = [
+    "showLauncherButton",
+    "showRunningApps",
+    "showTrayIcons",
+    "showClaudeUsage",
+    "claudeUsageStacked",
+    "showSettingsButton",
+    "showKeymap",
+    "showBattery",
+    "showVolume",
+    "showMedia",
+    "showSpectrum",
+    "showMeters",
+    "showNetwork",
+    "clock24h",
+    "showSeconds",
+  ]
 
   const mac = $derived(device.dockStyle === "mac")
 
-  const alignments = $derived(ALIGNMENTS.filter(a => !mac || a.value !== "start"))
+  const alignments = $derived(
+    ALIGNMENTS.filter(a => !mac || a.value !== "start").map(a => ({
+      ...a,
+      label: $t(`settings.dock.${a.value}`),
+    })),
+  )
 
   let monitors = $state<MonitorInfo[]>([])
 
@@ -155,7 +109,7 @@
   }
 
   const describe = (m: MonitorInfo) =>
-    `${m.name} (${m.primary ? "Primary, " : ""}${m.width}×${m.height})`
+    `${m.name} (${m.primary ? `${$t("settings.dock.primary")}, ` : ""}${m.width}×${m.height})`
 
   const unplugged = $derived(
     device.dockMonitor !== null &&
@@ -166,16 +120,16 @@
 
 <svelte:window onfocus={loadMonitors} />
 
-<div data-row="Style" class="flex flex-col gap-3 px-4 py-3">
-  <span class="text-sm font-medium">Style</span>
+<div data-row={$t("settings.rows.style")} class="flex flex-col gap-3 px-4 py-3">
+  <span class="text-sm font-medium">{$t("settings.rows.style")}</span>
 
   <div class="mx-auto w-full max-w-sm">
     <DockPreview {device} />
   </div>
 
-  <div class="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Dock style">
-    {#each styles as s (s.value)}
-      {@const active = device.dockStyle === s.value}
+  <div class="grid grid-cols-2 gap-3" role="radiogroup" aria-label={$t("settings.dock.styleAria")}>
+    {#each styles as style (style)}
+      {@const active = device.dockStyle === style}
 
       <button
         type="button"
@@ -187,12 +141,12 @@
             ? "border-primary/60 bg-primary/10 ring-1 ring-primary/40"
             : "border-base-content/10 bg-base-100/40 hover:bg-base-content/5",
         ]}
-        onclick={() => (device.dockStyle = s.value)}
+        onclick={() => (device.dockStyle = style)}
       >
         <div
           class="relative h-14 w-full overflow-hidden rounded-field bg-linear-to-br from-primary/20 to-secondary/20 ring-1 ring-base-content/10"
         >
-          {#if s.value === "windows"}
+          {#if style === "windows"}
             <div
               class={[
                 "absolute inset-x-0 flex h-3.5 items-center justify-center gap-1 bg-base-content/25",
@@ -217,90 +171,83 @@
           {/if}
         </div>
 
-        <span class="text-sm font-medium">{s.label}</span>
+        <span class="text-sm font-medium">{$t(`settings.dock.styles.${style}.label`)}</span>
 
-        <span class="text-xs text-base-content/60">{s.hint}</span>
+        <span class="text-xs text-base-content/60">{$t(`settings.dock.styles.${style}.hint`)}</span>
       </button>
     {/each}
   </div>
 </div>
 
 {#if !subset}
-  <Row label="Display" hint="Screen the dock sits on">
+  <Row label={$t("settings.rows.display")} hint={$t("settings.hints.display")}>
     <select
       class="select select-sm w-56"
-      aria-label="Display"
+      aria-label={$t("settings.rows.display")}
       bind:value={device.dockMonitor}
     >
-      <option value={null}>Automatic (primary)</option>
+      <option value={null}>{$t("settings.dock.automatic")}</option>
 
       {#each monitors as m (m.id)}
         <option value={m.id}>{describe(m)}</option>
       {/each}
 
       {#if unplugged}
-        <option value={device.dockMonitor} disabled>Not connected</option>
+        <option value={device.dockMonitor} disabled>{$t("settings.dock.notConnected")}</option>
       {/if}
     </select>
   </Row>
 {/if}
 
-<Row label="Edge" hint="Screen edge the dock sits on">
+<Row label={$t("settings.rows.edge")} hint={$t("settings.hints.edge")}>
   <Segmented
-    label="Edge"
+    label={$t("settings.rows.edge")}
     bind:value={device.dockEdge}
     options={[
-      { value: "bottom", label: "Bottom", icon: "lucide:panel-bottom" },
-      { value: "top", label: "Top", icon: "lucide:panel-top" },
+      { value: "bottom", label: $t("settings.dock.bottom"), icon: "lucide:panel-bottom" },
+      { value: "top", label: $t("settings.dock.top"), icon: "lucide:panel-top" },
     ]}
   />
 </Row>
 
 {#if !subset && device.showSpectrum}
-  <Row label="Spectrum style" hint="How the bands are drawn">
+  <Row label={$t("settings.rows.spectrumStyle")} hint={$t("settings.hints.spectrumStyle")}>
     <Segmented
-      label="Spectrum style"
+      label={$t("settings.rows.spectrumStyle")}
       bind:value={device.spectrumStyle}
       options={[
-        { value: "bars", label: "Bars" },
-        { value: "mirror", label: "Mirror" },
-        { value: "wave", label: "Wave" },
-        { value: "dots", label: "Dots" },
+        { value: "bars", label: $t("settings.dock.bars") },
+        { value: "mirror", label: $t("settings.dock.mirror") },
+        { value: "wave", label: $t("settings.dock.wave") },
+        { value: "dots", label: $t("settings.dock.dots") },
       ]}
     />
   </Row>
 {/if}
 
 {#if !subset}
-  <Row label="Claude usage" hint="Which end of the bar it sits on">
+  <Row label={$t("settings.rows.claudeUsageSide")} hint={$t("settings.hints.claudeUsageSide")}>
     <Segmented
-      label="Claude usage"
+      label={$t("settings.rows.claudeUsageSide")}
       bind:value={device.claudeUsageSide}
       options={[
-        { value: "left", label: "Left", icon: "lucide:align-start-horizontal" },
-        { value: "right", label: "Right", icon: "lucide:align-end-horizontal" },
+        { value: "left", label: $t("settings.dock.left"), icon: "lucide:align-start-horizontal" },
+        { value: "right", label: $t("settings.dock.right"), icon: "lucide:align-end-horizontal" },
       ]}
     />
   </Row>
 
-  <Row
-    label="Claude statusline bridge"
-    hint="Writes the 5-hour and weekly windows Claude Code reports"
-  >
+  <Row label={$t("settings.rows.claudeBridge")} hint={$t("settings.hints.claudeBridge")}>
     <button
       class={["btn btn-sm", bridged ? "btn-ghost" : "btn-primary"]}
       disabled={bridging}
       onclick={toggleBridge}
     >
-      {bridged ? "Disconnect" : "Connect"}
+      {bridged ? $t("settings.dock.disconnect") : $t("settings.dock.connect")}
     </button>
   </Row>
 
-  <Row
-    label="Usage snapshot"
-    hint="File written by the bridge, or a URL"
-    stacked
-  >
+  <Row label={$t("settings.rows.usageSnapshot")} hint={$t("settings.hints.usageSnapshot")} stacked>
     <input
       class="input input-sm w-full"
       type="text"
@@ -311,101 +258,101 @@
 {/if}
 
 {#if !subset}
-  <Row label="Media controls" hint="Which end of the bar they sit on">
+  <Row label={$t("settings.rows.mediaSide")} hint={$t("settings.hints.mediaSide")}>
     <Segmented
-      label="Media controls"
+      label={$t("settings.rows.mediaSide")}
       bind:value={device.mediaSide}
       options={[
-        { value: "left", label: "Left", icon: "lucide:align-start-horizontal" },
-        { value: "right", label: "Right", icon: "lucide:align-end-horizontal" },
+        { value: "left", label: $t("settings.dock.left"), icon: "lucide:align-start-horizontal" },
+        { value: "right", label: $t("settings.dock.right"), icon: "lucide:align-end-horizontal" },
       ]}
     />
   </Row>
 {/if}
 
 {#if !subset}
-  <Row label="Alignment" hint="Where the apps sit along the bar">
-    <Segmented label="Alignment" bind:value={device.dockAlign} options={alignments} />
+  <Row label={$t("settings.rows.alignment")} hint={$t("settings.hints.alignment")}>
+    <Segmented label={$t("settings.rows.alignment")} bind:value={device.dockAlign} options={alignments} />
   </Row>
 {/if}
 
 {#if !subset}
-  <Row label="Height" value="{device.dockHeight} px" stacked>
+  <Row label={$t("settings.rows.height")} value="{device.dockHeight} px" stacked>
     <input
       type="range"
       class="range range-primary range-xs w-full"
       min="32"
       max="88"
       step="2"
-      aria-label="Height"
+      aria-label={$t("settings.rows.height")}
       bind:value={device.dockHeight}
     />
   </Row>
 
   {#if mac}
-    <Row label="Width" value="{device.dockWidth} px" stacked>
+    <Row label={$t("settings.rows.width")} value="{device.dockWidth} px" stacked>
       <input
         type="range"
         class="range range-primary range-xs w-full"
         min="320"
         max="1400"
         step="20"
-        aria-label="Width"
+        aria-label={$t("settings.rows.width")}
         bind:value={device.dockWidth}
       />
     </Row>
   {/if}
 
-  <Row label="Icon size" value="{device.dockIconSize} px" stacked>
+  <Row label={$t("settings.rows.iconSize")} value="{device.dockIconSize} px" stacked>
     <input
       type="range"
       class="range range-primary range-xs w-full"
       min="16"
       max="32"
       step="2"
-      aria-label="Icon size"
+      aria-label={$t("settings.rows.iconSize")}
       bind:value={device.dockIconSize}
     />
   </Row>
 {/if}
 
 {#if mac}
-  <Row label="Pin to desktop" hint="Windows may cover the dock; with auto-hide, touching the edge brings it forward">
+  <Row label={$t("settings.rows.pinDesktop")} hint={$t("settings.hints.pinDesktop")}>
     <input
       type="checkbox"
       class="toggle toggle-primary"
-      aria-label="Pin to desktop"
+      aria-label={$t("settings.rows.pinDesktop")}
       bind:checked={device.dockDesktop}
     />
   </Row>
 {/if}
 
-<Row label="Auto-hide" hint="Slides away until the cursor touches the edge">
+<Row label={$t("settings.rows.autoHide")} hint={$t("settings.hints.autoHide")}>
   <input
     type="checkbox"
     class="toggle toggle-primary"
-    aria-label="Auto-hide"
+    aria-label={$t("settings.rows.autoHide")}
     bind:checked={device.dockAutoHide}
   />
 </Row>
 
-<Row label="Hide Windows taskbar" hint="Eris takes over the edge">
+<Row label={$t("settings.rows.hideTaskbar")} hint={$t("settings.hints.hideTaskbar")}>
   <input
     type="checkbox"
     class="toggle toggle-primary"
-    aria-label="Hide Windows taskbar"
+    aria-label={$t("settings.rows.hideTaskbar")}
     bind:checked={device.hideSystemTaskbar}
   />
 </Row>
 
 {#if !subset}
-  {#each toggles as t (t.key)}
-    <Row label={t.label} hint={t.hint}>
+  {#each toggles as toggle (toggle)}
+    <Row label={$t(`settings.rows.${toggle}`)} hint={$t(`settings.hints.${toggle}`)}>
       <input
         type="checkbox"
         class="toggle toggle-primary"
-        aria-label={t.label}
-        bind:checked={device[t.key]}
+        aria-label={$t(`settings.rows.${toggle}`)}
+        bind:checked={device[toggle]}
       />
     </Row>
   {/each}

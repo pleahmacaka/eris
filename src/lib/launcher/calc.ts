@@ -214,7 +214,7 @@ const parse = (tokens: Token[]): number => {
       const right = unary()
 
       if (op !== "*" && right === 0) {
-        throw new RangeError("Division by zero")
+        throw new RangeError("divisionByZero")
       }
 
       value =
@@ -262,10 +262,10 @@ export const evaluate = (input: string): Evaluation | null => {
     const value = parse(tokens)
 
     if (Number.isNaN(value)) {
-      return { error: "Undefined" }
+      return { error: "undefined" }
     }
 
-    return Number.isFinite(value) ? { value } : { error: "Out of range" }
+    return Number.isFinite(value) ? { value } : { error: "outOfRange" }
   } catch (e) {
     return e instanceof RangeError ? { error: e.message } : null
   }

@@ -1,3 +1,5 @@
+import { tr } from "$lib/i18n/locale"
+
 export type ResultKind =
   | "app"
   | "window"
@@ -12,7 +14,10 @@ export type ResultKind =
   | "setting"
   | "clip"
 
+export type ActionId = "admin" | "location" | "cancel"
+
 export type SecondaryAction = {
+  id?: ActionId
   label: string
   run: () => void | Promise<void>
   stay?: boolean
@@ -40,32 +45,6 @@ export type ResultGroup = {
   items: Result[]
 }
 
-export const groupLabels: Record<ResultKind, string> = {
-  app: "Apps",
-  window: "Windows",
-  command: "Commands",
-  calc: "Calculator",
-  unit: "Conversion",
-  todo: "Todo",
-  timer: "Timers",
-  emoji: "Emoji",
-  web: "Web",
-  run: "Run",
-  setting: "Settings",
-  clip: "Clipboard",
-}
+export const groupLabel = (kind: ResultKind) => tr(`launcher.groups.${kind}`)
 
-export const kindLabels: Record<ResultKind, string> = {
-  app: "App",
-  window: "Window",
-  command: "Command",
-  calc: "Calc",
-  unit: "Conversion",
-  todo: "Todo",
-  timer: "Timer",
-  emoji: "Emoji",
-  web: "Web",
-  run: "Run",
-  setting: "Setting",
-  clip: "Clip",
-}
+export const kindLabel = (kind: ResultKind) => tr(`launcher.kinds.${kind}`)

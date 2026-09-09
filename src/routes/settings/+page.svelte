@@ -44,6 +44,8 @@
   import { toast } from "$lib/settings-ui/toast.svelte"
   import Toasts from "$lib/settings-ui/Toasts.svelte"
   import { applyAppearance } from "$lib/theme"
+  import { t } from "svelte-i18n"
+  import { LANGUAGES } from "$lib/i18n/locale"
 
   const VERSION = "0.1.0"
   const reminders = [0, 5, 10, 15, 30, 60]
@@ -66,19 +68,15 @@
   let deviceJson = ""
   let profileJson = ""
 
-  const current = $derived(
-    sections.find(s => s.id === section) ?? sections[0],
-  )
-
-  const found = $derived(searchRows(query))
-  const visible = $derived(searchSections(query))
+  const found = $derived(searchRows(query, $t))
+  const visible = $derived(searchSections(query, $t))
 
   const jump = async (entry: SearchEntry) => {
     section = entry.section
     await tick()
 
     const row = scroller?.querySelector<HTMLElement>(
-      `[data-row="${entry.label}"]`,
+      `[data-row="${$t(entry.key)}"]`,
     )
 
     if (!row) {
@@ -203,7 +201,10 @@
 
     setWinKeyCapture(trigger !== "shortcut").catch(() => undefined)
     setLauncherShortcut(trigger === "win" ? null : shortcut).catch(error =>
-      toast(`Shortcut not registered: ${message(error)}`, "error"),
+      toast(
+        $t("settings.toasts.shortcutFailed", { values: { error: message(error) } }),
+        "error",
+      ),
     )
   })
 
@@ -222,7 +223,10 @@
 
       device.autostart = on
     } catch (error) {
-      toast(`Autostart failed: ${message(error)}`, "error")
+      toast(
+        $t("settings.toasts.autostartFailed", { values: { error: message(error) } }),
+        "error",
+      )
     }
   }
 
@@ -247,50 +251,51 @@
   const chips = (shortcut: string) =>
     shortcut.split("+").map(part => (part === "Super" ? "Win" : part))
 
+  const key = (name: string) => $t(`settings.shortcuts.keys.${name}`)
+
   const shortcuts = $derived([
     {
-      title: "Launcher",
+      title: $t("settings.shortcuts.launcher"),
       items: [
         ...(device.launcherTrigger !== "shortcut"
-          ? [{ keys: ["Win"], action: "Open the launcher" }]
+          ? [{ keys: ["Win"], action: $t("settings.shortcuts.openLauncher") }]
           : []),
         ...(device.launcherTrigger !== "win"
           ? [
               {
                 keys: chips(device.launcherShortcut),
-                action: "Open the launcher",
+                action: $t("settings.shortcuts.openLauncher"),
               },
             ]
           : []),
-        { keys: ["Up", "Down"], action: "Move the selection" },
-        { keys: ["Page up", "Page down"], action: "Move a page" },
-        { keys: ["Tab"], action: "Next group" },
-        { keys: ["Shift", "Tab"], action: "Previous group" },
-        { keys: ["Enter"], action: "Open the selected result" },
-        { keys: ["Shift", "Enter"], action: "Open as administrator" },
-        { keys: ["Ctrl", "Enter"], action: "Open the file location" },
-        { keys: ["Alt", "1-9"], action: "Open a numbered result" },
-        { keys: ["Menu"], action: "Open the action menu" },
-        { keys: ["Ctrl", "Backspace"], action: "Clear the query" },
-        { keys: ["Esc"], action: "Clear the query, then close" },
+        { keys: [key("up"), key("down")], action: $t("settings.shortcuts.moveSelection") },
+        { keys: [key("pageUp"), key("pageDown")], action: $t("settings.shortcuts.movePage") },
+        { keys: ["Tab"], action: $t("settings.shortcuts.nextGroup") },
+        { keys: ["Shift", "Tab"], action: $t("settings.shortcuts.previousGroup") },
+        { keys: ["Enter"], action: $t("settings.shortcuts.openResult") },
+        { keys: ["Shift", "Enter"], action: $t("settings.shortcuts.openAdmin") },
+        { keys: ["Ctrl", "Enter"], action: $t("settings.shortcuts.openLocation") },
+        { keys: ["Alt", "1-9"], action: $t("settings.shortcuts.openNumbered") },
+        { keys: [key("menu")], action: $t("settings.shortcuts.actionMenu") },
+        { keys: ["Esc"], action: $t("settings.shortcuts.clearThenClose") },
       ],
     },
     {
-      title: "Calendar panel",
+      title: $t("settings.shortcuts.panel"),
       items: [
-        { keys: ["Left", "Right"], action: "Switch tabs" },
-        { keys: ["Arrows"], action: "Move the selected day" },
-        { keys: ["Enter"], action: "Add an event on that day" },
-        { keys: ["F2"], action: "Rename the todo" },
-        { keys: ["Ctrl", "Enter"], action: "Save the event" },
-        { keys: ["Esc"], action: "Close the panel" },
+        { keys: [key("left"), key("right")], action: $t("settings.shortcuts.switchTabs") },
+        { keys: [key("arrows")], action: $t("settings.shortcuts.moveDay") },
+        { keys: ["Enter"], action: $t("settings.shortcuts.addEvent") },
+        { keys: ["F2"], action: $t("settings.shortcuts.renameTodo") },
+        { keys: ["Ctrl", "Enter"], action: $t("settings.shortcuts.saveEvent") },
+        { keys: ["Esc"], action: $t("settings.shortcuts.closePanel") },
       ],
     },
     {
-      title: "Setup and settings",
+      title: $t("settings.shortcuts.setup"),
       items: [
-        { keys: ["Enter"], action: "Next setup step" },
-        { keys: ["Esc"], action: "Close this window" },
+        { keys: ["Enter"], action: $t("settings.shortcuts.nextStep") },
+        { keys: ["Esc"], action: $t("settings.shortcuts.closeWindow") },
       ],
     },
   ])
@@ -310,7 +315,7 @@
         <Icon icon="lucide:settings-2" class="size-4" />
       </div>
 
-      <h1 class="text-base font-semibold">Settings</h1>
+      <h1 class="text-base font-semibold">{$t("settings.title")}</h1>
     </div>
 
     <span data-tauri-drag-region class="grow"></span>
@@ -318,7 +323,7 @@
     <button
       type="button"
       class="btn btn-ghost btn-circle btn-sm"
-      aria-label="Close"
+      aria-label={$t("common.close")}
       onclick={() => native.hideWindow("settings")}
     >
       <Icon icon="lucide:x" class="size-4" />
@@ -332,8 +337,8 @@
 
         <input
           type="search"
-          placeholder="Search"
-          aria-label="Search settings"
+          placeholder={$t("common.search")}
+          aria-label={$t("settings.searchAria")}
           autocomplete="off"
           spellcheck="false"
           bind:value={query}
@@ -349,6 +354,7 @@
       <ul class="menu w-full gap-0.5 p-0">
         {#each visible as s (s.id)}
           {@const rows = found.filter(r => r.section === s.id)}
+          {@const label = $t(`settings.sections.${s.id}.label`)}
 
           <li>
             <button
@@ -361,19 +367,19 @@
               onclick={() => (section = s.id)}
             >
               <Icon icon={s.icon} class="size-4" />
-              {s.label}
+              {label}
             </button>
 
             {#if rows.length}
               <ul>
-                {#each rows as r (r.label)}
+                {#each rows as r (r.key)}
                   <li>
                     <button
                       type="button"
                       class="rounded-field text-xs text-base-content/70"
                       onclick={() => jump(r)}
                     >
-                      {r.label}
+                      {$t(r.key)}
                     </button>
                   </li>
                 {/each}
@@ -384,88 +390,95 @@
       </ul>
 
       {#if !visible.length}
-        <p class="px-2 py-1 text-xs text-base-content/50">No matches</p>
+        <p class="px-2 py-1 text-xs text-base-content/50">{$t("common.noMatches")}</p>
       {/if}
     </nav>
 
     <div bind:this={scroller} class="min-h-0 grow overflow-y-auto px-5 pb-6">
       {#if ready}
         <div class="mb-4">
-          <h2 class="text-xl font-semibold tracking-tight">{current.label}</h2>
+          <h2 class="text-xl font-semibold tracking-tight">
+            {$t(`settings.sections.${section}.label`)}
+          </h2>
 
-          <p class="text-sm text-base-content/60">{current.blurb}</p>
+          <p class="text-sm text-base-content/60">{$t(`settings.sections.${section}.blurb`)}</p>
         </div>
 
         <div class="flex flex-col gap-4">
           {#if section === "general"}
-            <Section title="This device">
-              <Row label="Device name" hint="Shown in the sync device list">
+            <Section title={$t("settings.groups.device")}>
+              <Row label={$t("settings.rows.deviceName")} hint={$t("settings.hints.deviceName")}>
                 <input
                   class="input input-sm w-52"
-                  aria-label="Device name"
+                  aria-label={$t("settings.rows.deviceName")}
                   autocomplete="off"
                   spellcheck="false"
                   bind:value={device.deviceName}
                 />
               </Row>
 
-              <Row
-                label="Start with Windows"
-                hint="Launches Eris hidden at sign-in"
-              >
+              <Row label={$t("settings.rows.autostart")} hint={$t("settings.hints.autostart")}>
                 <input
                   type="checkbox"
                   class="toggle toggle-primary"
-                  aria-label="Start with Windows"
+                  aria-label={$t("settings.rows.autostart")}
                   checked={device.autostart}
                   onchange={e => setAutostart(e.currentTarget.checked)}
                 />
               </Row>
 
-              <Row
-                label="Hide Windows taskbar"
-                hint="Eris takes over the edge"
-              >
+              <Row label={$t("settings.rows.hideTaskbar")} hint={$t("settings.hints.hideTaskbar")}>
                 <input
                   type="checkbox"
                   class="toggle toggle-primary"
-                  aria-label="Hide Windows taskbar"
+                  aria-label={$t("settings.rows.hideTaskbar")}
                   bind:checked={device.hideSystemTaskbar}
                 />
               </Row>
 
-              <Row label="Language" hint="English only for now">
-                <span class="text-sm text-base-content/70">English</span>
+              <Row label={$t("settings.rows.language")} hint={$t("settings.hints.language")}>
+                <select
+                  class="select select-sm w-40"
+                  aria-label={$t("settings.rows.language")}
+                  bind:value={device.language}
+                >
+                  {#each LANGUAGES as language (language)}
+                    <option value={language}>{$t(`languages.${language}`)}</option>
+                  {/each}
+                </select>
               </Row>
 
-              <Row label="Setup wizard" hint="Runs the first-start setup again">
+              <Row label={$t("settings.rows.setupWizard")} hint={$t("settings.hints.setupWizard")}>
                 <button
                   type="button"
                   class="btn btn-soft btn-sm"
                   onclick={resetOnboarding}
                 >
-                  Run setup
+                  {$t("settings.options.runSetup")}
                 </button>
               </Row>
             </Section>
 
-            <Section title="Features" description="Turn whole parts of Eris on or off">
+            <Section
+              title={$t("settings.groups.features.title")}
+              description={$t("settings.groups.features.description")}
+            >
               <FeatureControls bind:device />
             </Section>
 
             {#if device.features.chat}
               <Section
-                title="Chat bubble"
-                description="How close to a screen edge the bubble has to be to snap"
+                title={$t("settings.groups.chat.title")}
+                description={$t("settings.groups.chat.description")}
               >
-                <Row label="Snap distance" value="{device.chatSnap}%" stacked>
+                <Row label={$t("settings.rows.snapDistance")} value="{device.chatSnap}%" stacked>
                   <input
                     type="range"
                     class="range range-primary range-xs w-full"
                     min="5"
                     max="40"
                     step="1"
-                    aria-label="Snap distance"
+                    aria-label={$t("settings.rows.snapDistance")}
                     bind:value={device.chatSnap}
                     oninput={previewSnap}
                   />
@@ -474,42 +487,42 @@
             {/if}
 
             <Section
-              title="Launcher hotkey"
-              description="A Win tap opens Eris. Win combos keep working."
+              title={$t("settings.groups.hotkey.title")}
+              description={$t("settings.groups.hotkey.description")}
             >
-              <Row label="Open with" hint="Which keys bring up the launcher">
+              <Row label={$t("settings.rows.openWith")} hint={$t("settings.hints.openWith")}>
                 <Segmented
-                  label="Open with"
+                  label={$t("settings.rows.openWith")}
                   bind:value={device.launcherTrigger}
                   options={[
-                    { value: "win", label: "Win key" },
-                    { value: "shortcut", label: "Shortcut" },
-                    { value: "both", label: "Both" },
+                    { value: "win", label: $t("settings.options.win") },
+                    { value: "shortcut", label: $t("settings.options.shortcut") },
+                    { value: "both", label: $t("settings.options.both") },
                   ]}
                 />
               </Row>
 
               {#if device.launcherTrigger !== "win"}
-                <Row label="Shortcut" hint="Click, then press the combination">
+                <Row label={$t("settings.rows.shortcut")} hint={$t("settings.hints.shortcut")}>
                   <HotkeyPicker bind:value={device.launcherShortcut} />
                 </Row>
               {/if}
             </Section>
 
             <Section
-              title="Backup"
-              description="Settings, presets, todos, and events as one JSON file"
+              title={$t("settings.groups.backup.title")}
+              description={$t("settings.groups.backup.description")}
             >
               <ImportExport />
             </Section>
           {:else if section === "dock"}
-            <Section title="Dock">
+            <Section title={$t("settings.groups.dock")}>
               <DockControls bind:device />
             </Section>
           {:else if section === "launcher"}
-            <Section title="Results">
+            <Section title={$t("settings.groups.results")}>
               <Row
-                label="Results per group"
+                label={$t("settings.rows.resultsPerGroup")}
                 value={String(profile.launcher.maxResults)}
                 stacked
               >
@@ -519,54 +532,51 @@
                   min="3"
                   max="15"
                   step="1"
-                  aria-label="Results per group"
+                  aria-label={$t("settings.rows.resultsPerGroup")}
                   bind:value={profile.launcher.maxResults}
                 />
               </Row>
 
-              <Row label="Open windows" hint="Switch to running windows by name">
+              <Row label={$t("settings.rows.openWindows")} hint={$t("settings.hints.openWindows")}>
                 <input
                   type="checkbox"
                   class="toggle toggle-primary"
-                  aria-label="Open windows"
+                  aria-label={$t("settings.rows.openWindows")}
                   bind:checked={profile.launcher.showWindows}
                 />
               </Row>
 
-              <Row
-                label="Commands"
-                hint="Lock, sleep, empty the recycle bin, and more"
-              >
+              <Row label={$t("settings.rows.commands")} hint={$t("settings.hints.commands")}>
                 <input
                   type="checkbox"
                   class="toggle toggle-primary"
-                  aria-label="Commands"
+                  aria-label={$t("settings.rows.commands")}
                   bind:checked={profile.launcher.showCommands}
                 />
               </Row>
 
-              <Row label="Todos" hint="Add a todo straight from the search box">
+              <Row label={$t("settings.rows.todos")} hint={$t("settings.hints.todos")}>
                 <input
                   type="checkbox"
                   class="toggle toggle-primary"
-                  aria-label="Todos"
+                  aria-label={$t("settings.rows.todos")}
                   bind:checked={profile.launcher.showTodos}
                 />
               </Row>
 
-              <Row label="Calculator" hint="Type an expression to evaluate it">
+              <Row label={$t("settings.rows.calculator")} hint={$t("settings.hints.calculator")}>
                 <input
                   type="checkbox"
                   class="toggle toggle-primary"
-                  aria-label="Calculator"
+                  aria-label={$t("settings.rows.calculator")}
                   bind:checked={profile.launcher.calculator}
                 />
               </Row>
 
-              <Row label="Web search" hint="Engine for queries nothing else matches">
+              <Row label={$t("settings.rows.webSearch")} hint={$t("settings.hints.webSearch")}>
                 <select
                   class="select select-sm w-40"
-                  aria-label="Web search"
+                  aria-label={$t("settings.rows.webSearch")}
                   bind:value={profile.launcher.webSearch}
                 >
                   <option value="google">Google</option>
@@ -577,73 +587,78 @@
               </Row>
             </Section>
           {:else if section === "appearance"}
-            <Section title="Presets" description="Pick a look, then fine-tune below">
-              <div data-row="Presets" class="p-4">
+            <Section
+              title={$t("settings.groups.presets.title")}
+              description={$t("settings.groups.presets.description")}
+            >
+              <div data-row={$t("settings.rows.presets")} class="p-4">
                 <PresetGrid bind:profile />
               </div>
             </Section>
 
             <Section
-              title="Fine-tune"
-              description="Changes preview live and mark the preset as custom"
+              title={$t("settings.groups.fineTune.title")}
+              description={$t("settings.groups.fineTune.description")}
             >
               <AppearanceControls bind:profile />
             </Section>
           {:else if section === "calendar"}
-            <Section title="Calendar">
-              <Row label="Week starts on">
+            <Section title={$t("settings.groups.calendar")}>
+              <Row label={$t("settings.rows.weekStartsOn")}>
                 <Segmented
-                  label="Week starts on"
+                  label={$t("settings.rows.weekStartsOn")}
                   bind:value={profile.calendar.weekStartsOn}
                   options={[
-                    { value: 1, label: "Monday" },
-                    { value: 0, label: "Sunday" },
+                    { value: 1, label: $t("settings.options.monday") },
+                    { value: 0, label: $t("settings.options.sunday") },
                   ]}
                 />
               </Row>
 
-              <Row label="Week numbers" hint="Show week numbers in the month grid">
+              <Row label={$t("settings.rows.weekNumbers")} hint={$t("settings.hints.weekNumbers")}>
                 <input
                   type="checkbox"
                   class="toggle toggle-primary"
-                  aria-label="Week numbers"
+                  aria-label={$t("settings.rows.weekNumbers")}
                   bind:checked={profile.calendar.showWeekNumbers}
                 />
               </Row>
 
-              <Row label="Default reminder" hint="Before an event starts">
+              <Row label={$t("settings.rows.defaultReminder")} hint={$t("settings.hints.defaultReminder")}>
                 <select
                   class="select select-sm w-40"
-                  aria-label="Default reminder"
+                  aria-label={$t("settings.rows.defaultReminder")}
                   bind:value={profile.calendar.reminderMinutes}
                 >
                   {#each reminders as minutes (minutes)}
                     <option value={minutes}>
-                      {minutes === 0 ? "None" : `${minutes} min before`}
+                      {minutes === 0
+                        ? $t("common.none")
+                        : $t("settings.options.minBefore", { values: { minutes } })}
                     </option>
                   {/each}
                 </select>
               </Row>
             </Section>
 
-            <Section title="Todo">
-              <Row label="Show completed" hint="Keep done items in the list">
+            <Section title={$t("settings.groups.todo")}>
+              <Row label={$t("settings.rows.showCompleted")} hint={$t("settings.hints.showCompleted")}>
                 <input
                   type="checkbox"
                   class="toggle toggle-primary"
-                  aria-label="Show completed"
+                  aria-label={$t("settings.rows.showCompleted")}
                   bind:checked={profile.todo.showCompleted}
                 />
               </Row>
 
-              <Row label="Sort by">
+              <Row label={$t("settings.rows.sortBy")}>
                 <Segmented
-                  label="Sort by"
+                  label={$t("settings.rows.sortBy")}
                   bind:value={profile.todo.sortBy}
                   options={[
-                    { value: "manual", label: "Manual" },
-                    { value: "due", label: "Due date" },
-                    { value: "priority", label: "Priority" },
+                    { value: "manual", label: $t("settings.options.manual") },
+                    { value: "due", label: $t("settings.options.due") },
+                    { value: "priority", label: $t("settings.options.priority") },
                   ]}
                 />
               </Row>
@@ -654,7 +669,7 @@
             <Advanced bind:device bind:profile />
           {:else if section === "about"}
             <Section title="Eris">
-              <div data-row="Version" class="flex items-center gap-4 px-4 py-4">
+              <div data-row={$t("settings.rows.version")} class="flex items-center gap-4 px-4 py-4">
                 <div
                   class="flex size-12 items-center justify-center rounded-box bg-primary/15 text-primary"
                 >
@@ -671,16 +686,16 @@
                   </div>
 
                   <span class="text-sm text-base-content/60">
-                    Launcher, dock, and calendar for Windows 11
+                    {$t("settings.about.tagline")}
                   </span>
                 </div>
               </div>
             </Section>
 
-            <div data-row="Keyboard shortcuts">
+            <div data-row={$t("settings.rows.keyboardShortcuts")}>
               <Section
-                title="Keyboard shortcuts"
-                description="Everything Eris listens for"
+                title={$t("settings.groups.shortcuts.title")}
+                description={$t("settings.groups.shortcuts.description")}
               >
                 {#each shortcuts as group (group.title)}
                   <div class="py-1">

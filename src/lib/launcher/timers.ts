@@ -1,3 +1,4 @@
+import { currentLocale, tr } from "../i18n/locale"
 import { emit, listen } from "@tauri-apps/api/event"
 import {
   isPermissionGranted,
@@ -49,7 +50,7 @@ export const formatDuration = (ms: number) => {
 }
 
 export const formatClock = (at: number) =>
-  new Date(at).toLocaleTimeString("en-US", {
+  new Date(at).toLocaleTimeString(currentLocale(), {
     hour: "numeric",
     minute: "2-digit",
   })
@@ -256,7 +257,7 @@ const announce = async (due: Timer[]) => {
 
   for (const timer of due) {
     sendNotification({
-      title: timer.kind === "alarm" ? "Alarm" : "Timer",
+      title: tr(timer.kind === "alarm" ? "launcher.timer.alarm" : "launcher.timer.timer"),
       body: timer.label,
     })
   }

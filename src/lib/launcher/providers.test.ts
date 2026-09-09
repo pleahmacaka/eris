@@ -3,12 +3,9 @@ import { describe, expect, mock, test } from "bun:test"
 mock.module("../dock/dock.svelte", () => ({ toggleDockPin: () => undefined }))
 
 const {
-  ADMIN,
-  CANCEL,
   alignApps,
   appResult,
   calcResult,
-  LOCATION,
   openResult,
   pendingTimerResult,
 } = await import("./providers")
@@ -44,12 +41,12 @@ describe("alignApps", () => {
 
 describe("appResult", () => {
   test("store apps have no file location", () => {
-    const labels = (kind: Entry["kind"]) =>
-      appResult(entry({ kind })).secondaryActions.map(a => a.label)
+    const ids = (kind: Entry["kind"]) =>
+      appResult(entry({ kind })).secondaryActions.map(a => a.id)
 
-    expect(labels("shortcut")).toContain(LOCATION)
-    expect(labels("store")).not.toContain(LOCATION)
-    expect(labels("store")).toContain(ADMIN)
+    expect(ids("shortcut")).toContain("location")
+    expect(ids("store")).not.toContain("location")
+    expect(ids("store")).toContain("admin")
   })
 })
 
@@ -80,6 +77,6 @@ describe("pendingTimerResult", () => {
     })
 
     expect(row.action()).toBeUndefined()
-    expect(row.secondaryActions.map(a => a.label)).toEqual([CANCEL])
+    expect(row.secondaryActions.map(a => a.id)).toEqual(["cancel"])
   })
 })
