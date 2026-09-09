@@ -2,7 +2,7 @@
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
   import { getCurrentWindow, primaryMonitor } from "@tauri-apps/api/window"
-  import { stopEdit } from "$lib/edit/edit.svelte"
+  import { stopEdit } from "$lib/edit"
   import * as native from "$lib/native"
 
   document.documentElement.dataset.surface = "edit"

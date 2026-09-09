@@ -2,7 +2,7 @@
   import * as native from "$lib/native"
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
-  import { saveProfileSynced } from "$lib/data/store"
+  import { saveProfileSynced } from "$lib/data"
   import { ensureDevice } from "$lib/device"
   import { onWindowShown, showWindow } from "$lib/native/windows"
   import { setLauncherShortcut, setWinKeyCapture } from "$lib/native/dock"
@@ -14,13 +14,15 @@
     type Profile,
     saveDevice,
   } from "@eris/settings"
-  import DockControls from "$lib/settings-ui/DockControls.svelte"
-  import FeatureControls from "$lib/settings-ui/FeatureControls.svelte"
-  import HotkeyPicker from "$lib/settings-ui/HotkeyPicker.svelte"
-  import PresetGrid from "$lib/settings-ui/PresetGrid.svelte"
-  import { allPresets } from "$lib/settings-ui/presets"
+  import {
+    DockControls,
+    FeatureControls,
+    HotkeyPicker,
+    PresetGrid,
+    allPresets,
+    SyncPanel,
+  } from "$lib/settings-ui"
   import { Row, Section, Segmented, Toasts } from "@eris/ui"
-  import SyncPanel from "$lib/settings-ui/SyncPanel.svelte"
   import { applyAppearance } from "$lib/theme"
 
   const steps = [

@@ -6,9 +6,7 @@
   import { untrack } from "svelte"
   import { flip } from "svelte/animate"
   import { Window } from "@tauri-apps/api/window"
-  import { live } from "$lib/data/live.svelte"
-  import { scheduleReminders } from "$lib/data/reminders"
-  import { events } from "$lib/data/store"
+  import { live, scheduleReminders, events } from "$lib/data"
   import { ensureDevice } from "$lib/device"
   import {
     dock,
@@ -17,16 +15,16 @@
     groupWindows,
     resolvePins,
     startDock,
-  } from "$lib/dock/dock.svelte"
-  import DockItem, { MAGNIFY_BOOST } from "$lib/dock/DockItem.svelte"
-  import EditSpot from "$lib/edit/EditSpot.svelte"
-  import { startEdit, watchEdit } from "$lib/edit/edit.svelte"
+    DockItem,
+    MAGNIFY_BOOST,
+    ClaudeUsage,
+    Media,
+    Tray,
+  } from "$lib/dock"
+  import { EditSpot, startEdit, watchEdit } from "$lib/edit"
   import { ContextMenu, Segmented } from "@eris/ui"
   import type { MenuItem } from "@eris/ui"
-  import ClaudeUsage from "$lib/dock/ClaudeUsage.svelte"
-  import Media from "$lib/dock/Media.svelte"
-  import Tray from "$lib/dock/Tray.svelte"
-  import { startTimerWatch } from "$lib/launcher/timers"
+  import { startTimerWatch } from "$lib/launcher"
   import * as native from "$lib/native"
   import {
     type ClockAlign,
@@ -43,7 +41,7 @@
     type Profile,
     saveDevice,
   } from "@eris/settings"
-  import { startAutoSync } from "$lib/sync/engine"
+  import { startAutoSync } from "$lib/sync"
 
   const STRIP = 6
   const HIDE_DELAY = 1_200

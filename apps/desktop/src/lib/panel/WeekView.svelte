@@ -7,8 +7,8 @@
     eventsOn,
     parseLocal,
     startOfDay,
-  } from "$lib/data/calendar"
-  import type { CalendarEvent } from "$lib/data/types"
+    type CalendarEvent,
+  } from "$lib/data"
   import { currentLocale } from "@eris/i18n"
   import { longDate } from "./dates"
 

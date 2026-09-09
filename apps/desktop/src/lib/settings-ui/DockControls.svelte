@@ -1,7 +1,7 @@
 <script lang="ts">
   import { listMonitors, type MonitorInfo } from "$lib/native/windows"
   import { installUsageBridge, usageBridgeInstalled } from "$lib/native/usage"
-  import { startEdit } from "$lib/edit/edit.svelte"
+  import { startEdit } from "$lib/edit"
   import type { ClockAlign, DeviceSettings, DockAlign, DockStyle } from "@eris/settings"
   import DockPreview from "./DockPreview.svelte"
   import { Row, Segmented } from "@eris/ui"

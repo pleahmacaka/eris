@@ -10,24 +10,30 @@
     parseLocal,
     startOfDay,
     upcoming,
-  } from "$lib/data/calendar"
-  import { live } from "$lib/data/live.svelte"
-  import { blankNote } from "$lib/data/notes"
-  import { events, newId, notes, todos } from "$lib/data/store"
-  import { isOverdue } from "$lib/data/todo"
-  import type { CalendarEvent } from "$lib/data/types"
+    live,
+    blankNote,
+    events,
+    newId,
+    notes,
+    todos,
+    isOverdue,
+    type CalendarEvent,
+  } from "$lib/data"
   import { ensureDevice } from "$lib/device"
   import * as native from "$lib/native"
-  import Agenda from "$lib/panel/Agenda.svelte"
-  import Calendar from "$lib/panel/Calendar.svelte"
-  import { dayLabel, longDate } from "$lib/panel/dates"
-  import EventEditor from "$lib/panel/EventEditor.svelte"
-  import Notes from "$lib/panel/Notes.svelte"
-  import Notifications from "$lib/panel/Notifications.svelte"
-  import PanelSearch from "$lib/panel/PanelSearch.svelte"
-  import QuickAdd from "$lib/panel/QuickAdd.svelte"
-  import TodoItem from "$lib/panel/TodoItem.svelte"
-  import TodoList from "$lib/panel/TodoList.svelte"
+  import {
+    Agenda,
+    Calendar,
+    dayLabel,
+    longDate,
+    EventEditor,
+    Notes,
+    Notifications,
+    PanelSearch,
+    QuickAdd,
+    TodoItem,
+    TodoList,
+  } from "$lib/panel"
   import {
     defaultProfile,
     loadProfile,

@@ -2,16 +2,16 @@
   import Icon from "@iconify/svelte"
   import { tick, untrack } from "svelte"
   import { t } from "svelte-i18n"
-  import { live } from "$lib/data/live.svelte"
   import {
+    live,
     blankNote,
     notePreview,
     noteTitle,
     searchNotes,
     sortNotes,
-  } from "$lib/data/notes"
-  import { notes } from "$lib/data/store"
-  import type { Note } from "$lib/data/types"
+    notes,
+    type Note,
+  } from "$lib/data"
 
   type Props = {
     openId?: string | null

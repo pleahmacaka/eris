@@ -1,9 +1,13 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
-  import { formatRange, parseLocal } from "$lib/data/calendar"
-  import type { CalendarEvent, Todo } from "$lib/data/types"
-  import { score } from "$lib/launcher/search"
+  import {
+    formatRange,
+    parseLocal,
+    type CalendarEvent,
+    type Todo,
+  } from "$lib/data"
+  import { score } from "$lib/launcher"
   import { dayLabel } from "./dates"
   import TodoItem from "./TodoItem.svelte"
 

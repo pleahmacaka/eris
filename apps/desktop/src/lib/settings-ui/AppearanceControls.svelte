@@ -1,7 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { live } from "$lib/data/live.svelte"
-  import { newId, presets as userPresets } from "$lib/data/store"
+  import { live, newId, presets as userPresets } from "$lib/data"
   import type { Appearance, Profile } from "@eris/settings"
   import { allPresets, CUSTOM } from "./presets"
   import { Row, Segmented } from "@eris/ui"

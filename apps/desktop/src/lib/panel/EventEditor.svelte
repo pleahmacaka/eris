@@ -2,9 +2,12 @@
   import Icon from "@iconify/svelte"
   import { untrack } from "svelte"
   import { t } from "svelte-i18n"
-  import { dateKey } from "$lib/data/calendar"
-  import { events } from "$lib/data/store"
-  import type { CalendarEvent, Recurrence } from "$lib/data/types"
+  import {
+    dateKey,
+    events,
+    type CalendarEvent,
+    type Recurrence,
+  } from "$lib/data"
   import { rangeError } from "./dates"
 
   type Props = {

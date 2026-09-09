@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { live } from "$lib/data/live.svelte"
-  import { events, presets, todos } from "$lib/data/store"
+  import { live, events, presets, todos } from "$lib/data"
   import { clearIconCache } from "$lib/native/apps"
   import { openDataFolder } from "$lib/native/system"
   import {
