@@ -19,7 +19,9 @@
     "skip": "Skip",
     "on": "On",
     "off": "Off",
-    "previous": "Previous"
+    "previous": "Previous",
+    "partial": "Partial support",
+    "experimental": "Experimental"
   },
   "languages": {
     "system": "System",

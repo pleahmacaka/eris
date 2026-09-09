@@ -166,8 +166,10 @@
         <Icon {icon} class="size-5 shrink-0 text-base-content/70" />
 
         <div class="min-w-0 grow">
-          <p class="truncate text-sm font-medium">
+          <p class="flex items-center gap-2 truncate text-sm font-medium">
             {online ? network?.ssid || network?.name || $t("tray.network.connected") : $t("tray.network.none")}
+
+            <span class="badge badge-soft badge-info badge-xs">{$t("common.partial")}</span>
           </p>
 
           {#if online && network?.kind === "wifi"}

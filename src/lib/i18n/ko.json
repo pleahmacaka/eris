@@ -19,7 +19,9 @@
     "skip": "건너뛰기",
     "on": "켬",
     "off": "끔",
-    "previous": "이전"
+    "previous": "이전",
+    "partial": "부분 지원",
+    "experimental": "실험적"
   },
   "languages": {
     "system": "시스템",

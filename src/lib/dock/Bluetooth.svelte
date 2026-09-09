@@ -159,6 +159,8 @@
             <Icon {icon} class="size-4 text-base-content/70" />
 
             {$t("tray.bluetooth.title")}
+
+            <span class="badge badge-soft badge-info badge-xs">{$t("common.partial")}</span>
           </span>
 
           <input

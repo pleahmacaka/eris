@@ -19,7 +19,9 @@
     "skip": "スキップ",
     "on": "オン",
     "off": "オフ",
-    "previous": "前へ"
+    "previous": "前へ",
+    "partial": "一部対応",
+    "experimental": "試験的"
   },
   "languages": {
     "system": "システム",
