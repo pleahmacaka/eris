@@ -18,8 +18,8 @@ jobs:
   version:
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ github.event.inputs.tag || steps.release.outputs.tag_name }}
-      build: ${{ github.event_name == 'workflow_dispatch' || steps.release.outputs.release_created == 'true' }}
+      tag: ${{ github.event.inputs.tag || steps.release.outputs['apps/desktop--tag_name'] }}
+      build: ${{ github.event_name == 'workflow_dispatch' || steps.release.outputs['apps/desktop--release_created'] == 'true' }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
