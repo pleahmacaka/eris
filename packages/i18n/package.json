@@ -1,0 +1,23 @@
+{
+  "name": "@eris/i18n",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./*.json": "./src/*.json"
+  },
+  "scripts": {
+    "check": "tsc -p tsconfig.json"
+  },
+  "peerDependencies": {
+    "svelte": "^5.56.1",
+    "svelte-i18n": "^4.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}

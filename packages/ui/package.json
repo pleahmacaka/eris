@@ -1,0 +1,28 @@
+{
+  "name": "@eris/ui",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "svelte": "./src/index.ts",
+  "exports": {
+    ".": {
+      "svelte": "./src/index.ts",
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "check": "svelte-check --tsconfig ./tsconfig.json"
+  },
+  "peerDependencies": {
+    "@iconify/svelte": "^5.2.2",
+    "@tauri-apps/plugin-clipboard-manager": "^2.3.3",
+    "svelte": "^5.56.1",
+    "svelte-i18n": "^4.0.1"
+  },
+  "devDependencies": {
+    "svelte": "^5.56.1",
+    "svelte-check": "^4.6.0",
+    "typescript": "^6.0.3"
+  }
+}

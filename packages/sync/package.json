@@ -1,0 +1,22 @@
+{
+  "name": "@eris/sync",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "exports": {
+    "./protocol": {
+      "types": "./src/protocol.ts",
+      "default": "./src/protocol.ts"
+    },
+    "./merge": {
+      "types": "./src/merge.ts",
+      "default": "./src/merge.ts"
+    }
+  },
+  "scripts": {
+    "check": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}

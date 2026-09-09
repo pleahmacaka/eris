@@ -19,5 +19,5 @@ Dock. Launcher. Calendar. Claude in a bubble.
 Under 400 MB idle. Near-zero GPU. English, 한국어, 日本語, 中文.
 
 ```sh
-bun install && bun tauri dev
+bun install && bun run dev
 ```
