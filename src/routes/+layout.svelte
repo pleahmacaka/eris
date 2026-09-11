@@ -1,8 +1,16 @@
 <script lang="ts">
+import { injectAnalytics } from "@vercel/analytics/sveltekit"
+import { injectSpeedInsights } from "@vercel/speed-insights/sveltekit"
+import { browser } from "$app/environment"
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "$lib/site"
 import "../app.css"
 
 let { children } = $props()
+
+if (browser) {
+  injectAnalytics()
+  injectSpeedInsights()
+}
 
 const person = {
   "@context": "https://schema.org",
