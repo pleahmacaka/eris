@@ -1,28 +1,61 @@
 <script lang="ts">
 import Icon from "@iconify/svelte"
-import Reading from "$lib/components/activity/Reading.svelte"
+import ActivityPanel from "$lib/components/activity/ActivityPanel.svelte"
+import CareerList from "$lib/components/career/CareerList.svelte"
 import GearCard from "$lib/components/gear/GearCard.svelte"
 import LocaleSwitch from "$lib/components/locale/LocaleSwitch.svelte"
-import StackCard from "$lib/components/stack/StackCard.svelte"
+import ProjectCard from "$lib/components/projects/ProjectCard.svelte"
+import StackList from "$lib/components/stack/StackList.svelte"
+import { posts } from "$lib/data/career"
 import { gear } from "$lib/data/gear"
-import { capabilities } from "$lib/data/stack"
+import { projects } from "$lib/data/projects"
+import { groups } from "$lib/data/stack"
+import { reveal } from "$lib/motion/reveal"
 import * as m from "$lib/paraglide/messages"
-import { getLocale } from "$lib/paraglide/runtime"
 
 let { data } = $props()
 
-const format = (value: number) => value.toLocaleString(getLocale())
+const PROFILES = [
+  {
+    label: "GitHub",
+    icon: "simple-icons:github",
+    href: "https://github.com/pleahmacaka",
+  },
+  {
+    label: "npm",
+    icon: "simple-icons:npm",
+    href: "https://www.npmjs.com/~pleahmacaka",
+  },
+  {
+    label: "LinkedIn",
+    icon: "simple-icons:linkedin",
+    href: "https://www.linkedin.com/in/pleahmacaka/",
+  },
+  {
+    label: "Tokscale",
+    icon: "lucide:activity",
+    href: "https://tokscale.ai/u/pleahmacaka",
+  },
+]
+
+const SECTION_HEADING = "font-semibold text-base-content/55 text-sm"
 </script>
 
 <div
   class={[
     "mx-auto flex min-h-dvh max-w-5xl flex-col",
-    "gap-10 px-5 py-12 sm:gap-14 sm:px-8 sm:py-20",
+    "gap-12 px-5 py-10 sm:gap-16 sm:px-8 sm:py-14",
   ]}
 >
   <header class="flex flex-col gap-5">
     <div class="flex flex-wrap items-center justify-between gap-4">
-      <h1 class="font-extrabold text-5xl tracking-tight sm:text-6xl">
+      <h1
+        class={[
+          "flex items-center gap-3 sm:gap-4",
+          "font-extrabold text-5xl tracking-tight sm:text-6xl",
+        ]}
+      >
+        <img class="h-14 w-auto sm:h-16" src="/logo.svg" alt="" />
         ArixLab
       </h1>
 
@@ -33,83 +66,117 @@ const format = (value: number) => value.toLocaleString(getLocale())
       {m.tagline()}
     </p>
 
-    <nav class="flex flex-wrap items-center gap-x-5 gap-y-2 font-medium text-sm">
-      <a
-        class="link link-hover flex items-center gap-2"
-        href="https://github.com/pleahmacaka"
-        rel="me noreferrer"
-        target="_blank"
-      >
-        <Icon class="size-4 shrink-0 self-center" icon="simple-icons:github" />
-        GitHub
-      </a>
-      <a
-        class="link link-hover flex items-center gap-2"
-        href="https://www.npmjs.com/~pleahmacaka"
-        rel="me noreferrer"
-        target="_blank"
-      >
-        <Icon class="size-4 shrink-0 self-center" icon="simple-icons:npm" />
-        npm
-      </a>
-      <a
-        class="link link-hover flex items-center gap-2"
-        href="https://tokscale.ai/u/pleahmacaka"
-        rel="me noreferrer"
-        target="_blank"
-      >
-        <Icon class="size-4 shrink-0 self-center" icon="lucide:activity" />
-        Tokscale
-      </a>
+    <div class="flex flex-col gap-1">
+      <p class="font-medium text-lg">
+        {m.person_name()}
+      </p>
+      <p class="max-w-prose text-base-content/75">
+        {m.person_headline()}
+      </p>
+      <p class="text-base-content/55 text-sm">
+        {m.person_location()}
+      </p>
+    </div>
+
+    <nav
+      class="flex flex-wrap items-center gap-x-5 gap-y-2 font-medium text-sm"
+    >
+      {#each PROFILES as profile (profile.label)}
+        <a
+          class="link link-hover flex items-center gap-2"
+          href={profile.href}
+          rel="me noreferrer"
+          target="_blank"
+        >
+          <Icon class="size-4 shrink-0 self-center" icon={profile.icon} />
+          {profile.label}
+        </a>
+      {/each}
+
+      <span class="flex items-center gap-1">
+        <a
+          class="link link-hover flex items-center gap-2"
+          href="mailto:pmc@arixlab.com"
+        >
+          <Icon class="size-4 shrink-0 self-center" icon="lucide:mail" />
+          pmc@arixlab.com
+        </a>
+
+        <div class="dropdown dropdown-end">
+          <div
+            class="cursor-pointer p-0.5 text-base-content/55"
+            tabindex="0"
+            role="button"
+            aria-label={m.email_more()}
+          >
+            <Icon class="size-3.5" icon="lucide:chevron-down" />
+          </div>
+
+          <ul
+            class={[
+              "dropdown-content menu z-10 mt-1 w-max rounded-box p-1",
+              "border border-base-300 bg-base-100 font-normal shadow-sm",
+            ]}
+          >
+            <li>
+              <a href="mailto:pleahmacaka@gmail.com">
+                fallback: pleahmacaka@gmail.com
+              </a>
+            </li>
+          </ul>
+        </div>
+      </span>
     </nav>
   </header>
 
-  {#if data.githubFeed || data.tokscaleFeed}
-    <section
-      class={[
-        "rounded-box bg-neutral text-neutral-content",
-        "flex flex-col gap-6 p-5 sm:gap-7 sm:p-7",
-      ]}
-      aria-label={m.section_activity()}
-    >
-      {#if data.githubFeed}
-        <Reading
-          feed={data.githubFeed}
-          icon="simple-icons:github"
-          source="GitHub"
-          stat={m.contributions({ count: format(data.githubFeed.count) })}
-        />
-      {/if}
+  <section class="flex flex-col gap-5">
+    <h2 class={SECTION_HEADING}>{m.section_career()}</h2>
 
-      {#if data.githubFeed && data.tokscaleFeed}
-        <hr class="border-neutral-content/15" />
-      {/if}
+    <CareerList {posts} />
+  </section>
 
-      {#if data.tokscaleFeed}
-        <Reading
-          feed={data.tokscaleFeed}
-          icon="lucide:activity"
-          source="Tokscale"
-          stat={m.active_days({ count: format(data.tokscaleFeed.count) })}
-        />
-      {/if}
+  <section class="flex flex-col gap-5">
+    <h2 class={SECTION_HEADING} data-reveal use:reveal>
+      {m.section_projects()}
+    </h2>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      {#each projects as project, i (project.name)}
+        <div data-reveal use:reveal={i}>
+          <ProjectCard {project} />
+        </div>
+      {/each}
+    </div>
+  </section>
+
+  <section class="flex flex-col gap-5">
+    <h2 class={SECTION_HEADING} data-reveal use:reveal>{m.section_stack()}</h2>
+
+    <div data-reveal use:reveal={1}>
+      <StackList {groups} />
+    </div>
+  </section>
+
+  {#if data.activity.length > 0}
+    <section class="flex flex-col gap-5">
+      <h2 class={SECTION_HEADING} data-reveal use:reveal>
+        {m.section_activity()}
+      </h2>
+
+      <div data-reveal use:reveal={1}>
+        <ActivityPanel windows={data.activity} />
+      </div>
     </section>
   {/if}
 
-  <section class="grid gap-4 sm:grid-cols-2" aria-label={m.section_work()}>
-    {#each capabilities as capability (capability.title())}
-      <StackCard {capability} />
-    {/each}
-  </section>
-
-  <section class="flex flex-col gap-4" aria-label={m.section_gear()}>
-    <h2 class="font-semibold text-base-content/55 text-sm">
-      {m.section_gear()}
-    </h2>
+  <section class="flex flex-col gap-5">
+    <h2 class={SECTION_HEADING} data-reveal use:reveal>{m.section_gear()}</h2>
 
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {#each gear as group (group.label())}
-        <GearCard {group} />
+      {#each gear as group, i (group.label())}
+        <div data-reveal use:reveal={i}>
+          <GearCard {group} />
+        </div>
       {/each}
     </div>
   </section>

@@ -49,6 +49,10 @@
   --color-cell-2: oklch(50% 0.135 262);
   --color-cell-3: oklch(66% 0.166 262);
   --color-cell-4: oklch(79% 0.152 262);
+  --color-gh-1: oklch(37% 0.072 158);
+  --color-gh-2: oklch(50% 0.126 155);
+  --color-gh-3: oklch(64% 0.161 151);
+  --color-gh-4: oklch(79% 0.184 149);
 }
 
 @layer base {
@@ -67,7 +71,35 @@
   }
 }
 
+@utility cell-upper {
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+@utility cell-lower {
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+@layer base {
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(0.875rem);
+    transition:
+      opacity 420ms ease-out,
+      transform 420ms ease-out;
+  }
+
+  [data-reveal="in"] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+
   *,
   *::before,
   *::after {

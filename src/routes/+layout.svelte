@@ -14,7 +14,7 @@ if (browser) {
   injectSpeedInsights()
 }
 
-const description = m.tagline()
+const description = `${m.tagline()} ${m.person_headline()}`
 
 const canonical = `${SITE_URL}${localizeHref("/", { locale: getLocale() })}`
 
@@ -43,7 +43,7 @@ const person = {
   <title>{SITE_NAME}</title>
   <meta name="description" content={description} />
   <link rel="canonical" href={canonical} />
-  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/logo.svg" type="image/svg+xml" />
 
   {#each locales as locale (locale)}
     <link
