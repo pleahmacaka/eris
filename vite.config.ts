@@ -9,9 +9,9 @@ export default defineConfig({
     sveltekit({
       compilerOptions: {
         runes: ({ filename }) =>
-          filename.split(/[/\]/).includes("node_modules") ? undefined : true,
+          filename.includes("node_modules") ? undefined : true,
       },
-      adapter: adapter(),
+      adapter: adapter({ runtime: "nodejs24.x" }),
     }),
   ],
 })

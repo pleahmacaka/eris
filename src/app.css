@@ -44,12 +44,11 @@
   --font-sans: "Pretendard Variable", "Pretendard", sans-serif;
   --font-mono: var(--font-sans);
   --default-transition-duration: 140ms;
-  --color-cell-0: oklch(93.5% 0.006 250);
-  --color-cell-1: oklch(86% 0.058 262);
-  --color-cell-2: oklch(73% 0.118 262);
-  --color-cell-3: oklch(59% 0.168 262);
-  --color-cell-4: oklch(45% 0.205 262);
-  --color-rule: oklch(90% 0.011 250);
+  --color-cell-0: oklch(28% 0.014 258);
+  --color-cell-1: oklch(37% 0.068 262);
+  --color-cell-2: oklch(50% 0.135 262);
+  --color-cell-3: oklch(66% 0.166 262);
+  --color-cell-4: oklch(79% 0.152 262);
 }
 
 @layer base {
@@ -60,18 +59,6 @@
 
   body {
     background-color: var(--color-base-200);
-    background-image:
-      linear-gradient(
-        to right,
-        var(--color-rule) 0.0625rem,
-        transparent 0.0625rem
-      ),
-      linear-gradient(
-        to bottom,
-        var(--color-rule) 0.0625rem,
-        transparent 0.0625rem
-      );
-    background-size: 1.5rem 1.5rem;
   }
 
   :focus-visible {
