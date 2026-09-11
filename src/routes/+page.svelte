@@ -1,10 +1,17 @@
 <script lang="ts">
 import Icon from "@iconify/svelte"
 import Reading from "$lib/components/activity/Reading.svelte"
+import GearCard from "$lib/components/gear/GearCard.svelte"
+import LocaleSwitch from "$lib/components/locale/LocaleSwitch.svelte"
 import StackCard from "$lib/components/stack/StackCard.svelte"
+import { gear } from "$lib/data/gear"
 import { capabilities } from "$lib/data/stack"
+import * as m from "$lib/paraglide/messages"
+import { getLocale } from "$lib/paraglide/runtime"
 
 let { data } = $props()
+
+const format = (value: number) => value.toLocaleString(getLocale())
 </script>
 
 <div
@@ -14,23 +21,47 @@ let { data } = $props()
   ]}
 >
   <header class="flex flex-col gap-5">
-    <h1 class="font-extrabold text-5xl tracking-tight sm:text-6xl">ArixLab</h1>
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <h1 class="font-extrabold text-5xl tracking-tight sm:text-6xl">
+        ArixLab
+      </h1>
+
+      <LocaleSwitch />
+    </div>
 
     <p class="max-w-prose text-base-content/75 leading-relaxed">
-      A Matrix Lab. Root domain for what I build: desktop apps, TypeScript
-      packages on npm, and vision models compiled to run on the device in front
-      of you.
+      {m.tagline()}
     </p>
 
-    <a
-      class="link link-hover flex w-fit items-center gap-2 font-medium text-sm"
-      href="https://github.com/pleahmacaka"
-      rel="me noreferrer"
-      target="_blank"
-    >
-      <Icon class="size-4 shrink-0 self-center" icon="simple-icons:github" />
-      pleahmacaka
-    </a>
+    <nav class="flex flex-wrap items-center gap-x-5 gap-y-2 font-medium text-sm">
+      <a
+        class="link link-hover flex items-center gap-2"
+        href="https://github.com/pleahmacaka"
+        rel="me noreferrer"
+        target="_blank"
+      >
+        <Icon class="size-4 shrink-0 self-center" icon="simple-icons:github" />
+        GitHub
+      </a>
+      <a
+        class="link link-hover flex items-center gap-2"
+        href="https://www.npmjs.com/~pleahmacaka"
+        rel="me noreferrer"
+        target="_blank"
+      >
+        <Icon class="size-4 shrink-0 self-center" icon="simple-icons:npm" />
+        npm
+      </a>
+      <a
+        class="link link-hover flex items-center gap-2"
+        href="https://tokscale.ai/u/pleahmacaka"
+        rel="me noreferrer"
+        target="_blank"
+      >
+        <Icon class="size-4 shrink-0 self-center" icon="lucide:activity" />
+        Tokscale
+      </a>
+    </nav>
   </header>
 
   {#if data.githubFeed || data.tokscaleFeed}
@@ -39,13 +70,14 @@ let { data } = $props()
         "rounded-box bg-neutral text-neutral-content",
         "flex flex-col gap-6 p-5 sm:gap-7 sm:p-7",
       ]}
-      aria-label="Activity"
+      aria-label={m.section_activity()}
     >
       {#if data.githubFeed}
         <Reading
           feed={data.githubFeed}
           icon="simple-icons:github"
           source="GitHub"
+          stat={m.contributions({ count: format(data.githubFeed.count) })}
         />
       {/if}
 
@@ -58,15 +90,28 @@ let { data } = $props()
           feed={data.tokscaleFeed}
           icon="lucide:activity"
           source="Tokscale"
+          stat={m.active_days({ count: format(data.tokscaleFeed.count) })}
         />
       {/if}
     </section>
   {/if}
 
-  <section class="grid gap-4 sm:grid-cols-2" aria-label="What I work with">
-    {#each capabilities as capability (capability.title)}
+  <section class="grid gap-4 sm:grid-cols-2" aria-label={m.section_work()}>
+    {#each capabilities as capability (capability.title())}
       <StackCard {capability} />
     {/each}
+  </section>
+
+  <section class="flex flex-col gap-4" aria-label={m.section_gear()}>
+    <h2 class="font-semibold text-base-content/55 text-sm">
+      {m.section_gear()}
+    </h2>
+
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {#each gear as group (group.label())}
+        <GearCard {group} />
+      {/each}
+    </div>
   </section>
 
   <footer
@@ -77,19 +122,6 @@ let { data } = $props()
   >
     <p>arixlab.com</p>
 
-    <nav class="flex items-center gap-4">
-      <a
-        class="link link-hover"
-        href="https://github.com/pleahmacaka"
-        rel="noreferrer"
-        target="_blank">GitHub</a
-      >
-      <a
-        class="link link-hover"
-        href="https://tokscale.ai/u/pleahmacaka"
-        rel="noreferrer"
-        target="_blank">Tokscale</a
-      >
-    </nav>
+    <LocaleSwitch />
   </footer>
 </div>

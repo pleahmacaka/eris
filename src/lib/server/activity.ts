@@ -2,7 +2,7 @@ export type Day = { date: string; level: number }
 
 export type Feed = {
   days: Day[]
-  stat: string
+  count: number
   href: string
 }
 
@@ -30,7 +30,7 @@ export async function github(fetch: Fetch): Promise<Feed | null> {
 
   return {
     days: body.contributions.map(({ date, level }) => ({ date, level })),
-    stat: `${body.total.lastYear.toLocaleString("en")} contributions`,
+    count: body.total.lastYear,
     href: `https://github.com/${USER}`,
   }
 }
@@ -50,11 +50,9 @@ export async function tokscale(fetch: Fetch): Promise<Feed | null> {
     return null
   }
 
-  const active = days.filter(day => day.level > 0).length
-
   return {
     days,
-    stat: `${active.toLocaleString("en")} active days`,
+    count: days.filter(day => day.level > 0).length,
     href: `https://tokscale.ai/u/${USER}`,
   }
 }

@@ -3,8 +3,12 @@ import Icon from "@iconify/svelte"
 import type { Feed } from "$lib/server/activity"
 import Matrix from "./Matrix.svelte"
 
-let { feed, source, icon }: { feed: Feed; source: string; icon: string } =
-  $props()
+let {
+  feed,
+  source,
+  icon,
+  stat,
+}: { feed: Feed; source: string; icon: string; stat: string } = $props()
 </script>
 
 <div class="flex flex-col gap-4">
@@ -18,8 +22,8 @@ let { feed, source, icon }: { feed: Feed; source: string; icon: string } =
       <Icon class="size-4 shrink-0 self-center" {icon} />
       {source}
     </a>
-    <p class="text-neutral-content/65 text-sm">{feed.stat}</p>
+    <p class="text-neutral-content/65 text-sm">{stat}</p>
   </div>
 
-  <Matrix days={feed.days} label="{source}: {feed.stat} over the last year" />
+  <Matrix days={feed.days} label="{source}: {stat}" />
 </div>
