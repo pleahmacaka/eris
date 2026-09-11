@@ -34,7 +34,7 @@ export const capabilities: Capability[] = [
   {
     title: "Web",
     body: [
-      "SvelteKit end to end, on Vercel behind Cloudflare DNS. This page is one of them: two live contribution feeds, no client-side data fetching.",
+      "SvelteKit end to end, on Vercel behind Cloudflare DNS. This page runs on it. Both contribution feeds above are fetched on the server, so nothing loads after paint.",
     ],
     stack: ["SvelteKit", "TailwindCSS", "DaisyUI", "Vercel"],
   },

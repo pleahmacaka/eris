@@ -18,7 +18,7 @@ let { feed, source, icon }: { feed: Feed; source: string; icon: string } =
       <Icon class="size-4 shrink-0 self-center" {icon} />
       {source}
     </a>
-    <p class="text-neutral-content/55 text-sm">{feed.stat}</p>
+    <p class="text-neutral-content/65 text-sm">{feed.stat}</p>
   </div>
 
   <Matrix days={feed.days} label="{source}: {feed.stat} over the last year" />

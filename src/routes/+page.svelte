@@ -72,7 +72,7 @@ let { data } = $props()
   <footer
     class={[
       "mt-auto flex flex-wrap items-center justify-between gap-4",
-      "border-base-300 border-t pt-6 text-base-content/55 text-sm",
+      "border-base-300 border-t pt-6 text-base-content/70 text-sm",
     ]}
   >
     <p>arixlab.com</p>
