@@ -14,11 +14,11 @@ let { group }: { group: GearGroup } = $props()
           <span class="flex flex-wrap items-baseline gap-x-2">
             <span class="text-base-content/85">{item.name}</span>
             {#if item.note}
-              <span class="text-base-content/55 text-xs">{item.note()}</span>
+              <span class="text-base-content/70 text-xs">{item.note()}</span>
             {/if}
           </span>
           {#if item.spec}
-            <span class="text-base-content/55 text-xs leading-relaxed">
+            <span class="text-base-content/70 text-xs leading-relaxed">
               {item.spec}
             </span>
           {/if}

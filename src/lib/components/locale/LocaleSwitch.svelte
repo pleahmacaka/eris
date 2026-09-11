@@ -16,7 +16,7 @@ const current = getLocale()
     <a
       class={[
         "link link-hover",
-        locale === current ? "font-medium" : "text-base-content/55",
+        locale === current ? "font-medium" : "text-base-content/70",
       ]}
       href={localizeHref("/", { locale })}
       hreflang={locale}

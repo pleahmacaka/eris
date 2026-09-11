@@ -38,7 +38,7 @@ const PROFILES = [
   },
 ]
 
-const SECTION_HEADING = "font-semibold text-base-content/55 text-sm"
+const SECTION_HEADING = "font-semibold text-base-content/70 text-sm"
 </script>
 
 <div
@@ -55,7 +55,7 @@ const SECTION_HEADING = "font-semibold text-base-content/55 text-sm"
           "font-extrabold text-5xl tracking-tight sm:text-6xl",
         ]}
       >
-        <img class="h-14 w-auto sm:h-16" src="/logo.svg" alt="" />
+        <img class="h-14 w-auto sm:h-16" src="/logo.svg" width="132" height="160" alt="" />
         ArixLab
       </h1>
 
@@ -73,7 +73,7 @@ const SECTION_HEADING = "font-semibold text-base-content/55 text-sm"
       <p class="max-w-prose text-base-content/75">
         {m.person_headline()}
       </p>
-      <p class="text-base-content/55 text-sm">
+      <p class="text-base-content/70 text-sm">
         {m.person_location()}
       </p>
     </div>
@@ -104,7 +104,7 @@ const SECTION_HEADING = "font-semibold text-base-content/55 text-sm"
 
         <div class="dropdown dropdown-end">
           <div
-            class="cursor-pointer p-0.5 text-base-content/55"
+            class="cursor-pointer p-0.5 text-base-content/70"
             tabindex="0"
             role="button"
             aria-label={m.email_more()}
@@ -129,6 +129,7 @@ const SECTION_HEADING = "font-semibold text-base-content/55 text-sm"
     </nav>
   </header>
 
+  <main class="flex flex-col gap-12 sm:gap-16">
   <section class="flex flex-col gap-5">
     <h2 class={SECTION_HEADING}>{m.section_career()}</h2>
 
@@ -157,17 +158,21 @@ const SECTION_HEADING = "font-semibold text-base-content/55 text-sm"
     </div>
   </section>
 
-  {#if data.activity.length > 0}
-    <section class="flex flex-col gap-5">
-      <h2 class={SECTION_HEADING} data-reveal use:reveal>
-        {m.section_activity()}
-      </h2>
+  <section class="flex flex-col gap-5">
+    <h2 class={SECTION_HEADING} data-reveal use:reveal>
+      {m.section_activity()}
+    </h2>
 
-      <div data-reveal use:reveal={1}>
-        <ActivityPanel windows={data.activity} />
-      </div>
-    </section>
-  {/if}
+    {#await data.activity}
+      <div class="min-h-80 rounded-box bg-neutral/5"></div>
+    {:then activity}
+      {#if activity.length > 0}
+        <div data-reveal use:reveal={1}>
+          <ActivityPanel windows={activity} />
+        </div>
+      {/if}
+    {/await}
+  </section>
 
   <section class="flex flex-col gap-5">
     <h2 class={SECTION_HEADING} data-reveal use:reveal>{m.section_gear()}</h2>
@@ -180,6 +185,8 @@ const SECTION_HEADING = "font-semibold text-base-content/55 text-sm"
       {/each}
     </div>
   </section>
+
+  </main>
 
   <footer
     class={[

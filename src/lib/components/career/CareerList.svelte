@@ -36,7 +36,7 @@ const step = 90
           {post.note()}
         </p>
         <p
-          class="text-base-content/55 text-sm"
+          class="text-base-content/70 text-sm"
           use:scramble={{ delay: i * step + 90 }}
         >
           {post.from} – {post.to ?? m.career_present()}
