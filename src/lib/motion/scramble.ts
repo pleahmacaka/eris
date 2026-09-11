@@ -25,9 +25,20 @@ export function scramble(node: HTMLElement, options: ScrambleOptions = {}) {
 
   const pick = () => pool[Math.floor(Math.random() * pool.length)]
 
+  const box = node.getBoundingClientRect()
+
+  const lock = () => {
+    node.style.width = `${box.width}px`
+    node.style.height = `${box.height}px`
+    node.style.overflow = "hidden"
+  }
+
   const settle = () => {
     cancelAnimationFrame(raf)
     node.textContent = target
+    node.style.width = ""
+    node.style.height = ""
+    node.style.overflow = ""
   }
 
   const draw = (progress: number) => {
@@ -55,6 +66,7 @@ export function scramble(node: HTMLElement, options: ScrambleOptions = {}) {
     settle()
   }
 
+  lock()
   draw(0)
 
   const start = setTimeout(() => {

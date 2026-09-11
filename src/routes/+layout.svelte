@@ -2,10 +2,13 @@
 import { injectAnalytics } from "@vercel/analytics/sveltekit"
 import { injectSpeedInsights } from "@vercel/speed-insights/sveltekit"
 import { browser, dev } from "$app/environment"
+import { registerIcons } from "$lib/icons/offline"
 import * as m from "$lib/paraglide/messages"
 import { getLocale, locales, localizeHref } from "$lib/paraglide/runtime"
 import { SITE_NAME, SITE_URL } from "$lib/site"
 import "../app.css"
+
+registerIcons()
 
 let { children } = $props()
 
