@@ -1,7 +1,7 @@
 <script lang="ts">
 import { injectAnalytics } from "@vercel/analytics/sveltekit"
 import { injectSpeedInsights } from "@vercel/speed-insights/sveltekit"
-import { browser } from "$app/environment"
+import { browser, dev } from "$app/environment"
 import * as m from "$lib/paraglide/messages"
 import { getLocale, locales, localizeHref } from "$lib/paraglide/runtime"
 import { SITE_NAME, SITE_URL } from "$lib/site"
@@ -10,7 +10,7 @@ import "../app.css"
 let { children } = $props()
 
 if (browser) {
-  injectAnalytics()
+  injectAnalytics({ mode: dev ? "development" : "production" })
   injectSpeedInsights()
 }
 
