@@ -157,12 +157,25 @@ pub fn bridge(chain: Option<String>) {
         return;
     };
 
-    let mut child = match std::process::Command::new(shell())
-        .arg(shell_flag())
+    let (shell, flag) = shell();
+
+    let mut command = std::process::Command::new(shell);
+
+    command
+        .arg(flag)
         .arg(&chain)
-        .stdin(std::process::Stdio::piped())
-        .spawn()
+        .stdin(std::process::Stdio::piped());
+
+    #[cfg(target_os = "windows")]
     {
+        use std::os::windows::process::CommandExt;
+
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
+        command.creation_flags(CREATE_NO_WINDOW);
+    }
+
+    let mut child = match command.spawn() {
         Ok(child) => child,
         Err(_) => return,
     };
@@ -176,20 +189,47 @@ pub fn bridge(chain: Option<String>) {
     let _ = child.wait();
 }
 
-fn shell() -> &'static str {
-    if cfg!(target_os = "windows") {
-        "cmd"
-    } else {
-        "sh"
+#[cfg(not(target_os = "windows"))]
+fn shell() -> (PathBuf, &'static str) {
+    (PathBuf::from("sh"), "-c")
+}
+
+#[cfg(target_os = "windows")]
+fn shell() -> (PathBuf, &'static str) {
+    match bash() {
+        Some(bash) => (bash, "-c"),
+        None => (PathBuf::from("cmd"), "/c"),
     }
 }
 
-fn shell_flag() -> &'static str {
-    if cfg!(target_os = "windows") {
-        "/c"
-    } else {
-        "-c"
-    }
+#[cfg(target_os = "windows")]
+fn bash() -> Option<PathBuf> {
+    let dir = |key: &str| std::env::var_os(key).map(PathBuf::from);
+
+    let installed = [
+        dir("ProgramFiles").map(|root| root.join("Git")),
+        dir("ProgramFiles(x86)").map(|root| root.join("Git")),
+        dir("LOCALAPPDATA").map(|root| root.join("Programs").join("Git")),
+    ]
+    .into_iter()
+    .flatten()
+    .map(|git| git.join("bin").join("bash.exe"))
+    .find(|candidate| candidate.is_file());
+
+    installed.or_else(|| {
+        std::env::var_os("PATH").and_then(|path| {
+            std::env::split_paths(&path)
+                .map(|dir| dir.join("bash.exe"))
+                .find(|candidate| candidate.is_file() && !wsl_launcher(candidate))
+        })
+    })
+}
+
+#[cfg(target_os = "windows")]
+fn wsl_launcher(path: &std::path::Path) -> bool {
+    path.to_string_lossy()
+        .to_lowercase()
+        .contains("\\system32\\")
 }
 
 #[tauri::command(async)]
@@ -320,5 +360,21 @@ mod tests {
     #[test]
     fn a_snapshot_without_windows_is_ignored() {
         assert!(parse(r#"{ "hello": 1 }"#, "test".into()).is_none());
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn the_wsl_launcher_is_not_mistaken_for_a_shell() {
+        use std::path::Path;
+
+        assert!(super::wsl_launcher(Path::new(
+            r"C:\WINDOWS\system32\bash.exe"
+        )));
+        assert!(super::wsl_launcher(Path::new(
+            r"C:\Windows\System32\bash.exe"
+        )));
+        assert!(!super::wsl_launcher(Path::new(
+            r"C:\Program Files\Git\bin\bash.exe"
+        )));
     }
 }
