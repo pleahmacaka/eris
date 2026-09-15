@@ -1,3 +1,5 @@
+<script lang="ts"></script>
+
 <div aria-hidden="true" class="siri-aura">
   <div class="siri-veil"></div>
 

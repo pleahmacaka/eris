@@ -48,7 +48,8 @@ const isRecord = (v: unknown): v is SyncRecord =>
   isText(v.id) &&
   Number.isFinite(v.updatedAt) &&
   typeof v.deleted === "boolean" &&
-  isText(v.deviceId)
+  isText(v.deviceId) &&
+  (v.deleted || isObject(v.data))
 
 const isRegister = (v: unknown): v is RegisterRequest =>
   isObject(v) && isText(v.deviceId) && typeof v.deviceName === "string"
@@ -95,8 +96,11 @@ const wins = (
   (incoming.updatedAt === existing.updatedAt &&
     incoming.deviceId < existing.deviceId)
 
-const clampLimit = (raw: string | undefined) =>
-  Math.min(Math.max(Number(raw) || 200, 1), 500)
+const clampLimit = (raw: string | undefined) => {
+  const n = raw ? Number(raw) : Number.NaN
+
+  return Number.isFinite(n) ? Math.min(Math.max(n, 1), 500) : 200
+}
 
 export const createApp = ({ db, token }: { db: Db; token: string }) => {
   const app = new Hono()

@@ -1,7 +1,7 @@
 import {
   type ChatPermission,
   type DeviceSettings,
-  saveDevice,
+  updateDevice,
 } from "@eris/settings"
 import { tick } from "svelte"
 import type * as native from "$lib/native"
@@ -100,12 +100,14 @@ export class Panel extends Bubbles {
     value: DeviceSettings[K],
   ) {
     this.device = { ...this.device, [key]: value }
-    saveDevice($state.snapshot(this.device)).catch(() => undefined)
+    updateDevice(device => ({ ...device, [key]: value })).catch(() => undefined)
   }
 
   async update(patch: Partial<DeviceSettings>) {
     this.device = { ...this.device, ...patch }
-    await saveDevice($state.snapshot(this.device)).catch(() => undefined)
+    await updateDevice(device => ({ ...device, ...patch })).catch(
+      () => undefined,
+    )
   }
 
   async setPermission(mode: ChatPermission) {

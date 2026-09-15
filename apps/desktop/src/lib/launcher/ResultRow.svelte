@@ -19,7 +19,7 @@
   data-index={index}
   tabindex="-1"
   class={[
-    "group flex items-center gap-2 rounded-field px-2 transition-colors duration-150",
+    "group flex items-center gap-2 rounded-field px-2 transition-colors duration-100",
     launcher.compact ? "py-1" : "py-1.5",
     active
       ? "bg-primary/15 ring-1 ring-primary/30 ring-inset"
@@ -64,7 +64,7 @@
   {#if index < 9 && launcher.device.showKeymap}
     <kbd
       class={[
-        "kbd kbd-xs shrink-0 transition-opacity duration-150",
+        "kbd kbd-xs shrink-0 transition-opacity duration-100",
         active ? "opacity-60" : "opacity-0 group-hover:opacity-40",
       ]}
     >
@@ -79,7 +79,7 @@
   <button
     type="button"
     class={[
-      "btn btn-circle btn-ghost btn-xs shrink-0 transition-opacity duration-150",
+      "btn btn-circle btn-ghost btn-xs shrink-0 transition-opacity duration-100",
       active ? "opacity-100" : "opacity-0 group-hover:opacity-100",
     ]}
     aria-label={$t("launcher.moreActions")}

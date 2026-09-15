@@ -95,6 +95,11 @@ const parseClock = (text: string, now: number) => {
   const meridiem = match[3]?.toLowerCase()
   const raw = Number(match[1])
   const minute = Number(match[2] ?? 0)
+
+  if (meridiem && (raw < 1 || raw > 12)) {
+    return null
+  }
+
   const hour =
     meridiem === "pm" ? (raw % 12) + 12 : meridiem === "am" ? raw % 12 : raw
 
@@ -124,7 +129,7 @@ export const parseTimer = (
     return null
   }
 
-  if (kind === "alarm" || /^\d{1,2}:\d{2}/.test(input)) {
+  if (kind === "alarm" || /^\d{1,2}(:\d{2}|\s*(am|pm)\b)/i.test(input)) {
     const clock = parseClock(input, now)
 
     return clock

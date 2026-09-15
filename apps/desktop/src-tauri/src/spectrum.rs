@@ -81,7 +81,11 @@ mod win {
     use windows::Win32::Media::Audio::{
         eConsole, eRender, IAudioCaptureClient, IAudioClient, IMMDeviceEnumerator,
         MMDeviceEnumerator, AUDCLNT_BUFFERFLAGS_SILENT, AUDCLNT_SHAREMODE_SHARED,
-        AUDCLNT_STREAMFLAGS_LOOPBACK,
+        AUDCLNT_STREAMFLAGS_LOOPBACK, WAVEFORMATEXTENSIBLE,
+    };
+    use windows::Win32::Media::KernelStreaming::WAVE_FORMAT_EXTENSIBLE;
+    use windows::Win32::Media::Multimedia::{
+        KSDATAFORMAT_SUBTYPE_IEEE_FLOAT, WAVE_FORMAT_IEEE_FLOAT,
     };
     use windows::Win32::System::Com::{
         CoCreateInstance, CoInitializeEx, CoTaskMemFree, CLSCTX_ALL, COINIT_APARTMENTTHREADED,
@@ -149,7 +153,17 @@ mod win {
             let channels = (*format).nChannels as usize;
             let rate = (*format).nSamplesPerSec as f32;
             let bits = (*format).wBitsPerSample as usize;
-            let float = bits == 32;
+            // 32-bit samples are integer PCM just as often as float, so the tag decides
+            let float = match u32::from((*format).wFormatTag) {
+                WAVE_FORMAT_IEEE_FLOAT => true,
+                WAVE_FORMAT_EXTENSIBLE => {
+                    let extensible = format as *const WAVEFORMATEXTENSIBLE;
+                    let sub_format = std::ptr::addr_of!((*extensible).SubFormat).read_unaligned();
+
+                    sub_format == KSDATAFORMAT_SUBTYPE_IEEE_FLOAT
+                }
+                _ => false,
+            };
 
             CoTaskMemFree(Some(format as *const _));
 
@@ -185,6 +199,16 @@ mod win {
 
                             (0..channels)
                                 .map(|channel| *samples.add(frame * channels + channel))
+                                .sum::<f32>()
+                                / channels as f32
+                        } else if bits == 32 {
+                            let samples = data as *const i32;
+
+                            (0..channels)
+                                .map(|channel| {
+                                    *samples.add(frame * channels + channel) as f32
+                                        / 2_147_483_648.0
+                                })
                                 .sum::<f32>()
                                 / channels as f32
                         } else {

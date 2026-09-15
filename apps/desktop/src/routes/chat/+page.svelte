@@ -10,6 +10,7 @@
   const chat = new Chat()
 
   let previewing = $state<number | null>(null)
+  let fullscreen = $state(false)
 
   $effect(() => {
     document.documentElement.dataset.surface = "overlay"
@@ -32,6 +33,9 @@
       }),
       listen<{ percent: number; on: boolean }>("chat-snap-preview", e => {
         previewing = e.payload.on ? e.payload.percent : null
+      }),
+      native.onDockFullscreen(on => {
+        fullscreen = on
       }),
     ]
 
@@ -68,10 +72,14 @@
       return
     }
 
+    const retracted = fullscreen && !chat.open && previewing === null
+
     native
       .chatFrame(
         [0, 0, chat.area.width, chat.area.height],
-        frameRects(chat, previewing !== null || editing.on),
+        retracted
+          ? []
+          : frameRects(chat, previewing !== null || editing.on),
       )
       .catch(() => undefined)
   })

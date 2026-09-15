@@ -40,7 +40,7 @@ pub fn power_action(action: String) -> Result<(), String> {
     }
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn empty_recycle_bin() -> Result<(), String> {
     win::empty_recycle_bin()
 }
@@ -84,13 +84,19 @@ mod win {
     use std::os::windows::process::CommandExt;
 
     use windows::core::{w, PCWSTR};
-    use windows::Win32::Foundation::E_UNEXPECTED;
+    use windows::Win32::Foundation::{CloseHandle, E_UNEXPECTED, HANDLE, LUID};
+    use windows::Win32::Security::{
+        AdjustTokenPrivileges, LookupPrivilegeValueW, LUID_AND_ATTRIBUTES, SE_PRIVILEGE_ENABLED,
+        SE_SHUTDOWN_NAME, TOKEN_ADJUST_PRIVILEGES, TOKEN_PRIVILEGES, TOKEN_QUERY,
+    };
     use windows::Win32::System::Power::{
         GetSystemPowerStatus, SetSuspendState, SYSTEM_POWER_STATUS,
     };
     use windows::Win32::System::Registry::{RegGetValueW, HKEY_CURRENT_USER, RRF_RT_REG_DWORD};
     use windows::Win32::System::Shutdown::LockWorkStation;
-    use windows::Win32::System::Threading::CREATE_NO_WINDOW;
+    use windows::Win32::System::Threading::{
+        GetCurrentProcess, OpenProcessToken, CREATE_NO_WINDOW,
+    };
     use windows::Win32::UI::Shell::{SHEmptyRecycleBinW, SHERB_NOCONFIRMATION, SHERB_NOPROGRESSUI};
 
     use super::Battery;
@@ -139,9 +145,47 @@ mod win {
         unsafe { LockWorkStation() }.map_err(|e| e.to_string())
     }
 
+    // SetSuspendState refuses to run until SE_SHUTDOWN_NAME is enabled on the process token
+    fn enable_suspend_privilege() -> Result<(), String> {
+        unsafe {
+            let mut token = HANDLE::default();
+
+            OpenProcessToken(
+                GetCurrentProcess(),
+                TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
+                &mut token,
+            )
+            .map_err(|e| e.to_string())?;
+
+            let mut luid = LUID::default();
+            let granted = LookupPrivilegeValueW(PCWSTR::null(), SE_SHUTDOWN_NAME, &mut luid)
+                .and_then(|()| {
+                    let privileges = TOKEN_PRIVILEGES {
+                        PrivilegeCount: 1,
+                        Privileges: [LUID_AND_ATTRIBUTES {
+                            Luid: luid,
+                            Attributes: SE_PRIVILEGE_ENABLED,
+                        }],
+                    };
+
+                    AdjustTokenPrivileges(token, false, Some(&privileges), 0, None, None)
+                });
+
+            let _ = CloseHandle(token);
+
+            granted.map_err(|e| e.to_string())
+        }
+    }
+
     // ponytail: SetSuspendState returns only after resume, so it runs off the caller's thread
     pub fn suspend(hibernate: bool) -> Result<(), String> {
-        std::thread::spawn(move || unsafe { SetSuspendState(hibernate, false, false) });
+        enable_suspend_privilege()?;
+
+        std::thread::spawn(move || {
+            if !unsafe { SetSuspendState(hibernate, false, false) } {
+                crate::trace("suspend failed");
+            }
+        });
 
         Ok(())
     }

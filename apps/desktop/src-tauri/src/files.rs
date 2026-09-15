@@ -75,26 +75,28 @@ mod win {
         GetDiskFreeSpaceExW, GetDriveTypeW, GetLogicalDrives, GetVolumeInformationW,
         FILE_ATTRIBUTE_HIDDEN, FILE_ATTRIBUTE_SYSTEM,
     };
-    use windows::Win32::System::Com::{CoInitializeEx, COINIT_APARTMENTTHREADED};
+    use windows::Win32::System::Com::{CoInitializeEx, CoTaskMemFree, COINIT_APARTMENTTHREADED};
     use windows::Win32::System::Diagnostics::Debug::{
         SetThreadErrorMode, SEM_FAILCRITICALERRORS, THREAD_ERROR_MODE,
     };
     use windows::Win32::UI::Shell::{
-        SHFileOperationW, FILEOPERATION_FLAGS, FOF_ALLOWUNDO, FOF_NOCONFIRMMKDIR, FO_COPY,
-        FO_DELETE, FO_MOVE, SHFILEOPSTRUCTW,
+        FOLDERID_Desktop, FOLDERID_Documents, FOLDERID_Downloads, FOLDERID_Music,
+        FOLDERID_Pictures, FOLDERID_Videos, SHFileOperationW, SHGetKnownFolderPath,
+        FILEOPERATION_FLAGS, FOF_ALLOWUNDO, FOF_NOCONFIRMMKDIR, FO_COPY, FO_DELETE, FO_MOVE,
+        KNOWN_FOLDER_FLAG, SHFILEOPSTRUCTW,
     };
 
     use super::{Entry, Listing, Place};
 
     const SEARCH_LIMIT: usize = 300;
 
-    const KNOWN: [(&str, &str); 6] = [
-        ("Desktop", "Desktop"),
-        ("Downloads", "Downloads"),
-        ("Documents", "Documents"),
-        ("Pictures", "Pictures"),
-        ("Music", "Music"),
-        ("Videos", "Videos"),
+    const KNOWN: [(&str, &windows::core::GUID); 6] = [
+        ("Desktop", &FOLDERID_Desktop),
+        ("Downloads", &FOLDERID_Downloads),
+        ("Documents", &FOLDERID_Documents),
+        ("Pictures", &FOLDERID_Pictures),
+        ("Music", &FOLDERID_Music),
+        ("Videos", &FOLDERID_Videos),
     ];
 
     fn text(path: &Path) -> String {
@@ -191,16 +193,29 @@ mod win {
         })
     }
 
+    // OneDrive backup moves the known folders off %USERPROFILE%, so they must come from the shell
+    fn known_folder(id: &windows::core::GUID) -> Option<String> {
+        unsafe {
+            let raw = SHGetKnownFolderPath(id, KNOWN_FOLDER_FLAG(0), None).ok()?;
+            let path = raw.to_string().ok();
+
+            CoTaskMemFree(Some(raw.as_ptr() as *const _));
+
+            path.filter(|path| !path.is_empty())
+        }
+    }
+
     pub fn places() -> Vec<Place> {
-        let home = std::env::var("USERPROFILE").unwrap_or_default();
         let mut places: Vec<Place> = KNOWN
             .iter()
-            .map(|(name, folder)| Place {
-                name: (*name).into(),
-                path: format!("{home}\\{folder}"),
-                kind: "folder".into(),
-                free: 0,
-                total: 0,
+            .filter_map(|(name, id)| {
+                Some(Place {
+                    name: (*name).into(),
+                    path: known_folder(id)?,
+                    kind: "folder".into(),
+                    free: 0,
+                    total: 0,
+                })
             })
             .filter(|place| Path::new(&place.path).is_dir())
             .collect();
@@ -208,7 +223,8 @@ mod win {
         let mask = unsafe { GetLogicalDrives() };
 
         // an empty card reader or a dead mapping would otherwise raise the shell's "no disk" dialog
-        let previous = unsafe { SetThreadErrorMode(SEM_FAILCRITICALERRORS, None) };
+        let mut previous = THREAD_ERROR_MODE(0);
+        let _ = unsafe { SetThreadErrorMode(SEM_FAILCRITICALERRORS, Some(&mut previous)) };
 
         for index in 0..26u32 {
             if mask & (1 << index) == 0 {
@@ -227,9 +243,7 @@ mod win {
             }
         }
 
-        if previous.is_ok() {
-            let _ = unsafe { SetThreadErrorMode(THREAD_ERROR_MODE(0), None) };
-        }
+        let _ = unsafe { SetThreadErrorMode(previous, None) };
 
         places
     }
@@ -301,8 +315,12 @@ mod win {
         let source = PathBuf::from(path);
         let parent = source.parent().ok_or("no parent folder")?;
         let target = parent.join(name);
+        let same = source
+            .canonicalize()
+            .ok()
+            .is_some_and(|from| target.canonicalize().ok().is_some_and(|to| to == from));
 
-        if target.exists() {
+        if target.exists() && !same {
             return Err("that name is taken".into());
         }
 

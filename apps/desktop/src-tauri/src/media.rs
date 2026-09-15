@@ -34,7 +34,10 @@ pub async fn media_command(action: String) -> Result<(), String> {
 }
 
 fn app_name(id: &str) -> String {
-    if let Some(name) = id.strip_suffix(".exe") {
+    if let Some((name, _)) = id
+        .rsplit_once('.')
+        .filter(|(_, ext)| ext.eq_ignore_ascii_case("exe"))
+    {
         return name.to_string();
     }
 

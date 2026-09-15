@@ -37,10 +37,6 @@ pub(crate) fn park_chat(window: &WebviewWindow) -> tauri::Result<()> {
         return Ok(());
     }
 
-    let scale = window
-        .primary_monitor()?
-        .map(|monitor| monitor.scale_factor())
-        .unwrap_or(1.0);
     let works: Vec<(PhysicalPosition<i32>, PhysicalSize<u32>)> = monitors
         .iter()
         .map(|monitor| {
@@ -72,6 +68,14 @@ pub(crate) fn park_chat(window: &WebviewWindow) -> tauri::Result<()> {
                 && cursor.y < f64::from(p.y + s.height as i32)
         })
         .unwrap_or(0);
+
+    place_chat(
+        window,
+        [origin.x, origin.y, right - origin.x, bottom - origin.y],
+    )?;
+
+    // the page and the region share one scale, and it must be the dpi the window actually renders at
+    let scale = window.scale_factor().unwrap_or(1.0);
     let rects = works
         .iter()
         .map(|(p, s)| ChatRect {
@@ -94,11 +98,6 @@ pub(crate) fn park_chat(window: &WebviewWindow) -> tauri::Result<()> {
             home,
         },
     });
-
-    place_chat(
-        window,
-        [origin.x, origin.y, right - origin.x, bottom - origin.y],
-    )?;
 
     if first {
         clip_chat(&window.app_handle().clone(), Vec::new());
@@ -131,6 +130,12 @@ fn clip_chat(app: &AppHandle, rects: Vec<[i32; 5]>) {
     }
 
     region::apply(app, "chat", &rects);
+
+    // an empty region still leaves a full-screen transparent webview compositing every frame
+    if let Some(window) = app.get_webview_window("chat") {
+        crate::windowing::set_webview_visible(&window, !rects.is_empty());
+    }
+
     *last = rects;
 }
 

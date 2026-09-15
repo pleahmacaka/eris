@@ -75,7 +75,7 @@
     >
       <button
         type="button"
-        class="absolute inset-0 transition-shadow duration-150"
+        class="absolute inset-0 transition-shadow duration-100"
         class:selected={hovered === slot.hwnd}
         aria-label={$t("dock.preview.switchTo")}
         onclick={() => pick(slot)}

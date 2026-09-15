@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { saveDevice } from "@eris/settings"
+  import { updateDevice } from "@eris/settings"
   import { ContextMenu, type MenuItem } from "@eris/ui"
   import { t } from "svelte-i18n"
   import { showWindow } from "$lib/native/windows"
@@ -19,7 +19,7 @@
     {
       label: launcher.device.showKeymap ? $t("launcher.backdrop.hideKeymap") : $t("launcher.backdrop.showKeymap"),
       icon: launcher.device.showKeymap ? "lucide:eye-off" : "lucide:eye",
-      action: () => saveDevice({ ...launcher.device, showKeymap: !launcher.device.showKeymap }),
+      action: () => updateDevice(d => ({ ...d, showKeymap: !d.showKeymap })),
     },
     "separator",
     {

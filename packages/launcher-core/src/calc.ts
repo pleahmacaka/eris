@@ -124,17 +124,15 @@ const parse = (tokens: Token[]): number => {
     }
 
     if (token.type === "id") {
-      const fn = FUNCTIONS[token.name]
-
-      if (fn) {
+      if (Object.hasOwn(FUNCTIONS, token.name)) {
         expect("(")
         const inner = expression()
         expect(")")
 
-        return fn(inner)
+        return FUNCTIONS[token.name](inner)
       }
 
-      if (token.name in CONSTANTS) {
+      if (Object.hasOwn(CONSTANTS, token.name)) {
         return CONSTANTS[token.name]
       }
 

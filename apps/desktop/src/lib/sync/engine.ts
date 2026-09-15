@@ -4,7 +4,7 @@ import {
   loadDevice,
   onDevice,
   type SyncSettings,
-  saveDevice,
+  updateDevice,
 } from "@eris/settings"
 import { outboxKey } from "@eris/sync/merge"
 import {
@@ -341,9 +341,7 @@ export const forgetDevice = async (id: string) => {
 }
 
 export const unlinkDevice = async () => {
-  const device = await loadDevice()
-
-  await saveDevice({ ...device, sync: defaultSync })
+  await updateDevice(device => ({ ...device, sync: defaultSync }))
   await clearAllOutbox()
   await updateSyncMeta({ cursors: {}, lastSyncAt: null, lastError: null })
   await setSyncStatus({

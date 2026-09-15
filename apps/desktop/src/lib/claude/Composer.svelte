@@ -41,10 +41,13 @@
     const term = chat.mentionTerm
     const timer = setTimeout(async () => {
       const root = chat.cwd ?? chat.session?.info.cwd ?? ""
-
-      chat.mentions = root
-        ? (await native.searchDir(root, term).catch(() => [])).slice(0, 8)
+      const found = root
+        ? await native.searchDir(root, term).catch(() => [])
         : []
+
+      if (chat.mentionTerm === term) {
+        chat.mentions = found.slice(0, 8)
+      }
     }, MENTION_DELAY)
 
     return () => clearTimeout(timer)

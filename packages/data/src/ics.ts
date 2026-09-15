@@ -302,6 +302,20 @@ const sorted = (list: string) =>
     .sort()
     .join(",")
 
+// keys the model cannot express turn the event into a one-off instead of a wrong cadence
+const RULE_BEYOND_MODEL = new Set([
+  "COUNT",
+  "UNTIL",
+  "BYMONTH",
+  "BYMONTHDAY",
+  "BYYEARDAY",
+  "BYWEEKNO",
+  "BYSETPOS",
+  "BYHOUR",
+  "BYMINUTE",
+  "BYSECOND",
+])
+
 const parseRule = (value: string): Recurrence => {
   const parts = new Map<string, string>()
 
@@ -315,17 +329,31 @@ const parseRule = (value: string): Recurrence => {
     }
   }
 
+  if ([...parts.keys()].some(key => RULE_BEYOND_MODEL.has(key))) {
+    return "none"
+  }
+
+  const interval = parts.get("INTERVAL")
+
+  if (interval !== undefined && interval !== "1") {
+    return "none"
+  }
+
   const byDay = parts.get("BYDAY")
 
   switch (parts.get("FREQ")) {
     case "DAILY":
-      return "daily"
+      if (byDay === undefined) {
+        return "daily"
+      }
+
+      return sorted(byDay) === sorted(WEEKDAYS) ? "weekdays" : "none"
     case "WEEKLY":
       return byDay && sorted(byDay) === sorted(WEEKDAYS) ? "weekdays" : "weekly"
     case "MONTHLY":
-      return "monthly"
+      return byDay === undefined ? "monthly" : "none"
     case "YEARLY":
-      return "yearly"
+      return byDay === undefined ? "yearly" : "none"
     default:
       return "none"
   }

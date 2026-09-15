@@ -216,7 +216,7 @@
           <button
             type="button"
             class={[
-              "h-1.5 rounded-full transition-all duration-150 outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+              "h-1.5 rounded-full transition-all duration-100 outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
               i === at
                 ? "w-6 bg-primary"
                 : i < at
@@ -358,7 +358,7 @@
 
                   <div
                     class={[
-                      "absolute flex items-center justify-center gap-[3%] border border-base-content/10 bg-base-100/85 shadow-lg backdrop-blur-md transition-all duration-300",
+                      "absolute flex items-center justify-center gap-[3%] border border-base-content/10 bg-base-100/85 shadow-lg backdrop-blur-md transition-all duration-100",
                       device.dockStyle === "mac"
                         ? "left-1/2 w-3/5 -translate-x-1/2 rounded-full"
                         : "inset-x-0",
@@ -597,7 +597,7 @@
 
 <style>
   .step {
-    animation: rise 220ms ease-out;
+    animation: rise 120ms ease-out;
   }
 
   @keyframes rise {

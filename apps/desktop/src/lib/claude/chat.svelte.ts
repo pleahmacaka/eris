@@ -87,9 +87,6 @@ export class Chat extends Panel {
     this.picked = {}
 
     const folder = b.folder || null
-    const past = resume
-      ? await native.claudeTranscript(folder, resume).catch(() => [])
-      : []
 
     await next
       .start({
@@ -104,7 +101,6 @@ export class Chat extends Panel {
         language: this.device.chatLanguage,
         budget: this.device.chatBudget,
         systemPrompt: this.device.chatSystemPrompt,
-        history: past,
       })
       .catch(e => {
         next.error = String(e)

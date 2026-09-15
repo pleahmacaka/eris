@@ -40,7 +40,7 @@
     {#each HINTS as [key, label] (key)}
       <button
         type="button"
-        class="flex items-center gap-1 transition-colors duration-150 hover:text-base-content"
+        class="flex items-center gap-1 transition-colors duration-100 hover:text-base-content"
         tabindex="-1"
         onclick={() => launcher.insertPrefix(key === ":" ? key : `${key} `)}
       >

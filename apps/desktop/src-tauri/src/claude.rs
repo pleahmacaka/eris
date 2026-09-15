@@ -2,7 +2,8 @@ use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Child, ChildStdin, Command, Stdio};
-use std::sync::{Mutex, OnceLock};
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Arc, Mutex, OnceLock};
 
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter};
@@ -21,11 +22,13 @@ const ARGS: [&str; 9] = [
 const SESSION_LIMIT: usize = 40;
 
 struct Session {
+    id: u64,
     child: Child,
-    stdin: ChildStdin,
+    stdin: Arc<Mutex<ChildStdin>>,
 }
 
 static SESSIONS: OnceLock<Mutex<HashMap<String, Session>>> = OnceLock::new();
+static NEXT_SESSION: AtomicU64 = AtomicU64::new(1);
 
 fn sessions() -> &'static Mutex<HashMap<String, Session>> {
     SESSIONS.get_or_init(|| Mutex::new(HashMap::new()))
@@ -214,7 +217,11 @@ pub fn claude_start(app: AppHandle, options: Start) -> Result<(), String> {
         args.push(path.display().to_string());
     }
 
-    if let Some(mode) = options.permission_mode.as_deref().filter(|mode| *mode != "default") {
+    if let Some(mode) = options
+        .permission_mode
+        .as_deref()
+        .filter(|mode| *mode != "default")
+    {
         args.push("--permission-mode".into());
         args.push(mode.to_string());
 
@@ -251,6 +258,21 @@ pub fn claude_start(app: AppHandle, options: Start) -> Result<(), String> {
     let stdout = child.stdout.take().ok_or("no stdout")?;
     let stderr = child.stderr.take().ok_or("no stderr")?;
     let key = options.key.clone();
+    let id = NEXT_SESSION.fetch_add(1, Ordering::Relaxed);
+
+    // the reader threads key their cleanup on this entry, so the session lands before they spawn
+    let old = sessions().lock().unwrap().insert(
+        key.clone(),
+        Session {
+            id,
+            child,
+            stdin: Arc::new(Mutex::new(stdin)),
+        },
+    );
+
+    if let Some(mut old) = old {
+        let _ = old.child.kill();
+    }
 
     {
         let app = app.clone();
@@ -258,7 +280,13 @@ pub fn claude_start(app: AppHandle, options: Start) -> Result<(), String> {
 
         std::thread::spawn(move || {
             for line in BufReader::new(stderr).lines().map_while(Result::ok) {
-                let _ = app.emit("claude-stderr", Line { key: key.clone(), line });
+                let _ = app.emit(
+                    "claude-stderr",
+                    Line {
+                        key: key.clone(),
+                        line,
+                    },
+                );
             }
         });
     }
@@ -269,44 +297,66 @@ pub fn claude_start(app: AppHandle, options: Start) -> Result<(), String> {
 
         std::thread::spawn(move || {
             for line in BufReader::new(stdout).lines().map_while(Result::ok) {
-                let _ = app.emit("claude-line", Line { key: key.clone(), line });
+                let _ = app.emit(
+                    "claude-line",
+                    Line {
+                        key: key.clone(),
+                        line,
+                    },
+                );
             }
 
-            let code = sessions()
-                .lock()
-                .unwrap()
-                .remove(&key)
+            let session = {
+                let mut map = sessions().lock().unwrap();
+
+                match map.get(&key) {
+                    Some(session) if session.id == id => map.remove(&key),
+                    _ => None,
+                }
+            };
+
+            let code = session
                 .and_then(|mut session| session.child.wait().ok())
                 .and_then(|status| status.code());
 
-            let _ = app.emit("claude-exit", Exit { key, code });
+            // a replacement session owns the key now, so this exit belongs to a dead process
+            let replaced = sessions()
+                .lock()
+                .unwrap()
+                .get(&key)
+                .is_some_and(|session| session.id != id);
+
+            if !replaced {
+                let _ = app.emit("claude-exit", Exit { key, code });
+            }
         });
     }
-
-    sessions()
-        .lock()
-        .unwrap()
-        .insert(key, Session { child, stdin });
 
     Ok(())
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn claude_send(key: String, line: String) -> Result<(), String> {
-    let mut sessions = sessions().lock().unwrap();
-    let session = sessions.get_mut(&key).ok_or("session is gone")?;
+    let stdin = sessions()
+        .lock()
+        .unwrap()
+        .get(&key)
+        .map(|session| session.stdin.clone())
+        .ok_or("session is gone")?;
+    let mut stdin = stdin.lock().unwrap();
 
-    session
-        .stdin
+    stdin
         .write_all(line.as_bytes())
-        .and_then(|()| session.stdin.write_all(b"\n"))
-        .and_then(|()| session.stdin.flush())
+        .and_then(|()| stdin.write_all(b"\n"))
+        .and_then(|()| stdin.flush())
         .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub fn claude_stop(key: String) {
-    if let Some(mut session) = sessions().lock().unwrap().remove(&key) {
+    let session = sessions().lock().unwrap().remove(&key);
+
+    if let Some(mut session) = session {
         let _ = session.child.kill();
     }
 }

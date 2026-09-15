@@ -37,12 +37,42 @@ const adapter: AxiosAdapter = async config => {
     string
   >
 
-  const response = await tauriFetch(url, {
-    method: (config.method ?? "get").toUpperCase(),
-    headers,
-    body: bodyOf(config.data),
-    signal: config.signal as AbortSignal | undefined,
-  })
+  const controller = new AbortController()
+  const caller = config.signal as AbortSignal | undefined
+
+  caller?.addEventListener("abort", () => controller.abort(), { once: true })
+
+  // axios enforces timeout only in its own adapters, so the custom adapter must abort the fetch itself
+  let timedOut = false
+  const timer = config.timeout
+    ? setTimeout(() => {
+        timedOut = true
+        controller.abort()
+      }, config.timeout)
+    : undefined
+
+  let response: Response
+
+  try {
+    response = await tauriFetch(url, {
+      method: (config.method ?? "get").toUpperCase(),
+      headers,
+      body: bodyOf(config.data),
+      signal: controller.signal,
+    })
+  } catch (error) {
+    if (timedOut) {
+      throw new AxiosError(
+        `timeout of ${config.timeout}ms exceeded`,
+        "ECONNABORTED",
+        config,
+      )
+    }
+
+    throw error
+  } finally {
+    clearTimeout(timer)
+  }
 
   const text = await response.text()
 
