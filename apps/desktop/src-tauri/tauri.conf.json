@@ -10,6 +10,7 @@
     "beforeBuildCommand": "bun run build"
   },
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "label": "main",
@@ -35,6 +36,24 @@
         "title": "Eris Taskbar",
         "width": 720,
         "height": 48,
+        "resizable": false,
+        "transparent": true,
+        "decorations": false,
+        "shadow": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "focus": false,
+        "focusable": false,
+        "dragDropEnabled": false,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-gpu-compositing"
+      },
+      {
+        "label": "topbar",
+        "url": "/topbar",
+        "title": "Eris Top Bar",
+        "width": 720,
+        "height": 34,
+        "visible": false,
         "resizable": false,
         "transparent": true,
         "decorations": false,
@@ -77,8 +96,23 @@
         "skipTaskbar": true,
         "visible": false,
         "dragDropEnabled": false,
-        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-gpu-compositing",
-        "create": false
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-gpu-compositing"
+      },
+      {
+        "label": "notices",
+        "url": "/notices",
+        "title": "Eris Notifications",
+        "width": 380,
+        "height": 520,
+        "resizable": false,
+        "transparent": true,
+        "decorations": false,
+        "shadow": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "visible": false,
+        "dragDropEnabled": false,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-gpu-compositing"
       },
       {
         "label": "onboarding",

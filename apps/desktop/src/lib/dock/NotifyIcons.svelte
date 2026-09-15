@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import type { MenuBox } from "./layout.svelte"
   import { t } from "svelte-i18n"
   import { flip } from "svelte/animate"
   import { notifyIconClick, notifyIconPromote, notifyIcons, onTrayIcons, type TrayIcon } from "$lib/native/tray"
@@ -13,7 +14,7 @@
     flat?: boolean
     onreorder?: (order: string[]) => void
     onhide?: (hidden: string[]) => void
-    onmenu?: (height: number) => void
+    onmenu?: (rect: MenuBox | null) => void
   }
 
   let {
@@ -44,7 +45,7 @@
     return () => {
       clearInterval(timer)
       stop.then(off => off()).catch(() => undefined)
-      onmenu?.(0)
+      onmenu?.(null)
     }
   })
 
@@ -74,7 +75,6 @@
     }
 
     stashOpen = true
-    onmenu?.(stashHeight())
   }
 
   const sorted = $derived.by(() => {
@@ -97,13 +97,11 @@
     overflow.filter(icon => showAll || !hiddenSet.has(icon.id)),
   )
 
-  const COLUMNS = 6
-  const ROW = 36
-  const FOOTER = 40
-
   let stashOpen = $state(false)
 
   let row = $state<HTMLElement>()
+  let stash = $state<HTMLElement>()
+  let stashHeight = $state(0)
 
   const closeStash = () => {
     if (!stashOpen) {
@@ -111,21 +109,20 @@
     }
 
     stashOpen = false
-    onmenu?.(0)
+    onmenu?.(null)
   }
-
-  const stashHeight = () =>
-    Math.max(1, Math.ceil(stashed.length / COLUMNS)) * ROW + FOOTER + 24
 
   const toggleStash = () => {
     stashOpen = !stashOpen
 
-    onmenu?.(stashOpen ? stashHeight() : 0)
+    if (!stashOpen) {
+      onmenu?.(null)
+    }
   }
 
   $effect(() => {
-    if (stashOpen) {
-      onmenu?.(stashHeight())
+    if (stashOpen && stash && stashHeight > 0) {
+      onmenu?.(stash.getBoundingClientRect())
     }
   })
 
@@ -141,6 +138,10 @@
   let dropBefore = $state(true)
 
   const dragOver = (e: DragEvent, id: string) => {
+    if (!dragId) {
+      return
+    }
+
     e.preventDefault()
 
     const box = (e.currentTarget as HTMLElement).getBoundingClientRect()
@@ -256,10 +257,10 @@
 
     {#each shown as icon (icon.id)}
       <div
-        animate:flip={{ duration: 180 }}
+        animate:flip={{ duration: 120 }}
         role="listitem"
         class={[
-          "relative flex transition-opacity duration-150",
+          "relative flex transition-opacity duration-100",
           dragId === icon.id && "opacity-30",
         ]}
         ondragover={e => dragOver(e, icon.id)}
@@ -287,6 +288,8 @@
 
     {#if stashOpen && overflow.length > 0}
       <div
+        bind:this={stash}
+        bind:offsetHeight={stashHeight}
         class={[
           "absolute right-0 z-50 w-max rounded-box border border-base-content/10 bg-base-100/95 p-2 shadow-2xl backdrop-blur-xl",
           edge === "top" ? "top-full mt-2" : "bottom-full mb-2",

@@ -65,7 +65,12 @@ fn dock_enabled(app: &AppHandle, on: bool) {
         appbar::release(&taskbar);
     }
 
+    if let Some(topbar) = app.get_webview_window("topbar") {
+        appbar::release(&topbar);
+    }
+
     windowing::hide(app, "taskbar");
+    windowing::hide(app, "topbar");
 }
 
 #[tauri::command]

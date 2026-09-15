@@ -7,11 +7,13 @@
     "taskbar",
     "settings",
     "panel",
+    "notices",
     "onboarding",
     "preview",
     "chat",
     "files",
-    "edit"
+    "edit",
+    "topbar"
   ],
   "permissions": [
     "core:default",
@@ -40,6 +42,7 @@
     "updater:default",
     "clipboard-manager:allow-write-text",
     "clipboard-manager:allow-read-text",
+    "mcp-bridge:default",
     {
       "identifier": "http:default",
       "allow": [

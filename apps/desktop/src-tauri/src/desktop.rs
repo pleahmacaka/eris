@@ -40,8 +40,16 @@ pub fn force_foreground(window: &WebviewWindow) {
 #[cfg(not(target_os = "windows"))]
 pub fn force_foreground(_window: &WebviewWindow) {}
 
+pub fn watch(app: tauri::AppHandle) {
+    win::watch(app);
+}
+
 #[cfg(target_os = "windows")]
 mod win {
+    use std::sync::{Mutex, OnceLock};
+    use std::time::{Duration, Instant};
+
+    use tauri::{AppHandle, Emitter};
     use windows::core::{BOOL, PWSTR};
     use windows::Win32::Foundation::{CloseHandle, HWND, LPARAM, WPARAM};
     use windows::Win32::Graphics::Dwm::{DwmGetWindowAttribute, DWMWA_CLOAKED};
@@ -49,12 +57,16 @@ mod win {
         AttachThreadInput, GetCurrentProcessId, GetCurrentThreadId, OpenProcess,
         QueryFullProcessImageNameW, PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION,
     };
+    use windows::Win32::UI::Accessibility::{SetWinEventHook, HWINEVENTHOOK};
     use windows::Win32::UI::Input::KeyboardAndMouse::{SetFocus, VK_MENU};
     use windows::Win32::UI::WindowsAndMessaging::{
-        BringWindowToTop, EnumWindows, GetClassNameW, GetForegroundWindow, GetWindowLongPtrW,
-        GetWindowTextW, GetWindowThreadProcessId, IsHungAppWindow, IsIconic, IsWindowVisible,
-        PostMessageW, SetForegroundWindow, ShowWindowAsync, GWL_EXSTYLE, SW_MINIMIZE, SW_RESTORE,
-        WM_CLOSE, WS_EX_TOOLWINDOW,
+        BringWindowToTop, DispatchMessageW, EnumWindows, GetClassNameW, GetForegroundWindow,
+        GetMessageW, GetWindowLongPtrW, GetWindowTextW, GetWindowThreadProcessId, IsHungAppWindow,
+        IsIconic, IsWindowVisible, PostMessageW, SetForegroundWindow, ShowWindowAsync,
+        EVENT_OBJECT_CLOAKED, EVENT_OBJECT_CREATE, EVENT_OBJECT_HIDE, EVENT_OBJECT_NAMECHANGE,
+        EVENT_OBJECT_UNCLOAKED, EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_MINIMIZEEND,
+        EVENT_SYSTEM_MINIMIZESTART, GWL_EXSTYLE, MSG, SW_MINIMIZE, SW_RESTORE,
+        WINEVENT_OUTOFCONTEXT, WINEVENT_SKIPOWNPROCESS, WM_CLOSE, WS_EX_TOOLWINDOW,
     };
 
     use super::WindowEntry;
@@ -161,6 +173,102 @@ mod win {
         entries
     }
 
+    const OBJID_WINDOW: i32 = 0;
+    const COALESCE: Duration = Duration::from_millis(120);
+
+    static APP: OnceLock<AppHandle> = OnceLock::new();
+    static LAST_EMIT: Mutex<Option<Instant>> = Mutex::new(None);
+
+    unsafe extern "system" fn on_event(
+        _hook: HWINEVENTHOOK,
+        _event: u32,
+        hwnd: HWND,
+        id_object: i32,
+        _id_child: i32,
+        _thread: u32,
+        _time: u32,
+    ) {
+        if hwnd.is_invalid() || id_object != OBJID_WINDOW {
+            return;
+        }
+
+        let mut last = LAST_EMIT.lock().unwrap();
+        let now = Instant::now();
+
+        if last.is_some_and(|at| now.duration_since(at) < COALESCE) {
+            return;
+        }
+
+        *last = Some(now);
+
+        if let Some(app) = APP.get() {
+            let _ = app.emit("windows-changed", ());
+        }
+    }
+
+    // window lifecycle events arrive through a message loop, so the hook lives on its own thread
+    pub fn watch(app: AppHandle) {
+        let _ = APP.set(app);
+
+        std::thread::spawn(|| unsafe {
+            let flags = WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS;
+
+            let _hooks = [
+                SetWinEventHook(
+                    EVENT_SYSTEM_FOREGROUND,
+                    EVENT_SYSTEM_FOREGROUND,
+                    None,
+                    Some(on_event),
+                    0,
+                    0,
+                    flags,
+                ),
+                SetWinEventHook(
+                    EVENT_OBJECT_CREATE,
+                    EVENT_OBJECT_HIDE,
+                    None,
+                    Some(on_event),
+                    0,
+                    0,
+                    flags,
+                ),
+                SetWinEventHook(
+                    EVENT_OBJECT_NAMECHANGE,
+                    EVENT_OBJECT_NAMECHANGE,
+                    None,
+                    Some(on_event),
+                    0,
+                    0,
+                    flags,
+                ),
+                SetWinEventHook(
+                    EVENT_OBJECT_CLOAKED,
+                    EVENT_OBJECT_UNCLOAKED,
+                    None,
+                    Some(on_event),
+                    0,
+                    0,
+                    flags,
+                ),
+                SetWinEventHook(
+                    EVENT_SYSTEM_MINIMIZESTART,
+                    EVENT_SYSTEM_MINIMIZEEND,
+                    None,
+                    Some(on_event),
+                    0,
+                    0,
+                    flags,
+                ),
+            ];
+
+            let mut message = MSG::default();
+
+            while GetMessageW(&mut message, None, 0, 0).as_bool() {
+                let _ = DispatchMessageW(&message);
+            }
+        });
+    }
+
     pub fn activate(raw: isize) {
         let hwnd = HWND(raw as _);
 
@@ -224,6 +332,8 @@ mod win {
     pub fn activate(_hwnd: isize) {}
 
     pub fn close(_hwnd: isize) {}
+
+    pub fn watch(_app: tauri::AppHandle) {}
 }
 
 #[cfg(all(test, target_os = "windows"))]

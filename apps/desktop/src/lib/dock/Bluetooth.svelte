@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import type { MenuBox } from "./layout.svelte"
   import { t } from "svelte-i18n"
   import { openUrl } from "$lib/native/system"
   import { bluetoothDevices, type RadioState, radios, setRadio } from "$lib/native/quick"
@@ -8,14 +9,13 @@
 
   type Props = {
     edge?: DockEdge
-    onmenu?: (height: number) => void
+    onmenu?: (rect: MenuBox | null) => void
     onvisible?: (visible: boolean) => void
   }
 
   let { edge = "bottom", onmenu, onvisible }: Props = $props()
 
   const POLL = 15_000
-  const POPOVER_GAP = 16
 
   let radio = $state<RadioState | null>(null)
   let devices = $state<string[]>([])
@@ -59,13 +59,13 @@
     if (next) {
       refresh()
     } else {
-      onmenu?.(0)
+      onmenu?.(null)
     }
   }
 
   $effect(() => {
     if (open && popover) {
-      onmenu?.(popover.offsetHeight + POPOVER_GAP)
+      onmenu?.(popover.getBoundingClientRect())
     }
   })
 

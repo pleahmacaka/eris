@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import type { MenuBox } from "./layout.svelte"
   import { t } from "svelte-i18n"
   import { type NetworkInfo, openUrl } from "$lib/native/system"
   import { type RadioState, radios, setRadio } from "$lib/native/quick"
@@ -8,13 +9,11 @@
   type Props = {
     network: NetworkInfo | null
     edge?: DockEdge
-    onmenu?: (height: number) => void
+    onmenu?: (rect: MenuBox | null) => void
     onrefresh?: () => void
   }
 
   let { network, edge = "bottom", onmenu, onrefresh }: Props = $props()
-
-  const POPOVER_GAP = 16
   const SETTLE = 1_500
 
   let open = $state(false)
@@ -40,13 +39,13 @@
     if (next) {
       readRadio()
     } else {
-      onmenu?.(0)
+      onmenu?.(null)
     }
   }
 
   $effect(() => {
     if (open && popover) {
-      onmenu?.(popover.offsetHeight + POPOVER_GAP)
+      onmenu?.(popover.getBoundingClientRect())
     }
   })
 

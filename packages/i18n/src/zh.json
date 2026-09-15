@@ -229,7 +229,11 @@
       "chatHover": "悬停显示",
       "chatMultiBubble": "多气泡",
       "chatBubbleColors": "气泡颜色",
-      "chatQueueMode": "排队消息"
+      "chatQueueMode": "排队消息",
+      "hideAnimation": "隐藏动画",
+      "topBar": "顶部信息栏",
+      "panelPosition": "面板位置",
+      "holidayRegion": "节假日地区"
     },
     "hints": {
       "deviceName": "显示在同步设备列表中",
@@ -326,7 +330,11 @@
       "chatHover": "光标停留在气泡上时显示的内容",
       "chatMultiBubble": "气泡边缘的加号按钮可打开另一个会话",
       "chatBubbleColors": "每个气泡各有一种外圈颜色",
-      "chatQueueMode": "回复期间输入的消息何时发送"
+      "chatQueueMode": "回复期间输入的消息何时发送",
+      "hideAnimation": "程序坞隐藏时滑出而不是立即消失",
+      "topBar": "将时钟、托盘和小组件分离到顶部独立栏",
+      "panelPosition": "日历和通知面板打开的位置",
+      "holidayRegion": "显示节假日的国家/地区。系统跟随 Windows"
     },
     "options": {
       "win": "Win 键",
@@ -475,6 +483,10 @@
         "mac": {
           "label": "Mac",
           "hint": "居中浮动的程序坞"
+        },
+        "uchiwa": {
+          "label": "团扇",
+          "hint": "扇形展开、可旋转切换的程序坞"
         }
       },
       "styleAria": "程序坞样式",
@@ -876,7 +888,8 @@
       "accent": "强调",
       "success": "成功",
       "warning": "警告",
-      "error": "错误"
+      "error": "错误",
+      "info": "信息"
     },
     "calendar": {
       "month": "月",
@@ -913,7 +926,9 @@
         "weekly": "每周",
         "monthly": "每月",
         "yearly": "每年"
-      }
+      },
+      "detail": "日程详情",
+      "noNotes": "无备注"
     },
     "ics": {
       "options": "日历选项",
@@ -970,6 +985,19 @@
       "windowsCenter": "Windows 通知中心",
       "toggle": "显示通知",
       "back": "返回待办"
+    },
+    "day": {
+      "title": "{date}的日程",
+      "count": "{count, plural, other {# 个日程}}",
+      "empty": "无日程",
+      "add": "添加日程"
+    },
+    "detail": {
+      "date": "日期",
+      "time": "时间"
+    },
+    "header": {
+      "today": "今天 {date}"
     }
   },
   "files": {

@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import type { MenuBox } from "./layout.svelte"
   import { t } from "svelte-i18n"
   import { type Meters, runCommand, systemMeters } from "$lib/native/system"
   import type { DockEdge } from "@eris/settings"
@@ -10,7 +11,7 @@
     showNetwork: boolean
     compact?: boolean
     edge?: DockEdge
-    onmenu?: (height: number) => void
+    onmenu?: (rect: MenuBox | null) => void
   }
 
   let {
@@ -39,7 +40,6 @@
   })
 
   const DOUBLE_CLICK = 250
-  const POPOVER_GAP = 16
 
   let detail = $state(false)
   let popover = $state<HTMLElement>()
@@ -53,13 +53,13 @@
     detail = next
 
     if (!next) {
-      onmenu?.(0)
+      onmenu?.(null)
     }
   }
 
   $effect(() => {
     if (detail && popover) {
-      onmenu?.(popover.offsetHeight + POPOVER_GAP)
+      onmenu?.(popover.getBoundingClientRect())
     }
   })
 
@@ -125,7 +125,7 @@
       <div class="relative">
         <button
           type="button"
-          class="flex items-center gap-1 rounded-field px-1.5 py-1 text-xs tabular-nums text-base-content/80 transition-colors duration-150 hover:bg-base-content/10"
+          class="flex items-center gap-1 rounded-field px-1.5 py-1 text-xs tabular-nums text-base-content/80 transition-colors duration-100 hover:bg-base-content/10"
           title={detail ? undefined : usageLabel}
           aria-haspopup="dialog"
           aria-expanded={detail}

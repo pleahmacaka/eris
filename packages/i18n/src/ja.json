@@ -229,7 +229,11 @@
       "chatHover": "ホバー時",
       "chatMultiBubble": "複数のバブル",
       "chatBubbleColors": "バブルの色",
-      "chatQueueMode": "送信予約"
+      "chatQueueMode": "送信予約",
+      "hideAnimation": "非表示アニメーション",
+      "topBar": "上部情報バー",
+      "panelPosition": "パネル位置",
+      "holidayRegion": "祝日の地域"
     },
     "hints": {
       "deviceName": "同期のデバイス一覧に表示されます。",
@@ -326,7 +330,11 @@
       "chatHover": "ポインターを乗せたときにバブルに表示する内容です。",
       "chatMultiBubble": "バブルの端のプラスボタンで別のセッションを開けます。",
       "chatBubbleColors": "バブルごとに異なるリングの色が付きます。",
-      "chatQueueMode": "返信中に入力したメッセージを送信するタイミングです。"
+      "chatQueueMode": "返信中に入力したメッセージを送信するタイミングです。",
+      "hideAnimation": "ドックが隠れるとき即座ではなくスライドして消えます",
+      "topBar": "時計・トレイ・ウィジェットを上部の別バーに分離します",
+      "panelPosition": "カレンダーと通知パネルが開く位置です",
+      "holidayRegion": "祝日を表示する国です。システムは Windows に従います"
     },
     "options": {
       "win": "Win キー",
@@ -475,6 +483,10 @@
         "mac": {
           "label": "Mac",
           "hint": "中央に浮かぶドック"
+        },
+        "uchiwa": {
+          "label": "うちわ",
+          "hint": "扇形に広がり回転できるドック"
         }
       },
       "styleAria": "ドックのスタイル",
@@ -876,7 +888,8 @@
       "accent": "アクセント",
       "success": "成功",
       "warning": "警告",
-      "error": "エラー"
+      "error": "エラー",
+      "info": "情報"
     },
     "calendar": {
       "month": "月",
@@ -913,7 +926,9 @@
         "weekly": "毎週",
         "monthly": "毎月",
         "yearly": "毎年"
-      }
+      },
+      "detail": "予定の詳細",
+      "noNotes": "メモなし"
     },
     "ics": {
       "options": "カレンダーのオプション",
@@ -970,6 +985,19 @@
       "windowsCenter": "Windows の通知センター",
       "toggle": "通知を表示",
       "back": "タスクに戻る"
+    },
+    "day": {
+      "title": "{date}の予定",
+      "count": "{count, plural, other {#件の予定}}",
+      "empty": "予定なし",
+      "add": "予定を追加"
+    },
+    "detail": {
+      "date": "日付",
+      "time": "時刻"
+    },
+    "header": {
+      "today": "今日 {date}"
     }
   },
   "files": {

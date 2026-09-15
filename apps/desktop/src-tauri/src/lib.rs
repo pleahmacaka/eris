@@ -95,7 +95,8 @@ fn open(app: &AppHandle) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    #[allow(unused_mut)]
+    let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _, _| {
             if LAUNCHER_ON.load(Ordering::Relaxed) {
                 windowing::show(app, "main");
@@ -113,7 +114,14 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .invoke_handler(commands::handler())
+        .invoke_handler(commands::handler());
+
+    #[cfg(debug_assertions)]
+    {
+        builder = builder.plugin(tauri_plugin_mcp_bridge::init());
+    }
+
+    builder
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
@@ -131,10 +139,18 @@ pub fn run() {
             notify::host(handle.clone());
             winkey::install(handle.clone());
             clipboard::watch(handle.clone());
+            desktop::watch(handle.clone());
+            usage::watch(handle.clone());
 
-            let _ = set_launcher_shortcut(handle.clone(), Some("Alt+Space".into()));
+            let features = stored_features(&handle);
 
-            let _ = set_chat_shortcut(handle.clone(), Some("Ctrl+Space".into()));
+            if features.launcher {
+                let _ = set_launcher_shortcut(handle.clone(), Some("Alt+Space".into()));
+            }
+
+            if features.chat {
+                let _ = set_chat_shortcut(handle.clone(), Some("Ctrl+Space".into()));
+            }
 
             if let Some(main) = app.get_webview_window("main") {
                 main.on_window_event({

@@ -2,7 +2,6 @@
   import * as native from "$lib/native"
   import Icon from "@iconify/svelte"
   import { tick } from "svelte"
-  import { listen } from "@tauri-apps/api/event"
   import { saveProfileSynced } from "$lib/data"
   import { ensureDevice } from "$lib/device"
   import { onWindowShown, showWindow } from "$lib/native/windows"
@@ -67,6 +66,17 @@
   const message = (error: unknown) =>
     error instanceof Error ? error.message : String(error)
 
+  const takeIntent = () => {
+    native
+      .takeIntent("settings")
+      .then(intent => {
+        if (intent && sections.some(s => s.id === intent)) {
+          section = intent as SectionId
+        }
+      })
+      .catch(() => undefined)
+  }
+
   const persistDevice = async () => {
     const snapshot = $state.snapshot(device)
 
@@ -107,15 +117,13 @@
           profile = value
         }
       }),
-      listen<string>("settings-section", e => {
-        if (sections.some(s => s.id === e.payload)) {
-          section = e.payload as SectionId
-        }
-      }),
       onWindowShown("settings", () => {
         query = ""
+        takeIntent()
       }),
     ]
+
+    takeIntent()
 
     return () => {
       for (const stop of stops) {
@@ -276,7 +284,7 @@
 
 <style>
   :global(.row-flash) {
-    animation: -global-row-flash 1.4s ease-out;
+    animation: -global-row-flash 0.4s ease-out;
   }
 
   @keyframes -global-row-flash {

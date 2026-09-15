@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import type { MenuBox } from "./layout.svelte"
   import { t } from "svelte-i18n"
   import * as native from "$lib/native"
   import type { DockEdge } from "@eris/settings"
@@ -7,14 +8,13 @@
   type Props = {
     volume: native.Volume
     edge?: DockEdge
-    onmenu?: (height: number) => void
+    onmenu?: (rect: MenuBox | null) => void
     onchange: (volume: native.Volume) => void
   }
 
   let { volume, edge = "bottom", onmenu, onchange }: Props = $props()
 
   const STEP = 0.05
-  const POPOVER_GAP = 16
 
   let open = $state(false)
   let popover = $state<HTMLElement>()
@@ -31,13 +31,13 @@
     if (next) {
       loadDevices()
     } else {
-      onmenu?.(0)
+      onmenu?.(null)
     }
   }
 
   $effect(() => {
     if (open && popover) {
-      onmenu?.(popover.offsetHeight + POPOVER_GAP)
+      onmenu?.(popover.getBoundingClientRect())
     }
   })
 
@@ -177,7 +177,7 @@
                 <button
                   type="button"
                   class={[
-                    "flex w-full items-center gap-2 rounded-field px-2 py-1.5 text-left text-xs transition-colors duration-150",
+                    "flex w-full items-center gap-2 rounded-field px-2 py-1.5 text-left text-xs transition-colors duration-100",
                     device.default
                       ? "bg-primary/15 text-primary"
                       : "hover:bg-base-content/10",

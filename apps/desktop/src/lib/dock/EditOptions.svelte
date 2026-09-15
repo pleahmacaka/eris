@@ -27,16 +27,17 @@
   const device = $derived(layout.device)
 
   const styleOptions = $derived<{ value: DockStyle; label: string }[]>(
-    (["windows", "mac"] as DockStyle[]).map(value => ({
+    (["windows", "mac", "uchiwa"] as DockStyle[]).map(value => ({
       value,
       label: $t(`settings.dock.styles.${value}.label`),
     })),
   )
 
   const alignOptions = $derived<{ value: DockAlign; label: string }[]>(
-    (["start", "center", "uchiwa"] as DockAlign[])
-      .filter(value => !layout.mac || value !== "start")
-      .map(value => ({ value, label: $t(`settings.dock.${value}`) })),
+    (["start", "center"] as DockAlign[]).map(value => ({
+      value,
+      label: $t(`settings.dock.${value}`),
+    })),
   )
 
   const clockOptions = $derived<{ value: ClockAlign; label: string }[]>([
@@ -99,22 +100,30 @@
     <Segmented value={device.dockStyle} options={styleOptions} onchange={v => layout.patch("dockStyle", v)} />
   </div>
 
-  <div class="flex items-center justify-between gap-3 py-1 text-xs">
-    <span>{$t("settings.rows.alignment")}</span>
+  {#if !layout.uchiwa}
+    <div class="flex items-center justify-between gap-3 py-1 text-xs">
+      <span>{$t("settings.rows.alignment")}</span>
 
-    <Segmented value={device.dockAlign} options={alignOptions} onchange={v => layout.patch("dockAlign", v)} />
-  </div>
+      <Segmented value={device.dockAlign} options={alignOptions} onchange={v => layout.patch("dockAlign", v)} />
+    </div>
+  {/if}
 
   {@render rangeRow("dockIconSize", $t("settings.rows.iconSize"), 16, 32, 2)}
   {@render rangeRow("dockHeight", $t("settings.rows.height"), 32, 88, 2)}
 
-  {#if layout.mac}
+  {#if layout.mac || layout.uchiwa}
     {@render rangeRow("dockWidth", $t("settings.rows.width"), 320, 1400, 20)}
+  {/if}
+
+  {#if layout.mac}
     {@render toggleRow("dockDesktop", $t("settings.rows.pinDesktop"))}
   {/if}
 
   {@render toggleRow("showRunningApps", $t("settings.rows.showRunningApps"))}
-  {@render toggleRow("dockSeparators", $t("settings.rows.dockSeparators"))}
+
+  {#if !layout.uchiwa}
+    {@render toggleRow("dockSeparators", $t("settings.rows.dockSeparators"))}
+  {/if}
   {@render toggleRow("dockAutoHide", $t("settings.rows.autoHide"))}
   {@render toggleRow("hideSystemTaskbar", $t("settings.rows.hideTaskbar"))}
 {:else if kind === "tray"}

@@ -130,14 +130,40 @@ fn stamp() -> String {
     format!("{seconds}")
 }
 
+fn chain_encode(command: &str) -> String {
+    use base64::Engine;
+
+    format!(
+        "b64:{}",
+        base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(command)
+    )
+}
+
+fn chain_decode(token: &str) -> Option<String> {
+    use base64::Engine;
+
+    base64::engine::general_purpose::URL_SAFE_NO_PAD
+        .decode(token)
+        .ok()
+        .and_then(|bytes| String::from_utf8(bytes).ok())
+}
+
+// quoted installs are the legacy form; the encoded form survives any command text
 fn chain_argument(command: &str) -> Option<String> {
     let marker = "--chain ";
     let start = command.find(marker)? + marker.len();
     let rest = command[start..].trim_start();
-    let quoted = rest.strip_prefix('"')?;
-    let end = quoted.find('"')?;
 
-    Some(quoted[..end].to_owned())
+    if let Some(quoted) = rest.strip_prefix('"') {
+        let end = quoted.find('"')?;
+
+        return Some(quoted[..end].to_owned());
+    }
+
+    rest.split_whitespace()
+        .next()
+        .and_then(|token| token.strip_prefix("b64:"))
+        .and_then(chain_decode)
 }
 
 pub fn bridge(chain: Option<String>) {
@@ -149,11 +175,21 @@ pub fn bridge(chain: Option<String>) {
     if let (Ok(parsed), Some(target)) = (serde_json::from_str::<Value>(&payload), snapshot_path()) {
         if let Some(snapshot) = snapshot_of(&parsed) {
             let _ = target.parent().map(std::fs::create_dir_all);
-            let _ = std::fs::write(&target, snapshot.to_string());
+            let temp = target.with_extension("tmp");
+
+            if std::fs::write(&temp, snapshot.to_string()).is_ok() {
+                let _ = std::fs::rename(&temp, &target);
+            }
         }
     }
 
-    let Some(chain) = chain.filter(|command| !command.trim().is_empty()) else {
+    let Some(chain) = chain
+        .map(|token| match token.strip_prefix("b64:") {
+            Some(encoded) => chain_decode(encoded).unwrap_or_default(),
+            None => token,
+        })
+        .filter(|command| !command.trim().is_empty())
+    else {
         return;
     };
 
@@ -278,7 +314,7 @@ pub fn install_usage_bridge(enable: bool) -> Result<(), String> {
         let mut command = format!("\"{}\" --usage-bridge", exe.display());
 
         if !current.is_empty() {
-            command.push_str(&format!(" --chain \"{current}\""));
+            command.push_str(&format!(" --chain {}", chain_encode(&current)));
         }
 
         root["statusLine"] = serde_json::json!({ "type": "command", "command": command });
@@ -302,6 +338,40 @@ pub fn claude_usage(path: Option<String>) -> Option<ClaudeUsage> {
 
         parse(&text, file.to_string_lossy().into_owned())
     })
+}
+
+// the bridge writes from a separate process, so push updates instead of waiting on the poll
+pub fn watch(app: tauri::AppHandle) {
+    use tauri::Emitter;
+
+    std::thread::spawn(move || {
+        let mut stamps: Vec<u64> = Vec::new();
+
+        loop {
+            std::thread::sleep(std::time::Duration::from_secs(2));
+
+            let files = candidates(None);
+
+            if stamps.len() != files.len() {
+                stamps = vec![0; files.len()];
+            }
+
+            for (index, file) in files.iter().enumerate() {
+                let stamp = std::fs::metadata(file)
+                    .and_then(|meta| meta.modified())
+                    .ok()
+                    .and_then(|at| at.duration_since(std::time::UNIX_EPOCH).ok())
+                    .map(|span| span.as_millis() as u64)
+                    .unwrap_or(0);
+
+                if stamp != stamps[index] {
+                    stamps[index] = stamp;
+
+                    let _ = app.emit("claude-usage", ());
+                }
+            }
+        }
+    });
 }
 
 #[cfg(test)]

@@ -12,8 +12,10 @@ export type WindowEntry = {
 export type WindowLabel =
   | "main"
   | "taskbar"
+  | "topbar"
   | "settings"
   | "panel"
+  | "notices"
   | "onboarding"
   | "chat"
   | "files"
@@ -37,6 +39,12 @@ export const previewHide = () => invoke<void>("preview_hide")
 export const showWindow = (label: WindowLabel) =>
   invoke<void>("show_window", { label })
 
+export const openWithIntent = (label: WindowLabel, intent: string) =>
+  invoke<void>("open_with_intent", { label, intent })
+
+export const takeIntent = (label: WindowLabel) =>
+  invoke<string | null>("take_intent", { label })
+
 export const hideWindow = (label: WindowLabel) =>
   invoke<void>("hide_window", { label })
 
@@ -49,6 +57,16 @@ export const onWindowShown = (label: WindowLabel, handler: () => void) =>
       handler()
     }
   })
+
+export const onWindowHiding = (label: WindowLabel, handler: () => void) =>
+  listen<WindowLabel>("window-hiding", event => {
+    if (event.payload === label) {
+      handler()
+    }
+  })
+
+export const onWindowsChanged = (handler: () => void) =>
+  listen("windows-changed", () => handler())
 
 export type MonitorInfo = {
   id: string

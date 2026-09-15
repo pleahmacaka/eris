@@ -151,6 +151,18 @@
 
   :root[data-surface="dock"] .siri-shell {
     overflow: visible;
+    transition:
+      transform 120ms ease-out,
+      opacity 100ms ease-out;
+  }
+
+  :root[data-surface="dock"][data-dock-hiding] .siri-shell {
+    transform: translateY(calc(var(--dock-height) + 20px));
+    opacity: 0;
+  }
+
+  :root[data-surface="dock"][data-dock-hiding][data-edge="top"] .siri-shell {
+    transform: translateY(calc(-1 * (var(--dock-height) + 20px)));
   }
 
   :root[data-surface="dock"] .siri-aura {
@@ -268,7 +280,7 @@
       oklch(0% 0 0 / 0.85) 82%,
       transparent 100%
     );
-    animation: siri-breathe 11s steps(330) infinite alternate;
+    animation: none;
   }
 
   .siri-grain {
@@ -287,7 +299,7 @@
       radial-gradient(120% 90% at 50% -20%, var(--veil-sheen), transparent 60%),
       radial-gradient(100% 80% at 50% 120%, var(--veil-shade), transparent 65%);
     mask-image: radial-gradient(78% 70% at 50% 50%, black 55%, transparent 100%);
-    animation: siri-sheen 14s steps(420) infinite alternate;
+    animation: none;
   }
 
   .prose-chat {
@@ -332,32 +344,4 @@
     background: transparent;
   }
 
-  @keyframes siri-breathe {
-    from {
-      transform: scale(1);
-      opacity: 0.92;
-    }
-    to {
-      transform: scale(1.05);
-      opacity: 1;
-    }
-  }
-
-  @keyframes siri-sheen {
-    from {
-      opacity: 0.7;
-      transform: translate3d(-2%, -1%, 0);
-    }
-    to {
-      opacity: 1;
-      transform: translate3d(2%, 1%, 0);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .siri-aura,
-    .siri-veil {
-      animation-duration: 40s;
-    }
-  }
 }

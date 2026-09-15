@@ -1,6 +1,10 @@
-import { loadDevice, saveDevice } from "@eris/settings"
+import { updateDevice } from "@eris/settings"
 import { type AppEntry, appIcon, listApps, pinnedApps } from "$lib/native/apps"
-import { listWindows, type WindowEntry } from "$lib/native/windows"
+import {
+  listWindows,
+  onWindowsChanged,
+  type WindowEntry,
+} from "$lib/native/windows"
 
 export type DockPin = "windows" | "device" | null
 
@@ -13,6 +17,7 @@ export type DockGroup = {
 }
 
 const WINDOWS_POLL = 1_500
+const PIN_POLL = 4_000
 
 const icons = new Map<string, Promise<string | null>>()
 
@@ -51,23 +56,21 @@ export const resolvePins = (paths: string[], apps: AppEntry[]): AppEntry[] => {
   )
 }
 
-export const toggleDockHidden = async (path: string) => {
-  const device = await loadDevice()
-  const hiddenApps = device.hiddenApps.includes(path)
-    ? device.hiddenApps.filter(p => p !== path)
-    : [...device.hiddenApps, path]
+export const toggleDockHidden = (path: string) =>
+  updateDevice(device => ({
+    ...device,
+    hiddenApps: device.hiddenApps.includes(path)
+      ? device.hiddenApps.filter(p => p !== path)
+      : [...device.hiddenApps, path],
+  }))
 
-  await saveDevice({ ...device, hiddenApps })
-}
-
-export const toggleDockPin = async (path: string) => {
-  const device = await loadDevice()
-  const pinnedApps = device.pinnedApps.includes(path)
-    ? device.pinnedApps.filter(p => p !== path)
-    : [...device.pinnedApps, path]
-
-  await saveDevice({ ...device, pinnedApps })
-}
+export const toggleDockPin = (path: string) =>
+  updateDevice(device => ({
+    ...device,
+    pinnedApps: device.pinnedApps.includes(path)
+      ? device.pinnedApps.filter(p => p !== path)
+      : [...device.pinnedApps, path],
+  }))
 
 export const groupWindows = (
   pinned: AppEntry[],
@@ -155,11 +158,14 @@ export const refreshDock = async () => {
 export const startDock = () => {
   const refresh = refreshDock
 
-  pinnedApps()
-    .then(list => {
-      dock.pinned = list
-    })
-    .catch(() => undefined)
+  const refreshPins = () =>
+    pinnedApps()
+      .then(list => {
+        dock.pinned = list
+      })
+      .catch(() => undefined)
+
+  refreshPins()
   listApps()
     .then(list => {
       dock.apps = list
@@ -168,6 +174,12 @@ export const startDock = () => {
   refresh()
 
   const timer = setInterval(refresh, WINDOWS_POLL)
+  const pinTimer = setInterval(refreshPins, PIN_POLL)
+  const stop = onWindowsChanged(() => void refresh())
 
-  return () => clearInterval(timer)
+  return () => {
+    clearInterval(timer)
+    clearInterval(pinTimer)
+    stop.then(off => off()).catch(() => undefined)
+  }
 }

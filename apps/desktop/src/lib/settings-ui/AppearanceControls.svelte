@@ -339,7 +339,7 @@
       oklch(70% 0.15 360)
     );
     outline: none;
-    transition: opacity 150ms;
+    transition: opacity 120ms;
   }
 
   .hue:disabled {

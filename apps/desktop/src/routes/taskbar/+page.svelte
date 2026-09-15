@@ -19,6 +19,7 @@
   import { startAutoSync } from "$lib/sync"
 
   const HIDE_DELAY = 1_200
+  const HIDE_SLIDE = 120
   const VISIBILITY_POLL = 2_000
   const REOPEN_GUARD = 400
 
@@ -44,7 +45,14 @@
   )
 
   $effect(() => {
-    native.extendTaskbar(Math.max(layout.menuHeight, layout.lift)).catch(() => undefined)
+    const box = layout.menuBox
+
+    native
+      .extendTaskbar(
+        layout.lift,
+        box ? [box.left, box.top, box.right, box.bottom] : null,
+      )
+      .catch(() => undefined)
   })
 
   const refreshVisibility = async () => {
@@ -115,14 +123,14 @@
         if (layout.dockHidden) {
           hovered = false
           edgeHover = false
-          layout.menuHeight = 0
+          layout.clearClaims()
         } else {
           untrack(layout.applyLayout)
         }
       }),
       native.onDockFullscreen(fullscreen => {
         if (fullscreen) {
-          layout.menuHeight = 0
+          layout.clearClaims()
         }
       }),
     ]
@@ -214,22 +222,53 @@
       hovered ||
       edgeHover ||
       held ||
-      layout.menuHeight > 0
+      layout.menuBox !== null
     ) {
       layout.collapsed = false
+
+      if (layout.hiding) {
+        const frames = requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            layout.hiding = false
+          }),
+        )
+
+        return () => cancelAnimationFrame(frames)
+      }
 
       return
     }
 
+    let slide: ReturnType<typeof setTimeout> | undefined
     const timer = setTimeout(() => {
-      layout.collapsed = true
+      if (!device.dockHideAnimation) {
+        layout.collapsed = true
+
+        return
+      }
+
+      layout.hiding = true
+      slide = setTimeout(() => {
+        layout.collapsed = true
+      }, HIDE_SLIDE)
     }, HIDE_DELAY)
 
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      clearTimeout(slide)
+    }
   })
 
   $effect(() => {
     dockAwake.visible = !layout.dockHidden && !pageHidden
+  })
+
+  $effect(() => {
+    if (layout.hiding) {
+      document.documentElement.dataset.dockHiding = "true"
+    } else {
+      delete document.documentElement.dataset.dockHiding
+    }
   })
 
   $effect(() =>

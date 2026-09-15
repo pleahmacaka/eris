@@ -22,6 +22,10 @@
 
   let overflowOpen = $state(false)
 
+  const spotClaim = $derived(layout.claimFor("spot-apps"))
+  const itemsClaim = $derived(layout.claimFor("items"))
+  const overflowClaim = $derived(layout.claimFor("overflow"))
+
   const device = $derived(layout.device)
 
   const foreground = $derived(dock.windows[0]?.hwnd)
@@ -38,7 +42,7 @@
   )
 </script>
 
-<EditSpot id="apps" label={$t("edit.spots.apps")} placement={layout.spotPlacement} onmenu={layout.extend}>
+<EditSpot id="apps" label={$t("edit.spots.apps")} placement={layout.spotPlacement} onmenu={spotClaim}>
   {#snippet options()}
     <EditOptions {layout} kind="apps" />
   {/snippet}
@@ -52,7 +56,7 @@
     onpointerleave={() => (layout.pointerX = null)}
   >
     {#each list as group, index (group.key)}
-      <div animate:flip={{ duration: 180 }} class="flex">
+      <div animate:flip={{ duration: 120 }} class="flex">
         <DockItem
           {group}
           size={device.dockIconSize}
@@ -75,7 +79,7 @@
             layout.dragPath = null
             layout.dropPath = null
           }}
-          onmenu={layout.extend}
+          onmenu={itemsClaim}
         />
       </div>
     {/each}
@@ -91,7 +95,10 @@
           aria-expanded={overflowOpen}
           onclick={() => {
             overflowOpen = !overflowOpen
-            layout.extend(overflowOpen ? Math.min(9, layout.spilled.length) * 40 + 40 : 0)
+
+            if (!overflowOpen) {
+              overflowClaim(null)
+            }
           }}
         >
           <Icon icon="lucide:ellipsis" class="size-5 text-base-content/70" />
@@ -102,7 +109,8 @@
           items={overflowItems}
           placement={device.dockEdge === "top" ? "down" : "up"}
           label={$t("dock.moreApps")}
-          onclose={() => layout.extend(0)}
+          onsize={rect => overflowClaim(rect)}
+          onclose={() => overflowClaim(null)}
         />
       </div>
     {/if}
