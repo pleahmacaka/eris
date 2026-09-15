@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.2.1](https://github.com/pleahmacaka/eris/compare/0.2.0...0.2.1) (2026-09-15)
+
+
+### Features
+
+* **dock:** add top bar, uchiwa style, and notice window ([9aba87c](https://github.com/pleahmacaka/eris/commit/9aba87c736b2b0d8a05ef246609102dac1d1386a))
+* **panel:** rebuild the calendar around a month grid ([c062038](https://github.com/pleahmacaka/eris/commit/c062038d2a54a19844a9650d271c82ae7101f7a7))
+
+
+### Bug Fixes
+
+* harden http timeouts, menus, and parsing edges ([eebb29d](https://github.com/pleahmacaka/eris/commit/eebb29dc42c6d1c58ed15d848d78a87cbe655bbb))
+* **usage:** run the statusline chain hidden and in bash ([6565232](https://github.com/pleahmacaka/eris/commit/65652327f424914a50914412ad31e45a8f62a666))
+* **usage:** run the statusline chain hidden and in bash ([854727d](https://github.com/pleahmacaka/eris/commit/854727d5deacf466f210955790938b4b5da238a5))
+
 ## [0.2.0](https://github.com/pleahmacaka/eris/compare/0.1.3...0.2.0) (2026-09-09)
 
 
