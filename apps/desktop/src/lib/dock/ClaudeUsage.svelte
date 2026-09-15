@@ -3,7 +3,11 @@
   import { t } from "svelte-i18n"
   import { claudeIcon } from "$lib/claude"
   import { http } from "$lib/http"
-  import { type ClaudeUsage, claudeUsage } from "$lib/native/usage"
+  import {
+    type ClaudeUsage,
+    claudeUsage,
+    onClaudeUsage,
+  } from "$lib/native/usage"
 
   type Props = {
     source?: string
@@ -16,28 +20,35 @@
   const POLL = 60_000
 
   let usage = $state<ClaudeUsage | null>(null)
+  let seq = 0
 
   const remote = $derived(source.trim().startsWith("http"))
 
   const refresh = async () => {
-    if (remote) {
-      usage = await http
-        .get<ClaudeUsage>(source.trim())
-        .then(response => response.data)
-        .catch(() => null)
+    const ticket = ++seq
 
-      return
+    const next = remote
+      ? await http
+          .get<ClaudeUsage>(source.trim())
+          .then(response => response.data)
+          .catch(() => null)
+      : await claudeUsage(source.trim() || null).catch(() => null)
+
+    if (ticket === seq) {
+      usage = next
     }
-
-    usage = await claudeUsage(source.trim() || null).catch(() => null)
   }
 
   $effect(() => {
     refresh()
 
     const timer = setInterval(refresh, POLL)
+    const stop = onClaudeUsage(() => void refresh())
 
-    return () => clearInterval(timer)
+    return () => {
+      clearInterval(timer)
+      stop.then(off => off()).catch(() => undefined)
+    }
   })
 
   const percent = (value: number) => Math.max(0, Math.min(100, Math.round(value)))

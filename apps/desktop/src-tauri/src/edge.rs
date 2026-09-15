@@ -6,6 +6,7 @@ pub fn watch(app: AppHandle) {
 
 #[cfg(target_os = "windows")]
 mod win {
+    use std::sync::atomic::Ordering;
     use std::time::{Duration, Instant};
 
     use serde_json::json;
@@ -55,6 +56,15 @@ mod win {
 
         loop {
             std::thread::sleep(TICK);
+
+            if !crate::features::DOCK_ON.load(Ordering::Relaxed) {
+                at_edge = false;
+                fullscreen = false;
+                revealed = false;
+                lifted = false;
+                left_band = None;
+                continue;
+            }
 
             let screen = screen();
             let cursor = cursor();
@@ -256,8 +266,14 @@ mod win {
     }
 
     fn set_visible(app: &AppHandle, dock: HWND, visible: bool) {
+        let topbar = crate::appbar::topbar_on(app);
+
         if visible {
             crate::windowing::webview_visible(app, "taskbar", true);
+
+            if topbar {
+                crate::windowing::webview_visible(app, "topbar", true);
+            }
         }
 
         unsafe {
@@ -274,10 +290,30 @@ mod win {
             } else {
                 let _ = ShowWindow(dock, SW_HIDE);
             }
+
+            if let Some(top) = app
+                .get_webview_window("topbar")
+                .and_then(|window| window.hwnd().ok())
+            {
+                if visible && topbar {
+                    let _ = SetWindowPos(
+                        top,
+                        Some(HWND_TOPMOST),
+                        0,
+                        0,
+                        0,
+                        0,
+                        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW,
+                    );
+                } else {
+                    let _ = ShowWindow(top, SW_HIDE);
+                }
+            }
         }
 
         if !visible {
             crate::windowing::webview_visible(app, "taskbar", false);
+            crate::windowing::webview_visible(app, "topbar", false);
         }
 
         let _ = app.emit("dock-visible", json!({ "visible": visible }));

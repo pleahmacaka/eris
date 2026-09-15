@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import type { MenuBox } from "./layout.svelte"
   import { t } from "svelte-i18n"
   import * as native from "$lib/native"
   import { type MediaAction, mediaCommand, type MediaStatus, mediaStatus } from "$lib/native/media"
@@ -11,7 +12,7 @@
     edge?: DockEdge
     spectrum?: boolean
     spectrumStyle?: SpectrumStyle
-    onmenu?: (height: number) => void
+    onmenu?: (rect: MenuBox | null) => void
   }
 
   let {
@@ -24,7 +25,6 @@
 
   const POLL = 3_000
   const SETTLE = 1_000
-  const POPOVER_GAP = 16
   const STEP = 0.05
 
   let status = $state<MediaStatus | null>(null)
@@ -100,13 +100,13 @@
     if (next) {
       readVolume()
     } else {
-      onmenu?.(0)
+      onmenu?.(null)
     }
   }
 
   $effect(() => {
     if (open && popover) {
-      onmenu?.(popover.offsetHeight + POPOVER_GAP)
+      onmenu?.(popover.getBoundingClientRect())
     }
   })
 
@@ -168,7 +168,7 @@
     <div
       bind:clientWidth={stripWidth}
       class={[
-        "relative isolate flex items-center gap-0.5 overflow-hidden rounded-field border border-base-content/10 px-0.5 transition-colors duration-150",
+        "relative isolate flex items-center gap-0.5 overflow-hidden rounded-field border border-base-content/10 px-0.5 transition-colors duration-100",
         open ? "bg-base-content/10" : "bg-base-content/5 hover:bg-base-content/10",
       ]}
       role="group"

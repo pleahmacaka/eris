@@ -1,20 +1,38 @@
-use std::sync::Mutex;
+use std::collections::HashMap;
+use std::sync::{LazyLock, Mutex};
 use std::time::{Duration, Instant};
 
 use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, Webview, WebviewWindow};
+use tauri_plugin_store::StoreExt;
 
 use crate::{appbar, chat_window, desktop};
 
 const BLUR_TOGGLE_GUARD: Duration = Duration::from_millis(250);
 const SHOW_SETTLE: Duration = Duration::from_millis(400);
-const LAZY: [&str; 5] = ["settings", "files", "onboarding", "panel", "edit"];
+const FADE_OUT: Duration = Duration::from_millis(140);
+const LAZY: [&str; 4] = ["settings", "files", "onboarding", "edit"];
 
 static BLUR_HIDDEN_AT: Mutex<Option<Instant>> = Mutex::new(None);
-static SHOWN_AT: Mutex<Option<Instant>> = Mutex::new(None);
+static FADES: LazyLock<Mutex<HashMap<String, u64>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+
+// an emit can land before a lazy window's page exists, so open requests carry a pull-based intent instead
+static PENDING_INTENT: LazyLock<Mutex<HashMap<String, String>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
 
 #[tauri::command]
 pub fn show_window(app: AppHandle, label: String) {
     show(&app, &label);
+}
+
+#[tauri::command]
+pub fn open_with_intent(app: AppHandle, label: String, intent: String) {
+    PENDING_INTENT.lock().unwrap().insert(label.clone(), intent);
+    show(&app, &label);
+}
+
+#[tauri::command]
+pub fn take_intent(label: String) -> Option<String> {
+    PENDING_INTENT.lock().unwrap().remove(&label)
 }
 
 #[tauri::command]
@@ -46,16 +64,33 @@ pub fn hide(app: &AppHandle, label: &str) {
 }
 
 pub fn hide_on_blur(window: &WebviewWindow) {
-    if settling() || crate::edit::editing() || !window.is_visible().unwrap_or(false) {
+    if !window.is_visible().unwrap_or(false) {
         return;
     }
 
-    conceal(window);
-    *BLUR_HIDDEN_AT.lock().unwrap() = Some(Instant::now());
+    let window = window.clone();
+    let app = window.app_handle().clone();
+
+    std::thread::spawn(move || {
+        // the shell steals focus back for a beat after show, so judge focus only after the settle window
+        std::thread::sleep(SHOW_SETTLE);
+
+        let _ = app.run_on_main_thread(move || {
+            if crate::edit::editing()
+                || window.is_focused().unwrap_or(true)
+                || !window.is_visible().unwrap_or(false)
+            {
+                return;
+            }
+
+            conceal(&window);
+            *BLUR_HIDDEN_AT.lock().unwrap() = Some(Instant::now());
+        });
+    });
 }
 
 // tauri hides only the HWND, so the WebView2 controller keeps rendering until it is hidden as well
-fn set_webview_visible(window: &WebviewWindow, visible: bool) {
+pub(crate) fn set_webview_visible(window: &WebviewWindow, visible: bool) {
     let webview: &Webview = window.as_ref();
 
     let _ = if visible {
@@ -81,14 +116,48 @@ pub fn conceal_hidden(app: &AppHandle) {
 
 // lazy windows are rebuilt from config on the next show, so closing them frees their renderer
 fn conceal(window: &WebviewWindow) {
-    if LAZY.contains(&window.label()) {
-        let _ = window.destroy();
+    let label = window.label().to_string();
+    let app = window.app_handle().clone();
 
-        return;
-    }
+    let _ = app.emit("window-hiding", label.clone());
 
-    let _ = window.hide();
-    set_webview_visible(window, false);
+    let gen = {
+        let mut fades = FADES.lock().unwrap();
+        let gen = fades.get(&label).copied().unwrap_or(0) + 1;
+        fades.insert(label.clone(), gen);
+        gen
+    };
+    let window = window.clone();
+
+    std::thread::spawn(move || {
+        std::thread::sleep(FADE_OUT);
+
+        let proceed = {
+            let mut fades = FADES.lock().unwrap();
+
+            if fades.get(&label) == Some(&gen) {
+                fades.remove(&label);
+                true
+            } else {
+                false
+            }
+        };
+
+        if !proceed {
+            return;
+        }
+
+        let _ = app.run_on_main_thread(move || {
+            if LAZY.contains(&label.as_str()) {
+                let _ = window.destroy();
+            } else {
+                let _ = window.hide();
+                set_webview_visible(&window, false);
+            }
+
+            let _ = window.app_handle().emit("window-hidden", label);
+        });
+    });
 }
 
 pub(crate) fn window_for(app: &AppHandle, label: &str) -> Option<WebviewWindow> {
@@ -115,16 +184,17 @@ pub(crate) fn window_for(app: &AppHandle, label: &str) -> Option<WebviewWindow> 
 }
 
 fn reveal(window: &WebviewWindow) {
+    cancel_fade(window.label());
     set_webview_visible(window, true);
     let _ = window.show();
 }
 
-// the shell steals focus back for a beat after show, so an early blur is not the user leaving
-fn settling() -> bool {
-    SHOWN_AT
-        .lock()
-        .unwrap()
-        .is_some_and(|at| at.elapsed() < SHOW_SETTLE)
+fn cancel_fade(label: &str) {
+    FADES.lock().unwrap().remove(label);
+}
+
+fn fading(label: &str) -> bool {
+    FADES.lock().unwrap().contains_key(label)
 }
 
 pub fn toggle(app: &AppHandle, label: &str) {
@@ -134,7 +204,7 @@ pub fn toggle(app: &AppHandle, label: &str) {
             .and_then(|window| window.is_visible().ok())
             .unwrap_or(false);
 
-        if visible {
+        if visible && !fading(label) {
             hide(app, label);
         } else if !(label == "main" && just_hidden_by_blur()) {
             show(app, label);
@@ -164,7 +234,7 @@ fn show_now(app: &AppHandle, label: &str) {
 
     let _ = match label {
         "main" => center_on_cursor_monitor(&window),
-        "panel" => dock_panel(app, &window),
+        "panel" | "notices" => dock_panel(app, &window),
         "settings" | "onboarding" => window.center(),
         "chat" => chat_window::park_chat(&window),
         _ => Ok(()),
@@ -172,11 +242,7 @@ fn show_now(app: &AppHandle, label: &str) {
 
     reveal(&window);
 
-    if label == "main" {
-        *SHOWN_AT.lock().unwrap() = Some(Instant::now());
-    }
-
-    if !matches!(label, "taskbar" | "chat") {
+    if !matches!(label, "taskbar" | "topbar" | "chat") {
         let _ = window.set_focus();
         desktop::force_foreground(&window);
     }
@@ -212,7 +278,13 @@ fn center_on_cursor_monitor(window: &WebviewWindow) -> tauri::Result<()> {
 
 fn dock_panel(app: &AppHandle, window: &WebviewWindow) -> tauri::Result<()> {
     // the dock window keeps room above its band for menus, so follow the band the appbar reserved
-    let dock = appbar::dock_frame().map(|[left, top, width, height]| {
+    let anchor = if appbar::topbar_on(app) && appbar::bar_frame("topbar").is_some() {
+        "topbar"
+    } else {
+        "taskbar"
+    };
+
+    let dock = appbar::bar_frame(anchor).map(|[left, top, width, height]| {
         (
             PhysicalPosition::new(left, top),
             tauri::PhysicalSize::new(width as u32, height as u32),
@@ -249,17 +321,35 @@ fn dock_panel(app: &AppHandle, window: &WebviewWindow) -> tauri::Result<()> {
     let (width, height) = physical_size_on(window, scale)?;
     let screen_right = monitor.position().x + monitor.size().width as i32;
     let screen_bottom = monitor.position().y + monitor.size().height as i32;
-    let x = screen_right - gap - width;
+
+    let x = match stored_panel_position(app).as_str() {
+        "left" => monitor.position().x + gap,
+        "center" => monitor.position().x + (monitor.size().width as i32 - width) / 2,
+        _ => screen_right - gap - width,
+    };
+
+    let anchor_top = anchor == "topbar" || appbar::edge_is_top();
 
     let y = match dock {
-        Some((position, dock_size)) if appbar::edge_is_top() => {
-            position.y + dock_size.height as i32 + gap
-        }
+        Some((position, dock_size)) if anchor_top => position.y + dock_size.height as i32 + gap,
         Some((position, _)) => position.y - gap - height,
         None => screen_bottom - gap - height,
     };
 
     window.set_position(PhysicalPosition::new(x, y))
+}
+
+fn stored_panel_position(app: &AppHandle) -> String {
+    app.store("settings.json")
+        .ok()
+        .and_then(|store| store.get("device"))
+        .and_then(|device| {
+            device
+                .get("panelPosition")?
+                .as_str()
+                .map(std::string::ToString::to_string)
+        })
+        .unwrap_or_else(|| "right".into())
 }
 
 #[cfg(test)]

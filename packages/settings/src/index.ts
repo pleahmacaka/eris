@@ -4,9 +4,9 @@ import { invoke } from "@tauri-apps/api/core"
 import { emit, listen } from "@tauri-apps/api/event"
 import { load } from "@tauri-apps/plugin-store"
 
-export type DockStyle = "windows" | "mac"
+export type DockStyle = "windows" | "mac" | "uchiwa"
 export type DockEdge = "bottom" | "top"
-export type DockAlign = "start" | "center" | "uchiwa"
+export type DockAlign = "start" | "center"
 export type DockSide = "left" | "right"
 export type ClockAlign = "start" | "center" | "end"
 export type DockBackground = "inherit" | Background
@@ -29,6 +29,20 @@ export type ChatPermission =
 export type ChatTri = "default" | "on" | "off"
 export type ChatHover = "none" | "title" | "preview"
 export type ChatQueueMode = "afterTool" | "afterReply"
+export type TraySlot =
+  | "taskview"
+  | "claude"
+  | "tray"
+  | "media"
+  | "input"
+  | "meters"
+  | "bluetooth"
+  | "battery"
+  | "volume"
+  | "clock"
+  | "bell"
+  | "settings"
+  | "desktop"
 
 export type SyncSettings = {
   enabled: boolean
@@ -50,7 +64,10 @@ export type DeviceSettings = {
   dockWidth: number
   dockIconSize: number
   dockAutoHide: boolean
+  dockHideAnimation: boolean
   dockDesktop: boolean
+  topBar: boolean
+  panelPosition: "left" | "center" | "right"
   dockSeparators: boolean
   clockAlign: ClockAlign
   editMode: boolean
@@ -103,6 +120,7 @@ export type DeviceSettings = {
   dockOrder: string[]
   trayOrder: string[]
   trayHidden: string[]
+  traySlots: TraySlot[]
   sync: SyncSettings
 }
 
@@ -143,6 +161,7 @@ export type Profile = {
     weekStartsOn: 0 | 1
     showWeekNumbers: boolean
     reminderMinutes: number
+    region: string
   }
   todo: {
     showCompleted: boolean
@@ -184,9 +203,10 @@ export const defaultProfile: Profile = {
     webSearch: "google",
   },
   calendar: {
-    weekStartsOn: 1,
+    weekStartsOn: 0,
     showWeekNumbers: false,
     reminderMinutes: 10,
+    region: "system",
   },
   todo: {
     showCompleted: false,
@@ -220,7 +240,10 @@ export const defaultDevice: DeviceSettings = {
   dockWidth: 720,
   dockIconSize: 24,
   dockAutoHide: false,
+  dockHideAnimation: true,
   dockDesktop: false,
+  topBar: false,
+  panelPosition: "right",
   dockSeparators: true,
   clockAlign: "end",
   editMode: true,
@@ -273,6 +296,21 @@ export const defaultDevice: DeviceSettings = {
   dockOrder: [],
   trayOrder: [],
   trayHidden: [],
+  traySlots: [
+    "taskview",
+    "claude",
+    "tray",
+    "media",
+    "input",
+    "meters",
+    "bluetooth",
+    "battery",
+    "volume",
+    "clock",
+    "bell",
+    "settings",
+    "desktop",
+  ],
   sync: defaultSync,
 }
 
@@ -285,10 +323,15 @@ export const PROFILE_EVENT = "profile-changed"
 export const loadDevice = async (): Promise<DeviceSettings> => {
   const store = await load(FILE)
   const saved = await store.get<Partial<DeviceSettings>>(DEVICE_KEY)
+  const migrated =
+    (saved?.dockAlign as string) === "uchiwa"
+      ? { dockStyle: "uchiwa" as DockStyle, dockAlign: "center" as DockAlign }
+      : {}
 
   return {
     ...defaultDevice,
     ...saved,
+    ...migrated,
     features: { ...defaultDevice.features, ...saved?.features },
     sync: {
       ...defaultSync,
@@ -298,12 +341,43 @@ export const loadDevice = async (): Promise<DeviceSettings> => {
   }
 }
 
-export const saveDevice = async (value: DeviceSettings) => {
+// writes serialize so a read-modify-write cannot interleave with another save
+let writing: Promise<unknown> = Promise.resolve()
+
+const writeDevice = async (value: DeviceSettings) => {
   const store = await load(FILE)
 
   await store.set(DEVICE_KEY, value)
   await store.save()
   await emit(DEVICE_EVENT, value)
+}
+
+export const saveDevice = (value: DeviceSettings) => {
+  const next = writing.then(() => writeDevice(value))
+
+  writing = next.then(
+    () => undefined,
+    () => undefined,
+  )
+
+  return next
+}
+
+export const updateDevice = (
+  change: (device: DeviceSettings) => DeviceSettings,
+) => {
+  const next = writing.then(async () => {
+    const device = await loadDevice()
+
+    await writeDevice(change(device))
+  })
+
+  writing = next.then(
+    () => undefined,
+    () => undefined,
+  )
+
+  return next
 }
 
 export const onDevice = (handler: (value: DeviceSettings) => void) =>

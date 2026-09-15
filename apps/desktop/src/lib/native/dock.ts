@@ -13,11 +13,23 @@ export type TaskbarLayout = {
   desktop?: boolean
 }
 
-export const extendTaskbar = (px: number) =>
-  invoke<void>("extend_taskbar", { px })
+export const extendTaskbar = (
+  px: number,
+  rect?: [number, number, number, number] | null,
+) => invoke<void>("extend_taskbar", { px, rect: rect ?? null })
 
 export const applyTaskbar = (layout: TaskbarLayout) =>
   invoke<void>("apply_taskbar", { layout })
+
+export const applyTopbar = (layout: TaskbarLayout) =>
+  invoke<void>("apply_topbar", { layout })
+
+export const extendTopbar = (
+  px: number,
+  rect?: [number, number, number, number] | null,
+) => invoke<void>("extend_topbar", { px, rect: rect ?? null })
+
+export const releaseTopbar = () => invoke<void>("release_topbar")
 
 export const setWinKeyCapture = (enabled: boolean) =>
   invoke<void>("set_win_key_capture", { enabled })

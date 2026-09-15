@@ -5,6 +5,7 @@
 
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import type { MenuBox } from "./layout.svelte"
   import { t } from "svelte-i18n"
   import * as native from "$lib/native"
   import type { DockEdge } from "@eris/settings"
@@ -35,7 +36,8 @@
     ondragover?: (before: boolean) => void
     ondrop?: () => void
     ondragend?: () => void
-    onmenu: (height: number) => void
+    reorder?: boolean
+    onmenu: (rect: MenuBox | null) => void
   }
 
   let {
@@ -54,6 +56,7 @@
     ondragover,
     ondrop,
     ondragend,
+    reorder = true,
     onmenu,
   }: Props = $props()
 
@@ -81,8 +84,6 @@
     ondrop?.()
   }
 
-  const MENU_ROW = 40
-  const MENU_PAD = 40
   const MENU_MAX_ROWS = 9
 
   let open = $state(false)
@@ -111,12 +112,6 @@
 
     return 1 + MAGNIFY_BOOST * Math.exp(-((distance / MAGNIFY_SPREAD) ** 2))
   })
-
-  const menuHeight = $derived(
-    MENU_PAD +
-      MENU_ROW *
-        Math.min(MENU_MAX_ROWS, group.windows.length + (running ? 4 : 3)),
-  )
 
   const launch = () => native.launchApp(group.path).catch(() => undefined)
 
@@ -163,12 +158,7 @@
   $effect(() => dismissPreview)
 
   const setOpen = (next: boolean) => {
-    if (open === next) {
-      return
-    }
-
     open = next
-    onmenu(next ? menuHeight : 0)
   }
 
   const onauxclick = (e: MouseEvent) => {
@@ -213,8 +203,15 @@
         icon: "lucide:plus",
         action: launch,
       },
+      {
+        label: $t("dock.menu.openLocation"),
+        icon: "lucide:folder-open",
+        action: () => native.openLocation(group.path),
+      },
+      pin,
       ...(running
         ? ([
+            "separator",
             {
               label: $t("dock.menu.closeAll"),
               icon: "lucide:x",
@@ -222,12 +219,6 @@
             },
           ] as MenuItem[])
         : []),
-      {
-        label: $t("dock.menu.openLocation"),
-        icon: "lucide:folder-open",
-        action: () => native.openLocation(group.path),
-      },
-      pin,
     ]
   })
 </script>
@@ -237,7 +228,7 @@
 <div
   bind:this={root}
   role="listitem"
-  class={["relative transition-opacity duration-150", dragging && "opacity-30"]}
+  class={["relative transition-opacity duration-100", dragging && "opacity-30"]}
   ondragover={dragOver}
   ondrop={drop}
   {ondragend}
@@ -255,13 +246,13 @@
   {/if}
 
   <button
-    draggable="true"
-    ondragstart={dragStart}
+    draggable={reorder}
+    ondragstart={reorder ? dragStart : undefined}
     class={[
       "relative origin-bottom will-change-transform active:scale-90",
       mac
-        ? "group flex items-center justify-center rounded-field outline-none transition-transform duration-100 focus-visible:ring-2 focus-visible:ring-primary/50"
-        : "btn btn-ghost btn-square transition-transform duration-150",
+        ? "group flex items-center justify-center rounded-field outline-none transition-transform duration-75 focus-visible:ring-2 focus-visible:ring-primary/50"
+        : "btn btn-ghost btn-square transition-transform duration-100",
       !mac && active && "bg-base-content/10",
     ]}
     style:--size="{size + 16}px"
@@ -303,7 +294,7 @@
     {#if running}
       <span
         class={[
-          "absolute left-1/2 h-1 -translate-x-1/2 rounded-full transition-all duration-150",
+          "absolute left-1/2 h-1 -translate-x-1/2 rounded-full transition-all duration-100",
           edge === "top" ? "top-0.5" : "bottom-0.5",
           active ? "w-4 bg-primary" : "w-1.5 bg-base-content/60",
         ]}
@@ -318,6 +309,7 @@
     align={alignEnd ? "end" : "start"}
     label={group.name}
     width={224}
-    onsize={height => onmenu(open ? height : 0)}
+    onsize={rect => onmenu(open ? rect : null)}
+    onclose={() => onmenu(null)}
   />
 </div>

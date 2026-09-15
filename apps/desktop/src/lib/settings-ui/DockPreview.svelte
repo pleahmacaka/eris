@@ -13,13 +13,13 @@
   const SCREEN_HEIGHT = 1080
   const APPS = [0, 1, 2, 3, 4, 5]
 
-  const mac = $derived((style ?? device.dockStyle) === "mac")
+  const dockStyle = $derived(style ?? device.dockStyle)
+  const mac = $derived(dockStyle === "mac")
+  const uchiwa = $derived(dockStyle === "uchiwa")
 
   const top = $derived(device.dockEdge === "top")
 
-  const uchiwa = $derived(device.dockAlign === "uchiwa")
-
-  const start = $derived(!mac && device.dockAlign === "start")
+  const start = $derived(!uchiwa && device.dockAlign === "start")
 
   const heightPct = $derived(
     device.dockAutoHide ? 1.5 : (device.dockHeight / SCREEN_HEIGHT) * 100 * SCALE,
@@ -30,10 +30,25 @@
   )
 
   const widthPct = $derived(
-    mac ? Math.min(92, (device.dockWidth / SCREEN_WIDTH) * 100 * SCALE) : 100,
+    mac || uchiwa
+      ? Math.min(92, (device.dockWidth / SCREEN_WIDTH) * 100 * SCALE)
+      : 100,
   )
 
-  const half = Math.ceil(APPS.length / 2)
+  const FAN_STEP = 18
+  const FAN_MID = (APPS.length - 1) / 2
+
+  const blade = (index: number) => {
+    const deg = (index - FAN_MID) * FAN_STEP
+    const angle = (deg * Math.PI) / 180
+
+    return {
+      deg,
+      x: Math.sin(angle) * 42,
+      y: (1 - Math.cos(angle)) * 55,
+      fade: 1 - Math.abs(deg) / 130,
+    }
+  }
 </script>
 
 {#snippet apps(list: number[])}
@@ -58,26 +73,31 @@
 >
   <div
     class={[
-      "absolute flex items-center border border-base-content/10 bg-base-100/85 transition-all duration-300",
-      mac ? "left-1/2 -translate-x-1/2 rounded-full px-1" : "inset-x-0 px-1",
-      top ? (mac ? "top-1" : "top-0") : mac ? "bottom-1" : "bottom-0",
-      uchiwa ? "grid grid-cols-[1fr_auto_1fr]" : start ? "justify-start" : "justify-center",
+      "absolute flex items-center border border-base-content/10 bg-base-100/85 transition-all duration-100",
+      mac || uchiwa ? "left-1/2 -translate-x-1/2 rounded-full px-1" : "inset-x-0 px-1",
+      top ? (mac || uchiwa ? "top-1" : "top-0") : mac || uchiwa ? "bottom-1" : "bottom-0",
+      start ? "justify-start" : "justify-center",
     ]}
     style:height="{heightPct}%"
     style:width="{widthPct}%"
   >
     {#if !device.dockAutoHide}
       {#if uchiwa}
-        <span class="flex h-full items-center justify-end gap-1">
-          {@render apps(APPS.slice(0, half))}
-        </span>
-
-        <span class="mx-2 flex h-full items-center">
+        <span class="flex h-full items-center">
           {@render launcher()}
         </span>
 
-        <span class="flex h-full items-center justify-start gap-1">
-          {@render apps(APPS.slice(half))}
+        <span class="relative mx-3 h-full w-2/5">
+          {#each APPS as app (app)}
+            {@const pose = blade(app)}
+
+            <span
+              class="absolute bottom-0 left-1/2 aspect-square rounded-full bg-primary/70"
+              style:height="{iconPct}%"
+              style:transform="translate(-50%, 0) translate({pose.x}px, {-pose.y}px) rotate({pose.deg}deg)"
+              style:opacity={pose.fade}
+            ></span>
+          {/each}
         </span>
       {:else}
         <span class="flex h-full items-center gap-0.5">
@@ -91,7 +111,7 @@
 
       <span
         class="absolute right-1 h-2/5 rounded-full bg-base-content/25"
-        style:width="{mac ? 10 : 7}%"
+        style:width="{mac || uchiwa ? 10 : 7}%"
       ></span>
     {/if}
   </div>

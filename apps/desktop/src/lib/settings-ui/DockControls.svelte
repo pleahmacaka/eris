@@ -12,12 +12,11 @@
     subset = false,
   }: { device: DeviceSettings; subset?: boolean } = $props()
 
-  const styles: DockStyle[] = ["windows", "mac"]
+  const styles: DockStyle[] = ["windows", "mac", "uchiwa"]
 
   const ALIGNMENTS: { value: DockAlign; icon: string }[] = [
     { value: "start", icon: "lucide:align-start-horizontal" },
     { value: "center", icon: "lucide:align-center-horizontal" },
-    { value: "uchiwa", icon: "lucide:fan" },
   ]
 
   type ToggleKey =
@@ -64,6 +63,8 @@
   ]
 
   const mac = $derived(device.dockStyle === "mac")
+  const uchiwa = $derived(device.dockStyle === "uchiwa")
+  const floating = $derived(mac || uchiwa)
 
   const clockAlignments = $derived(
     CLOCK_ALIGNMENTS.map(a => ({
@@ -73,7 +74,7 @@
   )
 
   const alignments = $derived(
-    ALIGNMENTS.filter(a => !mac || a.value !== "start").map(a => ({
+    ALIGNMENTS.map(a => ({
       ...a,
       label: $t(`settings.dock.${a.value}`),
     })),
@@ -138,7 +139,7 @@
     <DockPreview {device} />
   </div>
 
-  <div class="grid grid-cols-2 gap-3" role="radiogroup" aria-label={$t("settings.dock.styleAria")}>
+  <div class="grid grid-cols-3 gap-3" role="radiogroup" aria-label={$t("settings.dock.styleAria")}>
     {#each styles as style (style)}
       {@const active = device.dockStyle === style}
 
@@ -147,7 +148,7 @@
         role="radio"
         aria-checked={active}
         class={[
-          "flex flex-col gap-2 rounded-box border p-3 text-left outline-none transition duration-150 focus-visible:ring-2 focus-visible:ring-primary/50",
+          "flex flex-col gap-2 rounded-box border p-3 text-left outline-none transition duration-100 focus-visible:ring-2 focus-visible:ring-primary/50",
           active
             ? "border-primary/60 bg-primary/10 ring-1 ring-primary/40"
             : "border-base-content/10 bg-base-100/40 hover:bg-base-content/5",
@@ -168,7 +169,7 @@
                 <span class="size-1.5 rounded-sm bg-base-100/80"></span>
               {/each}
             </div>
-          {:else}
+          {:else if style === "mac"}
             <div
               class={[
                 "absolute left-1/2 flex h-3.5 w-1/2 -translate-x-1/2 items-center justify-center gap-1 rounded-full bg-base-content/25",
@@ -177,6 +178,22 @@
             >
               {#each [0, 1, 2, 3] as dot (dot)}
                 <span class="size-1.5 rounded-full bg-base-100/80"></span>
+              {/each}
+            </div>
+          {:else}
+            <div
+              class={[
+                "absolute left-1/2 flex h-5 w-3/4 -translate-x-1/2 items-end justify-center rounded-full bg-base-content/25",
+                device.dockEdge === "top" ? "top-1" : "bottom-1",
+              ]}
+            >
+              {#each [-2, -1, 0, 1, 2] as slot (slot)}
+                <span
+                  class="absolute bottom-1 left-1/2 size-1.5 rounded-full bg-base-100/80"
+                  style:transform="translateX(-50%) rotate({slot * 22}deg) translateY(-0.55rem)"
+                  style:transform-origin="50% 0.55rem"
+                  style:bottom="-0.4rem"
+                ></span>
               {/each}
             </div>
           {/if}
@@ -237,17 +254,6 @@
 {/if}
 
 {#if !subset}
-  <Row label={$t("settings.rows.claudeUsageSide")} hint={$t("settings.hints.claudeUsageSide")}>
-    <Segmented
-      label={$t("settings.rows.claudeUsageSide")}
-      bind:value={device.claudeUsageSide}
-      options={[
-        { value: "left", label: $t("settings.dock.left"), icon: "lucide:align-start-horizontal" },
-        { value: "right", label: $t("settings.dock.right"), icon: "lucide:align-end-horizontal" },
-      ]}
-    />
-  </Row>
-
   <Row label={$t("settings.rows.claudeBridge")} hint={$t("settings.hints.claudeBridge")}>
     <button
       class={["btn btn-sm", bridged ? "btn-ghost" : "btn-primary"]}
@@ -258,14 +264,16 @@
     </button>
   </Row>
 
-  <Row label={$t("settings.rows.usageSnapshot")} hint={$t("settings.hints.usageSnapshot")} stacked>
-    <input
-      class="input input-sm w-full"
-      type="text"
-      placeholder="~/.claude/eris-usage.json"
-      bind:value={device.claudeUsageSource}
-    />
-  </Row>
+  {#if !bridged}
+    <Row label={$t("settings.rows.usageSnapshot")} hint={$t("settings.hints.usageSnapshot")} stacked>
+      <input
+        class="input input-sm w-full"
+        type="text"
+        placeholder="~/.claude/eris-usage.json"
+        bind:value={device.claudeUsageSource}
+      />
+    </Row>
+  {/if}
 {/if}
 
 {#if !subset}
@@ -281,7 +289,7 @@
   </Row>
 {/if}
 
-{#if !subset}
+{#if !subset && !uchiwa}
   <Row label={$t("settings.rows.alignment")} hint={$t("settings.hints.alignment")}>
     <Segmented label={$t("settings.rows.alignment")} bind:value={device.dockAlign} options={alignments} />
   </Row>
@@ -300,7 +308,7 @@
     />
   </Row>
 
-  {#if mac}
+  {#if floating}
     <Row label={$t("settings.rows.width")} value="{device.dockWidth} px" stacked>
       <input
         type="range"
@@ -347,6 +355,17 @@
   />
 </Row>
 
+{#if device.dockAutoHide}
+  <Row label={$t("settings.rows.hideAnimation")} hint={$t("settings.hints.hideAnimation")}>
+    <input
+      type="checkbox"
+      class="toggle toggle-primary"
+      aria-label={$t("settings.rows.hideAnimation")}
+      bind:checked={device.dockHideAnimation}
+    />
+  </Row>
+{/if}
+
 <Row label={$t("settings.rows.hideTaskbar")} hint={$t("settings.hints.hideTaskbar")}>
   <input
     type="checkbox"
@@ -357,6 +376,27 @@
 </Row>
 
 {#if !subset}
+  <Row label={$t("settings.rows.topBar")} hint={$t("settings.hints.topBar")}>
+    <input
+      type="checkbox"
+      class="toggle toggle-primary"
+      aria-label={$t("settings.rows.topBar")}
+      bind:checked={device.topBar}
+    />
+  </Row>
+
+  <Row label={$t("settings.rows.panelPosition")} hint={$t("settings.hints.panelPosition")}>
+    <Segmented
+      label={$t("settings.rows.panelPosition")}
+      bind:value={device.panelPosition}
+      options={[
+        { value: "left", label: $t("settings.dock.alignStart"), icon: "lucide:align-left" },
+        { value: "center", label: $t("settings.dock.alignCenter"), icon: "lucide:align-center-horizontal" },
+        { value: "right", label: $t("settings.dock.alignEnd"), icon: "lucide:align-right" },
+      ]}
+    />
+  </Row>
+
   <Row label={$t("settings.rows.clockAlign")} hint={$t("settings.hints.clockAlign")}>
     <Segmented
       label={$t("settings.rows.clockAlign")}

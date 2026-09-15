@@ -125,7 +125,7 @@
     <button
       type="button"
       class={[
-        "btn btn-sm gap-1 transition-colors duration-150",
+        "btn btn-sm gap-1 transition-colors duration-100",
         recording ? "btn-primary" : "btn-soft",
       ]}
       aria-label={recording ? $t("settings.hotkey.recording") : $t("settings.hotkey.change")}

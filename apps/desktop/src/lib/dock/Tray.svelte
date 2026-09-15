@@ -1,11 +1,18 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import type { MenuBox } from "./layout.svelte"
   import { listen } from "@tauri-apps/api/event"
   import { exit } from "@tauri-apps/plugin-process"
+  import { flip } from "svelte/animate"
   import { t } from "svelte-i18n"
   import { currentLocale } from "@eris/i18n"
   import * as native from "$lib/native"
-  import { type DeviceSettings, saveDevice } from "@eris/settings"
+  import {
+    type DeviceSettings,
+    type TraySlot,
+    defaultDevice,
+    updateDevice,
+  } from "@eris/settings"
   import { syncStatus } from "$lib/sync"
   import { ContextMenu } from "@eris/ui"
   import type { MenuItem } from "@eris/ui"
@@ -23,16 +30,16 @@
     device: DeviceSettings
     panelOpen: boolean
     onclock: () => void
-    onmenu?: (height: number) => void
+    onmenu?: (rect: MenuBox | null) => void
+    edge?: "top" | "bottom"
+    compact?: boolean
   }
 
-  let { device, panelOpen, onclock, onmenu }: Props = $props()
+  let { device, panelOpen, onclock, onmenu, edge: edgeProp, compact: compactProp }: Props = $props()
 
   const INFO_POLL = 5_000
-  const MENU_HEIGHT = 284
   const MENU_GRACE = 600
-  const SHEET_GAP = 16
-  const MENU_GAP = 24
+  const SLOT_DATA = "application/x-eris-tray-slot"
 
   const MENU = $derived<MenuItem[]>([
     {
@@ -103,7 +110,9 @@
     | "battery"
     | "volume"
 
-  const compact = $derived(device.dockHeight < 40)
+  const compact = $derived(compactProp ?? device.dockHeight < 40)
+
+  const edge = $derived(edgeProp ?? device.dockEdge)
 
   const mac = $derived(device.dockStyle === "mac")
 
@@ -111,12 +120,7 @@
   let menuRoot = $state<HTMLElement>()
 
   const setMenu = (next: boolean) => {
-    if (menuOpen === next) {
-      return
-    }
-
     menuOpen = next
-    onmenu?.(next ? MENU_HEIGHT : 0)
   }
 
   let bellMenu = $state(false)
@@ -182,7 +186,10 @@
 
   const widgets = $derived(
     [
-      device.showClaudeUsage && device.claudeUsageSide === "right" && "claude",
+      device.features.chat &&
+        device.showClaudeUsage &&
+        device.claudeUsageSide === "right" &&
+        "claude",
       device.showTrayIcons && "tray",
       device.showMedia && device.mediaSide === "right" && "media",
       device.showInputLanguage && "input",
@@ -193,50 +200,78 @@
     ].filter((w): w is Widget => typeof w === "string"),
   )
 
-  let sheetOpen = $state(false)
-  let sheetHeight = $state(0)
-  let blank = $state<Partial<Record<Widget, boolean>>>({})
+  const slots = $derived.by(() => {
+    const enabled = new Set<TraySlot>(
+      [
+        device.showTaskView && "taskview",
+        ...widgets,
+        "clock",
+        device.showNotifications && "bell",
+        device.showSettingsButton && "settings",
+        device.showDesktopButton && "desktop",
+      ].filter((id): id is TraySlot => typeof id === "string"),
+    )
 
-  const extendSheet = (inner = 0) => {
-    if (sheetOpen) {
-      onmenu?.(sheetHeight + SHEET_GAP + inner)
+    const seen = new Set<TraySlot>()
+    const list: TraySlot[] = []
+
+    for (const id of [...device.traySlots, ...defaultDevice.traySlots]) {
+      if (enabled.has(id) && !seen.has(id)) {
+        seen.add(id)
+        list.push(id)
+      }
     }
+
+    return list
+  })
+
+  let blank = $state<Partial<Record<TraySlot, boolean>>>({})
+  let menuClaimed = $state(false)
+
+  const claim = (rect: MenuBox | null) => {
+    menuClaimed = rect !== null
+    onmenu?.(rect)
   }
 
-  const setSheet = (next: boolean) => {
-    if (sheetOpen === next) {
+  let dragId = $state<TraySlot | null>(null)
+  let dropId = $state<TraySlot | null>(null)
+  let dropBefore = $state(true)
+
+  const dragOver = (e: DragEvent, id: TraySlot) => {
+    if (!e.dataTransfer?.types.includes(SLOT_DATA)) {
       return
     }
 
-    sheetOpen = next
+    e.preventDefault()
 
-    if (!next) {
-      onmenu?.(0)
-    }
+    const box = (e.currentTarget as HTMLElement).getBoundingClientRect()
+
+    dropId = id
+    dropBefore = e.clientX < box.left + box.width / 2
   }
 
-  $effect(() => {
-    if (sheetOpen && sheetHeight > 0) {
-      extendSheet()
-    }
-  })
+  const drop = (e: DragEvent) => {
+    e.preventDefault()
 
-  const chevron = $derived(
-    (device.dockEdge === "bottom") !== sheetOpen
-      ? "lucide:chevron-up"
-      : "lucide:chevron-down",
-  )
+    const from = dragId
+    const onto = dropId
+    const before = dropBefore
 
-  const onwindowdown = (e: MouseEvent) => {
-    if (sheetOpen && !(e.target as Element).closest("[data-widgets]")) {
-      setSheet(false)
-    }
-  }
+    dragId = null
+    dropId = null
 
-  const onwindowkey = (e: KeyboardEvent) => {
-    if (sheetOpen && e.key === "Escape") {
-      setSheet(false)
+    if (!from || !onto || from === onto) {
+      return
     }
+
+    updateDevice(d => {
+      const ids = d.traySlots.filter(id => id !== from)
+      const at = ids.indexOf(onto)
+
+      ids.splice(at < 0 ? ids.length : before ? at : at + 1, 0, from)
+
+      return { ...d, traySlots: ids }
+    })
   }
 
   const batteryIcon = $derived.by(() => {
@@ -321,53 +356,48 @@
 
 <svelte:document onmouseleave={closeSoon} onmouseenter={cancelClose} />
 
-<svelte:window onmousedown={onwindowdown} onkeydown={onwindowkey} />
-
-{#snippet widget(name: Widget, nested: boolean)}
-  {@const menu = nested ? extendSheet : onmenu}
-
+{#snippet widget(name: Widget)}
   {#if name === "claude"}
     <ClaudeUsage
       source={device.claudeUsageSource}
-      compact={compact && !nested}
+      compact={compact}
       stacked={device.claudeUsageStacked}
     />
   {:else if name === "tray"}
     <NotifyIcons
-      compact={compact && !nested}
-      flat={nested}
-      onmenu={menu}
-      edge={device.dockEdge}
+      compact={compact}
+      onmenu={claim}
+      edge={edge}
       order={device.trayOrder}
       hidden={device.trayHidden}
-      onreorder={order => saveDevice({ ...device, trayOrder: order })}
-      onhide={hidden => saveDevice({ ...device, trayHidden: hidden })}
+      onreorder={order => updateDevice(d => ({ ...d, trayOrder: order }))}
+      onhide={hidden => updateDevice(d => ({ ...d, trayHidden: hidden }))}
     />
   {:else if name === "media"}
     <Media
-      compact={compact && !nested}
-      edge={device.dockEdge}
+      compact={compact}
+      edge={edge}
       spectrum={device.showSpectrum}
       spectrumStyle={device.spectrumStyle}
-      onmenu={menu}
+      onmenu={claim}
     />
   {:else if name === "input"}
     <InputLanguage
-      compact={compact && !nested}
+      compact={compact}
       onvisible={visible => (blank.input = !visible)}
     />
   {:else if name === "meters"}
     <Meters
       showMeters={device.showMeters}
       showNetwork={device.showNetwork}
-      compact={compact && !nested}
-      edge={device.dockEdge}
-      onmenu={menu}
+      compact={compact}
+      edge={edge}
+      onmenu={claim}
     />
   {:else if name === "bluetooth"}
     <Bluetooth
-      edge={device.dockEdge}
-      onmenu={menu}
+      edge={edge}
+      onmenu={claim}
       onvisible={visible => (blank.bluetooth = !visible)}
     />
   {:else if name === "battery" && info.battery}
@@ -382,15 +412,15 @@
   {:else if name === "volume" && info.volume}
     <VolumeControl
       volume={info.volume}
-      edge={device.dockEdge}
-      onmenu={menu}
+      edge={edge}
+      onmenu={claim}
       onchange={next => (info.volume = next)}
     />
   {/if}
 {/snippet}
 
-<div class="flex items-center gap-0.5">
-  {#if device.showTaskView}
+{#snippet slot(id: TraySlot)}
+  {#if id === "taskview"}
     <button
       class="btn btn-ghost btn-square btn-sm"
       title={$t("tray.taskView")}
@@ -399,32 +429,24 @@
     >
       <Icon icon="lucide:layout-grid" class="size-4 text-base-content/70" />
     </button>
-  {/if}
+  {:else if id === "clock"}
+    {#if device.sync.enabled}
+      <span
+        class={["mx-1 inline-block size-1.5 rounded-full", syncTone]}
+        title={syncTitle}
+        aria-label={syncTitle}
+        role="status"
+      ></span>
+    {/if}
 
-  {#if !mac}
-    {#each widgets as name (name)}
-      {@render widget(name, false)}
-    {/each}
-  {/if}
-
-  {#if device.sync.enabled}
-    <span
-      class={["mx-1 inline-block size-1.5 rounded-full", syncTone]}
-      title={syncTitle}
-      aria-label={syncTitle}
-      role="status"
-    ></span>
-  {/if}
-
-  <Clock
-    clock24h={device.clock24h}
-    showSeconds={device.showSeconds}
-    align={device.clockAlign}
-    active={panelOpen}
-    onclick={onclock}
-  />
-
-  {#if device.showNotifications}
+    <Clock
+      clock24h={device.clock24h}
+      showSeconds={device.showSeconds}
+      align={device.clockAlign}
+      active={panelOpen}
+      onclick={onclock}
+    />
+  {:else if id === "bell"}
     <div class="relative">
       <button
         class="btn btn-ghost btn-square btn-sm"
@@ -453,17 +475,15 @@
       <ContextMenu
         bind:open={bellMenu}
         items={BELL_MENU}
-        placement={device.dockEdge === "top" ? "down" : "up"}
+        placement={edge === "top" ? "down" : "up"}
         align="end"
         width={208}
         label={$t("tray.notifications.title")}
-        onsize={height => onmenu?.(height + MENU_GAP)}
-        onclose={() => onmenu?.(0)}
+        onsize={rect => claim(rect)}
+        onclose={() => claim(null)}
       />
     </div>
-  {/if}
-
-  {#if device.showSettingsButton}
+  {:else if id === "settings"}
     <div bind:this={menuRoot} class="relative">
       <button
         class="btn btn-ghost btn-square btn-sm"
@@ -483,68 +503,68 @@
       <ContextMenu
         bind:open={menuOpen}
         items={MENU}
-        placement={device.dockEdge === "top" ? "down" : "up"}
+        placement={edge === "top" ? "down" : "up"}
         align="end"
         width={192}
         label={$t("tray.menu.title")}
-        onclose={() => onmenu?.(0)}
+        onsize={rect => claim(rect)}
+        onclose={() => claim(null)}
       />
     </div>
-  {/if}
-
-  {#if mac && widgets.length > 0}
-    <div class="relative" data-widgets>
-      <button
-        class="btn btn-ghost btn-square btn-sm"
-        title={$t("tray.widgets.title")}
-        aria-label={$t("tray.widgets.open")}
-        aria-haspopup="dialog"
-        aria-expanded={sheetOpen}
-        onclick={() => setSheet(!sheetOpen)}
-      >
-        <Icon icon={chevron} class="size-4 text-base-content/70" />
-      </button>
-
-      {#if sheetOpen}
-        <div
-          bind:offsetHeight={sheetHeight}
-          class={[
-            "absolute right-0 z-50 w-80 rounded-box border border-base-content/10 bg-base-100/90 p-2 shadow-xl backdrop-blur-xl",
-            device.dockEdge === "top" ? "top-full mt-2" : "bottom-full mb-2",
-          ]}
-          role="dialog"
-          aria-label={$t("tray.widgets.title")}
-        >
-          <ul class="divide-y divide-base-content/10">
-            {#each widgets as name (name)}
-              <li
-                class={[
-                  "flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-1 px-2 py-1",
-                  blank[name] && "hidden",
-                ]}
-              >
-                <span class="text-xs text-base-content/60">{$t(`tray.widgets.${name}`)}</span>
-
-                <div class="flex min-w-0 flex-wrap items-center justify-end">
-                  {@render widget(name, true)}
-                </div>
-              </li>
-            {/each}
-          </ul>
-        </div>
-      {/if}
-    </div>
-  {/if}
-
-  {#if device.showDesktopButton}
+  {:else if id === "desktop"}
     <button
       class={[
-        "ml-1 w-1.5 shrink-0 border-l border-base-content/10 transition-colors duration-150 hover:bg-base-content/20",
+        "ml-1 w-1.5 shrink-0 border-l border-base-content/10 transition-colors duration-100 hover:bg-base-content/20",
         mac ? "h-6 rounded-r-full" : "h-(--dock-height)",
       ]}
       title={$t("tray.showDesktop")}
       aria-label={$t("tray.showDesktop")}
       onclick={() => quick("desktop")}
     ></button>
+  {:else}
+    {@render widget(id)}
   {/if}
+{/snippet}
+
+<div class="flex items-center gap-0.5" role="list">
+  {#each slots as id (id)}
+    <div
+      animate:flip={{ duration: 120 }}
+      role="listitem"
+      class={[
+        "relative flex items-center transition-opacity duration-100",
+        dragId === id && "opacity-30",
+        blank[id] && "hidden",
+      ]}
+      draggable={!menuClaimed}
+      ondragstart={e => {
+        if (e.target !== e.currentTarget) {
+          return
+        }
+
+        e.dataTransfer?.setData(SLOT_DATA, id)
+        dragId = id
+      }}
+      ondragover={e => dragOver(e, id)}
+      ondrop={drop}
+      ondragend={() => {
+        dragId = null
+        dropId = null
+      }}
+    >
+      {#if dropId === id && dropBefore}
+        <span
+          class="pointer-events-none absolute inset-y-1 -left-0.5 w-0.5 rounded-full bg-primary"
+        ></span>
+      {/if}
+
+      {#if dropId === id && !dropBefore}
+        <span
+          class="pointer-events-none absolute inset-y-1 -right-0.5 w-0.5 rounded-full bg-primary"
+        ></span>
+      {/if}
+
+      {@render slot(id)}
+    </div>
+  {/each}
 </div>

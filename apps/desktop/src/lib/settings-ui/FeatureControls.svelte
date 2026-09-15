@@ -44,7 +44,7 @@
         role="radio"
         aria-checked={active}
         class={[
-          "flex items-start gap-3 rounded-box border p-3 text-left outline-none transition duration-150 focus-visible:ring-2 focus-visible:ring-primary/50",
+          "flex items-start gap-3 rounded-box border p-3 text-left outline-none transition duration-100 focus-visible:ring-2 focus-visible:ring-primary/50",
           active
             ? "border-primary/60 bg-primary/10 ring-1 ring-primary/40"
             : "border-base-content/10 bg-base-100/40 hover:bg-base-content/5",

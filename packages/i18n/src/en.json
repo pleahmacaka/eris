@@ -229,7 +229,11 @@
       "chatHover": "On hover",
       "chatMultiBubble": "Multiple bubbles",
       "chatBubbleColors": "Bubble colors",
-      "chatQueueMode": "Queued messages"
+      "chatQueueMode": "Queued messages",
+      "hideAnimation": "Hide animation",
+      "topBar": "Top info bar",
+      "panelPosition": "Panel position",
+      "holidayRegion": "Holiday region"
     },
     "hints": {
       "deviceName": "Shown in the sync device list",
@@ -326,7 +330,11 @@
       "chatHover": "What a bubble shows while the pointer rests on it",
       "chatMultiBubble": "A plus button on a bubble's edge opens another session",
       "chatBubbleColors": "Each bubble gets its own ring color",
-      "chatQueueMode": "When a message typed during a reply gets delivered"
+      "chatQueueMode": "When a message typed during a reply gets delivered",
+      "hideAnimation": "Slide the dock out when it hides instead of snapping",
+      "topBar": "Move clock, tray, and widgets to a separate bar on top",
+      "panelPosition": "Where calendar and notification panels open",
+      "holidayRegion": "Country used for public holidays; System follows Windows"
     },
     "options": {
       "win": "Win key",
@@ -475,6 +483,10 @@
         "mac": {
           "label": "Mac",
           "hint": "Floating centered dock"
+        },
+        "uchiwa": {
+          "label": "Uchiwa",
+          "hint": "Fan of icons that spins like a magazine"
         }
       },
       "styleAria": "Dock style",
@@ -876,7 +888,8 @@
       "accent": "Accent",
       "success": "Success",
       "warning": "Warning",
-      "error": "Error"
+      "error": "Error",
+      "info": "Info"
     },
     "calendar": {
       "month": "Month",
@@ -913,7 +926,9 @@
         "weekly": "Weekly",
         "monthly": "Monthly",
         "yearly": "Yearly"
-      }
+      },
+      "detail": "Event details",
+      "noNotes": "No notes"
     },
     "ics": {
       "options": "Calendar options",
@@ -970,6 +985,19 @@
       "windowsCenter": "Windows notification center",
       "toggle": "Show notifications",
       "back": "Back to todos"
+    },
+    "day": {
+      "title": "Events on {date}",
+      "count": "{count, plural, one {# event} other {# events}}",
+      "empty": "No events",
+      "add": "Add event"
+    },
+    "detail": {
+      "date": "Date",
+      "time": "Time"
+    },
+    "header": {
+      "today": "Today {date}"
     }
   },
   "files": {

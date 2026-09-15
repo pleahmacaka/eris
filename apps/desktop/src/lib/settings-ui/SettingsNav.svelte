@@ -51,7 +51,7 @@
         <button
           type="button"
           class={[
-            "rounded-field transition-colors duration-150",
+            "rounded-field transition-colors duration-100",
             section === s.id && "menu-active",
           ]}
           aria-current={section === s.id ? "page" : undefined}

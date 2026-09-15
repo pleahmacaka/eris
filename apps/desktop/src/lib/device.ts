@@ -1,4 +1,4 @@
-import { type DeviceSettings, loadDevice, saveDevice } from "@eris/settings"
+import { type DeviceSettings, loadDevice, updateDevice } from "@eris/settings"
 import { machineName } from "./native"
 
 const LOCK = "eris-device"
@@ -14,7 +14,7 @@ const fill = async () => {
     return device
   }
 
-  await saveDevice({ ...device, deviceId, deviceName })
+  await updateDevice(current => ({ ...current, deviceId, deviceName }))
 
   return loadDevice()
 }

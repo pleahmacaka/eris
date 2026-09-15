@@ -10,6 +10,7 @@
   import type { DockLayout } from "./layout.svelte"
   import LeadWidgets from "./LeadWidgets.svelte"
   import Tray from "./Tray.svelte"
+  import UchiwaStrip from "./UchiwaStrip.svelte"
 
   type Props = {
     layout: DockLayout
@@ -23,6 +24,11 @@
 
   let barMenu = $state(false)
   let barMenuX = $state(0)
+
+  const barClaim = $derived(layout.claimFor("bar"))
+  const launcherSpot = $derived(layout.claimFor("spot-launcher"))
+  const traySpot = $derived(layout.claimFor("spot-tray"))
+  const trayClaim = $derived(layout.claimFor("tray"))
 
   const barMenuItems = $derived.by((): MenuItem[] => [
     ...(device.editMode
@@ -71,6 +77,23 @@
   }
 </script>
 
+{#snippet launcherButton()}
+  <EditSpot id="launcher" label={$t("edit.spots.launcher")} placement={layout.spotPlacement} onmenu={launcherSpot}>
+    {#snippet options()}
+      <EditOptions {layout} kind="launcher" />
+    {/snippet}
+
+    <button
+      class="btn btn-ghost btn-square btn-sm"
+      title={$t("dock.launcher")}
+      aria-label={$t("dock.openLauncher")}
+      onclick={() => native.toggleWindow("main")}
+    >
+      <Icon icon="lucide:sparkles" class="size-4 text-primary" />
+    </button>
+  </EditSpot>
+{/snippet}
+
 <div
   class={[
     "flex h-full select-none flex-col",
@@ -82,89 +105,72 @@
   {:else}
     <nav
       class={[
-        "shrink-0 items-center gap-1 border-base-content/10",
-        layout.mac ? "rounded-[var(--shell-radius)] border px-3" : "px-2",
-        !layout.mac && (device.dockEdge === "top" ? "border-b" : "border-t"),
-        layout.uchiwa || (!layout.mac && device.dockAlign === "center")
+        "dock-nav shrink-0 items-center gap-1 border-base-content/10",
+        layout.mac || layout.uchiwa
+          ? "rounded-[var(--shell-radius)] border px-3"
+          : "px-2",
+        !layout.mac &&
+          !layout.uchiwa &&
+          (device.dockEdge === "top" ? "border-b" : "border-t"),
+        layout.uchiwa || device.dockAlign === "center"
           ? "grid grid-cols-[1fr_auto_1fr]"
-          : layout.mac
-            ? "flex justify-between"
-            : "grid grid-cols-[auto_1fr_auto]",
+          : "grid grid-cols-[auto_1fr_auto]",
       ]}
       style:height="{device.dockHeight}px"
       aria-label={$t("dock.dockAria")}
       bind:clientWidth={layout.navWidth}
       oncontextmenu={openBarMenu}
     >
-      <div
-        class={[
-          "flex items-center",
-          layout.uchiwa ? "justify-between gap-1" : "justify-self-start",
-        ]}
-      >
-        <div class="flex items-center" bind:clientWidth={layout.leadWidth}>
-          <LeadWidgets {layout} />
-        </div>
-
-        {#if layout.uchiwa}
-          <AppsStrip {layout} list={layout.leftShown} offset={0} tail={false} />
+      <div class="flex items-center justify-self-start gap-1">
+        {#if layout.uchiwa && device.showLauncherButton && device.features.launcher}
+          {@render launcherButton()}
         {/if}
+
+        <div class="flex items-center" bind:clientWidth={layout.leadWidth}>
+          {#if !device.topBar}
+            <LeadWidgets {layout} />
+          {/if}
+        </div>
       </div>
 
       <div
         class={[
           "flex min-w-0 items-center gap-0.5",
-          layout.mac || layout.uchiwa ? "justify-center" : "justify-self-start",
-        ]}
-      >
-        {#if device.showLauncherButton && device.features.launcher}
-          <EditSpot id="launcher" label={$t("edit.spots.launcher")} placement={layout.spotPlacement} onmenu={layout.extend}>
-            {#snippet options()}
-              <EditOptions {layout} kind="launcher" />
-            {/snippet}
-
-            <button
-              class="btn btn-ghost btn-square btn-sm"
-              title={$t("dock.launcher")}
-              aria-label={$t("dock.openLauncher")}
-              onclick={() => native.toggleWindow("main")}
-            >
-              <Icon icon="lucide:sparkles" class="size-4 text-primary" />
-            </button>
-          </EditSpot>
-
-          {#if device.dockSeparators && !layout.uchiwa}
-            <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
-          {/if}
-        {/if}
-
-        {#if !layout.uchiwa}
-          <AppsStrip {layout} list={layout.rightShown} offset={0} tail={true} />
-        {/if}
-      </div>
-
-      <div
-        class={[
-          "flex items-center",
-          layout.uchiwa ? "justify-between gap-1" : "justify-self-end",
+          layout.uchiwa || device.dockAlign === "center"
+            ? "justify-center"
+            : "justify-self-start",
         ]}
       >
         {#if layout.uchiwa}
-          <AppsStrip {layout} list={layout.rightShown} offset={layout.half} tail={true} />
-        {/if}
+          <UchiwaStrip {layout} />
+        {:else}
+          {#if device.showLauncherButton && device.features.launcher}
+            {@render launcherButton()}
 
-        <div class="flex items-center" bind:clientWidth={layout.trailWidth}>
-          {#if device.dockSeparators}
-            <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
+            {#if device.dockSeparators}
+              <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
+            {/if}
           {/if}
 
-          <EditSpot id="tray" label={$t("edit.spots.tray")} placement={layout.spotPlacement} align="end" onmenu={layout.extend}>
-            {#snippet options()}
-              <EditOptions {layout} kind="tray" />
-            {/snippet}
+          <AppsStrip {layout} list={layout.shown} offset={0} tail={true} />
+        {/if}
+      </div>
 
-            <Tray {device} {panelOpen} {onclock} onmenu={layout.extend} />
-          </EditSpot>
+      <div class="flex items-center justify-self-end">
+        <div class="flex items-center" bind:clientWidth={layout.trailWidth}>
+          {#if !device.topBar}
+            {#if device.dockSeparators}
+              <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
+            {/if}
+
+            <EditSpot id="tray" label={$t("edit.spots.tray")} placement={layout.spotPlacement} align="end" onmenu={traySpot}>
+              {#snippet options()}
+                <EditOptions {layout} kind="tray" />
+              {/snippet}
+
+              <Tray {device} {panelOpen} {onclock} onmenu={trayClaim} />
+            </EditSpot>
+          {/if}
         </div>
       </div>
 
@@ -175,8 +181,8 @@
         bottom={device.dockHeight + 8}
         width={224}
         label={$t("dock.dockMenu")}
-        onsize={height => layout.extend(barMenu ? height + 24 : 0)}
-        onclose={() => layout.extend(0)}
+        onsize={rect => barClaim(barMenu ? rect : null)}
+        onclose={() => barClaim(null)}
       />
     </nav>
   {/if}

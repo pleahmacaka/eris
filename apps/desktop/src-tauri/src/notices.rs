@@ -1,10 +1,9 @@
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::Serialize;
-use tauri::AppHandle;
+use tauri::{AppHandle, Emitter};
 
 use crate::windowing;
 
@@ -20,7 +19,6 @@ pub struct Notice {
 
 static DISMISSED: Mutex<Vec<i64>> = Mutex::new(Vec::new());
 static SEEN_AT: Mutex<u64> = Mutex::new(0);
-static PANEL_INTENT: AtomicBool = AtomicBool::new(false);
 
 fn now_ms() -> u64 {
     SystemTime::now()
@@ -50,24 +48,22 @@ pub fn notices_unseen() -> Result<usize, String> {
 }
 
 #[tauri::command]
-pub fn notices_seen() {
+pub fn notices_seen(app: AppHandle) {
     *SEEN_AT.lock().unwrap() = now_ms();
+
+    let _ = app.emit("notices-changed", ());
 }
 
 #[tauri::command]
-pub fn notices_dismiss(ids: Vec<i64>) {
+pub fn notices_dismiss(app: AppHandle, ids: Vec<i64>) {
     DISMISSED.lock().unwrap().extend(ids);
+
+    let _ = app.emit("notices-changed", ());
 }
 
 #[tauri::command]
 pub fn notices_open_panel(app: AppHandle) {
-    PANEL_INTENT.store(true, Ordering::Relaxed);
-    windowing::show(&app, "panel");
-}
-
-#[tauri::command]
-pub fn notices_take_intent() -> bool {
-    PANEL_INTENT.swap(false, Ordering::Relaxed)
+    windowing::show(&app, "notices");
 }
 
 fn database_copy() -> Result<PathBuf, String> {
