@@ -100,11 +100,19 @@
         })
       : ""
 
+  let loadSeq = 0
+
   const load = async (next: string, record = true) => {
+    const seq = ++loadSeq
+
     loading = true
 
     try {
       const listing = await native.listDir(next)
+
+      if (seq !== loadSeq) {
+        return
+      }
 
       entries = listing.entries
       path = listing.path
@@ -119,9 +127,13 @@
         cursor = history.length - 1
       }
     } catch (reason) {
-      error = String(reason)
+      if (seq === loadSeq) {
+        error = String(reason)
+      }
     } finally {
-      loading = false
+      if (seq === loadSeq) {
+        loading = false
+      }
     }
   }
 
@@ -268,6 +280,7 @@
 
   const runSearch = async () => {
     const query = filter.trim()
+    const seq = ++loadSeq
 
     if (!query) {
       deep = null
@@ -276,8 +289,13 @@
     }
 
     loading = true
-    deep = await native.searchDir(path, query).catch(() => [])
-    loading = false
+
+    const found = await native.searchDir(path, query).catch(() => [])
+
+    if (seq === loadSeq) {
+      deep = found
+      loading = false
+    }
   }
 
   const menuItems = $derived.by((): MenuItem[] => {

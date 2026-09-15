@@ -24,7 +24,9 @@ pub fn set_launcher_shortcut(app: AppHandle, shortcut: Option<String>) -> Result
 
     shortcuts
         .on_shortcut(next.as_str(), |app, _, event| {
-            if event.state() == ShortcutState::Pressed {
+            if event.state() == ShortcutState::Pressed
+                && features::LAUNCHER_ON.load(Ordering::Relaxed)
+            {
                 windowing::toggle(app, "main");
             }
         })

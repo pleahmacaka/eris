@@ -20,7 +20,7 @@ import type { Timer } from "./timers"
 
 export const MENU_WIDTH = 208
 
-type MenuAnchor = { index: number; x: number; y: number }
+type MenuAnchor = { id: string; x: number; y: number }
 
 export class Launcher {
   profile = $state<Profile>(defaultProfile)
@@ -103,8 +103,14 @@ export class Launcher {
 
   compact = $derived(this.profile.appearance.density === "compact")
 
+  menuItem = $derived.by(() => {
+    const menu = this.menu
+
+    return menu ? this.flat.find(i => i.id === menu.id) : undefined
+  })
+
   menuItems = $derived.by((): SecondaryAction[] => {
-    const item = this.menu ? this.flat[this.menu.index] : undefined
+    const item = this.menuItem
 
     return item
       ? [
@@ -263,9 +269,15 @@ export class Launcher {
   }
 
   openMenu(index: number, x: number, y: number) {
+    const item = this.flat[index]
+
+    if (!item) {
+      return
+    }
+
     this.cursor = index
     this.menuCursor = 0
-    this.menu = { index, x, y }
+    this.menu = { id: item.id, x, y }
   }
 
   openMenuAtActive() {
@@ -279,7 +291,7 @@ export class Launcher {
   }
 
   runMenu(action: SecondaryAction | undefined) {
-    const item = this.menu ? this.flat[this.menu.index] : undefined
+    const item = this.menuItem
 
     if (item && action) {
       this.perform(item, action.run, action.stay)

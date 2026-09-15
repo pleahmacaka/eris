@@ -24,7 +24,7 @@
     style:height="{chat.sizes.panelHeight}px"
     style:transform-origin={chat.origin}
     style:--bubble={chat.colorOf(current)}
-    transition:scale={{ duration: 220, start: 0.88, easing: cubicOut }}
+    transition:scale={{ duration: 120, start: 0.88, easing: cubicOut }}
     aria-label={chat.titleOf(current)}
   >
     <div

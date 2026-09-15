@@ -10,9 +10,12 @@ export const keydown = (launcher: Launcher, e: KeyboardEvent) => {
       e.preventDefault()
 
       const count = launcher.menuItems.length
-      const step = e.key === "ArrowDown" ? 1 : count - 1
 
-      launcher.menuCursor = (launcher.menuCursor + step) % count
+      if (count) {
+        const step = e.key === "ArrowDown" ? 1 : count - 1
+
+        launcher.menuCursor = (launcher.menuCursor + step) % count
+      }
     } else if (e.key === "Enter") {
       e.preventDefault()
       launcher.runMenu(launcher.menuItems[launcher.menuCursor])

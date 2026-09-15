@@ -30,7 +30,7 @@
 
   <div
     class={[
-      "absolute transition-[left,top] duration-200 ease-out",
+      "absolute transition-[left,top] duration-100 ease-out",
       chat.dragged?.stack === b.stack && "transition-none",
     ]}
     style:left="{p.left}px"
@@ -50,7 +50,7 @@
     <button
       type="button"
       class={[
-        "bubble relative flex size-full cursor-grab items-center justify-center rounded-full border border-base-content/15 bg-base-100 transition-[filter] duration-200 ease-out hover:brightness-110 active:cursor-grabbing",
+        "bubble relative flex size-full cursor-grab items-center justify-center rounded-full border border-base-content/15 bg-base-100 transition-[filter] duration-100 ease-out hover:brightness-110 active:cursor-grabbing",
         `bubble-${mood}`,
         isOpen && "bubble-open",
         chat.dragged?.id === b.id && chat.moved && "brightness-110",
@@ -75,7 +75,7 @@
       <button
         type="button"
         class={[
-          "absolute inset-0 z-40 rounded-full ring-2 ring-primary/70 transition-colors duration-150",
+          "absolute inset-0 z-40 rounded-full ring-2 ring-primary/70 transition-colors duration-100",
           spotOpen ? "bg-primary/25" : "bg-primary/10 hover:bg-primary/20",
         ]}
         aria-label={$t("edit.spots.bubble")}
@@ -198,7 +198,7 @@
 {#if chat.dragging}
   <div
     class={[
-      "absolute flex items-center justify-center rounded-full border transition-[transform,background-color] duration-150",
+      "absolute flex items-center justify-center rounded-full border transition-[transform,background-color] duration-100",
       chat.overTarget
         ? "scale-125 border-error/40 bg-error/80 text-error-content"
         : "border-base-content/10 bg-base-100/80 text-base-content/70",
@@ -207,7 +207,7 @@
     style:top="{chat.targetY - chat.sizes.target / 2}px"
     style:width="{chat.sizes.target}px"
     style:height="{chat.sizes.target}px"
-    transition:scale={{ duration: 160, start: 0.4, easing: cubicOut }}
+    transition:scale={{ duration: 120, start: 0.4, easing: cubicOut }}
     aria-hidden="true"
   >
     <Icon icon="lucide:x" class="size-7" />
@@ -233,7 +233,7 @@
 
   .bubble-unread {
     box-shadow: inset 0 0 0 0.125rem var(--bubble);
-    animation: bubble-nudge 0.6s ease-out 1;
+    animation: bubble-nudge 0.3s ease-out 1;
   }
 
   .bubble-busy {

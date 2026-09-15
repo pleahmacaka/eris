@@ -46,7 +46,9 @@ mod win {
         eCommunications, eConsole, eMultimedia, eRender, IMMDevice, IMMDeviceEnumerator,
         MMDeviceEnumerator, DEVICE_STATE_ACTIVE,
     };
-    use windows::Win32::System::Com::StructuredStorage::PropVariantToStringAlloc;
+    use windows::Win32::System::Com::StructuredStorage::{
+        PropVariantClear, PropVariantToStringAlloc,
+    };
     use windows::Win32::System::Com::{
         CoCreateInstance, CoInitializeEx, CoTaskMemFree, CLSCTX_ALL, COINIT_APARTMENTTHREADED,
         STGM_READ,
@@ -147,11 +149,12 @@ mod win {
     fn friendly_name(device: &IMMDevice) -> Option<String> {
         unsafe {
             let store = device.OpenPropertyStore(STGM_READ).ok()?;
-            let value = store.GetValue(&PKEY_Device_FriendlyName).ok()?;
-            let text = PropVariantToStringAlloc(&value).ok()?;
-            let name = text.to_string().ok()?;
+            let mut value = store.GetValue(&PKEY_Device_FriendlyName).ok()?;
+            let text = PropVariantToStringAlloc(&value).ok();
+            let _ = PropVariantClear(&mut value);
+            let name = text?.to_string().ok()?;
 
-            CoTaskMemFree(Some(text.0 as *mut _));
+            CoTaskMemFree(Some(text?.0 as *const _));
 
             Some(name)
         }

@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Snippet } from "svelte"
+  import type { MenuBox } from "../dock/layout.svelte"
   import { editing } from "./edit.svelte"
 
   type Props = {
@@ -9,7 +10,7 @@
     options?: Snippet
     placement?: "up" | "down"
     align?: "start" | "center" | "end"
-    onmenu?: (height: number) => void
+    onmenu?: (rect: MenuBox | null) => void
   }
 
   let {
@@ -21,8 +22,6 @@
     align = "center",
     onmenu,
   }: Props = $props()
-
-  const GAP = 16
 
   const ALIGN = {
     start: "left-0",
@@ -41,9 +40,9 @@
 
   $effect(() => {
     if (open && card) {
-      onmenu?.(card.offsetHeight + GAP)
+      onmenu?.(card.getBoundingClientRect())
 
-      return () => onmenu?.(0)
+      return () => onmenu?.(null)
     }
   })
 
@@ -63,7 +62,7 @@
     <button
       type="button"
       class={[
-        "absolute inset-0 z-40 rounded-field ring-2 ring-primary/70 transition-colors duration-150",
+        "absolute inset-0 z-40 rounded-field ring-2 ring-primary/70 transition-colors duration-100",
         open ? "bg-primary/25" : "bg-primary/10 hover:bg-primary/20",
       ]}
       aria-label={label}

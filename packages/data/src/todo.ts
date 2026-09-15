@@ -33,7 +33,7 @@ export const parseQuickAdd = (
       continue
     }
 
-    if (token in PRIORITY_TOKENS) {
+    if (Object.hasOwn(PRIORITY_TOKENS, token)) {
       priority = PRIORITY_TOKENS[token]
       continue
     }
@@ -58,7 +58,7 @@ export const parseQuickAdd = (
   const result: Partial<Todo> = { title: words.join(" ") }
 
   if (tags.length) {
-    result.tags = tags
+    result.tags = [...new Set(tags)]
   }
 
   if (priority !== undefined) {

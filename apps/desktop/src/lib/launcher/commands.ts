@@ -6,6 +6,7 @@ import {
   editMode,
   emptyRecycleBin,
   openUrl,
+  openWithIntent,
   type PowerAction,
   powerAction,
   runCommand,
@@ -126,18 +127,7 @@ export const systemCommands = (): Result[] => [
     tr("launcher.subtitles.eris"),
     "lucide:calendar",
     () => showWindow("panel"),
-    ["todo", "agenda", "events"],
-  ),
-  command(
-    "eris-note",
-    tr("launcher.commands.erisNote"),
-    tr("launcher.subtitles.eris"),
-    "lucide:notebook-pen",
-    async () => {
-      await showWindow("panel")
-      await emit("panel-new-note")
-    },
-    ["note", "notes", "scratch", "memo"],
+    ["calendar", "schedule", "events"],
   ),
   command(
     "eris-quit",
@@ -350,10 +340,7 @@ export const settingsLinks = (): Result[] =>
       subtitle: tr("launcher.subtitles.erisSettings"),
       icon,
       keywords: [label],
-      action: async () => {
-        await showWindow("settings")
-        await emit("settings-section", id)
-      },
+      action: () => openWithIntent("settings", id),
       secondaryActions: [],
       score: 0,
     }

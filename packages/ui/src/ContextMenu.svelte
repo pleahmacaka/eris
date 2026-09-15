@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { onDestroy } from "svelte"
   import { t } from "svelte-i18n"
   import { isAction, type MenuItem } from "./menu"
 
@@ -14,7 +15,7 @@
     width?: number
     label?: string
     onclose?: () => void
-    onsize?: (height: number) => void
+    onsize?: (rect: DOMRect) => void
   }
 
   let {
@@ -42,8 +43,6 @@
 
   const floating = $derived(x !== undefined && (y !== undefined || bottom !== undefined))
 
-  const actions = $derived(items.filter(isAction))
-
   const close = () => {
     open = false
     cursor = -1
@@ -60,20 +59,29 @@
   }
 
   const step = (delta: number) => {
-    if (actions.length === 0) {
-      return
-    }
-
-    const enabled = actions.filter(a => !a.disabled)
+    const enabled = items.flatMap((item, index) =>
+      isAction(item) && !item.disabled ? [index] : [],
+    )
 
     if (enabled.length === 0) {
       return
     }
 
-    const current = enabled.findIndex(a => a === actions[cursor])
-    const next = (current + delta + enabled.length) % enabled.length
+    const at = enabled.indexOf(cursor)
 
-    cursor = actions.indexOf(enabled[next])
+    if (at === -1) {
+      const next =
+        delta > 0
+          ? (enabled.find(i => i > cursor) ?? enabled[0])
+          : (enabled.findLast(i => i < cursor) ??
+            enabled[enabled.length - 1])
+
+      cursor = next
+
+      return
+    }
+
+    cursor = enabled[(at + delta + enabled.length) % enabled.length]
   }
 
   const onkeydown = (e: KeyboardEvent) => {
@@ -93,9 +101,9 @@
       return step(e.key === "ArrowDown" ? 1 : -1)
     }
 
-    if (e.key === "Enter" && cursor >= 0) {
+    if (e.key === "Enter" && items[cursor] !== undefined) {
       e.preventDefault()
-      run(actions[cursor])
+      run(items[cursor])
     }
   }
 
@@ -105,14 +113,22 @@
     }
   }
 
+  onDestroy(() => {
+    if (open) {
+      onclose?.()
+    }
+  })
+
   $effect(() => {
     if (!open || !list) {
       return
     }
 
-    const height = list.offsetHeight
-
-    onsize?.(height)
+    requestAnimationFrame(() => {
+      if (open && list) {
+        onsize?.(list.getBoundingClientRect())
+      }
+    })
 
     if (!floating) {
       return
@@ -163,7 +179,7 @@
     style:left={floating ? `${left}px` : undefined}
     style:top={floating ? `${top}px` : undefined}
   >
-    {#each items as item, index (isAction(item) ? item.label : index)}
+    {#each items as item, index (index)}
       {#if item === "separator"}
         <li class="mx-1 my-1.5 border-t border-base-content/10" role="separator"></li>
       {:else}

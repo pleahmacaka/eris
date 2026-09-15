@@ -87,7 +87,6 @@ export type StartOptions = {
   language: string
   budget: number
   systemPrompt: string
-  history: native.TranscriptMessage[]
 }
 
 type Event = Record<string, unknown>
@@ -154,8 +153,22 @@ export class ClaudeSession {
 
   private stderr: string[] = []
 
+  // every write waits on this so a send during startup lands after initialize, not before it
+  private ready: Promise<void> = Promise.resolve()
+
   async start(options: StartOptions) {
-    this.turns = options.history.map(message => ({
+    this.ready = this.begin(options)
+    await this.ready
+  }
+
+  private async begin(options: StartOptions) {
+    const past = options.resume
+      ? await native
+          .claudeTranscript(options.cwd, options.resume)
+          .catch(() => [])
+      : []
+
+    this.turns = past.map(message => ({
       id: crypto.randomUUID(),
       role: message.role === "user" ? "user" : "assistant",
       blocks: [{ kind: "text", text: message.text }],
@@ -183,22 +196,26 @@ export class ClaudeSession {
       }),
     ]
 
-    await native.claudeStart({
-      key: this.key,
-      cwd: options.cwd,
-      resume: options.resume,
-      plain: options.plain,
-      permissionMode: options.permissionMode,
-      model: options.model,
-      effort: options.effort,
-      thinking: options.thinking,
-      autoCompact: options.autoCompact,
-      language: options.language,
-      budget: options.budget,
-      systemPrompt: options.systemPrompt,
-    })
+    await native
+      .claudeStart({
+        key: this.key,
+        cwd: options.cwd,
+        resume: options.resume,
+        plain: options.plain,
+        permissionMode: options.permissionMode,
+        model: options.model,
+        effort: options.effort,
+        thinking: options.thinking,
+        autoCompact: options.autoCompact,
+        language: options.language,
+        budget: options.budget,
+        systemPrompt: options.systemPrompt,
+      })
+      .catch(e => {
+        this.error = String(e)
+      })
 
-    await this.write({
+    await this.writeNow({
       type: "control_request",
       request_id: "initialize",
       request: { subtype: "initialize" },
@@ -341,6 +358,9 @@ export class ClaudeSession {
   }
 
   async stop() {
+    // stopping before start resolves would leave the spawned process orphaned
+    await this.ready
+
     for (const stop of this.stops) {
       stop.then(off => off()).catch(() => undefined)
     }
@@ -396,6 +416,11 @@ export class ClaudeSession {
   }
 
   private async write(payload: Record<string, unknown>) {
+    await this.ready
+    await this.writeNow(payload)
+  }
+
+  private async writeNow(payload: Record<string, unknown>) {
     await native.claudeSend(this.key, JSON.stringify(payload)).catch(e => {
       this.error = String(e)
       this.busy = false

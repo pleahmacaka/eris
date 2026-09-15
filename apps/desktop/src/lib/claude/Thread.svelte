@@ -13,7 +13,13 @@
 
   $effect(() => {
     void chat.session?.turns.length
-    void chat.session?.turns.at(-1)?.blocks.length
+
+    const last = chat.session?.turns.at(-1)
+    const tail = last?.blocks.at(-1)
+
+    void last?.blocks.length
+    void last?.streaming
+    void (tail?.kind === "text" ? tail.text : undefined)
 
     if (thread) {
       thread.scrollTop = thread.scrollHeight
@@ -164,13 +170,13 @@
           <p class="mt-0.5">{question.question}</p>
 
           <div class="mt-2 flex flex-col gap-1">
-            {#each question.options as option (option.label)}
+            {#each question.options as option, index (index)}
               {@const on = (chat.picked[question.question] ?? []).includes(option.label)}
 
               <button
                 type="button"
                 class={[
-                  "rounded-field border px-3 py-1.5 text-left transition-colors duration-150",
+                  "rounded-field border px-3 py-1.5 text-left transition-colors duration-100",
                   on
                     ? "border-primary/60 bg-primary/15"
                     : "border-base-content/10 hover:bg-base-content/10",
