@@ -48,6 +48,7 @@
     "@tauri-apps/plugin-store": "^2.4.4",
     "@tauri-apps/plugin-updater": "^2.11.0",
     "axios": "^1.20.0",
+    "date-holidays": "3.36.1",
     "dompurify": "^3.4.15",
     "es-hangul": "^2.4.0",
     "marked": "^18.0.12",

@@ -1,129 +1,109 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { emit, listen } from "@tauri-apps/api/event"
   import { getCurrentWindow } from "@tauri-apps/api/window"
   import { t } from "svelte-i18n"
   import {
-    atMinutes,
     dateKey,
-    dateTimeKey,
-    parseLocal,
-    startOfDay,
-    upcoming,
-    live,
-    blankNote,
     events,
-    newId,
-    notes,
-    todos,
-    isOverdue,
+    eventsOn,
+    live,
+    monthGrid,
+    startOfDay,
     type CalendarEvent,
   } from "$lib/data"
+  import { currentLocale } from "@eris/i18n"
   import { ensureDevice } from "$lib/device"
   import * as native from "$lib/native"
-  import {
-    Agenda,
-    Calendar,
-    dayLabel,
-    longDate,
-    EventEditor,
-    Notes,
-    Notifications,
-    PanelSearch,
-    QuickAdd,
-    TodoItem,
-    TodoList,
-  } from "$lib/panel"
+  import { DayPane, EventDetail, MonthGrid } from "$lib/panel"
+  import { holidaysOn, systemRegion } from "$lib/panel/holidays"
   import {
     defaultProfile,
     loadProfile,
     onProfile,
     type Profile,
   } from "@eris/settings"
-  import { Toasts } from "@eris/ui"
 
-  const LOOKAHEAD_DAYS = 7
-  const HOUR = 3_600_000
-  const DEFAULT_MINUTES = 9 * 60
   const PICKER_TYPES = ["date", "datetime-local", "time", "color", "file"]
 
   const appWindow = getCurrentWindow()
-  const todoLive = live(todos)
   const eventLive = live(events)
 
   let profile = $state<Profile>(defaultProfile)
   let now = $state(new Date())
+  let cursor = $state(startOfDay(new Date()))
   let selected = $state(startOfDay(new Date()))
-  let editing = $state<{ event: CalendarEvent; isNew: boolean } | null>(null)
-  let quickAdd = $state<ReturnType<typeof QuickAdd>>()
-  let notesCard = $state<HTMLElement>()
-  let search = $state<ReturnType<typeof PanelSearch>>()
-  let field = $state<HTMLInputElement>()
-  let query = $state("")
-  let openNoteId = $state<string | null>(null)
-  let noticeView = $state(false)
+  let openId = $state<string | null>(null)
+  let editing = $state(false)
 
-  const takeIntent = () => {
-    native
-      .noticesTakeIntent()
-      .then(wanted => {
-        if (wanted) {
-          noticeView = true
-        }
-      })
-      .catch(() => undefined)
+  const today = $derived(startOfDay(now))
+
+  const weeks = $derived(
+    monthGrid(
+      cursor.getFullYear(),
+      cursor.getMonth(),
+      profile.calendar.weekStartsOn,
+    ),
+  )
+
+  const monthLabel = $derived(
+    cursor.toLocaleDateString(currentLocale(), {
+      year: "numeric",
+      month: "long",
+    }),
+  )
+
+  const dayEvents = $derived(eventsOn(eventLive.items, selected))
+
+  const region = $derived(
+    profile.calendar.region === "system"
+      ? systemRegion()
+      : profile.calendar.region,
+  )
+
+  const holidayFor = (day: Date) =>
+    holidaysOn(day, region, currentLocale().split("-")[0])
+
+  const openEvent = $derived(
+    openId === null
+      ? null
+      : (eventLive.items.find(e => e.id === openId) ?? null),
+  )
+
+  const shift = (months: number) => {
+    cursor = new Date(cursor.getFullYear(), cursor.getMonth() + months, 1)
   }
 
-  const todayKey = $derived(dateKey(now))
+  const jumpToday = () => {
+    cursor = startOfDay(now)
+    selected = startOfDay(now)
+    openId = null
+    editing = false
+  }
 
-  const searching = $derived(query.trim() !== "")
+  const pick = (day: Date) => {
+    selected = day
+    openId = null
+    editing = false
 
-  const greeting = $derived(
-    now.getHours() < 12
-      ? $t("panel.greeting.morning")
-      : now.getHours() < 18
-        ? $t("panel.greeting.afternoon")
-        : $t("panel.greeting.evening"),
-  )
-
-  const nextEvents = $derived(upcoming(eventLive.items, now, LOOKAHEAD_DAYS))
-
-  const eventDays = $derived.by(() => {
-    const groups = new Map<string, CalendarEvent[]>()
-
-    for (const event of nextEvents) {
-      const key = event.start.slice(0, 10)
-
-      groups.set(key, [...(groups.get(key) ?? []), event])
+    if (day.getMonth() !== cursor.getMonth()) {
+      cursor = new Date(day.getFullYear(), day.getMonth(), 1)
     }
+  }
 
-    return [...groups].map(([key, list]) => ({
-      key,
-      label: dayLabel(parseLocal(key), now),
-      events: list,
-    }))
-  })
+  const show = (event: CalendarEvent) => {
+    openId = event.id
+    editing = false
+  }
 
-  const dueTodos = $derived(
-    todoLive.items
-      .filter(
-        t =>
-          !t.done &&
-          t.due !== null &&
-          (isOverdue(t, now) || t.due.slice(0, 10) === todayKey),
-      )
-      .sort((a, b) => (a.due ?? "").localeCompare(b.due ?? "")),
-  )
+  const startNew = () => {
+    openId = "new"
+    editing = true
+  }
 
-  const summary = $derived.by(() => {
-    const todayEvents = eventDays.find(d => d.key === todayKey)?.events ?? []
-    const parts = [
-      $t("panel.summary.events", { values: { count: todayEvents.length } }),
-      $t("panel.summary.todosDue", { values: { count: dueTodos.length } }),
-    ]
-
-    return parts.join(" · ")
-  })
+  const close = () => {
+    openId = null
+    editing = false
+  }
 
   let focusLanded = false
   let shownAt = 0
@@ -136,80 +116,17 @@
 
   const hide = () => {
     focusLanded = false
-    editing = null
-    emit("window-hidden", "panel")
+    close()
     native.hideWindow("panel")
   }
 
-  const newEvent = (day: Date, minutes = DEFAULT_MINUTES) => {
-    const stamp = Date.now()
-    const start = atMinutes(startOfDay(day), minutes)
-
-    editing = {
-      isNew: true,
-      event: {
-        id: newId(),
-        title: "",
-        notes: "",
-        start: dateTimeKey(start),
-        end: dateTimeKey(new Date(start.getTime() + HOUR)),
-        allDay: false,
-        color: null,
-        reminderMinutes: profile.calendar.reminderMinutes || null,
-        recurrence: "none",
-        createdAt: stamp,
-        updatedAt: stamp,
-      },
-    }
-  }
-
-  const newNote = async () => {
-    const note = await notes.put(blankNote())
-
-    query = ""
-    openNoteId = note.id
-    notesCard?.scrollIntoView({ behavior: "smooth", block: "start" })
-  }
-
-  const editEvent = async (occurrence: CalendarEvent) => {
-    const original = await events.get(occurrence.id)
-
-    editing = { isNew: false, event: original ?? occurrence }
-  }
-
-  const typing = (target: EventTarget | null) =>
-    target instanceof HTMLInputElement ||
-    target instanceof HTMLTextAreaElement ||
-    target instanceof HTMLSelectElement
-
-  const onSearchKey = (e: KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault()
-      search?.openFirst()
-    }
-  }
-
   const onkeydown = (e: KeyboardEvent) => {
-    if (e.key === "/" && !typing(e.target)) {
-      e.preventDefault()
-      field?.focus()
-      field?.select()
-
-      return
-    }
-
     if (e.key !== "Escape") {
       return
     }
 
-    if (editing) {
-      editing = null
-
-      return
-    }
-
-    if (query) {
-      query = ""
+    if (openId !== null) {
+      close()
 
       return
     }
@@ -219,6 +136,7 @@
 
   $effect(() => {
     ensureDevice().catch(() => undefined)
+    native.takeIntent("panel").catch(() => undefined)
     loadProfile().then(p => {
       profile = p
     })
@@ -243,21 +161,14 @@
           hide()
         }
       }),
-      listen("panel-new-note", () => {
-        newNote()
-      }),
       native.onWindowShown("panel", () => {
         focusLanded = false
         shownAt = Date.now()
         now = new Date()
-        selected = startOfDay(now)
-        query = ""
-        quickAdd?.focus()
-        takeIntent()
+        jumpToday()
       }),
     ]
 
-    takeIntent()
     const tick = setInterval(() => {
       now = new Date()
     }, 60_000)
@@ -269,7 +180,6 @@
         stop.then(fn => fn())
       }
 
-      todoLive.stop()
       eventLive.stop()
     }
   })
@@ -277,197 +187,98 @@
 
 <svelte:window {onkeydown} />
 
-<main class="relative flex h-full flex-col">
-  <header class="flex flex-col gap-3 px-5 pt-5 pb-3">
-    <div class="flex items-start justify-between gap-3">
-      <div class="flex flex-col">
-        <span class="text-[11px] font-medium tracking-wide text-base-content/50">
-          {now.getFullYear()}
-        </span>
+<main class="flex h-full min-h-0 flex-col">
+  <header
+    class="flex items-center justify-between gap-2 border-b border-base-300 px-4 py-2.5"
+  >
+    <div>
+      <h2 class="text-[0.9375rem] font-semibold tracking-tight">
+        {monthLabel}
+      </h2>
+      <p class="tabular text-[0.6875rem] text-base-content/45">
+        {$t("panel.header.today", { values: { date: dateKey(today) } })}
+      </p>
+    </div>
 
-        <h1 class="text-lg font-semibold leading-tight">{longDate(now)}</h1>
+    <div class="flex items-center gap-1">
+      <div class="join">
+        <button
+          class="join-item btn btn-xs btn-ghost"
+          aria-label={$t("common.previous")}
+          onclick={() => shift(-1)}
+        >
+          <Icon icon="lucide:chevron-left" class="size-3" />
+        </button>
+
+        <button class="join-item btn btn-xs btn-ghost" onclick={jumpToday}>
+          {$t("dates.today")}
+        </button>
+
+        <button
+          class="join-item btn btn-xs btn-ghost"
+          aria-label={$t("common.next")}
+          onclick={() => shift(1)}
+        >
+          <Icon icon="lucide:chevron-right" class="size-3" />
+        </button>
       </div>
 
+      <button class="btn btn-xs btn-neutral" onclick={startNew}>
+        <Icon icon="lucide:plus" class="size-3" />
+        {$t("panel.event.new")}
+      </button>
+
       <button
-        class="btn btn-ghost btn-square btn-sm"
+        class="btn btn-ghost btn-square btn-xs"
         aria-label={$t("common.close")}
         onclick={hide}
       >
-        <Icon icon="lucide:x" class="size-4" />
+        <Icon icon="lucide:x" class="size-3.5" />
       </button>
     </div>
-
-    <label
-      class="input input-sm w-full rounded-full border-base-content/10 bg-base-100/60 transition-colors duration-150 focus-within:border-primary/50"
-    >
-      <Icon icon="lucide:search" class="size-4 shrink-0 text-base-content/50" />
-
-      <input
-        bind:this={field}
-        bind:value={query}
-        type="text"
-        placeholder={$t("panel.searchPlaceholder")}
-        aria-label={$t("panel.searchPlaceholder")}
-        spellcheck="false"
-        autocomplete="off"
-        onkeydown={onSearchKey}
-      />
-
-      {#if searching}
-        <button
-          class="btn btn-ghost btn-circle btn-xs"
-          aria-label={$t("panel.clearSearch")}
-          onclick={() => {
-            query = ""
-          }}
-        >
-          <Icon icon="lucide:x" class="size-3.5" />
-        </button>
-      {:else}
-        <kbd class="kbd kbd-xs">/</kbd>
-      {/if}
-    </label>
-
-    <button
-      type="button"
-      class={["btn btn-ghost btn-square btn-sm", noticeView && "bg-base-content/10"]}
-      title={$t("panel.notifications.toggle")}
-      aria-label={$t("panel.notifications.toggle")}
-      aria-pressed={noticeView}
-      onclick={() => (noticeView = !noticeView)}
-    >
-      <Icon icon="lucide:bell" class="size-4" />
-    </button>
   </header>
 
-  {#if searching}
-    <section class="min-h-0 grow overflow-y-auto px-4 pb-5">
-      <PanelSearch
-        bind:this={search}
-        events={eventLive.items}
-        todos={todoLive.items}
-        query={query.trim()}
-        {now}
-        onedit={editEvent}
+  <div class="flex min-h-0 flex-1">
+    <div class="flex min-h-0 min-w-0 flex-1 flex-col">
+      <MonthGrid
+        {weeks}
+        month={cursor.getMonth()}
+        {today}
+        {selected}
+        eventsOnDay={day => eventsOn(eventLive.items, day)}
+        {holidayFor}
+        {pick}
+        openEvent={show}
+        weekNumbers={profile.calendar.showWeekNumbers}
       />
-    </section>
-  {:else}
-    <div class="flex min-h-0 grow gap-3 px-4 pb-4">
-      <section class="min-w-0 grow overflow-y-auto" aria-label={$t("panel.calendarAria")}>
-        <Calendar
-          events={eventLive.items}
-          todos={todoLive.items}
-          weekStartsOn={profile.calendar.weekStartsOn}
-          showWeekNumbers={profile.calendar.showWeekNumbers}
-          {now}
-          bind:selected
-          onadd={newEvent}
-          onedit={editEvent}
-        />
-      </section>
+    </div>
 
-      <aside
-        class="flex w-[22rem] shrink-0 flex-col gap-3 overflow-y-auto pr-0.5"
-        aria-label={$t("panel.cardsAria")}
-      >
-        <section
-          class="flex flex-col gap-3 rounded-box border border-base-content/10 bg-base-100/50 p-3"
-        >
-          <div class="flex flex-col gap-0.5 px-1">
-            <p class="text-sm font-medium">{greeting}</p>
-
-            <p class="text-xs text-base-content/55">{summary}</p>
-          </div>
-
-          <QuickAdd
-            bind:this={quickAdd}
+    <aside
+      class="flex h-auto w-[22rem] min-h-0 shrink-0 flex-col overflow-hidden border-l border-base-300 bg-base-100"
+    >
+      {#if openId !== null}
+        {#key openId}
+          <EventDetail
+            event={openEvent}
+            day={selected}
+            {editing}
+            setEditing={value => (editing = value)}
+            {close}
             defaultReminder={profile.calendar.reminderMinutes || null}
           />
-
-          {#each eventDays as day (day.key)}
-            <Agenda
-              title={day.label}
-              events={day.events}
-              {now}
-              onedit={editEvent}
-            />
-          {:else}
-            <Agenda
-              title={$t("panel.calendar.nextDays", { values: { count: LOOKAHEAD_DAYS } })}
-              events={[]}
-              empty={$t("panel.calendar.noUpcoming")}
-              onedit={editEvent}
-            />
-          {/each}
-
-          <div class="flex flex-col gap-1">
-            <h3
-              class="px-2 text-[11px] font-semibold tracking-wide text-base-content/50"
-            >
-              {$t("panel.due")}
-            </h3>
-
-            {#if dueTodos.length > 0}
-              <ul class="flex flex-col gap-0.5">
-                {#each dueTodos as todo (todo.id)}
-                  <TodoItem {todo} {now} />
-                {/each}
-              </ul>
-            {:else}
-              <p class="px-2 py-2 text-sm text-base-content/45">
-                {$t("panel.nothingDue")}
-              </p>
-            {/if}
-          </div>
-        </section>
-
-        {#if noticeView}
-          <section
-            class="rounded-box border border-base-content/10 bg-base-100/50 p-3"
-            aria-label={$t("panel.notifications.title")}
-          >
-            <Notifications />
-
-            <button
-              type="button"
-              class="btn btn-ghost btn-xs mt-2"
-              onclick={() => (noticeView = false)}
-            >
-              <Icon icon="lucide:arrow-left" class="size-3.5" />
-              {$t("panel.notifications.back")}
-            </button>
-          </section>
-        {:else}
-          <section
-            class="rounded-box border border-base-content/10 bg-base-100/50 p-3"
-            aria-label={$t("panel.todoAria")}
-          >
-            <TodoList items={todoLive.items} {profile} {now} />
-          </section>
-
-          <section
-            bind:this={notesCard}
-            class="rounded-box border border-base-content/10 bg-base-100/50 p-3"
-            aria-label={$t("panel.notesAria")}
-          >
-            <Notes openId={openNoteId} />
-          </section>
-        {/if}
-      </aside>
-    </div>
-  {/if}
-
-  {#if editing}
-    <EventEditor
-      event={editing.event}
-      isNew={editing.isNew}
-      onclose={() => {
-        editing = null
-      }}
-    />
-  {/if}
-
-  <Toasts />
+        {/key}
+      {:else}
+        <DayPane
+          day={selected}
+          events={dayEvents}
+          holidays={holidayFor(selected)}
+          openEvent={show}
+          removeEvent={event => events.remove(event.id)}
+          {startNew}
+        />
+      {/if}
+    </aside>
+  </div>
 </main>
 
 <style>

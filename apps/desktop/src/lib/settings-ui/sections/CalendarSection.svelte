@@ -1,11 +1,25 @@
 <script lang="ts">
   import type { Profile } from "@eris/settings"
   import { Row, Section, Segmented } from "@eris/ui"
+  import { currentLocale } from "@eris/i18n"
+  import { regions } from "$lib/panel/holidays"
   import { t } from "svelte-i18n"
 
   let { profile = $bindable() }: { profile: Profile } = $props()
 
   const reminders = [0, 5, 10, 15, 30, 60]
+
+  const regionOptions = $derived.by(() => {
+    const names = new Intl.DisplayNames([currentLocale()], { type: "region" })
+
+    return [
+      { value: "system", label: $t("settings.options.system") },
+      ...regions().map(code => ({
+        value: code,
+        label: names.of(code) ?? code,
+      })),
+    ]
+  })
 </script>
 
 <Section title={$t("settings.groups.calendar")}>
@@ -14,10 +28,22 @@
       label={$t("settings.rows.weekStartsOn")}
       bind:value={profile.calendar.weekStartsOn}
       options={[
-        { value: 1, label: $t("settings.options.monday") },
         { value: 0, label: $t("settings.options.sunday") },
+        { value: 1, label: $t("settings.options.monday") },
       ]}
     />
+  </Row>
+
+  <Row label={$t("settings.rows.holidayRegion")} hint={$t("settings.hints.holidayRegion")}>
+    <select
+      class="select select-sm w-40"
+      aria-label={$t("settings.rows.holidayRegion")}
+      bind:value={profile.calendar.region}
+    >
+      {#each regionOptions as option (option.value)}
+        <option value={option.value}>{option.label}</option>
+      {/each}
+    </select>
   </Row>
 
   <Row label={$t("settings.rows.weekNumbers")} hint={$t("settings.hints.weekNumbers")}>
