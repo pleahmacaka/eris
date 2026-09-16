@@ -30,16 +30,43 @@
     device: DeviceSettings
     panelOpen: boolean
     onclock: () => void
-    onmenu?: (rect: MenuBox | null) => void
+    claimFor?: (key: string) => (rect: MenuBox | null) => void
     edge?: "top" | "bottom"
     compact?: boolean
   }
 
-  let { device, panelOpen, onclock, onmenu, edge: edgeProp, compact: compactProp }: Props = $props()
+  let { device, panelOpen, onclock, claimFor, edge: edgeProp, compact: compactProp }: Props = $props()
 
   const INFO_POLL = 5_000
   const MENU_GRACE = 600
   const SLOT_DATA = "application/x-eris-tray-slot"
+
+  const HIDE_PATCH: Partial<Record<TraySlot, Partial<DeviceSettings>>> = {
+    taskview: { showTaskView: false },
+    claude: { showClaudeUsage: false },
+    tray: { showTrayIcons: false },
+    media: { showMedia: false },
+    input: { showInputLanguage: false },
+    meters: { showMeters: false, showNetwork: false },
+    bluetooth: { showBluetooth: false },
+    battery: { showBattery: false },
+    volume: { showVolume: false },
+    bell: { showNotifications: false },
+    settings: { showSettingsButton: false },
+    desktop: { showDesktopButton: false },
+  }
+
+  const hideItem = (id: TraySlot): MenuItem => ({
+    label: $t("tray.icons.hideFromDock"),
+    icon: "lucide:eye-off",
+    action: () => {
+      const patch = HIDE_PATCH[id]
+
+      if (patch) {
+        updateDevice(d => ({ ...d, ...patch })).catch(() => undefined)
+      }
+    },
+  })
 
   const MENU = $derived<MenuItem[]>([
     {
@@ -74,6 +101,8 @@
       action: () => native.powerAction("shutdown"),
     },
     "separator",
+    hideItem("settings"),
+    "separator",
     { label: $t("tray.menu.quit"), icon: "lucide:circle-x", action: () => exit(0) },
   ])
 
@@ -98,7 +127,69 @@
       icon: "lucide:settings-2",
       action: () => native.openUrl("ms-settings:notifications"),
     },
+    "separator",
+    hideItem("bell"),
   ])
+
+  let slotMenuId = $state<TraySlot | null>(null)
+  let slotMenuOpen = $state(false)
+  let slotMenuX = $state(0)
+  let slotMenuY = $state(0)
+
+  const openSlotMenu = (e: MouseEvent, id: TraySlot) => {
+    if (e.defaultPrevented || !HIDE_PATCH[id]) {
+      return
+    }
+
+    e.preventDefault()
+    slotMenuId = id
+    slotMenuX = e.clientX
+    slotMenuY = e.clientY
+    slotMenuOpen = true
+  }
+
+  const slotMenuItems = $derived.by((): MenuItem[] => {
+    const id = slotMenuId
+
+    if (!id || !HIDE_PATCH[id]) {
+      return []
+    }
+
+    const items: MenuItem[] = []
+
+    if (id === "volume" && info.volume) {
+      items.push({
+        label: info.volume.muted
+          ? $t("tray.volume.unmute")
+          : $t("tray.volume.mute"),
+        icon: info.volume.muted ? "lucide:volume-2" : "lucide:volume-x",
+        action: () => {
+          if (info.volume) {
+            info.volume = { level: info.volume.level, muted: !info.volume.muted }
+          }
+
+          native.toggleMute().catch(() => undefined)
+        },
+      })
+    }
+
+    if (id === "input") {
+      items.push({
+        label: $t("tray.input.settings"),
+        icon: "lucide:settings-2",
+        action: () =>
+          native.openUrl("ms-settings:regionlanguage").catch(() => undefined),
+      })
+    }
+
+    if (items.length > 0) {
+      items.push("separator")
+    }
+
+    items.push(hideItem(id))
+
+    return items
+  })
 
   type Widget =
     | "claude"
@@ -228,9 +319,17 @@
   let blank = $state<Partial<Record<TraySlot, boolean>>>({})
   let menuClaimed = $state(false)
 
-  const claim = (rect: MenuBox | null) => {
-    menuClaimed = rect !== null
-    onmenu?.(rect)
+  const claimed = new Set<string>()
+
+  const claim = (key: string) => (rect: MenuBox | null) => {
+    if (rect) {
+      claimed.add(key)
+    } else {
+      claimed.delete(key)
+    }
+
+    menuClaimed = claimed.size > 0
+    claimFor?.(key)(rect)
   }
 
   let dragId = $state<TraySlot | null>(null)
@@ -366,7 +465,7 @@
   {:else if name === "tray"}
     <NotifyIcons
       compact={compact}
-      onmenu={claim}
+      onmenu={claim("icons")}
       edge={edge}
       order={device.trayOrder}
       hidden={device.trayHidden}
@@ -379,7 +478,7 @@
       edge={edge}
       spectrum={device.showSpectrum}
       spectrumStyle={device.spectrumStyle}
-      onmenu={claim}
+      onmenu={claim("media")}
     />
   {:else if name === "input"}
     <InputLanguage
@@ -392,12 +491,12 @@
       showNetwork={device.showNetwork}
       compact={compact}
       edge={edge}
-      onmenu={claim}
+      onmenu={claim("meters")}
     />
   {:else if name === "bluetooth"}
     <Bluetooth
       edge={edge}
-      onmenu={claim}
+      onmenu={claim("bluetooth")}
       onvisible={visible => (blank.bluetooth = !visible)}
     />
   {:else if name === "battery" && info.battery}
@@ -413,7 +512,7 @@
     <VolumeControl
       volume={info.volume}
       edge={edge}
-      onmenu={claim}
+      onmenu={claim("volume")}
       onchange={next => (info.volume = next)}
     />
   {/if}
@@ -479,8 +578,8 @@
         align="end"
         width={208}
         label={$t("tray.notifications.title")}
-        onsize={rect => claim(rect)}
-        onclose={() => claim(null)}
+        onsize={rect => claim("bell")(rect)}
+        onclose={() => claim("bell")(null)}
       />
     </div>
   {:else if id === "settings"}
@@ -507,8 +606,8 @@
         align="end"
         width={192}
         label={$t("tray.menu.title")}
-        onsize={rect => claim(rect)}
-        onclose={() => claim(null)}
+        onsize={rect => claim("settings")(rect)}
+        onclose={() => claim("settings")(null)}
       />
     </div>
   {:else if id === "desktop"}
@@ -537,6 +636,7 @@
         blank[id] && "hidden",
       ]}
       draggable={!menuClaimed}
+      oncontextmenu={e => openSlotMenu(e, id)}
       ondragstart={e => {
         if (e.target !== e.currentTarget) {
           return
@@ -568,3 +668,14 @@
     </div>
   {/each}
 </div>
+
+<ContextMenu
+  bind:open={slotMenuOpen}
+  items={slotMenuItems}
+  x={slotMenuX}
+  y={slotMenuY}
+  placement={edge === "top" ? "down" : "up"}
+  label={$t("tray.menu.title")}
+  onsize={rect => claim("slot")(rect)}
+  onclose={() => claim("slot")(null)}
+/>

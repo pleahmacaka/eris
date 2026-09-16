@@ -140,6 +140,14 @@
     }
   }
 
+  $effect(() => {
+    const close = () => setOpen(false)
+
+    window.addEventListener("eris-close-menus", close)
+
+    return () => window.removeEventListener("eris-close-menus", close)
+  })
+
   const label = $derived.by(() => {
     if (!status) {
       return ""

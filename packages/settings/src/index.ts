@@ -15,7 +15,20 @@ export type LauncherTrigger = "win" | "shortcut" | "both"
 export type ThemeMode = "dark" | "light" | "system"
 export type Background = "aura" | "glass" | "solid"
 export type Density = "compact" | "cozy"
-export type Features = { dock: boolean; launcher: boolean; chat: boolean }
+export type Features = {
+  dock: boolean
+  launcher: boolean
+  chat: boolean
+  calendar: boolean
+}
+
+export type DockWidgetKind = "lead" | "apps" | "tray" | "spacer"
+
+export type DockWidget = {
+  id: string
+  kind: DockWidgetKind
+  size: number
+}
 export type WebSearchEngine = "google" | "duckduckgo" | "bing" | "naver"
 export type TodoSort = "manual" | "due" | "priority"
 export type ChatEffort = "" | "low" | "medium" | "high" | "xhigh" | "max"
@@ -118,6 +131,7 @@ export type DeviceSettings = {
   pinnedApps: string[]
   hiddenApps: string[]
   dockOrder: string[]
+  dockWidgets: DockWidget[]
   trayOrder: string[]
   trayHidden: string[]
   traySlots: TraySlot[]
@@ -247,7 +261,7 @@ export const defaultDevice: DeviceSettings = {
   dockSeparators: true,
   clockAlign: "end",
   editMode: true,
-  features: { dock: true, launcher: true, chat: true },
+  features: { dock: true, launcher: true, chat: false, calendar: true },
   chatSnap: 15,
   chatModel: "",
   chatEffort: "",
@@ -294,6 +308,11 @@ export const defaultDevice: DeviceSettings = {
   pinnedApps: [],
   hiddenApps: [],
   dockOrder: [],
+  dockWidgets: [
+    { id: "lead", kind: "lead", size: 0 },
+    { id: "apps", kind: "apps", size: 0 },
+    { id: "tray", kind: "tray", size: 0 },
+  ],
   trayOrder: [],
   trayHidden: [],
   traySlots: [
@@ -320,6 +339,31 @@ const PROFILE_KEY = "profile"
 export const DEVICE_EVENT = "settings-changed"
 export const PROFILE_EVENT = "profile-changed"
 
+const WIDGET_KINDS: DockWidgetKind[] = ["lead", "apps", "tray", "spacer"]
+
+export const sanitizeWidgets = (
+  saved: DockWidget[] | undefined,
+): DockWidget[] => {
+  const seen = new Set<string>()
+  const list = (saved ?? []).filter(
+    widget =>
+      WIDGET_KINDS.includes(widget.kind) &&
+      !seen.has(widget.id) &&
+      seen.add(widget.id),
+  )
+
+  for (const widget of defaultDevice.dockWidgets) {
+    if (!list.some(w => w.kind === widget.kind)) {
+      list.push({ ...widget })
+    }
+  }
+
+  return list.map(widget => ({
+    ...widget,
+    size: widget.kind === "spacer" ? Math.max(8, widget.size || 24) : 0,
+  }))
+}
+
 export const loadDevice = async (): Promise<DeviceSettings> => {
   const store = await load(FILE)
   const saved = await store.get<Partial<DeviceSettings>>(DEVICE_KEY)
@@ -332,6 +376,7 @@ export const loadDevice = async (): Promise<DeviceSettings> => {
     ...defaultDevice,
     ...saved,
     ...migrated,
+    dockWidgets: sanitizeWidgets(saved?.dockWidgets),
     features: { ...defaultDevice.features, ...saved?.features },
     sync: {
       ...defaultSync,

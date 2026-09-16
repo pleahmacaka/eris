@@ -5,6 +5,8 @@
   import { flip } from "svelte/animate"
   import { notifyIconClick, notifyIconPromote, notifyIcons, onTrayIcons, type TrayIcon } from "$lib/native/tray"
   import type { DockEdge } from "@eris/settings"
+  import { ContextMenu } from "@eris/ui"
+  import type { MenuItem } from "@eris/ui"
 
   type Props = {
     compact?: boolean
@@ -29,6 +31,7 @@
   }: Props = $props()
 
   const SWEEP = 15_000
+  const TRAY_ICON = "application/x-eris-tray-icon"
 
   let icons = $state<TrayIcon[]>([])
 
@@ -87,14 +90,17 @@
     )
   })
 
-  let showAll = $state(false)
-
   const hiddenSet = $derived(new Set(hidden))
+
+  let showAll = $state(false)
 
   const shown = $derived(flat ? sorted : sorted.filter(icon => icon.promoted))
   const overflow = $derived(flat ? [] : sorted.filter(icon => !icon.promoted))
   const stashed = $derived(
     overflow.filter(icon => showAll || !hiddenSet.has(icon.id)),
+  )
+  const hiddenCount = $derived(
+    overflow.filter(icon => hiddenSet.has(icon.id)).length,
   )
 
   let stashOpen = $state(false)
@@ -132,6 +138,12 @@
     }
   }
 
+  $effect(() => {
+    window.addEventListener("eris-close-menus", closeStash)
+
+    return () => window.removeEventListener("eris-close-menus", closeStash)
+  })
+
   let dragId = $state<string | null>(null)
   let dragStashed = $state(false)
   let dropId = $state<string | null>(null)
@@ -153,18 +165,36 @@
   const drop = (e: DragEvent) => {
     e.preventDefault()
 
-    if (dragStashed) {
-      return
-    }
-
     const from = dragId
     const onto = dropId
     const before = dropBefore
+    const wasStashed = dragStashed
 
     dragId = null
     dropId = null
+    dragStashed = false
 
-    if (!from || !onto || from === onto) {
+    if (!from) {
+      return
+    }
+
+    if (wasStashed) {
+      if (onto && onto !== from) {
+        const ids = sorted.map(icon => icon.id).filter(id => id !== from)
+        const at = ids.indexOf(onto)
+
+        if (at >= 0) {
+          ids.splice(before ? at : at + 1, 0, from)
+          onreorder?.(ids)
+        }
+      }
+
+      void promote(from, true)
+
+      return
+    }
+
+    if (!onto || from === onto) {
       return
     }
 
@@ -179,7 +209,56 @@
     onreorder?.(ids)
   }
 
-  const hiddenCount = $derived(overflow.filter(icon => hiddenSet.has(icon.id)).length)
+  let iconMenuId = $state<string | null>(null)
+  let iconMenuOpen = $state(false)
+  let iconMenuX = $state(0)
+  let iconMenuY = $state(0)
+
+  const openIconMenu = (e: MouseEvent, icon: TrayIcon) => {
+    e.preventDefault()
+    iconMenuId = icon.id
+    iconMenuOpen = true
+    iconMenuX = e.clientX
+    iconMenuY = e.clientY
+  }
+
+  const iconMenuItems = $derived.by((): MenuItem[] => {
+    const icon = sorted.find(found => found.id === iconMenuId)
+
+    if (!icon) {
+      return []
+    }
+
+    const off = hiddenSet.has(icon.id)
+
+    return [
+      {
+        label: $t("tray.icons.appMenu"),
+        icon: "lucide:app-window",
+        action: () => click(icon.id, "right"),
+      },
+      icon.promoted || !off
+        ? {
+            label: $t("tray.icons.hideFromDock"),
+            icon: "lucide:eye-off",
+            action: () => {
+              void notifyIconPromote(icon.id, false).catch(() => undefined)
+              setHidden(icon.id, true)
+            },
+          }
+        : {
+            label: $t("tray.icons.showInDock"),
+            icon: "lucide:eye",
+            action: () => void promote(icon.id, true),
+          },
+    ]
+  })
+
+  const closeIconMenu = () => {
+    iconMenuOpen = false
+    iconMenuId = null
+    onmenu?.(null)
+  }
 </script>
 
 {#snippet trayButton(icon: TrayIcon, small: boolean)}
@@ -190,6 +269,7 @@
     draggable="true"
     ondragstart={e => {
       e.dataTransfer?.setData("text/plain", icon.id)
+      e.dataTransfer?.setData(TRAY_ICON, icon.id)
       dragId = icon.id
       dragStashed = !icon.promoted
     }}
@@ -197,10 +277,7 @@
       click(icon.id, "left")
       closeStash()
     }}
-    oncontextmenu={e => {
-      e.preventDefault()
-      click(icon.id, "right")
-    }}
+    oncontextmenu={e => openIconMenu(e, icon)}
   >
     {#if icon.icon}
       <img src={icon.icon} alt="" class="size-4" draggable="false" />
@@ -210,7 +287,26 @@
   </button>
 {/snippet}
 
-<svelte:window onmousedown={onwindowdown} />
+<svelte:window
+  onmousedown={onwindowdown}
+  ondragover={e => {
+    if (e.dataTransfer?.types.includes(TRAY_ICON)) {
+      e.preventDefault()
+    }
+  }}
+  ondrop={e => {
+    const dropped = e.dataTransfer?.getData(TRAY_ICON)
+
+    if (!dropped || e.defaultPrevented) {
+      return
+    }
+
+    dragId = null
+    dropId = null
+    dragStashed = false
+    void promote(dropped, true)
+  }}
+/>
 
 {#if icons.length > 0}
   <div
@@ -312,7 +408,15 @@
             {#each stashed as icon (icon.id)}
               {@const off = hiddenSet.has(icon.id)}
 
-              <div class={["relative", off && "opacity-40"]}>
+              <div
+                class={["relative", off && "opacity-40"]}
+                role="listitem"
+                ondragend={() => {
+                  dragId = null
+                  dropId = null
+                  dragStashed = false
+                }}
+              >
                 {@render trayButton(icon, true)}
 
                 {#if showAll}
@@ -348,4 +452,15 @@
       </div>
     {/if}
   </div>
+
+  <ContextMenu
+    bind:open={iconMenuOpen}
+    items={iconMenuItems}
+    x={iconMenuX}
+    y={iconMenuY}
+    placement={edge === "top" ? "down" : "up"}
+    label={$t("tray.icons.icon")}
+    onsize={rect => onmenu?.(rect)}
+    onclose={closeIconMenu}
+  />
 {/if}

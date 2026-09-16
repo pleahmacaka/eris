@@ -120,8 +120,32 @@
   })
 
   $effect(() => {
+    window.addEventListener("eris-close-menus", close)
+
+    return () => window.removeEventListener("eris-close-menus", close)
+  })
+
+  $effect(() => {
     if (!open || !list) {
       return
+    }
+
+    if (floating) {
+      const box = list.getBoundingClientRect()
+
+      left = Math.min(Math.max(EDGE, x ?? 0), viewportWidth - box.width - EDGE)
+
+      if (bottom !== undefined) {
+        top = Math.max(EDGE, viewportHeight - bottom - box.height)
+      } else {
+        const above = (y ?? 0) - box.height
+        const below = y ?? 0
+
+        top =
+          placement === "up" && above >= EDGE
+            ? above
+            : Math.min(below, viewportHeight - box.height - EDGE)
+      }
     }
 
     requestAnimationFrame(() => {
@@ -129,28 +153,6 @@
         onsize?.(list.getBoundingClientRect())
       }
     })
-
-    if (!floating) {
-      return
-    }
-
-    const box = list.getBoundingClientRect()
-
-    left = Math.min(Math.max(EDGE, x ?? 0), viewportWidth - box.width - EDGE)
-
-    if (bottom !== undefined) {
-      top = Math.max(EDGE, viewportHeight - bottom - box.height)
-
-      return
-    }
-
-    const above = (y ?? 0) - box.height
-    const below = y ?? 0
-
-    top =
-      placement === "up" && above >= EDGE
-        ? above
-        : Math.min(below, viewportHeight - box.height - EDGE)
   })
 </script>
 

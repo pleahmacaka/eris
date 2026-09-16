@@ -5,9 +5,11 @@
     ClockAlign,
     DeviceSettings,
     DockAlign,
+    DockEdge,
     DockSide,
     DockStyle,
     LauncherTrigger,
+    SpectrumStyle,
   } from "@eris/settings"
   import type { DockLayout } from "./layout.svelte"
 
@@ -57,6 +59,26 @@
       label: $t(`settings.options.${value}`),
     })),
   )
+
+  const edgeOptions = $derived<{ value: DockEdge; label: string }[]>([
+    { value: "bottom", label: $t("settings.dock.bottom") },
+    { value: "top", label: $t("settings.dock.top") },
+  ])
+
+  const panelOptions = $derived<
+    { value: DeviceSettings["panelPosition"]; label: string }[]
+  >([
+    { value: "left", label: $t("settings.dock.alignStart") },
+    { value: "center", label: $t("settings.dock.alignCenter") },
+    { value: "right", label: $t("settings.dock.alignEnd") },
+  ])
+
+  const spectrumOptions = $derived<{ value: SpectrumStyle; label: string }[]>(
+    (["bars", "mirror", "wave", "dots"] as SpectrumStyle[]).map(value => ({
+      value,
+      label: $t(`settings.dock.${value}`),
+    })),
+  )
 </script>
 
 {#snippet toggleRow(key: BoolKey, label: string)}
@@ -87,17 +109,29 @@
       {max}
       {step}
       value={device[key]}
+      onpointerdown={() => (layout.scrubbing = true)}
       oninput={e => layout.preview(key, Number(e.currentTarget.value))}
-      onchange={e => layout.patch(key, Number(e.currentTarget.value))}
+      onchange={e => {
+        layout.scrubbing = false
+        layout.patch(key, Number(e.currentTarget.value))
+      }}
     />
   </label>
 {/snippet}
+
+<svelte:window onpointerup={() => (layout.scrubbing = false)} />
 
 {#if kind === "apps"}
   <div class="flex items-center justify-between gap-3 py-1 text-xs">
     <span>{$t("settings.rows.style")}</span>
 
     <Segmented value={device.dockStyle} options={styleOptions} onchange={v => layout.patch("dockStyle", v)} />
+  </div>
+
+  <div class="flex items-center justify-between gap-3 py-1 text-xs">
+    <span>{$t("settings.rows.edge")}</span>
+
+    <Segmented value={device.dockEdge} options={edgeOptions} onchange={v => layout.patch("dockEdge", v)} />
   </div>
 
   {#if !layout.uchiwa}
@@ -108,12 +142,12 @@
     </div>
   {/if}
 
-  {@render rangeRow("dockIconSize", $t("settings.rows.iconSize"), 16, 32, 2)}
-  {@render rangeRow("dockHeight", $t("settings.rows.height"), 32, 88, 2)}
-
-  {#if layout.mac || layout.uchiwa}
+  {#if layout.mac}
     {@render rangeRow("dockWidth", $t("settings.rows.width"), 320, 1400, 20)}
   {/if}
+
+  {@render rangeRow("dockIconSize", $t("settings.rows.iconSize"), 16, 32, 2)}
+  {@render rangeRow("dockHeight", $t("settings.rows.height"), 32, 88, 2)}
 
   {#if layout.mac}
     {@render toggleRow("dockDesktop", $t("settings.rows.pinDesktop"))}
@@ -125,7 +159,17 @@
     {@render toggleRow("dockSeparators", $t("settings.rows.dockSeparators"))}
   {/if}
   {@render toggleRow("dockAutoHide", $t("settings.rows.autoHide"))}
+  {#if device.dockAutoHide}
+    {@render toggleRow("dockHideAnimation", $t("settings.rows.hideAnimation"))}
+  {/if}
   {@render toggleRow("hideSystemTaskbar", $t("settings.rows.hideTaskbar"))}
+  {@render toggleRow("topBar", $t("settings.rows.topBar"))}
+
+  <div class="flex items-center justify-between gap-3 py-1 text-xs">
+    <span>{$t("settings.rows.panelPosition")}</span>
+
+    <Segmented value={device.panelPosition} options={panelOptions} onchange={v => layout.patch("panelPosition", v)} />
+  </div>
 {:else if kind === "tray"}
   {@render toggleRow("clock24h", $t("settings.rows.clock24h"))}
   {@render toggleRow("showSeconds", $t("settings.rows.showSeconds"))}
@@ -162,6 +206,14 @@
   {@render toggleRow("showMedia", $t("settings.rows.showMedia"))}
   {@render toggleRow("showSpectrum", $t("settings.rows.showSpectrum"))}
 
+  {#if device.showSpectrum}
+    <div class="flex items-center justify-between gap-3 py-1 text-xs">
+      <span>{$t("settings.rows.spectrumStyle")}</span>
+
+      <Segmented value={device.spectrumStyle} options={spectrumOptions} onchange={v => layout.patch("spectrumStyle", v)} />
+    </div>
+  {/if}
+
   <div class="flex items-center justify-between gap-3 py-1 text-xs">
     <span>{$t("settings.rows.mediaSide")}</span>
 
@@ -169,6 +221,7 @@
   </div>
 {:else}
   {@render toggleRow("showLauncherButton", $t("settings.rows.showLauncherButton"))}
+  {@render toggleRow("showKeymap", $t("settings.rows.showKeymap"))}
 
   <div class="flex items-center justify-between gap-3 py-1 text-xs">
     <span>{$t("settings.rows.openWith")}</span>

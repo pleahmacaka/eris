@@ -1,6 +1,7 @@
 <script module lang="ts">
   export const MAGNIFY_BOOST = 0.55
   export const MAGNIFY_SPREAD = 78
+  export const APP_DRAG = "application/x-eris-app"
 </script>
 
 <script lang="ts">
@@ -62,6 +63,7 @@
 
   const dragStart = (e: DragEvent) => {
     e.dataTransfer?.setData("text/plain", group.path)
+    e.dataTransfer?.setData(APP_DRAG, group.path)
 
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = "move"
@@ -72,6 +74,10 @@
   }
 
   const dragOver = (e: DragEvent) => {
+    if (!e.dataTransfer?.types.includes(APP_DRAG)) {
+      return
+    }
+
     e.preventDefault()
 
     const box = (e.currentTarget as HTMLElement).getBoundingClientRect()
@@ -80,6 +86,10 @@
   }
 
   const drop = (e: DragEvent) => {
+    if (!e.dataTransfer?.types.includes(APP_DRAG)) {
+      return
+    }
+
     e.preventDefault()
     ondrop?.()
   }

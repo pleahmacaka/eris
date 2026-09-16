@@ -106,12 +106,17 @@ pub fn stored_layout(app: &AppHandle) -> TaskbarLayout {
 }
 
 #[tauri::command]
-pub fn extend_taskbar(app: AppHandle, px: f64, rect: Option<[f64; 4]>) -> Result<(), String> {
+pub fn extend_taskbar(
+    app: AppHandle,
+    px: f64,
+    rect: Option<[f64; 4]>,
+    ring: Option<[f64; 4]>,
+) -> Result<(), String> {
     let window = app
         .get_webview_window("taskbar")
         .ok_or("taskbar window is missing")?;
 
-    win::extend(&window, px, rect).map_err(|e| e.to_string())
+    win::extend(&window, px, rect, ring).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -138,7 +143,7 @@ pub fn extend_topbar(app: AppHandle, px: f64, rect: Option<[f64; 4]>) -> Result<
         .get_webview_window("topbar")
         .ok_or("topbar window is missing")?;
 
-    win::extend(&window, px, rect).map_err(|e| e.to_string())
+    win::extend(&window, px, rect, None).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -249,7 +254,8 @@ mod win {
     use windows::core::w;
     use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, RECT, WPARAM};
     use windows::Win32::Graphics::Gdi::{
-        CombineRgn, CreateRectRgn, DeleteObject, SetWindowRgn, RGN_OR,
+        CombineRgn, CreateEllipticRgn, CreateRectRgn, DeleteObject, SetWindowRgn, RGN_DIFF,
+        RGN_OR,
     };
     use windows::Win32::System::Threading::GetCurrentProcessId;
     use windows::Win32::UI::Shell::{
@@ -293,6 +299,7 @@ mod win {
         frame: Option<Frame>,
         reach: i32,
         hole: Option<[i32; 4]>,
+        ring: Option<[i32; 4]>,
         registered: bool,
     }
 
@@ -405,13 +412,13 @@ mod win {
             top_edge: edge == ABE_TOP,
         };
 
-        {
+        let (reach, hole, ring) = {
             let mut bars = BARS.lock().unwrap();
             let bar = bars.entry(window.label().to_string()).or_default();
             bar.frame = Some(frame);
-            bar.reach = 0;
-            bar.hole = None;
-        }
+
+            (bar.reach, bar.hole, bar.ring)
+        };
 
         // menus live inside this window, so it keeps room above the band and clips the rest away
         let room = (MENU_SPACE * scale).round() as i32;
@@ -420,7 +427,7 @@ mod win {
         window.set_position(PhysicalPosition::new(left, frame_top))?;
         window.set_size(PhysicalSize::new(width as u32, (height + room) as u32))?;
 
-        shape(hwnd, &frame, 0, None);
+        shape(hwnd, &frame, reach, hole, ring);
 
         Ok(())
     }
@@ -433,8 +440,13 @@ mod win {
             .map(|frame| [frame.left, frame.top, frame.width, frame.height])
     }
 
-    pub fn extend(window: &WebviewWindow, px: f64, rect: Option<[f64; 4]>) -> tauri::Result<()> {
-        let (frame, reach, hole) = {
+    pub fn extend(
+        window: &WebviewWindow,
+        px: f64,
+        rect: Option<[f64; 4]>,
+        ring: Option<[f64; 4]>,
+    ) -> tauri::Result<()> {
+        let (frame, reach, hole, ring) = {
             let mut bars = BARS.lock().unwrap();
             let Some(bar) = bars.get_mut(window.label()) else {
                 return Ok(());
@@ -445,17 +457,24 @@ mod win {
 
             bar.reach = (px.max(0.0) * frame.scale).round() as i32;
             bar.hole = rect.map(|rect| rect.map(|value| (value * frame.scale).round() as i32));
+            bar.ring = ring.map(|ring| ring.map(|value| (value * frame.scale).round() as i32));
 
-            (frame, bar.reach, bar.hole)
+            (frame, bar.reach, bar.hole, bar.ring)
         };
 
-        shape(window.hwnd()?, &frame, reach, hole);
+        shape(window.hwnd()?, &frame, reach, hole, ring);
 
         Ok(())
     }
 
     // the window stays tall for menus, so its region is what the desktop sees and what takes the mouse
-    fn shape(hwnd: HWND, frame: &Frame, reach: i32, hole: Option<[i32; 4]>) {
+    fn shape(
+        hwnd: HWND,
+        frame: &Frame,
+        reach: i32,
+        hole: Option<[i32; 4]>,
+        ring: Option<[i32; 4]>,
+    ) {
         let room = (MENU_SPACE * frame.scale).round() as i32;
         let reach = reach.min(room);
 
@@ -487,7 +506,29 @@ mod win {
                 let _ = DeleteObject(menu.into());
             }
 
-            let _ = SetWindowRgn(hwnd, Some(region), true);
+            if let Some([cx, cy, outer, thick]) = ring {
+                let arc = CreateEllipticRgn(cx - outer, cy - outer, cx + outer, cy + outer);
+                let inner = (outer - thick).max(0);
+
+                if inner > 0 {
+                    let hollow = CreateEllipticRgn(
+                        cx - inner,
+                        cy - inner,
+                        cx + inner,
+                        cy + inner,
+                    );
+
+                    CombineRgn(Some(arc), Some(arc), Some(hollow), RGN_DIFF);
+
+                    let _ = DeleteObject(hollow.into());
+                }
+
+                CombineRgn(Some(region), Some(region), Some(arc), RGN_OR);
+
+                let _ = DeleteObject(arc.into());
+            }
+
+            let _ = SetWindowRgn(hwnd, Some(region), false);
         }
     }
 
@@ -769,7 +810,12 @@ mod win {
 
     pub fn watch_shell(_window: &WebviewWindow) {}
 
-    pub fn extend(_window: &WebviewWindow, _px: f64, _rect: Option<[f64; 4]>) -> tauri::Result<()> {
+    pub fn extend(
+        _window: &WebviewWindow,
+        _px: f64,
+        _rect: Option<[f64; 4]>,
+        _ring: Option<[f64; 4]>,
+    ) -> tauri::Result<()> {
         Ok(())
     }
 

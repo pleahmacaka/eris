@@ -110,6 +110,14 @@
       setOpen(false)
     }
   }
+
+  $effect(() => {
+    const close = () => setOpen(false)
+
+    window.addEventListener("eris-close-menus", close)
+
+    return () => window.removeEventListener("eris-close-menus", close)
+  })
 </script>
 
 <svelte:window {onmousedown} {onkeydown} />
@@ -122,10 +130,6 @@
     aria-haspopup="dialog"
     aria-expanded={open}
     onclick={() => setOpen(!open)}
-    oncontextmenu={e => {
-      e.preventDefault()
-      toggleMute()
-    }}
     {onwheel}
   >
     <Icon {icon} class="size-4" />
