@@ -22,3 +22,16 @@ export const clipboardPin = (id: string, pinned: boolean) =>
   invoke<void>("clipboard_pin", { id, pinned })
 
 export const clipboardClear = () => invoke<void>("clipboard_clear")
+
+export type ClipboardFiles = {
+  paths: string[]
+  cut: boolean
+}
+
+export const clipboardWriteFiles = (paths: string[], cut: boolean) =>
+  invoke<void>("clipboard_write_files", { paths, cut })
+
+export const clipboardReadFiles = () =>
+  invoke<ClipboardFiles | null>("clipboard_read_files")
+
+export const clipboardHasFiles = () => invoke<boolean>("clipboard_has_files")
