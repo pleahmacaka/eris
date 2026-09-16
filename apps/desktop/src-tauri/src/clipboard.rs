@@ -192,16 +192,42 @@ pub fn clipboard_clear(app: AppHandle) {
     persist(&app);
 }
 
+#[derive(Clone, Serialize)]
+pub struct ClipboardFiles {
+    pub paths: Vec<String>,
+    pub cut: bool,
+}
+
+#[tauri::command]
+pub fn clipboard_write_files(paths: Vec<String>, cut: bool) -> Result<(), String> {
+    win::write_files(&paths, cut)
+}
+
+#[tauri::command]
+pub fn clipboard_read_files() -> Option<ClipboardFiles> {
+    win::read_files()
+}
+
+#[tauri::command]
+pub fn clipboard_has_files() -> bool {
+    win::has_files()
+}
+
 #[cfg(target_os = "windows")]
 mod win {
     use windows::core::w;
-    use windows::Win32::Foundation::HGLOBAL;
+    use windows::Win32::Foundation::{HGLOBAL, HANDLE, POINT};
     use windows::Win32::System::DataExchange::{
-        CloseClipboard, GetClipboardData, GetClipboardSequenceNumber, IsClipboardFormatAvailable,
-        OpenClipboard, RegisterClipboardFormatW,
+        CloseClipboard, EmptyClipboard, GetClipboardData, GetClipboardSequenceNumber,
+        IsClipboardFormatAvailable, OpenClipboard, RegisterClipboardFormatW, SetClipboardData,
     };
-    use windows::Win32::System::Memory::{GlobalLock, GlobalSize, GlobalUnlock};
+    use windows::Win32::System::Memory::{
+        GlobalAlloc, GlobalLock, GlobalSize, GlobalUnlock, GMEM_MOVEABLE,
+    };
     use windows::Win32::UI::Input::KeyboardAndMouse::{VK_CONTROL, VK_V};
+    use windows::Win32::UI::Shell::{DragQueryFileW, DROPFILES, HDROP};
+
+    use super::ClipboardFiles;
 
     pub fn sequence() -> u32 {
         unsafe { GetClipboardSequenceNumber() }
@@ -248,10 +274,123 @@ mod win {
     pub fn paste() {
         crate::winkey::chord(&[VK_CONTROL, VK_V]);
     }
+
+    const CF_HDROP: u32 = 15;
+
+    fn drop_effect() -> u32 {
+        unsafe { RegisterClipboardFormatW(w!("Preferred DropEffect")) }
+    }
+
+    pub fn write_files(paths: &[String], cut: bool) -> Result<(), String> {
+        unsafe {
+            OpenClipboard(None).map_err(|e| e.to_string())?;
+
+            let result = (|| -> Result<(), String> {
+                EmptyClipboard().map_err(|e| e.to_string())?;
+
+                let mut wide: Vec<u16> = Vec::new();
+
+                for path in paths {
+                    wide.extend(path.encode_utf16());
+                    wide.push(0);
+                }
+
+                wide.push(0);
+
+                let bytes = std::mem::size_of::<DROPFILES>() + wide.len() * 2;
+                let list = GlobalAlloc(GMEM_MOVEABLE, bytes).map_err(|e| e.to_string())?;
+                let head = GlobalLock(list) as *mut DROPFILES;
+
+                if head.is_null() {
+                    return Err("GlobalLock failed".into());
+                }
+
+                (*head).pFiles = std::mem::size_of::<DROPFILES>() as u32;
+                (*head).pt = POINT { x: 0, y: 0 };
+                (*head).fNC = false.into();
+                (*head).fWide = true.into();
+
+                std::ptr::copy_nonoverlapping(
+                    wide.as_ptr(),
+                    head.add(1) as *mut u16,
+                    wide.len(),
+                );
+
+                let _ = GlobalUnlock(list);
+
+                SetClipboardData(CF_HDROP, Some(HANDLE(list.0)))
+                    .map_err(|e| e.to_string())?;
+
+                let effect = GlobalAlloc(GMEM_MOVEABLE, 4).map_err(|e| e.to_string())?;
+                let slot = GlobalLock(effect) as *mut u32;
+
+                if slot.is_null() {
+                    return Err("GlobalLock failed".into());
+                }
+
+                *slot = if cut { 2 } else { 1 };
+
+                let _ = GlobalUnlock(effect);
+
+                SetClipboardData(drop_effect(), Some(HANDLE(effect.0)))
+                    .map_err(|e| e.to_string())?;
+
+                Ok(())
+            })();
+
+            let _ = CloseClipboard();
+
+            result
+        }
+    }
+
+    pub fn read_files() -> Option<ClipboardFiles> {
+        unsafe {
+            OpenClipboard(None).ok()?;
+
+            let result = (|| {
+                let handle = GetClipboardData(CF_HDROP).ok()?;
+                let drop = HDROP(handle.0);
+                let count = DragQueryFileW(drop, u32::MAX, None);
+                let mut paths = Vec::with_capacity(count as usize);
+
+                for index in 0..count {
+                    let len = DragQueryFileW(drop, index, None) as usize;
+                    let mut buffer = vec![0u16; len + 1];
+
+                    DragQueryFileW(drop, index, Some(&mut buffer));
+                    paths.push(String::from_utf16_lossy(&buffer[..len]));
+                }
+
+                let cut = GetClipboardData(drop_effect())
+                    .ok()
+                    .and_then(|handle| {
+                        let memory = HGLOBAL(handle.0);
+                        let data = GlobalLock(memory) as *const u32;
+                        let value = (!data.is_null()).then(|| data.read_unaligned());
+                        let _ = GlobalUnlock(memory);
+                        value
+                    })
+                    .is_some_and(|effect| effect & 2 == 2);
+
+                Some(ClipboardFiles { paths, cut })
+            })();
+
+            let _ = CloseClipboard();
+
+            result
+        }
+    }
+
+    pub fn has_files() -> bool {
+        unsafe { IsClipboardFormatAvailable(CF_HDROP).is_ok() }
+    }
 }
 
 #[cfg(not(target_os = "windows"))]
 mod win {
+    use super::ClipboardFiles;
+
     pub fn sequence() -> u32 {
         0
     }
@@ -261,4 +400,16 @@ mod win {
     }
 
     pub fn paste() {}
+
+    pub fn write_files(_paths: &[String], _cut: bool) -> Result<(), String> {
+        Err("file clipboard is not supported on this platform".into())
+    }
+
+    pub fn read_files() -> Option<ClipboardFiles> {
+        None
+    }
+
+    pub fn has_files() -> bool {
+        false
+    }
 }

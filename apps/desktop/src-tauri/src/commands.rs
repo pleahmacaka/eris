@@ -93,5 +93,8 @@ pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
         clipboard::clipboard_remove,
         clipboard::clipboard_pin,
         clipboard::clipboard_clear,
+        clipboard::clipboard_write_files,
+        clipboard::clipboard_read_files,
+        clipboard::clipboard_has_files,
     ]
 }

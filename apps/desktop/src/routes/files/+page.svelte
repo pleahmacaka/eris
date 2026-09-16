@@ -2,6 +2,7 @@
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
   import { currentLocale } from "@eris/i18n"
+  import { writeText } from "@tauri-apps/plugin-clipboard-manager"
   import * as native from "$lib/native"
   import type { FileEntry, FilePlace } from "$lib/native/files"
   import { ContextMenu } from "@eris/ui"
@@ -23,7 +24,7 @@
   let anchor = $state<string | null>(null)
   let renaming = $state<string | null>(null)
   let draft = $state("")
-  let clipboard = $state<{ paths: string[]; cut: boolean } | null>(null)
+  let canPaste = $state(false)
 
   let filter = $state("")
   let deep = $state<FileEntry[] | null>(null)
@@ -236,27 +237,33 @@
     refresh()
   }
 
-  const copy = (cut: boolean) => {
+  const copy = async (cut: boolean) => {
     const paths = selected.map(entry => entry.path)
 
-    if (paths.length > 0) {
-      clipboard = { paths, cut }
-    }
-  }
-
-  const paste = async () => {
-    if (!clipboard) {
+    if (paths.length === 0) {
       return
     }
 
-    await native
-      .transferEntries(clipboard.paths, path, clipboard.cut)
-      .catch(reason => {
-        error = String(reason)
-      })
+    await native.clipboardWriteFiles(paths, cut).catch(reason => {
+      error = String(reason)
+    })
 
-    if (clipboard.cut) {
-      clipboard = null
+    canPaste = true
+  }
+
+  const paste = async () => {
+    const held = await native.clipboardReadFiles().catch(() => null)
+
+    if (!held || held.paths.length === 0) {
+      return
+    }
+
+    await native.transferEntries(held.paths, path, held.cut).catch(reason => {
+      error = String(reason)
+    })
+
+    if (held.cut) {
+      canPaste = false
     }
 
     refresh()
@@ -312,7 +319,7 @@
           label: $t("files.paste"),
           icon: "lucide:clipboard",
           action: paste,
-          disabled: !clipboard,
+          disabled: !canPaste,
         },
         { label: $t("files.refresh"), icon: "lucide:refresh-cw", action: refresh },
       ]
@@ -330,7 +337,7 @@
       {
         label: $t("files.copyPath"),
         icon: "lucide:link",
-        action: () => navigator.clipboard.writeText(target.path),
+        action: () => writeText(target.path).catch(() => undefined),
       },
       { label: $t("common.delete"), icon: "lucide:trash-2", action: () => remove(false) },
     ]
@@ -558,6 +565,7 @@
         menuX = e.clientX
         menuY = e.clientY
         menuOpen = true
+        native.clipboardHasFiles().then(has => (canPaste = has)).catch(() => undefined)
       }}
     >
       <div
