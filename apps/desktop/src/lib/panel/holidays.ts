@@ -22,9 +22,27 @@ const engine = (country: string, lang: string) => {
 }
 
 export const systemRegion = () => {
-  const region = (navigator.language || "").split("-")[1]
+  const candidates = [
+    Intl.DateTimeFormat().resolvedOptions().locale,
+    ...(globalThis.navigator?.languages ?? []),
+    globalThis.navigator?.language,
+  ]
 
-  return region ? region.toUpperCase() : "US"
+  for (const tag of candidates) {
+    if (!tag) {
+      continue
+    }
+
+    try {
+      const region = new Intl.Locale(tag).maximize().region
+
+      if (region) {
+        return region
+      }
+    } catch {}
+  }
+
+  return "US"
 }
 
 export const holidaysOn = (

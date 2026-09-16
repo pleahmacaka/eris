@@ -9,16 +9,21 @@
     live,
     monthGrid,
     startOfDay,
+    todos,
     type CalendarEvent,
   } from "$lib/data"
   import { currentLocale } from "@eris/i18n"
   import { ensureDevice } from "$lib/device"
   import * as native from "$lib/native"
-  import { DayPane, EventDetail, MonthGrid } from "$lib/panel"
+  import { DayPane, EventDetail, MonthGrid, TodoPane } from "$lib/panel"
   import { holidaysOn, systemRegion } from "$lib/panel/holidays"
   import {
+    type DeviceSettings,
+    defaultDevice,
     defaultProfile,
+    loadDevice,
     loadProfile,
+    onDevice,
     onProfile,
     type Profile,
   } from "@eris/settings"
@@ -27,13 +32,16 @@
 
   const appWindow = getCurrentWindow()
   const eventLive = live(events)
+  const todoLive = live(todos)
 
   let profile = $state<Profile>(defaultProfile)
+  let device = $state<DeviceSettings>(defaultDevice)
   let now = $state(new Date())
   let cursor = $state(startOfDay(new Date()))
   let selected = $state(startOfDay(new Date()))
   let openId = $state<string | null>(null)
   let editing = $state(false)
+  let mode = $state<"day" | "todo">("day")
 
   const today = $derived(startOfDay(now))
 
@@ -49,6 +57,17 @@
     cursor.toLocaleDateString(currentLocale(), {
       year: "numeric",
       month: "long",
+    }),
+  )
+
+  const calendarOn = $derived(device.features.calendar)
+
+  const dateLabel = $derived(
+    today.toLocaleDateString(currentLocale(), {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      weekday: "long",
     }),
   )
 
@@ -78,12 +97,14 @@
     selected = startOfDay(now)
     openId = null
     editing = false
+    mode = "day"
   }
 
   const pick = (day: Date) => {
     selected = day
     openId = null
     editing = false
+    mode = "day"
 
     if (day.getMonth() !== cursor.getMonth()) {
       cursor = new Date(day.getFullYear(), day.getMonth(), 1)
@@ -93,11 +114,19 @@
   const show = (event: CalendarEvent) => {
     openId = event.id
     editing = false
+    mode = "day"
   }
 
   const startNew = () => {
     openId = "new"
     editing = true
+    mode = "day"
+  }
+
+  const showTodos = () => {
+    openId = null
+    editing = false
+    mode = "todo"
   }
 
   const close = () => {
@@ -135,7 +164,11 @@
   }
 
   $effect(() => {
-    ensureDevice().catch(() => undefined)
+    ensureDevice()
+      .then(d => {
+        device = d
+      })
+      .catch(() => undefined)
     native.takeIntent("panel").catch(() => undefined)
     loadProfile().then(p => {
       profile = p
@@ -144,6 +177,9 @@
     const stops = [
       onProfile(p => {
         profile = p
+      }),
+      onDevice(d => {
+        device = d
       }),
       appWindow.onFocusChanged(({ payload: focused }) => {
         if (focused) {
@@ -181,12 +217,31 @@
       }
 
       eventLive.stop()
+      todoLive.stop()
     }
   })
 </script>
 
 <svelte:window {onkeydown} />
 
+{#if !calendarOn}
+  <main class="flex h-full min-h-0 flex-col">
+    <header class="flex items-center justify-end px-3 py-2">
+      <button
+        class="btn btn-ghost btn-square btn-xs"
+        aria-label={$t("common.close")}
+        onclick={hide}
+      >
+        <Icon icon="lucide:x" class="size-3.5" />
+      </button>
+    </header>
+
+    <div class="flex min-h-0 flex-1 flex-col items-center justify-center gap-1 pb-4">
+      <p class="text-2xl font-semibold tracking-tight">{dateLabel}</p>
+      <p class="tabular text-sm text-base-content/50">{dateKey(today)}</p>
+    </div>
+  </main>
+{:else}
 <main class="flex h-full min-h-0 flex-col">
   <header
     class="flex items-center justify-between gap-2 border-b border-base-300 px-4 py-2.5"
@@ -228,6 +283,11 @@
         {$t("panel.event.new")}
       </button>
 
+      <button class="btn btn-xs btn-ghost" onclick={showTodos}>
+        <Icon icon="lucide:list-checks" class="size-3" />
+        {$t("panel.todos")}
+      </button>
+
       <button
         class="btn btn-ghost btn-square btn-xs"
         aria-label={$t("common.close")}
@@ -256,7 +316,14 @@
     <aside
       class="flex h-auto w-[22rem] min-h-0 shrink-0 flex-col overflow-hidden border-l border-base-300 bg-base-100"
     >
-      {#if openId !== null}
+      {#if mode === "todo"}
+        <TodoPane
+          items={todoLive.items}
+          sortBy={profile.todo.sortBy}
+          showCompleted={profile.todo.showCompleted}
+          back={() => (mode = "day")}
+        />
+      {:else if openId !== null}
         {#key openId}
           <EventDetail
             event={openEvent}
@@ -280,6 +347,7 @@
     </aside>
   </div>
 </main>
+{/if}
 
 <style>
   :global(.siri-aura) {
