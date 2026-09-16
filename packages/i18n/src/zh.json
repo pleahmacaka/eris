@@ -20,8 +20,7 @@
     "on": "开",
     "off": "关",
     "previous": "上一步",
-    "partial": "部分支持",
-    "experimental": "实验性"
+    "partial": "部分支持"
   },
   "languages": {
     "system": "跟随系统",
@@ -36,7 +35,7 @@
     "sections": {
       "general": {
         "label": "常规",
-        "blurb": "此设备、启动与启动器快捷键"
+        "blurb": "此设备、启动与功能"
       },
       "dock": {
         "label": "程序坞",
@@ -44,7 +43,7 @@
       },
       "launcher": {
         "label": "启动器",
-        "blurb": "结果分组与网页搜索引擎"
+        "blurb": "结果分组、网页搜索与快捷键"
       },
       "appearance": {
         "label": "外观",
@@ -60,15 +59,15 @@
       },
       "advanced": {
         "label": "高级",
-        "blurb": "存储的数据、缓存与重置"
+        "blurb": "存储的数据、缓存、重置与版本信息"
       },
-      "about": {
-        "label": "关于",
-        "blurb": "版本与键盘快捷键"
+      "chat": {
+        "label": "AI 聊天",
+        "blurb": "配置 Claude 聊天气泡与用量显示。"
       },
-      "keymap": {
-        "label": "键位",
-        "blurb": "启动器、聊天与面板的快捷键"
+      "experimental": {
+        "label": "实验性功能",
+        "blurb": "试用尚未正式发布的早期功能"
       }
     },
     "groups": {
@@ -77,6 +76,7 @@
         "title": "功能",
         "description": "整体开启或关闭 Eris 的各个部分"
       },
+      "featureGate": "启用",
       "chat": {
         "title": "聊天气泡",
         "description": "气泡离屏幕边缘多近时会吸附"
@@ -118,7 +118,11 @@
         "title": "聊天",
         "description": "聊天气泡的全局快捷键"
       },
-      "tray": "Windows 托盘"
+      "tray": "Windows 托盘",
+      "experimental": {
+        "title": "实验性功能",
+        "description": "可能会在后续版本中更改的早期功能"
+      }
     },
     "rows": {
       "deviceName": "设备名称",
@@ -233,7 +237,9 @@
       "hideAnimation": "隐藏动画",
       "topBar": "顶部信息栏",
       "panelPosition": "面板位置",
-      "holidayRegion": "节假日地区"
+      "holidayRegion": "节假日地区",
+      "featureCalendar": "日历面板",
+      "dockLayout": "Dock 布局"
     },
     "hints": {
       "deviceName": "显示在同步设备列表中",
@@ -334,7 +340,9 @@
       "hideAnimation": "程序坞隐藏时滑出而不是立即消失",
       "topBar": "将时钟、托盘和小组件分离到顶部独立栏",
       "panelPosition": "日历和通知面板打开的位置",
-      "holidayRegion": "显示节假日的国家/地区。系统跟随 Windows"
+      "holidayRegion": "显示节假日的国家/地区。系统跟随 Windows",
+      "featureCalendar": "通过时钟打开的日历与日程面板",
+      "dockLayout": "通过小组件组装 Dock，并可调节留白宽度"
     },
     "options": {
       "win": "Win 键",
@@ -458,7 +466,9 @@
       "savePreset": "保存预设",
       "savePresetBody": "将当前外观保存为网格中的一张卡片。",
       "presetName": "预设名称",
-      "deletePreset": "删除预设 {name}"
+      "deletePreset": "删除预设 {name}",
+      "customPreset": "自定义",
+      "forkedFrom": "已从 {name} 修改"
     },
     "hotkey": {
       "addModifier": "请添加 Ctrl 或 Alt 等修饰键",
@@ -509,7 +519,6 @@
       "alignStart": "左",
       "alignCenter": "居中",
       "alignEnd": "右",
-      "experimental": "实验性",
       "openEditMode": "打开"
     },
     "sync": {
@@ -832,7 +841,12 @@
     "preview": {
       "switchTo": "切换到窗口",
       "close": "关闭窗口"
-    }
+    },
+    "addSpacer": "添加留白",
+    "resetLayout": "重置布局",
+    "spacerWidth": "留白宽度",
+    "moveLeft": "向左移动",
+    "moveRight": "向右移动"
   },
   "edit": {
     "title": "编辑布局",
@@ -844,7 +858,8 @@
       "tray": "托盘与时钟",
       "widgets": "小组件",
       "search": "启动器",
-      "bubble": "聊天气泡"
+      "bubble": "聊天气泡",
+      "spacer": "留白"
     }
   },
   "menu": {
@@ -972,7 +987,8 @@
       "delete": "删除待办",
       "allDone": "全部完成",
       "completed": "已完成",
-      "clearCompleted": "清除已完成"
+      "clearCompleted": "清除已完成",
+      "count": "{count, plural, other {剩余 # 个待办}}"
     },
     "notifications": {
       "title": "通知",
@@ -1182,7 +1198,8 @@
       "settings": "Bluetooth 设置"
     },
     "input": {
-      "title": "输入语言：{label}"
+      "title": "输入语言：{label}",
+      "settings": "语言设置"
     },
     "icons": {
       "icon": "托盘图标",
@@ -1191,7 +1208,10 @@
       "hide": "从溢出区隐藏",
       "unhide": "在溢出区显示",
       "showAll": "全部显示",
-      "allHidden": "已隐藏 {count} 个图标"
+      "allHidden": "已隐藏 {count} 个图标",
+      "appMenu": "打开应用菜单",
+      "hideFromDock": "在 Dock 中隐藏",
+      "showInDock": "在 Dock 中显示"
     },
     "meters": {
       "title": "系统用量",
