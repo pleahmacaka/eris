@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.2](https://github.com/pleahmacaka/eris/compare/0.2.1...0.2.2) (2026-09-16)
+
+
+### Features
+
+* **dock:** compose the dock from widgets and fix focus handling ([6eb4d47](https://github.com/pleahmacaka/eris/commit/6eb4d47efe0cc6b6aa4c363a14c95f1b9d5aa56c))
+* **files:** copy and paste entries through the windows clipboard ([d19058a](https://github.com/pleahmacaka/eris/commit/d19058a92de43dd3458d4801fbdeb74581508735))
+* **panel:** add a todo pane and a date-only view when calendar is off ([9ed6de0](https://github.com/pleahmacaka/eris/commit/9ed6de06b5a7ab6be1700fe3207ea167c868871d))
+* **settings:** reorganize into gated feature pages with row resets ([b4d8378](https://github.com/pleahmacaka/eris/commit/b4d83785c2ed844d74a46e0c63fab1b184d7ee27))
+
 ## [0.2.1](https://github.com/pleahmacaka/eris/compare/0.2.0...0.2.1) (2026-09-15)
 
 
