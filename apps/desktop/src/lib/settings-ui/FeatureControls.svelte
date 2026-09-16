@@ -24,14 +24,17 @@
   ]
 
   const PRESETS: Preset[] = [
-    { id: "all", icon: "lucide:layout-grid", features: { dock: true, launcher: true, chat: true } },
-    { id: "desk", icon: "lucide:panel-bottom", features: { dock: true, launcher: true, chat: false } },
-    { id: "search", icon: "lucide:search", features: { dock: false, launcher: true, chat: false } },
-    { id: "bubble", icon: "lucide:message-circle", features: { dock: false, launcher: false, chat: true } },
+    { id: "all", icon: "lucide:layout-grid", features: { dock: true, launcher: true, chat: true, calendar: true } },
+    { id: "desk", icon: "lucide:panel-bottom", features: { dock: true, launcher: true, chat: false, calendar: true } },
+    { id: "search", icon: "lucide:search", features: { dock: false, launcher: true, chat: false, calendar: true } },
+    { id: "bubble", icon: "lucide:message-circle", features: { dock: false, launcher: false, chat: true, calendar: true } },
   ]
 
   const same = (a: DeviceSettings["features"], b: DeviceSettings["features"]) =>
-    a.dock === b.dock && a.launcher === b.launcher && a.chat === b.chat
+    a.dock === b.dock &&
+    a.launcher === b.launcher &&
+    a.chat === b.chat &&
+    a.calendar === b.calendar
 </script>
 
 {#if presets}

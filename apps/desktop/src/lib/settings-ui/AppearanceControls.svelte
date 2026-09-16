@@ -1,8 +1,13 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { live, newId, presets as userPresets } from "$lib/data"
-  import type { Appearance, Profile } from "@eris/settings"
+  import {
+    type Appearance,
+    type Profile,
+    defaultAppearance,
+  } from "@eris/settings"
   import { allPresets, CUSTOM } from "./presets"
+  import { reset as resetField } from "./reset"
   import { Row, Segmented } from "@eris/ui"
   import { toast } from "@eris/ui"
   import { t } from "svelte-i18n"
@@ -69,6 +74,13 @@
     profile.presetId = CUSTOM
   }
 
+  const resetAppearance = resetField(() => profile.appearance, defaultAppearance)
+
+  const resetRow = (key: keyof Appearance) => () => {
+    resetAppearance(key)()
+    markCustom()
+  }
+
   const reset = () => {
     if (basePreset) {
       profile.appearance = { ...basePreset.appearance }
@@ -110,7 +122,11 @@
   }
 </script>
 
-<Row label={$t("settings.rows.mode")} hint={$t("settings.hints.mode")}>
+<Row
+  label={$t("settings.rows.mode")}
+  hint={$t("settings.hints.mode")}
+  onreset={resetRow("mode")}
+>
   <Segmented
     label={$t("settings.rows.mode")}
     bind:value={profile.appearance.mode}
@@ -123,7 +139,11 @@
   />
 </Row>
 
-<Row label={$t("settings.rows.background")} hint={$t("settings.hints.background")}>
+<Row
+  label={$t("settings.rows.background")}
+  hint={$t("settings.hints.background")}
+  onreset={resetRow("background")}
+>
   <Segmented
     label={$t("settings.rows.background")}
     bind:value={profile.appearance.background}
@@ -136,7 +156,11 @@
   />
 </Row>
 
-<Row label={$t("settings.rows.followAccent")} hint={$t("settings.hints.followAccent")}>
+<Row
+  label={$t("settings.rows.followAccent")}
+  hint={$t("settings.hints.followAccent")}
+  onreset={resetRow("useSystemAccent")}
+>
   <input
     type="checkbox"
     class="toggle toggle-primary"
@@ -153,6 +177,7 @@
     : $t("settings.appearance.baseColor")}
   value="{profile.appearance.accentHue}°"
   stacked
+  onreset={resetRow("accentHue")}
 >
   <input
     type="range"
@@ -174,6 +199,7 @@
     hint={$t(`settings.hints.${s.row}`)}
     value={s.format(profile.appearance[s.key])}
     stacked
+    onreset={resetRow(s.key)}
   >
     <input
       type="range"
@@ -194,7 +220,11 @@
   <span class="text-xs text-base-content/60">{$t("settings.groups.dockLook.description")}</span>
 </div>
 
-<Row label={$t("settings.rows.dockBackground")} hint={$t("settings.hints.dockBackground")}>
+<Row
+  label={$t("settings.rows.dockBackground")}
+  hint={$t("settings.hints.dockBackground")}
+  onreset={resetRow("dockBackground")}
+>
   <Segmented
     label={$t("settings.rows.dockBackground")}
     bind:value={profile.appearance.dockBackground}
@@ -214,6 +244,7 @@
     hint={$t(`settings.hints.${s.row}`)}
     value={s.format(profile.appearance[s.key])}
     stacked
+    onreset={resetRow(s.key)}
   >
     <input
       type="range"
@@ -228,7 +259,11 @@
   </Row>
 {/each}
 
-<Row label={$t("settings.rows.dockBorder")} hint={$t("settings.hints.dockBorder")}>
+<Row
+  label={$t("settings.rows.dockBorder")}
+  hint={$t("settings.hints.dockBorder")}
+  onreset={resetRow("dockBorder")}
+>
   <input
     type="checkbox"
     class="toggle toggle-primary"
@@ -238,7 +273,11 @@
   />
 </Row>
 
-<Row label={$t("settings.rows.density")} hint={$t("settings.hints.density")}>
+<Row
+  label={$t("settings.rows.density")}
+  hint={$t("settings.hints.density")}
+  onreset={resetRow("density")}
+>
   <Segmented
     label={$t("settings.rows.density")}
     bind:value={profile.appearance.density}
@@ -250,7 +289,11 @@
   />
 </Row>
 
-<Row label={$t("settings.rows.motion")} hint={$t("settings.hints.motion")}>
+<Row
+  label={$t("settings.rows.motion")}
+  hint={$t("settings.hints.motion")}
+  onreset={resetRow("motion")}
+>
   <input
     type="checkbox"
     class="toggle toggle-primary"
