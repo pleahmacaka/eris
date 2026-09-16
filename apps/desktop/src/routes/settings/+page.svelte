@@ -1,6 +1,7 @@
 <script lang="ts">
   import * as native from "$lib/native"
   import Icon from "@iconify/svelte"
+  import { emit } from "@tauri-apps/api/event"
   import { tick } from "svelte"
   import { saveProfileSynced } from "$lib/data"
   import { ensureDevice } from "$lib/device"
@@ -17,13 +18,13 @@
     saveDevice,
   } from "@eris/settings"
   import {
-    AboutSection,
     Advanced,
     AppearanceSection,
     CalendarSection,
+    ChatSection,
     DockSection,
+    ExperimentalSection,
     GeneralSection,
-    KeymapSection,
     LauncherSection,
     SettingsNav,
     SyncPanel,
@@ -189,6 +190,14 @@
     scroller?.scrollTo({ top: 0 })
   })
 
+  $effect(() => {
+    emit("dock-peek", section === "dock").catch(() => undefined)
+
+    return () => {
+      emit("dock-peek", false).catch(() => undefined)
+    }
+  })
+
   const resetOnboarding = async () => {
     device.onboarded = false
     await persistDevice()
@@ -256,19 +265,19 @@
           {:else if section === "dock"}
             <DockSection bind:device />
           {:else if section === "launcher"}
-            <LauncherSection bind:profile />
+            <LauncherSection bind:profile bind:device />
+          {:else if section === "chat"}
+            <ChatSection bind:device />
           {:else if section === "appearance"}
             <AppearanceSection bind:profile />
           {:else if section === "calendar"}
-            <CalendarSection bind:profile />
+            <CalendarSection bind:profile bind:device />
           {:else if section === "sync"}
             <SyncPanel bind:device />
           {:else if section === "advanced"}
             <Advanced bind:device bind:profile />
-          {:else if section === "about"}
-            <AboutSection />
-          {:else if section === "keymap"}
-            <KeymapSection bind:device />
+          {:else if section === "experimental"}
+            <ExperimentalSection bind:device />
           {/if}
         </div>
       {:else}

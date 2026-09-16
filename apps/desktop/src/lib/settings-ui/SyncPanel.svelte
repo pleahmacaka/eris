@@ -1,7 +1,12 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { untrack } from "svelte"
-  import { type DeviceSettings, saveDevice } from "@eris/settings"
+  import {
+    type DeviceSettings,
+    defaultSync,
+    saveDevice,
+  } from "@eris/settings"
+  import { reset } from "./reset"
   import {
     forgetDevice,
     listDevices,
@@ -26,6 +31,8 @@
     device = $bindable(),
     compact = false,
   }: { device: DeviceSettings; compact?: boolean } = $props()
+
+  const resetSync = reset(() => device.sync, defaultSync)
 
   const collectionLabel = (name: SyncedCollection) => $t(`settings.sync.collections.${name}`)
 
@@ -210,11 +217,34 @@
   const stateLabel = $derived($t(`settings.sync.states.${syncStatus.state}`))
 </script>
 
+<Section title={$t("settings.groups.featureGate")}>
+  <Row label={$t("settings.rows.enableSync")} hint={$t("settings.hints.enableSync")}>
+    <input
+      type="checkbox"
+      class="toggle toggle-primary"
+      aria-label={$t("settings.rows.enableSync")}
+      bind:checked={device.sync.enabled}
+    />
+  </Row>
+</Section>
+
+<fieldset
+  class={[
+    "flex flex-col gap-4 transition-opacity duration-100",
+    !device.sync.enabled && "opacity-40",
+  ]}
+  disabled={!device.sync.enabled}
+>
 <Section
   title={$t("settings.sync.server.title")}
   description={$t("settings.sync.server.description", { values: { collections: collectionList } })}
 >
-  <Row label={$t("settings.rows.serverUrl")} hint={$t("settings.hints.serverUrl")} stacked>
+  <Row
+    label={$t("settings.rows.serverUrl")}
+    hint={$t("settings.hints.serverUrl")}
+    stacked
+    onreset={resetSync("url")}
+  >
     <input
       class="input input-sm w-full"
       type="url"
@@ -226,7 +256,12 @@
     />
   </Row>
 
-  <Row label={$t("settings.rows.token")} hint={$t("settings.hints.token")} stacked>
+  <Row
+    label={$t("settings.rows.token")}
+    hint={$t("settings.hints.token")}
+    stacked
+    onreset={resetSync("token")}
+  >
     <div class="join w-full">
       <input
         class="input input-sm join-item w-full"
@@ -275,17 +310,12 @@
     {/if}
   </div>
 
-  <Row label={$t("settings.rows.enableSync")} hint={$t("settings.hints.enableSync")}>
-    <input
-      type="checkbox"
-      class="toggle toggle-primary"
-      aria-label={$t("settings.rows.enableSync")}
-      bind:checked={device.sync.enabled}
-    />
-  </Row>
-
   {#if !compact}
-    <Row label={$t("settings.rows.interval")} hint={$t("settings.hints.interval")}>
+    <Row
+      label={$t("settings.rows.interval")}
+      hint={$t("settings.hints.interval")}
+      onreset={resetSync("intervalMinutes")}
+    >
       <select
         class="select select-sm w-32"
         aria-label={$t("settings.rows.interval")}
@@ -301,7 +331,12 @@
       </select>
     </Row>
 
-    <Row label={$t("settings.rows.collections")} hint={$t("settings.hints.collections")} stacked>
+    <Row
+      label={$t("settings.rows.collections")}
+      hint={$t("settings.hints.collections")}
+      stacked
+      onreset={resetSync("collections")}
+    >
       <div class="flex flex-wrap gap-2">
         {#each syncedCollections as name (name)}
           <label
@@ -495,3 +530,4 @@
     onconfirm={unlink}
   />
 {/if}
+</fieldset>

@@ -1,17 +1,18 @@
 export type SectionId =
   | "general"
-  | "dock"
-  | "launcher"
   | "appearance"
   | "calendar"
   | "sync"
   | "advanced"
-  | "keymap"
-  | "about"
+  | "experimental"
+  | "dock"
+  | "launcher"
+  | "chat"
 
 export type NavSection = {
   id: SectionId
   icon: string
+  feature?: boolean
 }
 
 export type SearchEntry = {
@@ -24,14 +25,14 @@ export type Translate = (key: string) => string
 
 export const sections: NavSection[] = [
   { id: "general", icon: "lucide:sliders-horizontal" },
-  { id: "dock", icon: "lucide:panel-bottom" },
-  { id: "launcher", icon: "lucide:search" },
   { id: "appearance", icon: "lucide:palette" },
   { id: "calendar", icon: "lucide:calendar-check" },
   { id: "sync", icon: "lucide:refresh-cw" },
   { id: "advanced", icon: "lucide:wrench" },
-  { id: "keymap", icon: "lucide:keyboard" },
-  { id: "about", icon: "lucide:info" },
+  { id: "experimental", icon: "lucide:flask-conical" },
+  { id: "dock", icon: "lucide:panel-bottom", feature: true },
+  { id: "launcher", icon: "lucide:search", feature: true },
+  { id: "chat", icon: "lucide:message-circle", feature: true },
 ]
 
 const entry = (
@@ -43,36 +44,33 @@ const entry = (
 export const index: SearchEntry[] = [
   entry("general", "deviceName", "identity machine computer sync"),
   entry("general", "autostart", "autostart startup boot sign in"),
-  entry("general", "hideTaskbar", "system bar edge"),
+
   entry("general", "language", "english korean japanese chinese locale"),
-  entry("general", "featureDock", "feature enable disable"),
-  entry("general", "featureLauncher", "feature enable disable"),
-  entry("general", "featureChat", "feature enable disable claude"),
-  entry("general", "snapDistance", "chat bubble edge percent"),
-  entry("general", "chatModel", "chat claude code model opus sonnet haiku"),
-  entry("general", "chatEffort", "chat claude code effort thinking level"),
+  entry("chat", "featureChat", "feature enable disable claude"),
+  entry("chat", "snapDistance", "chat bubble edge percent"),
+  entry("chat", "chatModel", "chat claude code model opus sonnet haiku"),
+  entry("chat", "chatEffort", "chat claude code effort thinking level"),
   entry(
-    "general",
+    "chat",
     "chatPermission",
     "chat claude code permission mode bypass plan",
   ),
-  entry("general", "chatThinking", "chat claude code extended thinking"),
-  entry("general", "chatAutoCompact", "chat claude code context compact"),
-  entry("general", "chatLanguage", "chat claude code response language"),
-  entry("general", "chatBudget", "chat claude code cost limit usd"),
+  entry("chat", "chatThinking", "chat claude code extended thinking"),
+  entry("chat", "chatAutoCompact", "chat claude code context compact"),
+  entry("chat", "chatLanguage", "chat claude code response language"),
+  entry("chat", "chatBudget", "chat claude code cost limit usd"),
   entry(
-    "general",
+    "chat",
     "chatSystemPrompt",
     "chat claude code system prompt instructions",
   ),
-  entry("general", "chatHover", "chat bubble tooltip title preview"),
-  entry("general", "chatMultiBubble", "chat bubbles sessions plus stack"),
-  entry("general", "chatBubbleColors", "chat bubble ring hue color"),
-  entry("general", "chatQueueMode", "chat queue message after tool reply"),
+  entry("chat", "chatHover", "chat bubble tooltip title preview"),
+  entry("chat", "chatMultiBubble", "chat bubbles sessions plus stack"),
+  entry("chat", "chatBubbleColors", "chat bubble ring hue color"),
+  entry("chat", "chatQueueMode", "chat queue message after tool reply"),
   entry("general", "setupWizard", "onboarding first run"),
-  entry("general", "openWith", "hotkey trigger win key launcher"),
-  entry("general", "shortcut", "hotkey keybinding combination"),
   entry("general", "backup", "export import json file restore"),
+  entry("dock", "featureDock", "feature enable disable"),
   entry("dock", "style", "windows mac floating uchiwa fan semicircle"),
   entry("dock", "display", "monitor screen multiple external primary"),
   entry("dock", "edge", "bottom top screen side"),
@@ -91,6 +89,9 @@ export const index: SearchEntry[] = [
   entry("dock", "showBattery", "power laptop"),
   entry("dock", "showVolume", "audio sound"),
   entry("dock", "showMedia", "music play pause track spotify"),
+  entry("dock", "mediaSide", "media widget position left right"),
+  entry("dock", "spectrumStyle", "visualizer bands mirror wave dots"),
+  entry("dock", "claudeUsageSide", "claude usage widget position left right"),
   entry("dock", "showMeters", "meters usage ram performance cpu memory"),
   entry("dock", "showNetwork", "wifi ethernet adapter connection"),
   entry("dock", "showBluetooth", "bluetooth radio devices headset pair"),
@@ -108,6 +109,11 @@ export const index: SearchEntry[] = [
   ),
   entry("dock", "clock24h", "time format 24-hour"),
   entry("dock", "showSeconds", "clock time"),
+  entry("launcher", "featureLauncher", "feature enable disable"),
+  entry("launcher", "openWith", "hotkey trigger win key launcher"),
+  entry("launcher", "shortcut", "hotkey keybinding combination"),
+  entry("chat", "chatShortcut", "claude bubble hotkey ctrl space"),
+  entry("launcher", "keyboardShortcuts", "keys hotkeys launcher panel"),
   entry("launcher", "resultsPerGroup", "max count"),
   entry("launcher", "openWindows", "switch running"),
   entry("launcher", "commands", "lock sleep recycle bin power"),
@@ -134,9 +140,11 @@ export const index: SearchEntry[] = [
   entry("appearance", "dockBorder", "dock border outline taskbar"),
   entry("dock", "dockSeparators", "divider line sections"),
   entry("dock", "clockAlign", "clock time date left center right"),
-  entry("dock", "editMode", "edit layout customize experimental"),
+  entry("dock", "dockLayout", "widgets spacer gap compose assemble"),
+  entry("experimental", "editMode", "edit layout customize experimental"),
   entry("appearance", "density", "compact cozy spacing"),
   entry("appearance", "motion", "animation reduced"),
+  entry("calendar", "featureCalendar", "feature enable disable panel"),
   entry("calendar", "weekStartsOn", "monday sunday"),
   entry("calendar", "holidayRegion", "country holidays public region"),
   entry("calendar", "weekNumbers", "grid"),
@@ -160,10 +168,8 @@ export const index: SearchEntry[] = [
   entry("advanced", "iconCache", "clear icons rebuild thumbnails"),
   entry("advanced", "resetAppearance", "theme default preset"),
   entry("advanced", "resetAll", "defaults factory wipe"),
-  entry("keymap", "chatShortcut", "claude bubble hotkey ctrl space"),
-  entry("about", "updates", "update installer version release"),
-  entry("about", "version", "build release eris"),
-  entry("keymap", "keyboardShortcuts", "keys hotkeys launcher panel"),
+  entry("advanced", "updates", "update installer version release"),
+  entry("advanced", "version", "build release eris"),
 ]
 
 const clean = (query: string) => query.trim().toLowerCase()

@@ -9,7 +9,7 @@ const keys = Object.keys(defaultAppearance) as (keyof Appearance)[]
 export const sameAppearance = (a: Appearance, b: Appearance) =>
   keys.every(key => a[key] === b[key])
 
-const swatchFor = (a: Appearance): [string, string, string] => {
+export const swatchFor = (a: Appearance): [string, string, string] => {
   const surface =
     a.mode === "light"
       ? `oklch(96% 0.01 ${a.accentHue})`

@@ -2,6 +2,7 @@
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
   import {
+    type NavSection,
     type SearchEntry,
     type SectionId,
     searchRows,
@@ -20,6 +21,9 @@
 
   const found = $derived(searchRows(query, $t))
   const visible = $derived(searchSections(query, $t))
+
+  const primary = $derived(visible.filter(s => !s.feature))
+  const featured = $derived(visible.filter(s => s.feature))
 </script>
 
 <nav class="w-44 shrink-0 px-3 pb-4" aria-label={$t("settings.sectionsAria")}>
@@ -42,43 +46,61 @@
     />
   </label>
 
+  {#snippet item(s: NavSection)}
+    {@const rows = found.filter(r => r.section === s.id)}
+    {@const label = $t(`settings.sections.${s.id}.label`)}
+
+    <li>
+      <button
+        type="button"
+        class={[
+          "rounded-field transition-colors duration-100",
+          section === s.id && "menu-active",
+        ]}
+        aria-current={section === s.id ? "page" : undefined}
+        onclick={() => (section = s.id)}
+      >
+        <Icon icon={s.icon} class="size-4" />
+        {label}
+      </button>
+
+      {#if rows.length}
+        <ul>
+          {#each rows as r (r.key)}
+            <li>
+              <button
+                type="button"
+                class="rounded-field text-xs text-base-content/70"
+                onclick={() => onjump(r)}
+              >
+                {$t(r.key)}
+              </button>
+            </li>
+          {/each}
+        </ul>
+      {/if}
+    </li>
+  {/snippet}
+
   <ul class="menu w-full gap-0.5 p-0">
-    {#each visible as s (s.id)}
-      {@const rows = found.filter(r => r.section === s.id)}
-      {@const label = $t(`settings.sections.${s.id}.label`)}
-
-      <li>
-        <button
-          type="button"
-          class={[
-            "rounded-field transition-colors duration-100",
-            section === s.id && "menu-active",
-          ]}
-          aria-current={section === s.id ? "page" : undefined}
-          onclick={() => (section = s.id)}
-        >
-          <Icon icon={s.icon} class="size-4" />
-          {label}
-        </button>
-
-        {#if rows.length}
-          <ul>
-            {#each rows as r (r.key)}
-              <li>
-                <button
-                  type="button"
-                  class="rounded-field text-xs text-base-content/70"
-                  onclick={() => onjump(r)}
-                >
-                  {$t(r.key)}
-                </button>
-              </li>
-            {/each}
-          </ul>
-        {/if}
-      </li>
+    {#each primary as s (s.id)}
+      {@render item(s)}
     {/each}
   </ul>
+
+  {#if featured.length}
+    <p
+      class="px-3 pt-3 pb-1 text-xs font-semibold tracking-wide text-base-content/50"
+    >
+      {$t("settings.groups.features.title")}
+    </p>
+
+    <ul class="menu w-full gap-0.5 p-0">
+      {#each featured as s (s.id)}
+        {@render item(s)}
+      {/each}
+    </ul>
+  {/if}
 
   {#if !visible.length}
     <p class="px-2 py-1 text-xs text-base-content/50">{$t("common.noMatches")}</p>

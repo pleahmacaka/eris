@@ -2,8 +2,16 @@
   import { listMonitors, type MonitorInfo } from "$lib/native/windows"
   import { installUsageBridge, usageBridgeInstalled } from "$lib/native/usage"
   import { startEdit } from "$lib/edit"
-  import type { ClockAlign, DeviceSettings, DockAlign, DockStyle } from "@eris/settings"
+  import {
+    type ClockAlign,
+    type DeviceSettings,
+    type DockAlign,
+    type DockStyle,
+    defaultDevice,
+  } from "@eris/settings"
+  import Icon from "@iconify/svelte"
   import DockPreview from "./DockPreview.svelte"
+  import { reset } from "./reset"
   import { Row, Segmented } from "@eris/ui"
   import { t } from "svelte-i18n"
 
@@ -11,6 +19,8 @@
     device = $bindable(),
     subset = false,
   }: { device: DeviceSettings; subset?: boolean } = $props()
+
+  const resetRow = reset(() => device, defaultDevice)
 
   const styles: DockStyle[] = ["windows", "mac", "uchiwa"]
 
@@ -55,6 +65,22 @@
     "clock24h",
     "showSeconds",
   ]
+
+  const toggleVisible = (key: ToggleKey): boolean => {
+    switch (key) {
+      case "showLauncherButton":
+        return device.features.launcher
+      case "showClaudeUsage":
+      case "claudeUsageStacked":
+        return device.features.chat
+      case "showSpectrum":
+        return device.showMedia
+      case "dockSeparators":
+        return !uchiwa
+      default:
+        return true
+    }
+  }
 
   const CLOCK_ALIGNMENTS: { value: ClockAlign; icon: string }[] = [
     { value: "start", icon: "lucide:align-left" },
@@ -132,8 +158,20 @@
 
 <svelte:window onfocus={loadMonitors} />
 
-<div data-row={$t("settings.rows.style")} class="flex flex-col gap-3 px-4 py-3">
-  <span class="text-sm font-medium">{$t("settings.rows.style")}</span>
+<div data-row={$t("settings.rows.style")} class="group/row flex flex-col gap-3 px-4 py-3">
+  <span class="flex items-center gap-1.5 text-sm font-medium">
+    {$t("settings.rows.style")}
+
+    <button
+      type="button"
+      class="btn btn-ghost btn-circle btn-xs opacity-0 transition-opacity duration-100 group-hover/row:opacity-60 hover:opacity-100 focus-visible:opacity-100"
+      aria-label={$t("common.reset")}
+      title={$t("common.reset")}
+      onclick={resetRow("dockStyle")}
+    >
+      <Icon icon="lucide:rotate-ccw" class="size-3.5" />
+    </button>
+  </span>
 
   <div class="mx-auto w-full max-w-sm">
     <DockPreview {device} />
@@ -208,7 +246,11 @@
 </div>
 
 {#if !subset}
-  <Row label={$t("settings.rows.display")} hint={$t("settings.hints.display")}>
+  <Row
+    label={$t("settings.rows.display")}
+    hint={$t("settings.hints.display")}
+    onreset={resetRow("dockMonitor")}
+  >
     <select
       class="select select-sm w-56"
       aria-label={$t("settings.rows.display")}
@@ -227,7 +269,11 @@
   </Row>
 {/if}
 
-<Row label={$t("settings.rows.edge")} hint={$t("settings.hints.edge")}>
+<Row
+  label={$t("settings.rows.edge")}
+  hint={$t("settings.hints.edge")}
+  onreset={resetRow("dockEdge")}
+>
   <Segmented
     label={$t("settings.rows.edge")}
     bind:value={device.dockEdge}
@@ -239,7 +285,11 @@
 </Row>
 
 {#if !subset && device.showSpectrum}
-  <Row label={$t("settings.rows.spectrumStyle")} hint={$t("settings.hints.spectrumStyle")}>
+  <Row
+    label={$t("settings.rows.spectrumStyle")}
+    hint={$t("settings.hints.spectrumStyle")}
+    onreset={resetRow("spectrumStyle")}
+  >
     <Segmented
       label={$t("settings.rows.spectrumStyle")}
       bind:value={device.spectrumStyle}
@@ -265,7 +315,12 @@
   </Row>
 
   {#if !bridged}
-    <Row label={$t("settings.rows.usageSnapshot")} hint={$t("settings.hints.usageSnapshot")} stacked>
+    <Row
+      label={$t("settings.rows.usageSnapshot")}
+      hint={$t("settings.hints.usageSnapshot")}
+      stacked
+      onreset={resetRow("claudeUsageSource")}
+    >
       <input
         class="input input-sm w-full"
         type="text"
@@ -277,7 +332,11 @@
 {/if}
 
 {#if !subset}
-  <Row label={$t("settings.rows.mediaSide")} hint={$t("settings.hints.mediaSide")}>
+  <Row
+    label={$t("settings.rows.mediaSide")}
+    hint={$t("settings.hints.mediaSide")}
+    onreset={resetRow("mediaSide")}
+  >
     <Segmented
       label={$t("settings.rows.mediaSide")}
       bind:value={device.mediaSide}
@@ -287,16 +346,42 @@
       ]}
     />
   </Row>
+
+  {#if device.features.chat}
+    <Row
+      label={$t("settings.rows.claudeUsageSide")}
+      hint={$t("settings.hints.claudeUsageSide")}
+      onreset={resetRow("claudeUsageSide")}
+    >
+      <Segmented
+        label={$t("settings.rows.claudeUsageSide")}
+        bind:value={device.claudeUsageSide}
+        options={[
+          { value: "left", label: $t("settings.dock.left"), icon: "lucide:align-start-horizontal" },
+          { value: "right", label: $t("settings.dock.right"), icon: "lucide:align-end-horizontal" },
+        ]}
+      />
+    </Row>
+  {/if}
 {/if}
 
 {#if !subset && !uchiwa}
-  <Row label={$t("settings.rows.alignment")} hint={$t("settings.hints.alignment")}>
+  <Row
+    label={$t("settings.rows.alignment")}
+    hint={$t("settings.hints.alignment")}
+    onreset={resetRow("dockAlign")}
+  >
     <Segmented label={$t("settings.rows.alignment")} bind:value={device.dockAlign} options={alignments} />
   </Row>
 {/if}
 
 {#if !subset}
-  <Row label={$t("settings.rows.height")} value="{device.dockHeight} px" stacked>
+  <Row
+    label={$t("settings.rows.height")}
+    value="{device.dockHeight} px"
+    stacked
+    onreset={resetRow("dockHeight")}
+  >
     <input
       type="range"
       class="range range-primary range-xs w-full"
@@ -308,8 +393,13 @@
     />
   </Row>
 
-  {#if floating}
-    <Row label={$t("settings.rows.width")} value="{device.dockWidth} px" stacked>
+  {#if mac}
+    <Row
+      label={$t("settings.rows.width")}
+      value="{device.dockWidth} px"
+      stacked
+      onreset={resetRow("dockWidth")}
+    >
       <input
         type="range"
         class="range range-primary range-xs w-full"
@@ -322,7 +412,12 @@
     </Row>
   {/if}
 
-  <Row label={$t("settings.rows.iconSize")} value="{device.dockIconSize} px" stacked>
+  <Row
+    label={$t("settings.rows.iconSize")}
+    value="{device.dockIconSize} px"
+    stacked
+    onreset={resetRow("dockIconSize")}
+  >
     <input
       type="range"
       class="range range-primary range-xs w-full"
@@ -336,7 +431,11 @@
 {/if}
 
 {#if mac}
-  <Row label={$t("settings.rows.pinDesktop")} hint={$t("settings.hints.pinDesktop")}>
+  <Row
+    label={$t("settings.rows.pinDesktop")}
+    hint={$t("settings.hints.pinDesktop")}
+    onreset={resetRow("dockDesktop")}
+  >
     <input
       type="checkbox"
       class="toggle toggle-primary"
@@ -346,7 +445,11 @@
   </Row>
 {/if}
 
-<Row label={$t("settings.rows.autoHide")} hint={$t("settings.hints.autoHide")}>
+<Row
+  label={$t("settings.rows.autoHide")}
+  hint={$t("settings.hints.autoHide")}
+  onreset={resetRow("dockAutoHide")}
+>
   <input
     type="checkbox"
     class="toggle toggle-primary"
@@ -356,7 +459,11 @@
 </Row>
 
 {#if device.dockAutoHide}
-  <Row label={$t("settings.rows.hideAnimation")} hint={$t("settings.hints.hideAnimation")}>
+  <Row
+    label={$t("settings.rows.hideAnimation")}
+    hint={$t("settings.hints.hideAnimation")}
+    onreset={resetRow("dockHideAnimation")}
+  >
     <input
       type="checkbox"
       class="toggle toggle-primary"
@@ -366,7 +473,11 @@
   </Row>
 {/if}
 
-<Row label={$t("settings.rows.hideTaskbar")} hint={$t("settings.hints.hideTaskbar")}>
+<Row
+  label={$t("settings.rows.hideTaskbar")}
+  hint={$t("settings.hints.hideTaskbar")}
+  onreset={resetRow("hideSystemTaskbar")}
+>
   <input
     type="checkbox"
     class="toggle toggle-primary"
@@ -376,7 +487,11 @@
 </Row>
 
 {#if !subset}
-  <Row label={$t("settings.rows.topBar")} hint={$t("settings.hints.topBar")}>
+  <Row
+    label={$t("settings.rows.topBar")}
+    hint={$t("settings.hints.topBar")}
+    onreset={resetRow("topBar")}
+  >
     <input
       type="checkbox"
       class="toggle toggle-primary"
@@ -385,7 +500,11 @@
     />
   </Row>
 
-  <Row label={$t("settings.rows.panelPosition")} hint={$t("settings.hints.panelPosition")}>
+  <Row
+    label={$t("settings.rows.panelPosition")}
+    hint={$t("settings.hints.panelPosition")}
+    onreset={resetRow("panelPosition")}
+  >
     <Segmented
       label={$t("settings.rows.panelPosition")}
       bind:value={device.panelPosition}
@@ -397,7 +516,11 @@
     />
   </Row>
 
-  <Row label={$t("settings.rows.clockAlign")} hint={$t("settings.hints.clockAlign")}>
+  <Row
+    label={$t("settings.rows.clockAlign")}
+    hint={$t("settings.hints.clockAlign")}
+    onreset={resetRow("clockAlign")}
+  >
     <Segmented
       label={$t("settings.rows.clockAlign")}
       bind:value={device.clockAlign}
@@ -405,31 +528,27 @@
     />
   </Row>
 
-  <Row label={$t("settings.rows.editMode")} hint={$t("settings.hints.editMode")} tag="experimental">
-    <div class="flex items-center gap-2">
-      <button
-        type="button"
-        class="btn btn-ghost btn-xs"
-        disabled={!device.editMode}
-        onclick={startEdit}
-      >
-        {$t("settings.dock.openEditMode")}
-      </button>
-
-      <input
-        type="checkbox"
-        class="toggle toggle-primary"
-        aria-label={$t("settings.rows.editMode")}
-        bind:checked={device.editMode}
-      />
-    </div>
+  <Row
+    label={$t("settings.rows.dockLayout")}
+    hint={$t("settings.hints.dockLayout")}
+    onreset={resetRow("dockWidgets")}
+  >
+    <button
+      type="button"
+      class="btn btn-ghost btn-xs"
+      disabled={!device.editMode}
+      onclick={startEdit}
+    >
+      {$t("settings.dock.openEditMode")}
+    </button>
   </Row>
 
-  {#each toggles as toggle (toggle)}
+  {#each toggles.filter(toggleVisible) as toggle (toggle)}
     <Row
       label={$t(`settings.rows.${toggle}`)}
       hint={$t(`settings.hints.${toggle}`)}
       tag={toggle === "showNetwork" ? "partial" : undefined}
+      onreset={resetRow(toggle)}
     >
       <input
         type="checkbox"
