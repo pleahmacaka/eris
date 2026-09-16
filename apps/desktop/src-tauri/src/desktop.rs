@@ -178,10 +178,11 @@ mod win {
 
     static APP: OnceLock<AppHandle> = OnceLock::new();
     static LAST_EMIT: Mutex<Option<Instant>> = Mutex::new(None);
+    static LAST_FOREGROUND: Mutex<Option<Instant>> = Mutex::new(None);
 
     unsafe extern "system" fn on_event(
         _hook: HWINEVENTHOOK,
-        _event: u32,
+        event: u32,
         hwnd: HWND,
         id_object: i32,
         _id_child: i32,
@@ -192,17 +193,27 @@ mod win {
             return;
         }
 
-        let mut last = LAST_EMIT.lock().unwrap();
+        // the taskbar is unfocusable, so dock popups learn about outside focus from here
+        let foreground = event == EVENT_SYSTEM_FOREGROUND;
+        let last = if foreground { &LAST_FOREGROUND } else { &LAST_EMIT };
+        let mut guard = last.lock().unwrap();
         let now = Instant::now();
 
-        if last.is_some_and(|at| now.duration_since(at) < COALESCE) {
+        if guard.is_some_and(|at| now.duration_since(at) < COALESCE) {
             return;
         }
 
-        *last = Some(now);
+        *guard = Some(now);
+        drop(guard);
 
         if let Some(app) = APP.get() {
-            let _ = app.emit("windows-changed", ());
+            let name = if foreground {
+                "foreground-changed"
+            } else {
+                "windows-changed"
+            };
+
+            let _ = app.emit(name, ());
         }
     }
 

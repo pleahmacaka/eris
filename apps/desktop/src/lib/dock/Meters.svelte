@@ -125,7 +125,7 @@
       <div class="relative">
         <button
           type="button"
-          class="flex items-center gap-1 rounded-field px-1.5 py-1 text-xs tabular-nums text-base-content/80 transition-colors duration-100 hover:bg-base-content/10"
+          class="flex items-center gap-1 whitespace-nowrap rounded-field px-1.5 py-1 text-xs tabular-nums text-base-content/80 transition-colors duration-100 hover:bg-base-content/10"
           title={detail ? undefined : usageLabel}
           aria-haspopup="dialog"
           aria-expanded={detail}

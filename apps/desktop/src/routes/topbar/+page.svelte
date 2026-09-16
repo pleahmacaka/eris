@@ -1,5 +1,6 @@
 <script lang="ts">
   import { untrack } from "svelte"
+  import { getCurrentWindow } from "@tauri-apps/api/window"
   import { ensureDevice } from "$lib/device"
   import { DockLayout } from "$lib/dock"
   import LeadWidgets from "$lib/dock/LeadWidgets.svelte"
@@ -14,7 +15,7 @@
   let device = $state<DeviceSettings>(layout.device)
   let panelOpen = $state(false)
 
-  const trayClaim = $derived(layout.claimFor("tray"))
+  const trayClaim = layout.claimFor
 
   const on = $derived(device.features.dock && device.topBar)
 
@@ -63,6 +64,11 @@
           layout.clearClaims()
         }
       }),
+      getCurrentWindow().onFocusChanged(({ payload: focused }) => {
+        if (!focused) {
+          layout.closeMenus()
+        }
+      }),
     ]
 
     return () => {
@@ -73,7 +79,7 @@
   })
 
   $effect(() => {
-    void layout.layoutKey
+    void layout.staticKey
 
     if (on) {
       untrack(layout.applyLayout)
@@ -94,7 +100,7 @@
         {device}
         {panelOpen}
         onclock={togglePanel}
-        onmenu={trayClaim}
+        claimFor={trayClaim}
         edge="top"
         compact={true}
       />

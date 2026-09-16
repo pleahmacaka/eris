@@ -1,15 +1,17 @@
 import {
   type DeviceSettings,
+  type DockWidget,
   defaultDevice,
   updateDevice,
 } from "@eris/settings"
 import { SvelteMap } from "svelte/reactivity"
+import { newId } from "$lib/data"
 import * as native from "$lib/native"
 import { MAGNIFY_BOOST } from "./DockItem.svelte"
 import { type DockGroup, dock, groupWindows, resolvePins } from "./dock.svelte"
 
 const STRIP = 6
-const CHROME = 96
+const GROW_SLOTS = 6
 
 export const TOPBAR_H = 34
 
@@ -23,16 +25,16 @@ export type MenuBox = {
   bottom: number
 }
 
-export const fanRadiusX = (count: number) =>
-  Math.min(240, Math.max(120, 90 + count * 10))
+export const fanOrbit = (count: number) =>
+  Math.min(220, Math.max(104, 72 + count * 9))
 
-export const fanRadiusY = (height: number, icon: number) =>
-  Math.max(icon + 2, height - icon * 0.55 - 2)
+export const fanBand = (icon: number) => icon + 28
+
+export const fanOuter = (count: number, icon: number) =>
+  fanOrbit(count) + fanBand(icon) / 2
 
 export const fanSpan = (count: number, icon: number) =>
-  Math.ceil(
-    2 * fanRadiusX(count) * Math.sin((FAN_ARC * Math.PI) / 180) + icon * 1.5,
-  )
+  Math.ceil(2 * fanOuter(count, icon))
 
 export class DockLayout {
   constructor(private surface: "taskbar" | "topbar" = "taskbar") {}
@@ -48,6 +50,10 @@ export class DockLayout {
   claims = new SvelteMap<string, MenuBox>()
 
   pointerX = $state<number | null>(null)
+
+  inside = $state(false)
+
+  scrubbing = $state(false)
 
   navWidth = $state(0)
 
@@ -75,8 +81,34 @@ export class DockLayout {
 
   slotWidth = $derived(this.device.dockIconSize + 20)
 
+  launcherShown = $derived(
+    this.device.showLauncherButton && this.device.features.launcher,
+  )
+
+  chrome = $derived(
+    (this.mac || this.uchiwa ? 32 : 24) +
+      (this.launcherShown ? 36 : 0) +
+      (!this.uchiwa && this.launcherShown && this.device.dockSeparators
+        ? 25
+        : 0),
+  )
+
+  spacerWidth = $derived(
+    this.device.dockWidgets.reduce(
+      (sum, widget) => sum + (widget.kind === "spacer" ? widget.size : 0),
+      0,
+    ),
+  )
+
   roomForIcons = $derived(
-    Math.max(0, this.navWidth - this.leadWidth - this.trailWidth - CHROME),
+    Math.max(
+      0,
+      this.navWidth -
+        this.leadWidth -
+        this.trailWidth -
+        this.spacerWidth -
+        this.chrome,
+    ),
   )
 
   fits = $derived.by(() => {
@@ -112,24 +144,42 @@ export class DockLayout {
     this.uchiwa
       ? this.leadWidth +
           this.trailWidth +
+          this.spacerWidth +
           fanSpan(this.groups.length, this.device.dockIconSize) +
-          CHROME
+          this.chrome
       : this.leadWidth +
           this.trailWidth +
-          this.groups.length * this.slotWidth +
-          CHROME,
+          this.spacerWidth +
+          this.groups.length * (this.device.dockIconSize + 18) +
+          this.chrome,
   )
 
-  dockWidth = $derived(
-    this.mac
-      ? Math.min(
-          this.maxDockWidth,
-          Math.max(this.naturalWidth, this.device.dockWidth),
-        )
-      : this.uchiwa
-        ? Math.min(this.maxDockWidth, this.naturalWidth)
-        : this.device.dockWidth,
-  )
+  pinnedCount = $derived(this.groups.filter(g => g.pinned !== null).length)
+
+  runningCount = $derived(this.groups.length - this.pinnedCount)
+
+  dockWidth = $derived.by(() => {
+    if (this.uchiwa) {
+      return Math.min(this.maxDockWidth, this.naturalWidth)
+    }
+
+    if (this.mac) {
+      return Math.min(
+        this.maxDockWidth,
+        Math.max(this.naturalWidth, this.device.dockWidth),
+      )
+    }
+
+    const visible = this.pinnedCount + Math.min(this.runningCount, GROW_SLOTS)
+    const needed =
+      this.leadWidth +
+      this.trailWidth +
+      this.spacerWidth +
+      this.chrome +
+      visible * this.slotWidth
+
+    return Math.min(this.maxDockWidth, Math.max(this.device.dockWidth, needed))
+  })
 
   shown = $derived(
     this.groups.length <= this.fits
@@ -156,18 +206,19 @@ export class DockLayout {
     return box
   })
 
+  fanRing = $state<[number, number, number, number] | null>(null)
+
   lift = $derived(
-    this.mac && this.pointerX !== null
+    this.mac && this.inside && !this.collapsed
       ? Math.round(this.device.dockIconSize * MAGNIFY_BOOST) + 16
       : 0,
   )
 
-  layoutKey = $derived(
+  staticKey = $derived(
     [
       this.device.dockStyle,
       this.device.dockEdge,
       this.device.dockHeight,
-      this.dockWidth,
       this.device.dockAutoHide,
       this.desktop,
       this.device.hideSystemTaskbar,
@@ -175,6 +226,11 @@ export class DockLayout {
       this.collapsed,
     ].join("|"),
   )
+
+  closeMenus = () => {
+    this.claims.clear()
+    window.dispatchEvent(new Event("eris-close-menus"))
+  }
 
   preview = <K extends keyof DeviceSettings>(
     key: K,
@@ -190,6 +246,62 @@ export class DockLayout {
     this.preview(key, value)
     updateDevice(device => ({ ...device, [key]: value })).catch(() => undefined)
   }
+
+  setWidgets = (widgets: DockWidget[], persist = true) => {
+    if (persist) {
+      this.patch("dockWidgets", widgets)
+    } else {
+      this.preview("dockWidgets", widgets)
+    }
+  }
+
+  addSpacer = () => {
+    const widgets = [...this.device.dockWidgets]
+    const at = widgets.findIndex(widget => widget.kind === "tray")
+
+    widgets.splice(at < 0 ? widgets.length : at, 0, {
+      id: newId(),
+      kind: "spacer",
+      size: 32,
+    })
+
+    this.setWidgets(widgets)
+  }
+
+  moveWidget = (id: string, delta: -1 | 1) => {
+    const widgets = [...this.device.dockWidgets]
+    const from = widgets.findIndex(widget => widget.id === id)
+    const to = from + delta
+
+    if (from < 0 || to < 0 || to >= widgets.length) {
+      return
+    }
+
+    widgets.splice(to, 0, ...widgets.splice(from, 1))
+    this.setWidgets(widgets)
+  }
+
+  removeWidget = (id: string) => {
+    this.setWidgets(
+      this.device.dockWidgets.filter(
+        widget => widget.id !== id || widget.kind !== "spacer",
+      ),
+    )
+  }
+
+  resizeWidget = (id: string, size: number, persist: boolean) => {
+    this.setWidgets(
+      this.device.dockWidgets.map(widget =>
+        widget.id === id
+          ? { ...widget, size: Math.round(Math.min(240, Math.max(8, size))) }
+          : widget,
+      ),
+      persist,
+    )
+  }
+
+  resetWidgets = () =>
+    this.patch("dockWidgets", structuredClone(defaultDevice.dockWidgets))
 
   claimFor = (key: string) => (rect: MenuBox | null) => {
     if (rect) {

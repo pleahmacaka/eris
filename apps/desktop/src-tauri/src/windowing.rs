@@ -247,6 +247,11 @@ fn show_now(app: &AppHandle, label: &str) {
         desktop::force_foreground(&window);
     }
 
+    // transient panels must not linger when the focus grab silently failed
+    if matches!(label, "panel" | "notices") {
+        hide_on_blur(&window);
+    }
+
     let _ = app.emit("window-shown", label);
 }
 

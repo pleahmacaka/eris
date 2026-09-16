@@ -2,7 +2,7 @@
   import { listen } from "@tauri-apps/api/event"
   import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart"
   import { untrack } from "svelte"
-  import { Window } from "@tauri-apps/api/window"
+  import { getCurrentWindow, Window } from "@tauri-apps/api/window"
   import { live, scheduleReminders, events } from "$lib/data"
   import { ensureDevice } from "$lib/device"
   import { DockBar, DockLayout, dockAwake, startDock } from "$lib/dock"
@@ -34,6 +34,7 @@
   let held = $state(false)
   let panelOpen = $state(false)
   let pageHidden = $state(false)
+  let peeking = $state(false)
   let hiddenAt = 0
 
   const eventLive = live(events)
@@ -46,11 +47,13 @@
 
   $effect(() => {
     const box = layout.menuBox
+    const ring = layout.fanRing
 
     native
       .extendTaskbar(
         layout.lift,
         box ? [box.left, box.top, box.right, box.bottom] : null,
+        ring,
       )
       .catch(() => undefined)
   })
@@ -69,6 +72,10 @@
   }
 
   const togglePanel = async () => {
+    if (!layout.device.features.calendar) {
+      return
+    }
+
     const panel = await Window.getByLabel("panel")
     const visible = (await panel?.isVisible().catch(() => false)) ?? false
 
@@ -112,7 +119,25 @@
           hiddenAt = Date.now()
         }
 
+        if (e.payload === "settings") {
+          peeking = false
+        }
+
         refreshVisibility()
+      }),
+      listen<boolean>("dock-peek", e => {
+        peeking = e.payload
+      }),
+      listen("foreground-changed", () => {
+        // the pointer still being over the dock means the user is interacting, not leaving
+        if (!hovered) {
+          layout.closeMenus()
+        }
+      }),
+      listen<string>("window-shown", e => {
+        if (!["taskbar", "topbar", "preview"].includes(e.payload)) {
+          layout.closeMenus()
+        }
       }),
       native.onDockEdge(atEdge => {
         edgeHover = atEdge
@@ -123,14 +148,20 @@
         if (layout.dockHidden) {
           hovered = false
           edgeHover = false
-          layout.clearClaims()
+          layout.inside = false
+          layout.closeMenus()
         } else {
           untrack(layout.applyLayout)
         }
       }),
       native.onDockFullscreen(fullscreen => {
         if (fullscreen) {
-          layout.clearClaims()
+          layout.closeMenus()
+        }
+      }),
+      getCurrentWindow().onFocusChanged(({ payload: focused }) => {
+        if (!focused) {
+          layout.closeMenus()
         }
       }),
     ]
@@ -157,12 +188,25 @@
     }
   })
 
-  $effect(() => {
-    void layout.layoutKey
+  let applyTimer: ReturnType<typeof setTimeout> | undefined
 
-    if (ready) {
-      untrack(layout.applyLayout)
+  $effect(() => {
+    void layout.staticKey
+    void layout.dockWidth
+
+    if (!ready) {
+      return
     }
+
+    clearTimeout(applyTimer)
+
+    if (layout.scrubbing) {
+      return
+    }
+
+    applyTimer = setTimeout(() => untrack(layout.applyLayout), 60)
+
+    return () => clearTimeout(applyTimer)
   })
 
   $effect(() => {
@@ -222,6 +266,7 @@
       hovered ||
       edgeHover ||
       held ||
+      peeking ||
       layout.menuBox !== null
     ) {
       layout.collapsed = false
@@ -241,6 +286,8 @@
 
     let slide: ReturnType<typeof setTimeout> | undefined
     const timer = setTimeout(() => {
+      layout.closeMenus()
+
       if (!device.dockHideAnimation) {
         layout.collapsed = true
 
@@ -282,9 +329,11 @@
 <svelte:document
   onmouseenter={() => {
     hovered = true
+    layout.inside = true
   }}
   onmouseleave={() => {
     hovered = false
+    layout.inside = false
   }}
   onvisibilitychange={() => {
     pageHidden = document.visibilityState !== "visible"

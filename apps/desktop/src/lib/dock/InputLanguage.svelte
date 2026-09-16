@@ -1,6 +1,5 @@
 <script lang="ts">
   import { t } from "svelte-i18n"
-  import { openUrl } from "$lib/native/system"
   import { cycleInputLanguage, type InputLanguage, inputLanguage } from "$lib/native/quick"
   import { dockAwake } from "./dock.svelte"
 
@@ -59,10 +58,6 @@
     {title}
     aria-label={title}
     onclick={cycle}
-    oncontextmenu={e => {
-      e.preventDefault()
-      openUrl("ms-settings:regionlanguage").catch(() => undefined)
-    }}
   >
     {info.label}
   </button>

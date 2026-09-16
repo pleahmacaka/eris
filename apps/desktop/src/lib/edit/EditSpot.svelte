@@ -10,6 +10,7 @@
     options?: Snippet
     placement?: "up" | "down"
     align?: "start" | "center" | "end"
+    class?: string
     onmenu?: (rect: MenuBox | null) => void
   }
 
@@ -20,6 +21,7 @@
     options,
     placement = "up",
     align = "center",
+    class: klass = "",
     onmenu,
   }: Props = $props()
 
@@ -51,11 +53,19 @@
       editing.open = null
     }
   }
+
+  $effect(() => {
+    const clear = () => (editing.open = null)
+
+    window.addEventListener("eris-close-menus", clear)
+
+    return () => window.removeEventListener("eris-close-menus", clear)
+  })
 </script>
 
 <svelte:window onmousedown={onwindowdown} />
 
-<div bind:this={root} class="relative flex min-w-0 items-center">
+<div bind:this={root} class={["relative flex min-w-0 items-center", klass]}>
   {@render children()}
 
   {#if editing.on}

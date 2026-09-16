@@ -16,7 +16,9 @@ export type TaskbarLayout = {
 export const extendTaskbar = (
   px: number,
   rect?: [number, number, number, number] | null,
-) => invoke<void>("extend_taskbar", { px, rect: rect ?? null })
+  ring?: [number, number, number, number] | null,
+) =>
+  invoke<void>("extend_taskbar", { px, rect: rect ?? null, ring: ring ?? null })
 
 export const applyTaskbar = (layout: TaskbarLayout) =>
   invoke<void>("apply_taskbar", { layout })

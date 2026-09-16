@@ -48,8 +48,8 @@ mod win {
     use windows::Win32::System::DataExchange::COPYDATASTRUCT;
     use windows::Win32::System::LibraryLoader::GetModuleHandleW;
     use windows::Win32::System::Registry::{
-        RegCloseKey, RegEnumKeyExW, RegGetValueW, RegOpenKeyExW, HKEY,
-        HKEY_CURRENT_USER, KEY_READ, RRF_RT_REG_DWORD, RRF_RT_REG_SZ,
+        RegCloseKey, RegEnumKeyExW, RegGetValueW, RegOpenKeyExW, HKEY, HKEY_CURRENT_USER, KEY_READ,
+        RRF_RT_REG_DWORD, RRF_RT_REG_SZ,
     };
     use windows::Win32::System::Threading::{
         OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32,
@@ -62,9 +62,8 @@ mod win {
         RegisterWindowMessageW, SendMessageTimeoutW, SendNotifyMessageW, SetForegroundWindow,
         SetWindowPos, HWND_BROADCAST, HWND_TOPMOST, MSG, SMTO_ABORTIFHUNG, SWP_NOACTIVATE,
         SWP_NOMOVE, SWP_NOSIZE, WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_COPYDATA, WM_DESTROY,
-        WM_LBUTTONDOWN,
-        WM_LBUTTONUP, WM_RBUTTONDOWN, WM_RBUTTONUP, WNDCLASSEXW, WS_EX_TOOLWINDOW, WS_EX_TOPMOST,
-        WS_POPUP,
+        WM_LBUTTONDOWN, WM_LBUTTONUP, WM_RBUTTONDOWN, WM_RBUTTONUP, WNDCLASSEXW, WS_EX_TOOLWINDOW,
+        WS_EX_TOPMOST, WS_POPUP,
     };
 
     use super::TrayIcon;
@@ -176,6 +175,17 @@ mod win {
         }
 
         format!("{hwnd:x}:{id}")
+    }
+
+    fn legacy_key(entry: &Entry) -> String {
+        format!("{:x}:{}", entry.hwnd, entry.id)
+    }
+
+    // an icon can gain a guid after it was first listed, so accept either key form
+    fn find_entry<'a>(entries: &'a [Entry], id: &str) -> Option<&'a Entry> {
+        entries
+            .iter()
+            .find(|entry| entry.key() == id || legacy_key(entry) == id)
     }
 
     fn text(chars: &[u16]) -> String {
@@ -549,20 +559,17 @@ mod win {
     }
 
     pub fn promote(id: &str, promoted: bool) -> Result<(), String> {
-        {
+        let key = {
             let entries = ENTRIES.lock().unwrap();
 
-            entries
-                .iter()
-                .find(|entry| entry.key() == id)
-                .ok_or("tray icon is gone")?;
-        }
+            find_entry(&entries, id).ok_or("tray icon is gone")?.key()
+        };
 
         let app = APP.get().ok_or("no app handle")?;
         let store = app.store("tray.json").map_err(|e| e.to_string())?;
         let mut map = local_promotions();
 
-        map.insert(id.to_string(), promoted);
+        map.insert(key, promoted);
         store.set("promoted", serde_json::json!(map));
         store.delete("hidden");
         store.save().map_err(|e| e.to_string())?;
@@ -607,6 +614,7 @@ mod win {
                 hidden: entry.hidden,
                 promoted: local
                     .get(&entry.key())
+                    .or_else(|| local.get(&legacy_key(entry)))
                     .copied()
                     .unwrap_or_else(|| promoted.lookup(entry)),
             })
@@ -661,7 +669,7 @@ mod win {
     pub fn click(id: &str, button: &str) {
         let entries = ENTRIES.lock().unwrap();
 
-        let Some(entry) = entries.iter().find(|entry| entry.key() == id) else {
+        let Some(entry) = find_entry(&entries, id) else {
             return;
         };
 
@@ -911,6 +919,10 @@ mod win {
     }
 
     pub fn click(_id: &str, _button: &str) {}
+
+    pub fn promote(_id: &str, _promoted: bool) -> Result<(), String> {
+        Ok(())
+    }
 
     pub fn host(_app: Option<AppHandle>) {}
 
