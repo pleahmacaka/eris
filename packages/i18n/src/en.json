@@ -20,8 +20,7 @@
     "on": "On",
     "off": "Off",
     "previous": "Previous",
-    "partial": "Partial support",
-    "experimental": "Experimental"
+    "partial": "Partial support"
   },
   "languages": {
     "system": "System",
@@ -36,7 +35,7 @@
     "sections": {
       "general": {
         "label": "General",
-        "blurb": "This device, startup, and the launcher hotkey"
+        "blurb": "This device, startup, and features"
       },
       "dock": {
         "label": "Dock",
@@ -44,7 +43,7 @@
       },
       "launcher": {
         "label": "Launcher",
-        "blurb": "Result groups and the web search engine"
+        "blurb": "Result groups, web search, and shortcuts"
       },
       "appearance": {
         "label": "Appearance",
@@ -60,15 +59,15 @@
       },
       "advanced": {
         "label": "Advanced",
-        "blurb": "Stored data, caches, and resets"
+        "blurb": "Stored data, caches, resets, and version info"
       },
-      "about": {
-        "label": "About",
-        "blurb": "Version and keyboard shortcuts"
+      "chat": {
+        "label": "AI chat",
+        "blurb": "Configure the Claude chat bubble and usage display."
       },
-      "keymap": {
-        "label": "Keymap",
-        "blurb": "Shortcuts for the launcher, chat and panel"
+      "experimental": {
+        "label": "Experimental",
+        "blurb": "Early features that may change"
       }
     },
     "groups": {
@@ -77,6 +76,7 @@
         "title": "Features",
         "description": "Turn whole parts of Eris on or off"
       },
+      "featureGate": "Enable",
       "chat": {
         "title": "Chat bubble",
         "description": "How close to a screen edge the bubble has to be to snap"
@@ -118,7 +118,11 @@
         "title": "Chat",
         "description": "Global shortcut for the chat bubble"
       },
-      "tray": "Windows tray"
+      "tray": "Windows tray",
+      "experimental": {
+        "title": "Experimental",
+        "description": "Early features that may change between releases"
+      }
     },
     "rows": {
       "deviceName": "Device name",
@@ -233,7 +237,9 @@
       "hideAnimation": "Hide animation",
       "topBar": "Top info bar",
       "panelPosition": "Panel position",
-      "holidayRegion": "Holiday region"
+      "holidayRegion": "Holiday region",
+      "featureCalendar": "Calendar panel",
+      "dockLayout": "Dock layout"
     },
     "hints": {
       "deviceName": "Shown in the sync device list",
@@ -334,7 +340,9 @@
       "hideAnimation": "Slide the dock out when it hides instead of snapping",
       "topBar": "Move clock, tray, and widgets to a separate bar on top",
       "panelPosition": "Where calendar and notification panels open",
-      "holidayRegion": "Country used for public holidays; System follows Windows"
+      "holidayRegion": "Country used for public holidays; System follows Windows",
+      "featureCalendar": "Calendar and events panel behind the clock",
+      "dockLayout": "Assemble the dock from widgets, including adjustable spacers"
     },
     "options": {
       "win": "Win key",
@@ -458,7 +466,9 @@
       "savePreset": "Save preset",
       "savePresetBody": "Keeps the current appearance as a card in the grid.",
       "presetName": "Preset name",
-      "deletePreset": "Delete preset {name}"
+      "deletePreset": "Delete preset {name}",
+      "customPreset": "Custom",
+      "forkedFrom": "Forked from {name}"
     },
     "hotkey": {
       "addModifier": "Add a modifier such as Ctrl or Alt",
@@ -509,7 +519,6 @@
       "alignStart": "Left",
       "alignCenter": "Center",
       "alignEnd": "Right",
-      "experimental": "Experimental",
       "openEditMode": "Open"
     },
     "sync": {
@@ -832,7 +841,12 @@
     "preview": {
       "switchTo": "Switch to window",
       "close": "Close window"
-    }
+    },
+    "addSpacer": "Add spacer",
+    "resetLayout": "Reset layout",
+    "spacerWidth": "Spacer width",
+    "moveLeft": "Move left",
+    "moveRight": "Move right"
   },
   "edit": {
     "title": "Edit layout",
@@ -844,7 +858,8 @@
       "tray": "Tray and clock",
       "widgets": "Widgets",
       "search": "Launcher",
-      "bubble": "Chat bubble"
+      "bubble": "Chat bubble",
+      "spacer": "Spacer"
     }
   },
   "menu": {
@@ -972,7 +987,8 @@
       "delete": "Delete todo",
       "allDone": "All done",
       "completed": "Completed",
-      "clearCompleted": "Clear completed"
+      "clearCompleted": "Clear completed",
+      "count": "{count, plural, one {# todo left} other {# todos left}}"
     },
     "notifications": {
       "title": "Notifications",
@@ -1182,7 +1198,8 @@
       "settings": "Bluetooth settings"
     },
     "input": {
-      "title": "Input language: {label}"
+      "title": "Input language: {label}",
+      "settings": "Language settings"
     },
     "icons": {
       "icon": "Tray icon",
@@ -1191,7 +1208,10 @@
       "hide": "Hide from overflow",
       "unhide": "Show in overflow",
       "showAll": "Show all",
-      "allHidden": "{count} icons hidden"
+      "allHidden": "{count} icons hidden",
+      "appMenu": "Open app menu",
+      "hideFromDock": "Hide from dock",
+      "showInDock": "Show in dock"
     },
     "meters": {
       "title": "System usage",

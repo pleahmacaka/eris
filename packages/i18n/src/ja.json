@@ -20,8 +20,7 @@
     "on": "オン",
     "off": "オフ",
     "previous": "前へ",
-    "partial": "一部対応",
-    "experimental": "試験的"
+    "partial": "一部対応"
   },
   "languages": {
     "system": "システム",
@@ -36,7 +35,7 @@
     "sections": {
       "general": {
         "label": "全般",
-        "blurb": "このデバイス、スタートアップ、ランチャーのホットキー"
+        "blurb": "このデバイス、スタートアップ、機能"
       },
       "dock": {
         "label": "ドック",
@@ -44,7 +43,7 @@
       },
       "launcher": {
         "label": "ランチャー",
-        "blurb": "結果のグループとウェブ検索エンジン"
+        "blurb": "結果のグループ、ウェブ検索、ショートカット"
       },
       "appearance": {
         "label": "外観",
@@ -60,15 +59,15 @@
       },
       "advanced": {
         "label": "詳細設定",
-        "blurb": "保存データ、キャッシュ、リセット"
+        "blurb": "保存データ、キャッシュ、リセット、バージョン情報"
       },
-      "about": {
-        "label": "バージョン情報",
-        "blurb": "バージョンとキーボードショートカット"
+      "chat": {
+        "label": "AI チャット",
+        "blurb": "Claude のチャットと使用量表示を設定します。"
       },
-      "keymap": {
-        "label": "キーマップ",
-        "blurb": "ランチャー、チャット、パネルのショートカット"
+      "experimental": {
+        "label": "実験的機能",
+        "blurb": "正式リリース前の機能を試します"
       }
     },
     "groups": {
@@ -77,6 +76,7 @@
         "title": "機能",
         "description": "Eris の機能をまとめてオン/オフにします。"
       },
+      "featureGate": "有効化",
       "chat": {
         "title": "チャットバブル",
         "description": "バブルが画面の端にスナップする距離"
@@ -118,7 +118,11 @@
         "title": "チャット",
         "description": "チャットバブルのグローバルショートカット"
       },
-      "tray": "Windows トレイ"
+      "tray": "Windows トレイ",
+      "experimental": {
+        "title": "実験的機能",
+        "description": "今後変更される可能性のある初期機能です"
+      }
     },
     "rows": {
       "deviceName": "デバイス名",
@@ -233,7 +237,9 @@
       "hideAnimation": "非表示アニメーション",
       "topBar": "上部情報バー",
       "panelPosition": "パネル位置",
-      "holidayRegion": "祝日の地域"
+      "holidayRegion": "祝日の地域",
+      "featureCalendar": "カレンダーパネル",
+      "dockLayout": "ドックレイアウト"
     },
     "hints": {
       "deviceName": "同期のデバイス一覧に表示されます。",
@@ -334,7 +340,9 @@
       "hideAnimation": "ドックが隠れるとき即座ではなくスライドして消えます",
       "topBar": "時計・トレイ・ウィジェットを上部の別バーに分離します",
       "panelPosition": "カレンダーと通知パネルが開く位置です",
-      "holidayRegion": "祝日を表示する国です。システムは Windows に従います"
+      "holidayRegion": "祝日を表示する国です。システムは Windows に従います",
+      "featureCalendar": "時計から開くカレンダーと予定パネルを使用します",
+      "dockLayout": "ウィジェットを組み合わせてドックを構成し、余白の幅を調節します"
     },
     "options": {
       "win": "Win キー",
@@ -458,7 +466,9 @@
       "savePreset": "プリセットを保存",
       "savePresetBody": "現在の外観をグリッドのカードとして保存します。",
       "presetName": "プリセット名",
-      "deletePreset": "プリセット {name} を削除"
+      "deletePreset": "プリセット {name} を削除",
+      "customPreset": "カスタム",
+      "forkedFrom": "{name} から変更"
     },
     "hotkey": {
       "addModifier": "Ctrl や Alt などの修飾キーを追加してください",
@@ -509,7 +519,6 @@
       "alignStart": "左",
       "alignCenter": "中央",
       "alignEnd": "右",
-      "experimental": "試験的",
       "openEditMode": "開く"
     },
     "sync": {
@@ -832,7 +841,12 @@
     "preview": {
       "switchTo": "ウィンドウに切り替え",
       "close": "ウィンドウを閉じる"
-    }
+    },
+    "addSpacer": "余白を追加",
+    "resetLayout": "レイアウトをリセット",
+    "spacerWidth": "余白の幅",
+    "moveLeft": "左へ移動",
+    "moveRight": "右へ移動"
   },
   "edit": {
     "title": "レイアウトを編集",
@@ -844,7 +858,8 @@
       "tray": "トレイと時計",
       "widgets": "ウィジェット",
       "search": "ランチャー",
-      "bubble": "チャットバブル"
+      "bubble": "チャットバブル",
+      "spacer": "余白"
     }
   },
   "menu": {
@@ -972,7 +987,8 @@
       "delete": "タスクを削除",
       "allDone": "すべて完了",
       "completed": "完了済み",
-      "clearCompleted": "完了済みをクリア"
+      "clearCompleted": "完了済みをクリア",
+      "count": "{count, plural, other {残りのタスク #件}}"
     },
     "notifications": {
       "title": "通知",
@@ -1182,7 +1198,8 @@
       "settings": "Bluetooth 設定"
     },
     "input": {
-      "title": "入力言語: {label}"
+      "title": "入力言語: {label}",
+      "settings": "言語設定"
     },
     "icons": {
       "icon": "トレイアイコン",
@@ -1191,7 +1208,10 @@
       "hide": "非表示にする",
       "unhide": "オーバーフローに表示",
       "showAll": "すべて表示",
-      "allHidden": "{count}個のアイコンを非表示中"
+      "allHidden": "{count}個のアイコンを非表示中",
+      "appMenu": "アプリメニューを開く",
+      "hideFromDock": "ドックで非表示",
+      "showInDock": "ドックに表示"
     },
     "meters": {
       "title": "システム使用率",
