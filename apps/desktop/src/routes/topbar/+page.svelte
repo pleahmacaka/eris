@@ -1,5 +1,6 @@
 <script lang="ts">
   import { untrack } from "svelte"
+  import { listen } from "@tauri-apps/api/event"
   import { getCurrentWindow } from "@tauri-apps/api/window"
   import { ensureDevice } from "$lib/device"
   import { DockLayout } from "$lib/dock"
@@ -61,8 +62,11 @@
       }),
       native.onDockFullscreen(fullscreen => {
         if (fullscreen) {
-          layout.clearClaims()
+          layout.closeMenus()
         }
+      }),
+      listen("eris-close-menus", () => {
+        layout.closeLocal()
       }),
       getCurrentWindow().onFocusChanged(({ payload: focused }) => {
         if (!focused) {

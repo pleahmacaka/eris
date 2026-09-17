@@ -4,6 +4,7 @@ import {
   defaultDevice,
   updateDevice,
 } from "@eris/settings"
+import { emit } from "@tauri-apps/api/event"
 import { SvelteMap } from "svelte/reactivity"
 import { newId } from "$lib/data"
 import * as native from "$lib/native"
@@ -227,9 +228,15 @@ export class DockLayout {
     ].join("|"),
   )
 
-  closeMenus = () => {
+  // local popups listen on the window event; sibling windows get the tauri broadcast
+  closeLocal = () => {
     this.claims.clear()
     window.dispatchEvent(new Event("eris-close-menus"))
+  }
+
+  closeMenus = () => {
+    this.closeLocal()
+    emit("eris-close-menus").catch(() => undefined)
   }
 
   preview = <K extends keyof DeviceSettings>(
