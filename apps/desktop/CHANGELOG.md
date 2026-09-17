@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/pleahmacaka/eris/compare/0.2.2...0.2.3) (2026-09-17)
+
+
+### Bug Fixes
+
+* **dock:** broadcast menu dismissal across shell windows ([b48e126](https://github.com/pleahmacaka/eris/commit/b48e126ca85ba58e8a4c5daa3cf82b147a457031))
+
 ## [0.2.2](https://github.com/pleahmacaka/eris/compare/0.2.1...0.2.2) (2026-09-16)
 
 
