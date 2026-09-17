@@ -134,6 +134,9 @@
           layout.closeMenus()
         }
       }),
+      listen("eris-close-menus", () => {
+        layout.closeLocal()
+      }),
       listen<string>("window-shown", e => {
         if (!["taskbar", "topbar", "preview"].includes(e.payload)) {
           layout.closeMenus()
