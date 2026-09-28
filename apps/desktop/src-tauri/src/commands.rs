@@ -2,9 +2,8 @@ use tauri::ipc::Invoke;
 use tauri::Wry;
 
 use crate::{
-    appbar, apps, audio, chat_window, claude, clipboard, desktop, edit, features, files, icons,
-    media, meters, monitors, notices, notify, preview, quick, shortcuts, spectrum, system, usage,
-    windowing, winkey,
+    appbar, apps, audio, clipboard, desktop, edit, features, files, icons, media, meters, monitors,
+    notices, notify, p2p, preview, quick, shortcuts, spectrum, system, usage, windowing, winkey,
 };
 
 pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
@@ -33,6 +32,7 @@ pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
         system::empty_recycle_bin,
         system::open_url,
         system::run_command,
+        system::installed_terminals,
         system::machine_name,
         system::open_data_folder,
         icons::clear_icon_cache,
@@ -65,19 +65,14 @@ pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
         quick::cycle_input_language,
         winkey::set_win_key_capture,
         shortcuts::set_launcher_shortcut,
-        shortcuts::set_chat_shortcut,
         windowing::show_window,
         windowing::hide_window,
         windowing::toggle_window,
         windowing::open_with_intent,
         windowing::take_intent,
-        claude::claude_which,
-        claude::claude_start,
-        claude::claude_send,
-        claude::claude_stop,
-        claude::claude_sessions,
-        claude::claude_transcript,
         features::set_features,
+        features::suspend_shell,
+        features::resume_shell,
         edit::edit_mode,
         notices::notices_list,
         notices::notices_unseen,
@@ -85,8 +80,6 @@ pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
         notices::notices_dismiss,
         notices::notices_open_panel,
         edit::edit_raise,
-        chat_window::chat_area,
-        chat_window::chat_frame,
         clipboard::clipboard_history,
         clipboard::clipboard_copy,
         clipboard::clipboard_paste,
@@ -96,5 +89,11 @@ pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
         clipboard::clipboard_write_files,
         clipboard::clipboard_read_files,
         clipboard::clipboard_has_files,
+        p2p::p2p_status,
+        p2p::p2p_invite,
+        p2p::p2p_join,
+        p2p::p2p_leave,
+        p2p::p2p_publish,
+        p2p::p2p_sync,
     ]
 }

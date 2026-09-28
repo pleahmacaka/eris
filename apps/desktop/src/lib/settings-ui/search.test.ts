@@ -23,7 +23,9 @@ test("keywords match rows their label does not name", () => {
 })
 
 test("a label match narrows the nav to its section", () => {
-  expect(searchSections("Token", t).map(s => s.id)).toEqual(["sync"])
+  expect(searchSections("Join another device", t).map(s => s.id)).toEqual([
+    "sync",
+  ])
   expect(searchSections("nothing here at all", t)).toEqual([])
 })
 

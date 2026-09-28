@@ -4,14 +4,12 @@ use tauri::{AppHandle, DeviceEventFilter, Manager, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_store::StoreExt;
 
-use crate::features::{start_dock, stored_features, CHAT_ON, DOCK_ON, LAUNCHER_ON};
-use crate::shortcuts::{set_chat_shortcut, set_launcher_shortcut};
+use crate::features::{release_shell, start_dock, stored_features, DOCK_ON, LAUNCHER_ON};
+use crate::shortcuts::set_launcher_shortcut;
 
 mod appbar;
 mod apps;
 mod audio;
-mod chat_window;
-mod claude;
 mod clipboard;
 mod commands;
 mod desktop;
@@ -25,6 +23,7 @@ mod meters;
 mod monitors;
 mod notices;
 mod notify;
+mod p2p;
 mod preview;
 mod quick;
 mod shortcuts;
@@ -72,7 +71,6 @@ fn open(app: &AppHandle) {
 
     DOCK_ON.store(features.dock, Ordering::Relaxed);
     LAUNCHER_ON.store(features.launcher, Ordering::Relaxed);
-    CHAT_ON.store(features.chat, Ordering::Relaxed);
 
     if features.dock {
         start_dock(app);
@@ -80,16 +78,8 @@ fn open(app: &AppHandle) {
         windowing::hide(app, "taskbar");
     }
 
-    let hidden = std::env::args().any(|arg| arg == "--hidden");
-
-    if !hidden && features.chat {
-        windowing::show(app, "chat");
-    }
-
     if !onboarded(app) {
         windowing::show(app, "onboarding");
-    } else if !hidden && features.launcher {
-        windowing::show(app, "main");
     }
 }
 
@@ -108,7 +98,7 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
-            Some(vec!["--hidden"]),
+            None,
         ))
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_clipboard_manager::init())
@@ -141,15 +131,12 @@ pub fn run() {
             clipboard::watch(handle.clone());
             desktop::watch(handle.clone());
             usage::watch(handle.clone());
+            p2p::start(&handle);
 
             let features = stored_features(&handle);
 
             if features.launcher {
                 let _ = set_launcher_shortcut(handle.clone(), Some("Alt+Space".into()));
-            }
-
-            if features.chat {
-                let _ = set_chat_shortcut(handle.clone(), Some("Ctrl+Space".into()));
             }
 
             if let Some(main) = app.get_webview_window("main") {
@@ -170,14 +157,7 @@ pub fn run() {
         .expect("error while building tauri application")
         .run(|app, event| match event {
             tauri::RunEvent::Ready => open(app),
-            tauri::RunEvent::Exit => {
-                if let Some(taskbar) = app.get_webview_window("taskbar") {
-                    appbar::release(&taskbar);
-                }
-
-                notify::release();
-                winkey::release();
-            }
+            tauri::RunEvent::Exit => release_shell(app),
             _ => {}
         });
 }

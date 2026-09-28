@@ -277,10 +277,7 @@
 
   const widgets = $derived(
     [
-      device.features.chat &&
-        device.showClaudeUsage &&
-        device.claudeUsageSide === "right" &&
-        "claude",
+      device.showClaudeUsage && device.claudeUsageSide === "right" && "claude",
       device.showTrayIcons && "tray",
       device.showMedia && device.mediaSide === "right" && "media",
       device.showInputLanguage && "input",
@@ -416,7 +413,7 @@
       ? "bg-error"
       : syncStatus.state === "syncing"
         ? "bg-info animate-pulse"
-        : syncStatus.state === "idle"
+        : syncStatus.state === "idle" && syncStatus.peers > 0
           ? "bg-success"
           : "bg-base-content/30",
   )
@@ -432,8 +429,12 @@
       return $t("tray.sync.syncing")
     }
 
-    if (syncStatus.pending > 0) {
-      return $t("tray.sync.pending", { values: { count: syncStatus.pending } })
+    if (syncStatus.state === "unpaired") {
+      return $t("tray.sync.unpaired")
+    }
+
+    if (syncStatus.peers === 0) {
+      return $t("tray.sync.waiting")
     }
 
     if (!syncStatus.lastSyncAt) {
@@ -492,6 +493,7 @@
       compact={compact}
       edge={edge}
       onmenu={claim("meters")}
+      onnetworkmenu={claim("network")}
     />
   {:else if name === "bluetooth"}
     <Bluetooth

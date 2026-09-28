@@ -1,250 +1,194 @@
 import {
   type DeviceSettings,
-  defaultSync,
+  defaultAppearance,
+  defaultProfile,
   loadDevice,
   onDevice,
   type SyncSettings,
-  updateDevice,
 } from "@eris/settings"
-import { outboxKey } from "@eris/sync/merge"
+import { readSnapshot } from "@eris/sync/merge"
 import {
-  type DeviceInfo,
-  type HealthResponse,
-  type PullResponse,
-  type PushRequest,
-  type PushResponse,
-  type RegisterRequest,
-  type ResetResponse,
-  type StoredRecord,
-  type SyncedCollection,
+  type Snapshot,
   type SyncRecord,
   syncedCollections,
 } from "@eris/sync/protocol"
-import { isAxiosError } from "axios"
 import {
-  advanceCursors,
   applyRemote,
-  clearAllOutbox,
-  clearLocal,
-  clearOutbox,
-  cursorGroups,
+  conform,
+  isCalendarEvent,
+  isNote,
+  isPreset,
+  isTodo,
+  localRecords,
   onDataChange,
-  pendingOutbox,
-  takeOutbox,
   updateSyncMeta,
 } from "$lib/data"
+import {
+  onP2pPeers,
+  onP2pSnapshot,
+  p2pPublish,
+  p2pStatus,
+  p2pSync,
+} from "$lib/native"
 import { ensureDevice } from "../device"
-import { http } from "../http"
-import { setSyncStatus } from "./status.svelte"
+import { refreshPairing, setSyncStatus } from "./status.svelte"
 
-type Connection = { url: string; token: string }
+const DEBOUNCE = 1_000
 
-const PAGE = 500
-const DEBOUNCE = 3_000
+const message = (error: unknown) =>
+  error instanceof Error ? error.message : String(error)
 
-const request = async <T>(
-  { url, token }: Connection,
-  method: string,
-  path: string,
-  body?: unknown,
-): Promise<T> => {
-  try {
-    const response = await http.request<T>({
-      url: `${url.trim().replace(/\/+$/, "")}${path}`,
-      method,
-      headers: {
-        Authorization: `Bearer ${token.trim()}`,
-        "Content-Type": "application/json",
-      },
-      data: body,
-    })
+const conformed = (record: SyncRecord): SyncRecord | null => {
+  const { data } = record
 
-    return response.data
-  } catch (error) {
-    if (!isAxiosError(error) || !error.response) {
-      throw error
-    }
+  if (record.deleted) {
+    return record.collection === "profile" ? null : { ...record, data: null }
+  }
 
-    const { status, statusText, data } = error.response
-    const detail = typeof data === "string" ? data : JSON.stringify(data ?? "")
-
-    throw new Error(`${status} ${detail.slice(0, 200) || statusText}`)
+  switch (record.collection) {
+    case "profile":
+      return record.id === "profile"
+        ? { ...record, data: conform(defaultProfile, data) }
+        : null
+    case "presets":
+      return isPreset(data)
+        ? {
+            ...record,
+            data: {
+              ...data,
+              appearance: conform(defaultAppearance, data.appearance),
+            },
+          }
+        : null
+    case "todos":
+      return isTodo(data) ? record : null
+    case "events":
+      return isCalendarEvent(data) ? record : null
+    case "notes":
+      return isNote(data) ? record : null
   }
 }
 
-const configured = (device: DeviceSettings) =>
-  device.sync.enabled &&
-  device.sync.url.trim() !== "" &&
-  device.sync.token.trim() !== ""
+const received = (payload: string, sync: SyncSettings) =>
+  readSnapshot(payload)
+    .filter(r => sync.collections[r.collection])
+    .map(conformed)
+    .filter(r => r !== null)
 
-const enabledCollections = (device: DeviceSettings) =>
-  syncedCollections.filter(name => device.sync.collections[name])
+const snapshot = (deviceId: string, records: SyncRecord[]) =>
+  JSON.stringify({ deviceId, records } satisfies Snapshot)
 
-const enabledIn =
-  (device: DeviceSettings) =>
-  (record: Pick<SyncRecord, "collection">): boolean =>
-    device.sync.collections[record.collection]
+const publish = async (device: DeviceSettings) => {
+  const enabled = syncedCollections.filter(
+    name => device.sync.collections[name],
+  )
 
-const fingerprint = (sync: SyncSettings) =>
-  JSON.stringify([
-    sync.enabled,
-    sync.url,
-    sync.token,
-    sync.intervalMinutes,
-    syncedCollections.map(name => sync.collections[name]),
-  ])
-
-const register = (device: DeviceSettings) =>
-  request<DeviceInfo>(device.sync, "POST", "/sync/register", {
-    deviceId: device.deviceId,
-    deviceName: device.deviceName,
-  } satisfies RegisterRequest)
-
-const pullAll = async (
-  device: DeviceSettings,
-  since: number,
-  collections: SyncedCollection[],
-) => {
-  const records: StoredRecord[] = []
-  let cursor = since
-
-  while (true) {
-    const page = await request<PullResponse>(
-      device.sync,
-      "GET",
-      `/sync/pull?since=${cursor}&limit=${PAGE}&collections=${collections.join(",")}&device=${encodeURIComponent(device.deviceId)}`,
-    )
-
-    records.push(...page.records)
-
-    if (!page.hasMore) {
-      return { records, cursor: page.seq }
-    }
-
-    cursor = page.records.at(-1)?.seq ?? page.seq
-  }
+  await p2pPublish(snapshot(device.deviceId, await localRecords(enabled)))
 }
 
-const pullEnabled = async (device: DeviceSettings, since?: number) => {
-  const enabled = enabledCollections(device)
+const exclusive = <T>(task: () => Promise<T>) =>
+  "locks" in navigator ? navigator.locks.request("eris-sync", task) : task()
 
-  if (enabled.length === 0) {
-    return { enabled, records: [], cursor: 0 }
-  }
+const fail = async (error: unknown) => {
+  const lastError = message(error)
 
-  const groups =
-    since === undefined
-      ? await cursorGroups(enabled)
-      : [{ since, names: enabled }]
-  const records: StoredRecord[] = []
-  const heads: number[] = []
-
-  for (const group of groups) {
-    const pulled = await pullAll(device, group.since, group.names)
-
-    records.push(...pulled.records.filter(enabledIn(device)))
-    heads.push(pulled.cursor)
-  }
-
-  return { enabled, cursor: Math.min(...heads), records }
-}
-
-const push = async (device: DeviceSettings) => {
-  const outbox = await takeOutbox()
-  let applied = 0
-
-  for (let at = 0; at < outbox.length; at += PAGE) {
-    const chunk = outbox.slice(at, at + PAGE)
-    const result = await request<PushResponse>(
-      device.sync,
-      "POST",
-      "/sync/push",
-      {
-        deviceId: device.deviceId,
-        deviceName: device.deviceName,
-        records: chunk,
-      } satisfies PushRequest,
-    )
-
-    applied += result.applied
-    await clearOutbox(chunk.map(outboxKey))
-  }
-
-  return applied
-}
-
-const pendingCount = async () => (await pendingOutbox()).length
-
-let running: Promise<{ pushed: number; pulled: number }> | null = null
-
-export const testConnection = async (url: string, token: string) => {
-  const connection = { url, token }
-  const health = await request<HealthResponse>(connection, "GET", "/health")
-
-  await request<DeviceInfo[]>(connection, "GET", "/devices")
-
-  return health
+  await updateSyncMeta({ lastError })
+  await setSyncStatus({ state: "error", lastError })
 }
 
 const run = async () => {
   const device = await ensureDevice()
 
-  if (!configured(device)) {
-    await setSyncStatus({ state: "disabled", pending: await pendingCount() })
+  if (!device.sync.enabled) {
+    await setSyncStatus({ state: "disabled" })
 
-    return { pushed: 0, pulled: 0 }
+    return 0
   }
 
-  await setSyncStatus({ state: "syncing", lastError: null })
-
   try {
-    await register(device)
+    await publish(device)
 
-    const pushed = await push(device)
-    const pulled = await pullEnabled(device)
+    const { paired, peers } = await p2pStatus()
 
-    await applyRemote(pulled.records)
-    await advanceCursors(pulled.enabled, pulled.cursor)
+    if (!paired) {
+      await setSyncStatus({ state: "unpaired", peers: 0 })
 
-    const meta = await updateSyncMeta({
-      lastSyncAt: Date.now(),
-      lastError: null,
-    })
+      return 0
+    }
+
+    await setSyncStatus({ state: "syncing", lastError: null })
+
+    const reached = await p2pSync()
+    const meta = await updateSyncMeta(
+      reached > 0
+        ? { lastSyncAt: Date.now(), lastError: null }
+        : { lastError: null },
+    )
 
     await setSyncStatus({
       state: "idle",
       lastSyncAt: meta.lastSyncAt,
       lastError: null,
-      pending: await pendingCount(),
+      peers: peers.length,
     })
 
-    return { pushed, pulled: pulled.records.length }
+    return reached
   } catch (error) {
-    const lastError = error instanceof Error ? error.message : String(error)
+    await fail(error)
 
-    await updateSyncMeta({ lastError })
-    await setSyncStatus({
-      state: "error",
-      lastError,
-      pending: await pendingCount(),
-    })
-
-    return { pushed: 0, pulled: 0 }
+    return 0
   }
 }
 
+let running: Promise<number> | null = null
+
 export const syncNow = () => {
-  running ??= run().finally(() => {
+  running ??= exclusive(run).finally(() => {
     running = null
   })
 
   return running
 }
 
+const applySnapshot = (payload: string) =>
+  exclusive(async () => {
+    try {
+      const device = await ensureDevice()
+
+      if (!device.sync.enabled) {
+        return
+      }
+
+      const changed = await applyRemote(received(payload, device.sync))
+
+      if (changed.length > 0) {
+        await publish(device)
+      }
+
+      const meta = await updateSyncMeta({ lastSyncAt: Date.now() })
+
+      await setSyncStatus({ lastSyncAt: meta.lastSyncAt })
+    } catch (error) {
+      await fail(error)
+    }
+  })
+
+const fingerprint = (sync: SyncSettings) =>
+  JSON.stringify([
+    sync.enabled,
+    sync.intervalMinutes,
+    syncedCollections.map(name => sync.collections[name]),
+  ])
+
 export const startAutoSync = () => {
   let timer: ReturnType<typeof setInterval> | undefined
   let debounce: ReturnType<typeof setTimeout> | undefined
   let current: DeviceSettings | null = null
+
+  const schedule = (delay: number) => {
+    clearTimeout(debounce)
+    debounce = setTimeout(syncNow, delay)
+  }
 
   const arm = (device: DeviceSettings) => {
     const previous = current
@@ -257,8 +201,12 @@ export const startAutoSync = () => {
     clearInterval(timer)
     clearTimeout(debounce)
 
-    if (!configured(device)) {
+    if (!device.sync.enabled) {
       setSyncStatus({ state: "disabled" })
+
+      if (previous?.sync.enabled) {
+        p2pPublish(snapshot(device.deviceId, [])).catch(() => undefined)
+      }
 
       return
     }
@@ -267,20 +215,21 @@ export const startAutoSync = () => {
       syncNow,
       Math.max(1, device.sync.intervalMinutes) * 60_000,
     )
-    debounce = setTimeout(syncNow, previous ? DEBOUNCE : 0)
+    schedule(previous ? DEBOUNCE : 0)
   }
 
   loadDevice().then(arm)
 
   const unlisteners = [
     onDevice(arm),
-    onDataChange(() => {
-      if (!current || !configured(current) || running) {
-        return
+    onDataChange(change => {
+      if (!change.remote && current?.sync.enabled) {
+        schedule(DEBOUNCE)
       }
-
-      clearTimeout(debounce)
-      debounce = setTimeout(syncNow, DEBOUNCE)
+    }),
+    onP2pSnapshot(applySnapshot),
+    onP2pPeers(() => {
+      refreshPairing().catch(() => undefined)
     }),
   ]
 
@@ -292,62 +241,4 @@ export const startAutoSync = () => {
       pending.then(fn => fn())
     }
   }
-}
-
-export const resetFromServer = async () => {
-  const device = await ensureDevice()
-  const pulled = await pullEnabled(device, 0)
-
-  await clearAllOutbox()
-  await clearLocal(pulled.enabled)
-  await applyRemote(pulled.records)
-  await advanceCursors(pulled.enabled, pulled.cursor)
-  await updateSyncMeta({ lastSyncAt: Date.now(), lastError: null })
-  await setSyncStatus({
-    state: "idle",
-    lastSyncAt: Date.now(),
-    lastError: null,
-    pending: 0,
-  })
-}
-
-export const resetServer = async (collection: SyncedCollection) => {
-  const device = await ensureDevice()
-  const result = await request<ResetResponse>(
-    device.sync,
-    "DELETE",
-    `/collections/${collection}`,
-  )
-
-  await syncNow()
-
-  return result
-}
-
-export const listDevices = async () => {
-  const device = await ensureDevice()
-
-  return request<DeviceInfo[]>(device.sync, "GET", "/devices")
-}
-
-export const forgetDevice = async (id: string) => {
-  const device = await ensureDevice()
-
-  await request<void>(
-    device.sync,
-    "DELETE",
-    `/devices/${encodeURIComponent(id)}`,
-  )
-}
-
-export const unlinkDevice = async () => {
-  await updateDevice(device => ({ ...device, sync: defaultSync }))
-  await clearAllOutbox()
-  await updateSyncMeta({ cursors: {}, lastSyncAt: null, lastError: null })
-  await setSyncStatus({
-    state: "disabled",
-    lastSyncAt: null,
-    lastError: null,
-    pending: 0,
-  })
 }

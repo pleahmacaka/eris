@@ -55,15 +55,11 @@
       },
       "sync": {
         "label": "同期",
-        "blurb": "自分のサーバー経由でデバイスを同期"
+        "blurb": "デバイス間でデータを直接同期"
       },
       "advanced": {
         "label": "詳細設定",
         "blurb": "保存データ、キャッシュ、リセット、バージョン情報"
-      },
-      "chat": {
-        "label": "AI チャット",
-        "blurb": "Claude のチャットと使用量表示を設定します。"
       },
       "experimental": {
         "label": "実験的機能",
@@ -77,10 +73,6 @@
         "description": "Eris の機能をまとめてオン/オフにします。"
       },
       "featureGate": "有効化",
-      "chat": {
-        "title": "チャットバブル",
-        "description": "バブルが画面の端にスナップする距離"
-      },
       "hotkey": {
         "title": "ランチャーのホットキー",
         "description": "Win キーを単独で押すと Eris が開きます。Win の組み合わせはそのまま使えます。"
@@ -114,10 +106,6 @@
         "title": "ドック",
         "description": "ドックをテーマにどうなじませるか"
       },
-      "chatHotkey": {
-        "title": "チャット",
-        "description": "チャットバブルのグローバルショートカット"
-      },
       "tray": "Windows トレイ",
       "experimental": {
         "title": "実験的機能",
@@ -131,8 +119,6 @@
       "language": "言語",
       "featureDock": "ドック",
       "featureLauncher": "ランチャー",
-      "featureChat": "チャットバブル",
-      "snapDistance": "スナップ距離",
       "setupWizard": "セットアップウィザード",
       "openWith": "呼び出しキー",
       "shortcut": "ショートカット",
@@ -143,6 +129,7 @@
       "todos": "タスク",
       "calculator": "電卓",
       "webSearch": "ウェブ検索",
+      "terminal": "ターミナル",
       "presets": "プリセット",
       "mode": "モード",
       "background": "背景",
@@ -199,14 +186,10 @@
       "claudeBridge": "Claude ステータスラインブリッジ",
       "usageSnapshot": "使用量スナップショット",
       "mediaSide": "メディアコントロール",
-      "serverUrl": "サーバー URL",
-      "token": "トークン",
       "enableSync": "同期を有効にする",
       "interval": "間隔",
       "collections": "コレクション",
-      "replaceLocal": "ローカルデータをサーバーの内容で置き換える",
-      "resetCollection": "サーバー上のコレクションをリセット",
-      "unlinkDevice": "このデバイスのリンクを解除",
+      "unlinkDevice": "このデバイスの接続を解除",
       "dockSeparators": "区切り線",
       "clockAlign": "時計の配置",
       "editMode": "編集モード",
@@ -215,31 +198,20 @@
       "dockRadius": "ドックの角",
       "dockTint": "ドックの色合い",
       "dockBorder": "ドックの枠線",
-      "chatShortcut": "チャットのショートカット",
       "updates": "更新",
       "showBluetooth": "Bluetooth を表示",
       "showNotifications": "通知ベルを表示",
       "showDesktopButton": "デスクトップボタンを表示",
       "showTaskView": "タスクビューボタンを表示",
       "showInputLanguage": "入力言語を表示",
-      "chatModel": "モデル",
-      "chatEffort": "思考の強さ",
-      "chatPermission": "権限モード",
-      "chatThinking": "拡張思考",
-      "chatAutoCompact": "自動コンパクト",
-      "chatLanguage": "応答言語",
-      "chatBudget": "セッションごとの予算",
-      "chatSystemPrompt": "追加のシステムプロンプト",
-      "chatHover": "ホバー時",
-      "chatMultiBubble": "複数のバブル",
-      "chatBubbleColors": "バブルの色",
-      "chatQueueMode": "送信予約",
       "hideAnimation": "非表示アニメーション",
       "topBar": "上部情報バー",
       "panelPosition": "パネル位置",
       "holidayRegion": "祝日の地域",
       "featureCalendar": "カレンダーパネル",
-      "dockLayout": "ドックレイアウト"
+      "dockLayout": "ドックレイアウト",
+      "pairDevice": "デバイスを追加",
+      "joinDevice": "別のデバイスに接続"
     },
     "hints": {
       "deviceName": "同期のデバイス一覧に表示されます。",
@@ -248,7 +220,6 @@
       "language": "選択しない限り Windows の言語に従います。",
       "featureDock": "Windows タスクバーの代わりになるバーです。",
       "featureLauncher": "Win キーでアプリ、ウィンドウ、コマンドを検索します。",
-      "featureChat": "Claude と Claude Code をフローティングバブルで使えます。",
       "setupWizard": "初回起動時のセットアップをもう一度実行します。",
       "openWith": "ランチャーを呼び出すキーを選びます。",
       "shortcut": "クリックしてからキーの組み合わせを押してください。",
@@ -257,6 +228,7 @@
       "todos": "検索ボックスから直接タスクを追加できます。",
       "calculator": "式を入力すると計算します。",
       "webSearch": "他に一致するものがない検索語に使うエンジンです。",
+      "terminal": "ターミナル コマンドで開くアプリです。",
       "weekNumbers": "月表示に週番号を表示します。",
       "defaultReminder": "予定の開始前に通知します。",
       "showCompleted": "完了した項目をリストに残します。",
@@ -302,14 +274,10 @@
       "claudeBridge": "Claude Code が報告する5時間と週の枠を書き出します。",
       "usageSnapshot": "ブリッジが書き出すファイル、または URL です。",
       "mediaSide": "バーのどちら側に表示するかです。",
-      "serverUrl": "Eris 同期サーバーの場所です。",
-      "token": "サーバー起動時に指定した ERIS_TOKEN です。",
       "enableSync": "Eris の起動中にバックグラウンドで実行します。",
-      "interval": "サーバーを確認する頻度です。",
+      "interval": "ペアリングしたデバイスと同期する頻度です。",
       "collections": "このデバイスが送受信する内容です。",
-      "replaceLocal": "ローカルの{collections}を破棄し、すべて取得し直します。",
-      "resetCollection": "すべてのレコードを削除済みにして、全デバイスから消します。",
-      "unlinkDevice": "このデバイスのサーバー、トークン、保留中の変更を破棄します。",
+      "unlinkDevice": "ペアリングしたすべてのデバイスとの同期を停止します。",
       "dockSeparators": "ランチャー、アプリ、トレイの間の細い線です。",
       "clockAlign": "時刻と日付の揃え方です。",
       "editMode": "画面を暗くし、Eris の各部分をクリックしてオプションを変更します。",
@@ -318,36 +286,27 @@
       "dockRadius": "ウィンドウの角を基準にした、フローティングドックの角の丸みです。",
       "dockTint": "ドックに重ねるアクセントカラーです。",
       "dockBorder": "ドックの周りの細い線です。",
-      "chatShortcut": "どこからでも Claude チャットを開閉します。",
       "updates": "インストーラーをダウンロードし、新しいバージョンで Eris を再起動します。",
       "showBluetooth": "無線のオン/オフと接続済みデバイスです。",
       "showNotifications": "Windows の通知センターを開きます。",
       "showDesktopButton": "右端の細い領域をクリックするとデスクトップを表示します。",
       "showTaskView": "Windows のタスクビューを開きます。",
       "showInputLanguage": "アクティブなウィンドウのキーボードレイアウトです。レイアウトが2つ以上あるときのみ表示されます。",
-      "chatModel": "sonnet などのエイリアス、または完全なモデル ID です。末尾に [1m] を付けると 1M コンテキストになります。",
-      "chatEffort": "--effort として渡します。既定では Claude Code の設定に従います。",
-      "chatPermission": "ツール呼び出しの承認方法です。",
-      "chatThinking": "対応モデルで拡張思考を使います。",
-      "chatAutoCompact": "コンテキストがいっぱいになると自動的にコンパクトします。",
-      "chatLanguage": "korean や english のように指定します。",
-      "chatBudget": "USD 単位です。0 は無制限です。",
-      "chatSystemPrompt": "既定のシステムプロンプトの末尾に追加されます。",
-      "chatHover": "ポインターを乗せたときにバブルに表示する内容です。",
-      "chatMultiBubble": "バブルの端のプラスボタンで別のセッションを開けます。",
-      "chatBubbleColors": "バブルごとに異なるリングの色が付きます。",
-      "chatQueueMode": "返信中に入力したメッセージを送信するタイミングです。",
       "hideAnimation": "ドックが隠れるとき即座ではなくスライドして消えます",
       "topBar": "時計・トレイ・ウィジェットを上部の別バーに分離します",
       "panelPosition": "カレンダーと通知パネルが開く位置です",
       "holidayRegion": "祝日を表示する国です。システムは Windows に従います",
       "featureCalendar": "時計から開くカレンダーと予定パネルを使用します",
-      "dockLayout": "ウィジェットを組み合わせてドックを構成し、余白の幅を調節します"
+      "dockLayout": "ウィジェットを組み合わせてドックを構成し、余白の幅を調節します",
+      "pairDevice": "ここでコードを作成し、もう一方のデバイスで入力してください。",
+      "joinDevice": "もう一方のデバイスで作成したコードを貼り付けてください。"
     },
     "options": {
       "win": "Win キー",
       "shortcut": "ショートカット",
       "both": "両方",
+      "terminalAuto": "自動",
+      "cmd": "コマンド プロンプト",
       "monday": "月曜日",
       "sunday": "日曜日",
       "manual": "手動",
@@ -369,19 +328,11 @@
     "featurePresets": {
       "all": {
         "name": "すべて",
-        "hint": "ドック、ランチャー、チャット"
-      },
-      "desk": {
-        "name": "デスク",
-        "hint": "ドックとランチャー、チャットなし"
+        "hint": "ドックとランチャー"
       },
       "search": {
         "name": "ランチャーのみ",
         "hint": "Windows タスクバーを残す"
-      },
-      "bubble": {
-        "name": "チャットのみ",
-        "hint": "Claude バブルだけ"
       },
       "aria": "機能プリセット"
     },
@@ -438,9 +389,7 @@
         "right": "→",
         "arrows": "矢印キー",
         "menu": "Menu"
-      },
-      "chat": "チャット",
-      "toggleChat": "チャットを開閉"
+      }
     },
     "appearance": {
       "presetDescriptions": {
@@ -493,10 +442,6 @@
         "mac": {
           "label": "Mac",
           "hint": "中央に浮かぶドック"
-        },
-        "uchiwa": {
-          "label": "うちわ",
-          "hint": "扇形に広がり回転できるドック"
         }
       },
       "styleAria": "ドックのスタイル",
@@ -505,7 +450,6 @@
       "primary": "プライマリ",
       "start": "先頭",
       "center": "中央",
-      "uchiwa": "うちわ",
       "bottom": "下",
       "top": "上",
       "bars": "バー",
@@ -522,18 +466,9 @@
       "openEditMode": "開く"
     },
     "sync": {
-      "server": {
-        "title": "サーバー",
-        "description": "{collections}をデバイス間で同期します。"
-      },
-      "status": "状態",
       "devices": {
         "title": "デバイス",
-        "description": "このサーバーに登録されているすべてのデバイス"
-      },
-      "danger": {
-        "title": "危険な操作",
-        "description": "これらの操作は元に戻せません。"
+        "description": "このデバイスとペアリングしたデバイス"
       },
       "collections": {
         "todos": "タスク",
@@ -542,49 +477,42 @@
         "presets": "プリセット",
         "notes": "メモ"
       },
-      "hideToken": "トークンを隠す",
-      "revealToken": "トークンを表示",
-      "testConnection": "接続をテスト",
-      "connected": "接続済み、サーバー {version}、seq {seq}",
       "everyHour": "1時間ごと",
       "everyMinutes": "{minutes}分ごと",
       "states": {
-        "idle": "最新",
+        "disabled": "オフ",
+        "unpaired": "未接続",
+        "waiting": "ペアリング待ち",
+        "idle": "接続済み",
         "syncing": "同期中",
-        "error": "エラー",
-        "disabled": "オフ"
+        "error": "エラー"
       },
       "lastSync": "最終同期: {when}",
       "neverSynced": "未同期",
-      "pending": "{count}件保留中",
       "justNow": "たった今",
       "syncNow": "今すぐ同期",
-      "noDevices": "デバイスなし",
-      "setServerFirst": "先にサーバー URL とトークンを設定してください",
+      "noDevices": "ペアリング済みのデバイスなし",
       "seen": "最終確認: {when}",
       "thisDevice": "このデバイス",
-      "forget": "削除",
-      "replace": "置き換え",
-      "unlink": "リンク解除",
-      "collection": "コレクション",
+      "unlink": "接続解除",
       "toasts": {
         "failed": "同期に失敗しました。",
-        "enableFirst": "先に同期を有効にしてサーバーを入力してください。",
-        "synced": "同期しました: 送信 {pushed}、受信 {pulled}",
-        "deviceForgotten": "デバイスを削除しました。",
-        "localReplaced": "ローカルデータをサーバーの内容で置き換えました。",
-        "recordsCleared": "{count}件のレコードを消去しました。",
-        "collectionReset": "サーバー上の{collection}をリセットしました。",
-        "unlinked": "デバイスのリンクを解除しました。"
+        "synced": "{count} 台のデバイスと同期しました。",
+        "unlinked": "接続を解除しました。",
+        "noPeers": "接続できるデバイスがありません。",
+        "joined": "接続しました。",
+        "copied": "コードをコピーしました。"
       },
       "confirm": {
-        "replaceTitle": "ローカルデータを置き換えますか?",
-        "replaceBody": "ローカルの{collections}を削除し、サーバーの内容で置き換えます。未同期の変更は失われます。",
-        "resetTitle": "サーバー上の{collection}をリセットしますか?",
-        "resetBody": "このコレクションのすべてのレコードがサーバー上で削除済みになり、同期中のすべてのデバイスから削除されます。",
-        "unlinkTitle": "このデバイスのリンクを解除しますか?",
-        "unlinkBody": "同期がオフになり、サーバーアドレス、トークン、保留中の変更が消去されます。ローカルデータは残ります。"
-      }
+        "unlinkTitle": "このデバイスの接続を解除しますか?",
+        "unlinkBody": "他のデバイスとの同期を停止します。ローカルデータは保持されます。"
+      },
+      "description": "{collections}をデバイス間で同期します。",
+      "neverSeen": "接続履歴なし",
+      "createCode": "ペアリングコードを作成",
+      "joinWithCode": "コードで接続",
+      "copyCode": "コードをコピー",
+      "codePlaceholder": "ペアリングコード"
     },
     "backup": {
       "exportJson": "JSON をエクスポート",
@@ -594,7 +522,8 @@
       "copied": "JSON をクリップボードにコピーしました。",
       "notBackup": "Eris のバックアップではありません。",
       "nothing": "インポートするものがありません。",
-      "imported": "{count}件をインポートしました。"
+      "imported": "{count}件をインポートしました。",
+      "skipped": "無効な{count}件をスキップしました。"
     },
     "sectionsAria": "セクション"
   },
@@ -858,7 +787,6 @@
       "tray": "トレイと時計",
       "widgets": "ウィジェット",
       "search": "ランチャー",
-      "bubble": "チャットバブル",
       "spacer": "余白"
     }
   },
@@ -1100,7 +1028,7 @@
     },
     "sync": {
       "title": "デバイス間で同期",
-      "blurb": "省略できます。自分の同期サーバーを指定するか、スキップしてあとで設定してください。"
+      "blurb": "省略できます。別のデバイスとペアリングするか、スキップしてあとで設定してください。"
     },
     "tips": {
       "title": "いくつかのヒント",
@@ -1161,9 +1089,10 @@
       "failed": "同期に失敗しました: {error}",
       "unknownError": "不明なエラー",
       "syncing": "同期中",
-      "pending": "同期: {count}件保留中",
       "synced": "同期済み: {time}",
-      "ready": "同期の準備完了"
+      "ready": "同期の準備完了",
+      "unpaired": "同期: 未接続",
+      "waiting": "同期: ペアリング待ち"
     },
     "notifications": {
       "title": "通知",
@@ -1209,7 +1138,6 @@
       "unhide": "オーバーフローに表示",
       "showAll": "すべて表示",
       "allHidden": "{count}個のアイコンを非表示中",
-      "appMenu": "アプリメニューを開く",
       "hideFromDock": "ドックで非表示",
       "showInDock": "ドックに表示"
     },
@@ -1246,101 +1174,6 @@
       "weekly": "週 {percent}%",
       "leftHours": "残り{hours}時間{minutes}分",
       "leftMinutes": "残り{minutes}分"
-    }
-  },
-  "chat": {
-    "title": "Claude",
-    "rename": "チャットの名前を変更",
-    "closeFolder": "フォルダーを閉じる",
-    "openFolder": "フォルダーを開く",
-    "newChat": "新しいチャット",
-    "newBubble": "新しいバブル",
-    "cliMissing": "Claude Code CLI がインストールされていません",
-    "placeholder": "メッセージ",
-    "queuePlaceholder": "メッセージを送信予約",
-    "send": "送信",
-    "queueSend": "送信予約",
-    "stop": "停止",
-    "deny": "拒否",
-    "allow": "許可",
-    "allowAlways": "常に許可",
-    "usageUnknown": "使用量を取得できません",
-    "context": "コンテキスト {percent}% ({used} / {total} トークン)",
-    "empty": {
-      "ask": "何でも聞いてください",
-      "askHint": "コーディングを始めるにはフォルダーを開いてください",
-      "code": "コードの変更を依頼してください",
-      "codeHint": "/ でコマンド、@ でファイル"
-    },
-    "history": {
-      "title": "履歴",
-      "home": "ホーム",
-      "current": "進行中",
-      "untitled": "無題",
-      "empty": "履歴なし",
-      "recentFolders": "最近のフォルダー",
-      "meta": "{count}件のメッセージ、{when}"
-    },
-    "usage": {
-      "fiveHour": "5時間",
-      "sevenDay": "7日間",
-      "resets": "{time} にリセット"
-    },
-    "config": {
-      "title": "Claude Code の設定",
-      "model": "モデル",
-      "modelDefault": "既定のモデル",
-      "modelCustom": "カスタム…",
-      "effort": "思考の強さ",
-      "permission": "権限モード",
-      "thinking": "拡張思考",
-      "autoCompact": "自動コンパクト",
-      "language": "応答言語",
-      "languageDefault": "既定",
-      "budget": "セッションごとの予算 (USD)",
-      "budgetNone": "無制限",
-      "systemPrompt": "追加のシステムプロンプト",
-      "restartHint": "適用するにはセッションを再起動してください",
-      "restart": "再起動"
-    },
-    "effort": {
-      "default": "既定の強さ",
-      "low": "低",
-      "medium": "中",
-      "high": "高",
-      "xhigh": "超高",
-      "max": "最大"
-    },
-    "permission": {
-      "default": "都度確認",
-      "acceptEdits": "編集を許可",
-      "plan": "プラン",
-      "auto": "自動",
-      "dontAsk": "確認しない",
-      "bypassPermissions": "バイパス"
-    },
-    "tri": {
-      "default": "既定",
-      "on": "オン",
-      "off": "オフ"
-    },
-    "hover": {
-      "none": "なし",
-      "title": "タイトル",
-      "preview": "最後のメッセージ"
-    },
-    "queue": {
-      "afterTool": "ツール完了後",
-      "afterReply": "返信後",
-      "toggle": "送信タイミングを切り替え"
-    },
-    "commands": {
-      "clear": "会話をクリアして最初からやり直す",
-      "resume": "以前のセッションを選ぶ",
-      "usage": "プランの使用量上限を表示",
-      "model": "モデルを選ぶ",
-      "effort": "思考の強さを選ぶ",
-      "config": "Claude Code の設定"
     }
   }
 }

@@ -1,6 +1,6 @@
 import { afterAll, expect, mock, setSystemTime, test } from "bun:test"
 import type { Todo } from "@eris/data"
-import type { StoredRecord } from "@eris/sync/protocol"
+import { type SyncRecord, TOMBSTONE_TTL } from "@eris/sync/protocol"
 
 const files = new Map<string, Map<string, unknown>>()
 
@@ -44,20 +44,11 @@ mock.module("@tauri-apps/api/event", () => ({
 }))
 
 const { defaultDevice } = await import("@eris/settings")
-const { advanceCursors, applyRemote, cursorGroups, pendingOutbox, todos } =
-  await import("./store")
+const { applyRemote, localRecords, todos } = await import("./store")
 
 const settings = file("settings.json")
 
-const useDevice = (todosEnabled = true) =>
-  settings.set("device", {
-    ...defaultDevice,
-    deviceId: "dev-a",
-    sync: {
-      ...defaultDevice.sync,
-      collections: { ...defaultDevice.sync.collections, todos: todosEnabled },
-    },
-  })
+settings.set("device", { ...defaultDevice, deviceId: "dev-a" })
 
 const todo = (over: Partial<Todo> = {}): Todo => ({
   id: "t",
@@ -74,18 +65,18 @@ const todo = (over: Partial<Todo> = {}): Todo => ({
   ...over,
 })
 
-const remote = (over: Partial<StoredRecord>): StoredRecord => ({
+const remote = (over: Partial<SyncRecord>): SyncRecord => ({
   collection: "todos",
   id: "m1",
   updatedAt: 100,
   deleted: false,
   deviceId: "dev-m",
   data: todo({ id: "m1", title: "from m" }),
-  seq: 1,
   ...over,
 })
 
-useDevice()
+const recordOf = async (id: string, now?: number) =>
+  (await localRecords(["todos"], now)).find(r => r.id === id)
 
 afterAll(() => setSystemTime())
 
@@ -97,11 +88,14 @@ test("put stamps past the stored record when the clock steps back", async () => 
   setSystemTime(new Date(500))
 
   const second = await todos.put({ ...first, title: "edited" })
-  const [queued] = await pendingOutbox()
 
   expect(first.updatedAt).toBe(1000)
   expect(second.updatedAt).toBe(1001)
-  expect(queued).toMatchObject({ updatedAt: 1001, deviceId: "dev-a" })
+  expect(await recordOf("t")).toMatchObject({
+    updatedAt: 1001,
+    deviceId: "dev-a",
+    deleted: false,
+  })
 })
 
 test("ties resolve against the record's origin, not this device", async () => {
@@ -113,37 +107,43 @@ test("ties resolve against the record's origin, not this device", async () => {
   expect((await todos.get("m1"))?.title).toBe("from c")
 })
 
-test("pending outbox skips disabled collections", async () => {
-  useDevice(false)
-
-  expect(await pendingOutbox()).toHaveLength(0)
-
-  useDevice(true)
-
-  expect(await pendingOutbox()).toHaveLength(1)
-})
-
-test("a collection with no cursor is pulled apart from the rest", async () => {
-  await advanceCursors(["todos"], 7)
-
-  expect(await cursorGroups(["todos"])).toEqual([
-    { since: 7, names: ["todos"] },
-  ])
-  expect(await cursorGroups(["todos", "events"])).toEqual([
-    { since: 7, names: ["todos"] },
-    { since: 0, names: ["events"] },
-  ])
-})
-
-test("putMany stores and queues every item on one broadcast", async () => {
+test("putMany stores every item on one broadcast", async () => {
   const before = emits
 
   await todos.putMany([todo({ id: "b1" }), todo({ id: "b2" })])
 
-  const queued = (await pendingOutbox()).map(record => record.id)
-
   expect(emits - before).toBe(1)
   expect((await todos.get("b1"))?.title).toBe("t")
-  expect(queued).toContain("b1")
-  expect(queued).toContain("b2")
+  expect(await recordOf("b1")).toBeDefined()
+  expect(await recordOf("b2")).toBeDefined()
+})
+
+test("an older remote put does not resurrect a local delete", async () => {
+  setSystemTime(new Date(2000))
+  await todos.put(todo({ id: "d1" }))
+
+  setSystemTime(new Date(3000))
+  await todos.remove("d1")
+  await applyRemote([remote({ id: "d1", updatedAt: 2500 })])
+
+  expect(await todos.get("d1")).toBeUndefined()
+  expect(await recordOf("d1")).toMatchObject({ updatedAt: 3000, deleted: true })
+})
+
+test("a put after a delete out-stamps and clears the tombstone", async () => {
+  setSystemTime(new Date(2500))
+
+  const back = await todos.put(todo({ id: "d1" }))
+
+  expect(back.updatedAt).toBe(3001)
+  expect(await recordOf("d1")).toMatchObject({ deleted: false })
+})
+
+test("a remote delete is kept until it expires", async () => {
+  await applyRemote([
+    remote({ id: "gone", updatedAt: 4000, deleted: true, data: null }),
+  ])
+
+  expect(await recordOf("gone", 4000)).toMatchObject({ deleted: true })
+  expect(await recordOf("gone", 4001 + TOMBSTONE_TTL)).toBeUndefined()
 })

@@ -4,7 +4,7 @@ import { invoke } from "@tauri-apps/api/core"
 import { emit, listen } from "@tauri-apps/api/event"
 import { load } from "@tauri-apps/plugin-store"
 
-export type DockStyle = "windows" | "mac" | "uchiwa"
+export type DockStyle = "windows" | "mac"
 export type DockEdge = "bottom" | "top"
 export type DockAlign = "start" | "center"
 export type DockSide = "left" | "right"
@@ -18,7 +18,6 @@ export type Density = "compact" | "cozy"
 export type Features = {
   dock: boolean
   launcher: boolean
-  chat: boolean
   calendar: boolean
 }
 
@@ -30,18 +29,8 @@ export type DockWidget = {
   size: number
 }
 export type WebSearchEngine = "google" | "duckduckgo" | "bing" | "naver"
+export type TerminalApp = "auto" | "wt" | "pwsh" | "powershell" | "cmd"
 export type TodoSort = "manual" | "due" | "priority"
-export type ChatEffort = "" | "low" | "medium" | "high" | "xhigh" | "max"
-export type ChatPermission =
-  | "default"
-  | "acceptEdits"
-  | "plan"
-  | "auto"
-  | "dontAsk"
-  | "bypassPermissions"
-export type ChatTri = "default" | "on" | "off"
-export type ChatHover = "none" | "title" | "preview"
-export type ChatQueueMode = "afterTool" | "afterReply"
 export type TraySlot =
   | "taskview"
   | "claude"
@@ -59,8 +48,6 @@ export type TraySlot =
 
 export type SyncSettings = {
   enabled: boolean
-  url: string
-  token: string
   intervalMinutes: number
   collections: Record<SyncedCollection, boolean>
 }
@@ -85,19 +72,6 @@ export type DeviceSettings = {
   clockAlign: ClockAlign
   editMode: boolean
   features: Features
-  chatSnap: number
-  chatModel: string
-  chatEffort: ChatEffort
-  chatPermission: ChatPermission
-  chatThinking: ChatTri
-  chatAutoCompact: ChatTri
-  chatLanguage: string
-  chatBudget: number
-  chatSystemPrompt: string
-  chatHover: ChatHover
-  chatMultiBubble: boolean
-  chatBubbleColors: boolean
-  chatQueueMode: ChatQueueMode
   dockMonitor: string | null
   hideSystemTaskbar: boolean
   showLauncherButton: boolean
@@ -126,7 +100,7 @@ export type DeviceSettings = {
   clock24h: boolean
   launcherTrigger: LauncherTrigger
   launcherShortcut: string
-  chatShortcut: string
+  terminal: TerminalApp
   autostart: boolean
   pinnedApps: string[]
   hiddenApps: string[]
@@ -230,8 +204,6 @@ export const defaultProfile: Profile = {
 
 export const defaultSync: SyncSettings = {
   enabled: false,
-  url: "",
-  token: "",
   intervalMinutes: 5,
   collections: {
     todos: true,
@@ -261,20 +233,7 @@ export const defaultDevice: DeviceSettings = {
   dockSeparators: true,
   clockAlign: "end",
   editMode: true,
-  features: { dock: true, launcher: true, chat: false, calendar: true },
-  chatSnap: 15,
-  chatModel: "",
-  chatEffort: "",
-  chatPermission: "default",
-  chatThinking: "default",
-  chatAutoCompact: "default",
-  chatLanguage: "",
-  chatBudget: 0,
-  chatSystemPrompt: "",
-  chatHover: "title",
-  chatMultiBubble: true,
-  chatBubbleColors: true,
-  chatQueueMode: "afterReply",
+  features: { dock: true, launcher: true, calendar: true },
   dockMonitor: null,
   hideSystemTaskbar: true,
   showLauncherButton: true,
@@ -303,7 +262,7 @@ export const defaultDevice: DeviceSettings = {
   clock24h: false,
   launcherTrigger: "both",
   launcherShortcut: "Alt+Space",
-  chatShortcut: "Ctrl+Space",
+  terminal: "auto",
   autostart: true,
   pinnedApps: [],
   hiddenApps: [],
@@ -341,6 +300,18 @@ export const PROFILE_EVENT = "profile-changed"
 
 const WIDGET_KINDS: DockWidgetKind[] = ["lead", "apps", "tray", "spacer"]
 
+export const DOCK_STYLES: DockStyle[] = ["windows", "mac"]
+
+export const DOCK_ALIGNS: DockAlign[] = ["start", "center"]
+
+export const TERMINAL_APPS: TerminalApp[] = [
+  "auto",
+  "wt",
+  "pwsh",
+  "powershell",
+  "cmd",
+]
+
 export const sanitizeWidgets = (
   saved: DockWidget[] | undefined,
 ): DockWidget[] => {
@@ -367,20 +338,29 @@ export const sanitizeWidgets = (
 export const loadDevice = async (): Promise<DeviceSettings> => {
   const store = await load(FILE)
   const saved = await store.get<Partial<DeviceSettings>>(DEVICE_KEY)
-  const migrated =
-    (saved?.dockAlign as string) === "uchiwa"
-      ? { dockStyle: "uchiwa" as DockStyle, dockAlign: "center" as DockAlign }
-      : {}
+  const { chat, ...features } = (saved?.features ?? {}) as Partial<Features> & {
+    chat?: boolean
+  }
+  const unknownDock =
+    !DOCK_STYLES.includes(saved?.dockStyle ?? defaultDevice.dockStyle) ||
+    !DOCK_ALIGNS.includes(saved?.dockAlign ?? defaultDevice.dockAlign)
+  const migrated = {
+    ...(unknownDock
+      ? { dockStyle: defaultDevice.dockStyle, dockAlign: "center" as DockAlign }
+      : {}),
+    ...(chat === false ? { showClaudeUsage: false } : {}),
+  }
 
   return {
     ...defaultDevice,
     ...saved,
     ...migrated,
     dockWidgets: sanitizeWidgets(saved?.dockWidgets),
-    features: { ...defaultDevice.features, ...saved?.features },
+    features: { ...defaultDevice.features, ...features },
     sync: {
-      ...defaultSync,
-      ...saved?.sync,
+      enabled: saved?.sync?.enabled ?? defaultSync.enabled,
+      intervalMinutes:
+        saved?.sync?.intervalMinutes ?? defaultSync.intervalMinutes,
       collections: { ...defaultSync.collections, ...saved?.sync?.collections },
     },
   }
