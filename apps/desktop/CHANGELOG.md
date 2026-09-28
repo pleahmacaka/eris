@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.3.0](https://github.com/pleahmacaka/eris/compare/0.2.2...0.3.0) (2026-09-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* replace server sync with peer-to-peer sync
+* remove the claude chat
+
+### Features
+
+* add terminal picker, redesign calendar, drop uchiwa ([e51a8e8](https://github.com/pleahmacaka/eris/commit/e51a8e8a6d17ec4355c70e3d03bffaa9774f928d))
+* remove the claude chat ([a4b8edf](https://github.com/pleahmacaka/eris/commit/a4b8edfd27d4a437b561c32e40c3088249928d6c))
+* replace server sync with peer-to-peer sync ([a494848](https://github.com/pleahmacaka/eris/commit/a4948483af405a1200c7a18cbca17196687f9dc8))
+
+
+### Bug Fixes
+
+* correct launcher, files, and dock popover behavior ([f839347](https://github.com/pleahmacaka/eris/commit/f8393475d94a7215759e358215a5130615629f14))
+* **dock:** broadcast menu dismissal across shell windows ([b48e126](https://github.com/pleahmacaka/eris/commit/b48e126ca85ba58e8a4c5daa3cf82b147a457031))
+* **dock:** match pins to windows and forward tray menus ([f5e01c9](https://github.com/pleahmacaka/eris/commit/f5e01c9868da325cc4156d66bb1927cb25c1a3a8))
+* harden shell integration and system services ([2de248e](https://github.com/pleahmacaka/eris/commit/2de248eaa96fbdfb2215ac26df5da154aea7baa0))
+
 ## [0.2.2](https://github.com/pleahmacaka/eris/compare/0.2.1...0.2.2) (2026-09-16)
 
 
