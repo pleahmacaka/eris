@@ -41,7 +41,10 @@ impl Default for TaskbarLayout {
 static TOP: AtomicBool = AtomicBool::new(false);
 static DESKTOP: AtomicBool = AtomicBool::new(false);
 static REVEAL: AtomicBool = AtomicBool::new(false);
+static SUSPENDED: AtomicBool = AtomicBool::new(false);
 static LAST: LazyLock<Mutex<HashMap<String, (TaskbarLayout, bool)>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
+static PARKED: LazyLock<Mutex<HashMap<String, (TaskbarLayout, bool)>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 static SCREEN: Mutex<Option<[i32; 4]>> = Mutex::new(None);
 
@@ -89,8 +92,7 @@ pub fn stored_layout(app: &AppHandle) -> TaskbarLayout {
         width: field("dockWidth")
             .and_then(|v| v.as_f64())
             .unwrap_or(base.width),
-        floating: field("dockStyle")
-            .is_some_and(|v| matches!(v.as_str(), Some("mac") | Some("uchiwa"))),
+        floating: field("dockStyle").is_some_and(|v| v.as_str() == Some("mac")),
         auto_hide: field("dockAutoHide")
             .and_then(|v| v.as_bool())
             .unwrap_or(base.auto_hide),
@@ -106,17 +108,12 @@ pub fn stored_layout(app: &AppHandle) -> TaskbarLayout {
 }
 
 #[tauri::command]
-pub fn extend_taskbar(
-    app: AppHandle,
-    px: f64,
-    rect: Option<[f64; 4]>,
-    ring: Option<[f64; 4]>,
-) -> Result<(), String> {
+pub fn extend_taskbar(app: AppHandle, px: f64, rect: Option<[f64; 4]>) -> Result<(), String> {
     let window = app
         .get_webview_window("taskbar")
         .ok_or("taskbar window is missing")?;
 
-    win::extend(&window, px, rect, ring).map_err(|e| e.to_string())
+    win::extend(&window, px, rect).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -143,7 +140,7 @@ pub fn extend_topbar(app: AppHandle, px: f64, rect: Option<[f64; 4]>) -> Result<
         .get_webview_window("topbar")
         .ok_or("topbar window is missing")?;
 
-    win::extend(&window, px, rect, None).map_err(|e| e.to_string())
+    win::extend(&window, px, rect).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -163,6 +160,15 @@ pub fn apply(window: &WebviewWindow, layout: &TaskbarLayout) -> tauri::Result<()
 }
 
 fn apply_as(window: &WebviewWindow, layout: &TaskbarLayout, primary: bool) -> tauri::Result<()> {
+    if SUSPENDED.load(Ordering::Relaxed) {
+        PARKED
+            .lock()
+            .unwrap()
+            .insert(window.label().to_string(), (layout.clone(), primary));
+
+        return Ok(());
+    }
+
     if primary {
         TOP.store(layout.edge == "top", Ordering::Relaxed);
         DESKTOP.store(layout.desktop, Ordering::Relaxed);
@@ -214,6 +220,32 @@ pub fn release(window: &WebviewWindow) {
     win::release(window);
 }
 
+pub fn release_all(app: &AppHandle) {
+    SUSPENDED.store(true, Ordering::Relaxed);
+
+    let applied = std::mem::take(&mut *LAST.lock().unwrap());
+
+    PARKED.lock().unwrap().extend(applied);
+
+    for label in ["taskbar", "topbar"] {
+        if let Some(bar) = app.get_webview_window(label) {
+            release(&bar);
+        }
+    }
+}
+
+pub fn restore_all(app: &AppHandle) {
+    SUSPENDED.store(false, Ordering::Relaxed);
+
+    let parked = std::mem::take(&mut *PARKED.lock().unwrap());
+
+    for (label, (layout, primary)) in parked {
+        if let Some(bar) = app.get_webview_window(&label) {
+            let _ = apply_as(&bar, &layout, primary);
+        }
+    }
+}
+
 pub fn topbar_on(app: &AppHandle) -> bool {
     let device = app
         .store("settings.json")
@@ -243,7 +275,7 @@ pub fn shell_tray() -> Option<isize> {
 #[cfg(target_os = "windows")]
 mod win {
     use std::collections::{HashMap, HashSet};
-    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
     use std::sync::mpsc::{channel, RecvTimeoutError, Sender};
     use std::sync::{LazyLock, Mutex, OnceLock};
     use std::thread::JoinHandle;
@@ -254,8 +286,7 @@ mod win {
     use windows::core::w;
     use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, RECT, WPARAM};
     use windows::Win32::Graphics::Gdi::{
-        CombineRgn, CreateEllipticRgn, CreateRectRgn, DeleteObject, SetWindowRgn, RGN_DIFF,
-        RGN_OR,
+        CombineRgn, CreateRectRgn, DeleteObject, SetWindowRgn, RGN_OR,
     };
     use windows::Win32::System::Threading::GetCurrentProcessId;
     use windows::Win32::UI::Shell::{
@@ -264,23 +295,33 @@ mod win {
         ABN_POSCHANGED, ABS_AUTOHIDE, APPBARDATA,
     };
     use windows::Win32::UI::WindowsAndMessaging::{
-        FindWindowExW, GetWindowThreadProcessId, RegisterWindowMessageW, SetWindowPos, ShowWindow,
-        HWND_BOTTOM, HWND_TOPMOST, MA_NOACTIVATE, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SW_HIDE,
-        SW_SHOW, WM_DISPLAYCHANGE, WM_DPICHANGED, WM_MOUSEACTIVATE,
+        FindWindowExW, GetWindowThreadProcessId, PostMessageW, RegisterWindowMessageW,
+        SetWindowPos, ShowWindow, HWND_BOTTOM, HWND_TOPMOST, MA_NOACTIVATE, SWP_NOACTIVATE,
+        SWP_NOMOVE, SWP_NOSIZE, SW_HIDE, SW_SHOW, WM_DISPLAYCHANGE, WM_DPICHANGED,
+        WM_MOUSEACTIVATE,
     };
 
     use super::TaskbarLayout;
 
     const CALLBACK_MESSAGE: u32 = 0x8000 + 1;
+    const REAPPLY_MESSAGE: u32 = CALLBACK_MESSAGE + 1;
     const MENU_SPACE: f64 = 520.0;
     const HOLE_PAD: i32 = 4;
     const HIDE_POLL: Duration = Duration::from_millis(500);
+    const SETTLE_POLL: Duration = Duration::from_millis(50);
+    const SETTLE_TRIES: u32 = 40;
     const SHELL_STATE_KEY: &str = "shellTaskbarState";
 
     static HOOKED: LazyLock<Mutex<HashSet<isize>>> = LazyLock::new(|| Mutex::new(HashSet::new()));
     static REAPPLY_PENDING: AtomicBool = AtomicBool::new(false);
+    static RESTARTED: AtomicBool = AtomicBool::new(false);
+    static SHELL: AtomicIsize = AtomicIsize::new(0);
     static APP: OnceLock<AppHandle> = OnceLock::new();
     static HIDER: Mutex<Option<(Sender<()>, JoinHandle<()>)>> = Mutex::new(None);
+    static WANT_HIDDEN: AtomicBool = AtomicBool::new(false);
+    static SHELL_STALE: AtomicBool = AtomicBool::new(false);
+    static DIRTY: AtomicBool = AtomicBool::new(false);
+    static SYNCING: AtomicBool = AtomicBool::new(false);
     static BARS: LazyLock<Mutex<HashMap<String, BarState>>> =
         LazyLock::new(|| Mutex::new(HashMap::new()));
 
@@ -299,7 +340,6 @@ mod win {
         frame: Option<Frame>,
         reach: i32,
         hole: Option<[i32; 4]>,
-        ring: Option<[i32; 4]>,
         registered: bool,
     }
 
@@ -370,35 +410,41 @@ mod win {
         fit_band(&mut data, band);
 
         let label = window.label().to_string();
+        let was_registered = BARS
+            .lock()
+            .unwrap()
+            .get(&label)
+            .is_some_and(|bar| bar.registered);
 
-        unsafe {
-            let mut bars = BARS.lock().unwrap();
-            let bar = bars.entry(label).or_default();
-
+        // the shell calls back into this thread while it waits here, so no lock may be held across these
+        let registered = unsafe {
             if layout.desktop {
-                if bar.registered {
+                if was_registered {
                     SHAppBarMessage(ABM_REMOVE, &mut data);
-                    bar.registered = false;
                 }
+
+                Some(false)
             } else if layout.auto_hide {
                 SHAppBarMessage(ABM_REMOVE, &mut data);
-                SHAppBarMessage(ABM_NEW, &mut data);
-                bar.registered = true;
+
+                let joined = SHAppBarMessage(ABM_NEW, &mut data) != 0;
+
                 data.lParam = LPARAM(1);
                 SHAppBarMessage(ABM_SETAUTOHIDEBAR, &mut data);
+
+                Some(joined)
             } else {
-                if !bar.registered {
-                    SHAppBarMessage(ABM_NEW, &mut data);
-                    bar.registered = true;
-                }
+                let joined = !was_registered && SHAppBarMessage(ABM_NEW, &mut data) != 0;
 
                 data.lParam = LPARAM(0);
                 SHAppBarMessage(ABM_SETAUTOHIDEBAR, &mut data);
                 SHAppBarMessage(ABM_QUERYPOS, &mut data);
                 fit_band(&mut data, band);
                 SHAppBarMessage(ABM_SETPOS, &mut data);
+
+                joined.then_some(true)
             }
-        }
+        };
 
         let (left, width) = span(&data.rc, layout.floating, width);
         let top = offset(&data.rc, edge == ABE_TOP, margin, height);
@@ -412,12 +458,17 @@ mod win {
             top_edge: edge == ABE_TOP,
         };
 
-        let (reach, hole, ring) = {
+        let (reach, hole) = {
             let mut bars = BARS.lock().unwrap();
-            let bar = bars.entry(window.label().to_string()).or_default();
+            let bar = bars.entry(label).or_default();
+
+            if let Some(registered) = registered {
+                bar.registered = registered;
+            }
+
             bar.frame = Some(frame);
 
-            (bar.reach, bar.hole, bar.ring)
+            (bar.reach, bar.hole)
         };
 
         // menus live inside this window, so it keeps room above the band and clips the rest away
@@ -427,7 +478,7 @@ mod win {
         window.set_position(PhysicalPosition::new(left, frame_top))?;
         window.set_size(PhysicalSize::new(width as u32, (height + room) as u32))?;
 
-        shape(hwnd, &frame, reach, hole, ring);
+        shape(hwnd, &frame, reach, hole);
 
         Ok(())
     }
@@ -440,13 +491,8 @@ mod win {
             .map(|frame| [frame.left, frame.top, frame.width, frame.height])
     }
 
-    pub fn extend(
-        window: &WebviewWindow,
-        px: f64,
-        rect: Option<[f64; 4]>,
-        ring: Option<[f64; 4]>,
-    ) -> tauri::Result<()> {
-        let (frame, reach, hole, ring) = {
+    pub fn extend(window: &WebviewWindow, px: f64, rect: Option<[f64; 4]>) -> tauri::Result<()> {
+        let (frame, reach, hole) = {
             let mut bars = BARS.lock().unwrap();
             let Some(bar) = bars.get_mut(window.label()) else {
                 return Ok(());
@@ -457,24 +503,26 @@ mod win {
 
             bar.reach = (px.max(0.0) * frame.scale).round() as i32;
             bar.hole = rect.map(|rect| rect.map(|value| (value * frame.scale).round() as i32));
-            bar.ring = ring.map(|ring| ring.map(|value| (value * frame.scale).round() as i32));
 
-            (frame, bar.reach, bar.hole, bar.ring)
+            (frame, bar.reach, bar.hole)
         };
 
-        shape(window.hwnd()?, &frame, reach, hole, ring);
+        let hwnd = window.hwnd()?;
+
+        shape(hwnd, &frame, reach, hole);
+
+        // a desktop-pinned dock sits at the bottom and later topmost windows cover it, so lift while a menu is open
+        if hole.is_some() {
+            lift(hwnd, true);
+        } else if !super::desktop_reveals() {
+            raise(window);
+        }
 
         Ok(())
     }
 
     // the window stays tall for menus, so its region is what the desktop sees and what takes the mouse
-    fn shape(
-        hwnd: HWND,
-        frame: &Frame,
-        reach: i32,
-        hole: Option<[i32; 4]>,
-        ring: Option<[i32; 4]>,
-    ) {
+    fn shape(hwnd: HWND, frame: &Frame, reach: i32, hole: Option<[i32; 4]>) {
         let room = (MENU_SPACE * frame.scale).round() as i32;
         let reach = reach.min(room);
 
@@ -506,28 +554,6 @@ mod win {
                 let _ = DeleteObject(menu.into());
             }
 
-            if let Some([cx, cy, outer, thick]) = ring {
-                let arc = CreateEllipticRgn(cx - outer, cy - outer, cx + outer, cy + outer);
-                let inner = (outer - thick).max(0);
-
-                if inner > 0 {
-                    let hollow = CreateEllipticRgn(
-                        cx - inner,
-                        cy - inner,
-                        cx + inner,
-                        cy + inner,
-                    );
-
-                    CombineRgn(Some(arc), Some(arc), Some(hollow), RGN_DIFF);
-
-                    let _ = DeleteObject(hollow.into());
-                }
-
-                CombineRgn(Some(region), Some(region), Some(arc), RGN_OR);
-
-                let _ = DeleteObject(arc.into());
-            }
-
             let _ = SetWindowRgn(hwnd, Some(region), false);
         }
     }
@@ -557,22 +583,78 @@ mod win {
 
     pub fn watch_shell(window: &WebviewWindow) {
         let _ = APP.set(window.app_handle().clone());
+        let _ = SHELL.compare_exchange(0, shell_id(), Ordering::Relaxed, Ordering::Relaxed);
 
-        if let Ok(hwnd) = window.hwnd() {
-            if !HOOKED.lock().unwrap().insert(hwnd.0 as isize) {
+        let target = window.clone();
+
+        // comctl32 only subclasses a window from the thread that created it
+        let _ = window.run_on_main_thread(move || {
+            let Ok(hwnd) = target.hwnd() else {
                 return;
-            }
+            };
 
-            unsafe {
-                let _ = SetWindowSubclass(hwnd, Some(on_message), 1, 0);
+            let mut hooked = HOOKED.lock().unwrap();
+
+            if !hooked.contains(&(hwnd.0 as isize))
+                && unsafe { SetWindowSubclass(hwnd, Some(on_message), 1, 0) }.as_bool()
+            {
+                hooked.insert(hwnd.0 as isize);
             }
-        }
+        });
     }
 
     fn taskbar_created() -> u32 {
         static MESSAGE: OnceLock<u32> = OnceLock::new();
 
         *MESSAGE.get_or_init(|| unsafe { RegisterWindowMessageW(w!("TaskbarCreated")) })
+    }
+
+    fn shell_id() -> isize {
+        tray_window().map_or(0, |hwnd| hwnd.0 as isize)
+    }
+
+    // the tray host re-broadcasts TaskbarCreated itself, so only a new explorer tray window means a restart
+    fn shell_moved() -> bool {
+        let current = shell_id();
+
+        SHELL.swap(current, Ordering::Relaxed) != current
+    }
+
+    // the shell sends these while this thread waits inside SHAppBarMessage, so act on them from the queue
+    fn schedule(hwnd: HWND) {
+        if REAPPLY_PENDING.swap(true, Ordering::Relaxed) {
+            return;
+        }
+
+        if unsafe { PostMessageW(Some(hwnd), REAPPLY_MESSAGE, WPARAM(0), LPARAM(0)) }.is_err() {
+            REAPPLY_PENDING.store(false, Ordering::Relaxed);
+        }
+    }
+
+    fn reapply_bars(hwnd: HWND) {
+        if RESTARTED.swap(false, Ordering::Relaxed) {
+            for bar in BARS.lock().unwrap().values_mut() {
+                bar.registered = false;
+            }
+
+            reapply_shell_state();
+        }
+
+        if let Some(app) = APP.get() {
+            let labels: Vec<String> = super::LAST.lock().unwrap().keys().cloned().collect();
+
+            for label in labels {
+                if let Some(bar) = app.get_webview_window(&label) {
+                    super::reapply(&bar);
+                }
+            }
+        }
+
+        REAPPLY_PENDING.store(false, Ordering::Relaxed);
+
+        if RESTARTED.load(Ordering::Relaxed) {
+            schedule(hwnd);
+        }
     }
 
     unsafe extern "system" fn on_message(
@@ -587,14 +669,16 @@ mod win {
             return LRESULT(MA_NOACTIVATE as isize);
         }
 
-        let restarted = message != 0 && message == taskbar_created();
+        if message == REAPPLY_MESSAGE {
+            reapply_bars(hwnd);
+
+            return LRESULT(0);
+        }
+
+        let restarted = message != 0 && message == taskbar_created() && shell_moved();
 
         if restarted {
-            for bar in BARS.lock().unwrap().values_mut() {
-                bar.registered = false;
-            }
-
-            reapply_shell_state();
+            RESTARTED.store(true, Ordering::Relaxed);
         }
 
         let layout_changed = restarted
@@ -604,26 +688,8 @@ mod win {
                 _ => false,
             };
 
-        if layout_changed && !REAPPLY_PENDING.swap(true, Ordering::Relaxed) {
-            if let Some(app) = APP.get() {
-                let handle = app.clone();
-
-                let queued = app.run_on_main_thread(move || {
-                    let labels: Vec<String> = super::LAST.lock().unwrap().keys().cloned().collect();
-
-                    for label in labels {
-                        if let Some(bar) = handle.get_webview_window(&label) {
-                            super::reapply(&bar);
-                        }
-                    }
-
-                    REAPPLY_PENDING.store(false, Ordering::Relaxed);
-                });
-
-                if queued.is_err() {
-                    REAPPLY_PENDING.store(false, Ordering::Relaxed);
-                }
-            }
+        if layout_changed {
+            schedule(hwnd);
         }
 
         unsafe { DefSubclassProc(hwnd, message, wparam, lparam) }
@@ -750,19 +816,51 @@ mod win {
     }
 
     fn reapply_shell_state() {
-        let hiding = HIDER.lock().unwrap().is_some();
+        SHELL_STALE.store(true, Ordering::SeqCst);
+        request_sync();
+    }
 
-        if hiding {
-            shell_taskbar_autohide(true);
+    pub fn keep_system_taskbar_hidden(hidden: bool) {
+        WANT_HIDDEN.store(hidden, Ordering::SeqCst);
+        request_sync();
+
+        if hidden {
+            return;
+        }
+
+        for _ in 0..SETTLE_TRIES {
+            if !SYNCING.load(Ordering::SeqCst) && !DIRTY.load(Ordering::SeqCst) {
+                break;
+            }
+
+            std::thread::sleep(SETTLE_POLL);
+        }
+    }
+
+    fn request_sync() {
+        DIRTY.store(true, Ordering::SeqCst);
+
+        while !SYNCING.swap(true, Ordering::SeqCst) {
+            while DIRTY.swap(false, Ordering::SeqCst) {
+                sync_system_taskbar(WANT_HIDDEN.load(Ordering::SeqCst));
+            }
+
+            SYNCING.store(false, Ordering::SeqCst);
+
+            if !DIRTY.load(Ordering::SeqCst) {
+                break;
+            }
         }
     }
 
     // ponytail: explorer re-shows the tray on its own events, so poll instead of hiding once
-    pub fn keep_system_taskbar_hidden(hidden: bool) {
-        let mut hider = HIDER.lock().unwrap();
+    fn sync_system_taskbar(hidden: bool) {
+        let stale = SHELL_STALE.swap(false, Ordering::SeqCst);
 
         if !hidden {
-            if let Some((stop, worker)) = hider.take() {
+            let hider = HIDER.lock().unwrap().take();
+
+            if let Some((stop, worker)) = hider {
                 drop(stop);
                 let _ = worker.join();
             }
@@ -773,7 +871,11 @@ mod win {
             return;
         }
 
-        if hider.is_some() {
+        if HIDER.lock().unwrap().is_some() {
+            if stale {
+                shell_taskbar_autohide(true);
+            }
+
             return;
         }
 
@@ -788,7 +890,7 @@ mod win {
             }
         });
 
-        *hider = Some((stop, worker));
+        *HIDER.lock().unwrap() = Some((stop, worker));
     }
 }
 
@@ -810,12 +912,7 @@ mod win {
 
     pub fn watch_shell(_window: &WebviewWindow) {}
 
-    pub fn extend(
-        _window: &WebviewWindow,
-        _px: f64,
-        _rect: Option<[f64; 4]>,
-        _ring: Option<[f64; 4]>,
-    ) -> tauri::Result<()> {
+    pub fn extend(_window: &WebviewWindow, _px: f64, _rect: Option<[f64; 4]>) -> tauri::Result<()> {
         Ok(())
     }
 

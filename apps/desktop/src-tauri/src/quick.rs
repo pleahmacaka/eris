@@ -65,11 +65,15 @@ mod win {
     use std::sync::atomic::{AtomicIsize, Ordering};
 
     use windows::core::{HSTRING, PCWSTR};
-    use windows::Devices::Bluetooth::{BluetoothConnectionStatus, BluetoothDevice, BluetoothLEDevice};
+    use windows::Devices::Bluetooth::{
+        BluetoothConnectionStatus, BluetoothDevice, BluetoothLEDevice,
+    };
     use windows::Devices::Enumeration::DeviceInformation;
     use windows::Devices::Radios::{Radio, RadioAccessStatus, RadioKind, RadioState};
     use windows::Win32::Foundation::{HWND, LPARAM, WPARAM};
-    use windows::Win32::Globalization::{GetLocaleInfoEx, LCIDToLocaleName, LOCALE_SISO639LANGNAME2};
+    use windows::Win32::Globalization::{
+        GetLocaleInfoEx, LCIDToLocaleName, LOCALE_SISO639LANGNAME2,
+    };
     use windows::Win32::System::Com::{
         CoCreateInstance, CoInitializeEx, CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED,
     };
@@ -151,7 +155,11 @@ mod win {
             .ok_or("missing")?;
 
         let state = if on { RadioState::On } else { RadioState::Off };
-        let status = radio.SetStateAsync(state).map_err(text)?.get().map_err(text)?;
+        let status = radio
+            .SetStateAsync(state)
+            .map_err(text)?
+            .get()
+            .map_err(text)?;
 
         if status != RadioAccessStatus::Allowed {
             return Err(access_name(status).into());
@@ -321,7 +329,10 @@ mod win {
         let at = list
             .iter()
             .position(|layout| *layout == current)
-            .or_else(|| list.iter().position(|layout| langid(*layout) == langid(current)))
+            .or_else(|| {
+                list.iter()
+                    .position(|layout| langid(*layout) == langid(current))
+            })
             .unwrap_or(0);
         let next = list[(at + 1) % list.len()];
 

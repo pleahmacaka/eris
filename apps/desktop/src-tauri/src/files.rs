@@ -67,6 +67,7 @@ pub fn transfer_entries(paths: Vec<String>, target: String, cut: bool) -> Result
 #[cfg(target_os = "windows")]
 mod win {
     use std::path::{Path, PathBuf};
+    use std::sync::atomic::{AtomicU64, Ordering};
     use std::time::UNIX_EPOCH;
 
     use windows::core::{HSTRING, PCWSTR};
@@ -82,13 +83,15 @@ mod win {
     use windows::Win32::UI::Shell::{
         FOLDERID_Desktop, FOLDERID_Documents, FOLDERID_Downloads, FOLDERID_Music,
         FOLDERID_Pictures, FOLDERID_Videos, SHFileOperationW, SHGetKnownFolderPath,
-        FILEOPERATION_FLAGS, FOF_ALLOWUNDO, FOF_NOCONFIRMMKDIR, FO_COPY, FO_DELETE, FO_MOVE,
-        KNOWN_FOLDER_FLAG, SHFILEOPSTRUCTW,
+        FILEOPERATION_FLAGS, FOF_ALLOWUNDO, FOF_NOCONFIRMMKDIR, FOF_RENAMEONCOLLISION, FO_COPY,
+        FO_DELETE, FO_MOVE, KNOWN_FOLDER_FLAG, SHFILEOPSTRUCTW,
     };
 
     use super::{Entry, Listing, Place};
 
     const SEARCH_LIMIT: usize = 300;
+
+    static SEARCH_GENERATION: AtomicU64 = AtomicU64::new(0);
 
     const KNOWN: [(&str, &windows::core::GUID); 6] = [
         ("Desktop", &FOLDERID_Desktop),
@@ -249,6 +252,7 @@ mod win {
     }
 
     pub fn search(root: &str, query: &str) -> Vec<Entry> {
+        let generation = SEARCH_GENERATION.fetch_add(1, Ordering::Relaxed) + 1;
         let needle = query.to_lowercase();
 
         if needle.is_empty() {
@@ -258,6 +262,7 @@ mod win {
         walkdir::WalkDir::new(root)
             .max_depth(8)
             .into_iter()
+            .take_while(|_| SEARCH_GENERATION.load(Ordering::Relaxed) == generation)
             .filter_map(Result::ok)
             .filter(|entry| {
                 entry
@@ -388,15 +393,39 @@ mod win {
         shell_op(FO_DELETE, paths, None, flags)
     }
 
-    pub fn transfer(paths: &[String], target: &str, cut: bool) -> Result<(), String> {
-        let operation = if cut { FO_MOVE } else { FO_COPY };
+    fn folder_key(path: &Path) -> String {
+        text(path).trim_end_matches('\\').to_lowercase()
+    }
 
-        shell_op(
-            operation,
-            paths,
-            Some(target),
-            FOF_ALLOWUNDO | FOF_NOCONFIRMMKDIR,
-        )
+    fn inside(path: &str, folder: &str) -> bool {
+        Path::new(path)
+            .parent()
+            .is_some_and(|parent| folder_key(parent) == folder_key(Path::new(folder)))
+    }
+
+    // the shell rejects a copy onto the same file unless it may pick a new name, and a move in place is a no-op
+    pub fn transfer(paths: &[String], target: &str, cut: bool) -> Result<(), String> {
+        let mut flags = FOF_ALLOWUNDO | FOF_NOCONFIRMMKDIR;
+
+        if cut {
+            let moving: Vec<String> = paths
+                .iter()
+                .filter(|path| !inside(path, target))
+                .cloned()
+                .collect();
+
+            if moving.is_empty() {
+                return Ok(());
+            }
+
+            return shell_op(FO_MOVE, &moving, Some(target), flags);
+        }
+
+        if paths.iter().any(|path| inside(path, target)) {
+            flags |= FOF_RENAMEONCOLLISION;
+        }
+
+        shell_op(FO_COPY, paths, Some(target), flags)
     }
 }
 

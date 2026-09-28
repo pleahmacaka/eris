@@ -1,8 +1,9 @@
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Mutex;
 
 use serde::Serialize;
 
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct MediaStatus {
     pub title: String,
     pub artist: String,
@@ -12,18 +13,23 @@ pub struct MediaStatus {
 
 // ponytail: single flight; overlapping polls would stack 1.5 s waits on the blocking pool
 static POLL_IN_FLIGHT: AtomicBool = AtomicBool::new(false);
+static LAST_STATUS: Mutex<Option<MediaStatus>> = Mutex::new(None);
 
 #[tauri::command]
 pub async fn media_status() -> Option<MediaStatus> {
     if POLL_IN_FLIGHT.swap(true, Ordering::Relaxed) {
-        return None;
+        return LAST_STATUS.lock().unwrap().clone();
     }
 
-    let status = tauri::async_runtime::spawn_blocking(win::status).await;
+    let status = tauri::async_runtime::spawn_blocking(win::status)
+        .await
+        .ok()
+        .flatten();
 
+    *LAST_STATUS.lock().unwrap() = status.clone();
     POLL_IN_FLIGHT.store(false, Ordering::Relaxed);
 
-    status.ok().flatten()
+    status
 }
 
 #[tauri::command]

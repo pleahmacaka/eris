@@ -74,8 +74,9 @@ pub fn bands_from(samples: &[f32], rate: f32, previous: &mut [f32; BANDS]) -> [f
 
 #[cfg(target_os = "windows")]
 mod win {
-    use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-    use std::time::Duration;
+    use std::sync::atomic::{AtomicU64, Ordering};
+    use std::sync::Mutex;
+    use std::time::{Duration, Instant};
 
     use tauri::{AppHandle, Emitter};
     use windows::Win32::Media::Audio::{
@@ -92,52 +93,80 @@ mod win {
     };
 
     use super::{bands_from, BANDS};
+    use crate::audio::win::device_id;
 
     const WINDOW: usize = 1024;
     const TICK: Duration = Duration::from_millis(33);
     const BUFFER_NANOS: i64 = 2_000_000;
+    const FOLLOW: Duration = Duration::from_secs(1);
+    const RETRY: Duration = Duration::from_secs(1);
 
-    static RUNNING: AtomicBool = AtomicBool::new(false);
+    // a stop then start can overlap the old thread's last tick, so a thread only runs while its generation is current
+    static GENERATION: AtomicU64 = AtomicU64::new(0);
 
     // the dock and the media card both mount a view, so the capture outlives whichever closes first
-    static VIEWERS: AtomicUsize = AtomicUsize::new(0);
+    static VIEWERS: Mutex<usize> = Mutex::new(0);
+
+    fn current(generation: u64) -> bool {
+        GENERATION.load(Ordering::Relaxed) == generation
+    }
 
     pub fn stop() {
-        if VIEWERS.load(Ordering::Relaxed) > 1 {
-            VIEWERS.fetch_sub(1, Ordering::Relaxed);
+        let mut viewers = VIEWERS.lock().unwrap();
 
-            return;
+        *viewers = viewers.saturating_sub(1);
+
+        if *viewers == 0 {
+            GENERATION.fetch_add(1, Ordering::Relaxed);
         }
-
-        VIEWERS.store(0, Ordering::Relaxed);
-        RUNNING.store(false, Ordering::Relaxed);
     }
 
     pub fn start(app: AppHandle) {
-        VIEWERS.fetch_add(1, Ordering::Relaxed);
+        let mut viewers = VIEWERS.lock().unwrap();
 
-        if RUNNING.swap(true, Ordering::Relaxed) {
+        *viewers += 1;
+
+        if *viewers > 1 {
             return;
         }
 
-        std::thread::spawn(move || {
-            if let Err(error) = capture(&app) {
-                crate::trace(&format!("spectrum capture stopped: {error}"));
-            }
+        let generation = GENERATION.fetch_add(1, Ordering::Relaxed) + 1;
 
-            RUNNING.store(false, Ordering::Relaxed);
-            VIEWERS.store(0, Ordering::Relaxed);
-            let _ = app.emit("spectrum", [0.0f32; BANDS]);
-        });
+        std::thread::spawn(move || run(&app, generation));
     }
 
-    fn capture(app: &AppHandle) -> windows::core::Result<()> {
-        unsafe {
-            let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+    fn run(app: &AppHandle, generation: u64) {
+        let _ = unsafe { CoInitializeEx(None, COINIT_APARTMENTTHREADED) };
+        let mut failing = false;
 
+        while current(generation) {
+            match capture(app, generation) {
+                Ok(()) => failing = false,
+                Err(error) => {
+                    if !failing {
+                        crate::trace(&format!("spectrum capture lost its device: {error}"));
+                    }
+
+                    failing = true;
+
+                    let _ = app.emit("spectrum", [0.0f32; BANDS]);
+
+                    std::thread::sleep(RETRY);
+                }
+            }
+        }
+
+        if *VIEWERS.lock().unwrap() == 0 {
+            let _ = app.emit("spectrum", [0.0f32; BANDS]);
+        }
+    }
+
+    fn capture(app: &AppHandle, generation: u64) -> windows::core::Result<()> {
+        unsafe {
             let enumerator: IMMDeviceEnumerator =
                 CoCreateInstance(&MMDeviceEnumerator, None, CLSCTX_ALL)?;
             let device = enumerator.GetDefaultAudioEndpoint(eRender, eConsole)?;
+            let opened = device_id(&device);
             let client: IAudioClient = device.Activate(CLSCTX_ALL, None)?;
             let format = client.GetMixFormat()?;
 
@@ -174,8 +203,19 @@ mod win {
             let mut window = vec![0.0f32; WINDOW];
             let mut filled = 0usize;
             let mut previous = [0.0f32; BANDS];
+            let mut checked = Instant::now();
 
-            while RUNNING.load(Ordering::Relaxed) {
+            while current(generation) {
+                if checked.elapsed() >= FOLLOW {
+                    checked = Instant::now();
+
+                    let default = enumerator.GetDefaultAudioEndpoint(eRender, eConsole)?;
+
+                    if device_id(&default) != opened {
+                        break;
+                    }
+                }
+
                 let mut frames = reader.GetNextPacketSize()?;
 
                 if frames == 0 {
@@ -238,7 +278,9 @@ mod win {
                 }
             }
 
-            client.Stop()
+            let _ = client.Stop();
+
+            Ok(())
         }
     }
 }

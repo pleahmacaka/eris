@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 use std::sync::{Mutex, OnceLock};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
@@ -159,7 +159,12 @@ pub fn clipboard_paste(app: AppHandle, id: String) -> Result<(), String> {
     crate::windowing::hide(&app, "main");
 
     std::thread::spawn(|| {
-        std::thread::sleep(Duration::from_millis(150));
+        let deadline = Instant::now() + Duration::from_millis(500);
+
+        while !win::foreign_foreground() && Instant::now() < deadline {
+            std::thread::sleep(Duration::from_millis(10));
+        }
+
         win::paste();
     });
 
@@ -216,7 +221,7 @@ pub fn clipboard_has_files() -> bool {
 #[cfg(target_os = "windows")]
 mod win {
     use windows::core::w;
-    use windows::Win32::Foundation::{HGLOBAL, HANDLE, POINT};
+    use windows::Win32::Foundation::{HANDLE, HGLOBAL, POINT};
     use windows::Win32::System::DataExchange::{
         CloseClipboard, EmptyClipboard, GetClipboardData, GetClipboardSequenceNumber,
         IsClipboardFormatAvailable, OpenClipboard, RegisterClipboardFormatW, SetClipboardData,
@@ -224,8 +229,10 @@ mod win {
     use windows::Win32::System::Memory::{
         GlobalAlloc, GlobalLock, GlobalSize, GlobalUnlock, GMEM_MOVEABLE,
     };
+    use windows::Win32::System::Threading::GetCurrentProcessId;
     use windows::Win32::UI::Input::KeyboardAndMouse::{VK_CONTROL, VK_V};
     use windows::Win32::UI::Shell::{DragQueryFileW, DROPFILES, HDROP};
+    use windows::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowThreadProcessId};
 
     use super::ClipboardFiles;
 
@@ -247,7 +254,7 @@ mod win {
                 return false;
             }
 
-            history_flag(history).map_or(true, |flag| flag == 0)
+            history_flag(history).is_none_or(|flag| flag == 0)
         }
     }
 
@@ -269,6 +276,20 @@ mod win {
         let _ = unsafe { CloseClipboard() };
 
         flag
+    }
+
+    pub fn foreign_foreground() -> bool {
+        let front = unsafe { GetForegroundWindow() };
+
+        if front.is_invalid() {
+            return false;
+        }
+
+        let mut pid = 0u32;
+
+        unsafe { GetWindowThreadProcessId(front, Some(&mut pid)) };
+
+        pid != unsafe { GetCurrentProcessId() }
     }
 
     pub fn paste() {
@@ -310,16 +331,11 @@ mod win {
                 (*head).fNC = false.into();
                 (*head).fWide = true.into();
 
-                std::ptr::copy_nonoverlapping(
-                    wide.as_ptr(),
-                    head.add(1) as *mut u16,
-                    wide.len(),
-                );
+                std::ptr::copy_nonoverlapping(wide.as_ptr(), head.add(1) as *mut u16, wide.len());
 
                 let _ = GlobalUnlock(list);
 
-                SetClipboardData(CF_HDROP, Some(HANDLE(list.0)))
-                    .map_err(|e| e.to_string())?;
+                SetClipboardData(CF_HDROP, Some(HANDLE(list.0))).map_err(|e| e.to_string())?;
 
                 let effect = GlobalAlloc(GMEM_MOVEABLE, 4).map_err(|e| e.to_string())?;
                 let slot = GlobalLock(effect) as *mut u32;
@@ -397,6 +413,10 @@ mod win {
 
     pub fn excluded() -> bool {
         false
+    }
+
+    pub fn foreign_foreground() -> bool {
+        true
     }
 
     pub fn paste() {}

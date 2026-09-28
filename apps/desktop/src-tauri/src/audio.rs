@@ -38,7 +38,7 @@ pub fn set_audio_device(id: String) -> Result<(), String> {
 }
 
 #[cfg(target_os = "windows")]
-mod win {
+pub(crate) mod win {
     use windows::core::{interface, IUnknown, IUnknown_Vtbl, BOOL, GUID, HRESULT, PCWSTR};
     use windows::Win32::Devices::FunctionDiscovery::PKEY_Device_FriendlyName;
     use windows::Win32::Media::Audio::Endpoints::IAudioEndpointVolume;
@@ -160,7 +160,7 @@ mod win {
         }
     }
 
-    fn device_id(device: &IMMDevice) -> Option<String> {
+    pub fn device_id(device: &IMMDevice) -> Option<String> {
         unsafe {
             let raw = device.GetId().ok()?;
             let id = raw.to_string().ok()?;
