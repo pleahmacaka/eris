@@ -21,6 +21,8 @@ const TOKSCALE_ENDPOINT = `https://tokscale.ai/api/embed/${USER}/svg?template=gr
 
 const TOKSCALE_CELL = /<title>(\d{4}-\d{2}-\d{2}) · level (\d)<\/title>/g
 
+const TIMEOUT_MS = 5000
+
 type Fetch = typeof globalThis.fetch
 
 const pack = (days: Day[]): Series => ({
@@ -29,7 +31,9 @@ const pack = (days: Day[]): Series => ({
 })
 
 async function github(fetch: Fetch) {
-  const res = await fetch(GITHUB_ENDPOINT)
+  const res = await fetch(GITHUB_ENDPOINT, {
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  })
 
   if (!res.ok) {
     return null
@@ -49,7 +53,9 @@ async function github(fetch: Fetch) {
 }
 
 async function tokscale(fetch: Fetch) {
-  const res = await fetch(TOKSCALE_ENDPOINT)
+  const res = await fetch(TOKSCALE_ENDPOINT, {
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  })
 
   if (!res.ok) {
     return null
