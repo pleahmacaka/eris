@@ -14,27 +14,27 @@ export const colorMeta: Record<
 > = {
   primary: {
     chip: "bg-primary",
-    block: "bg-primary/15 text-primary",
+    block: "bg-primary/15 hover:bg-primary/25",
     label: "panel.colors.default",
   },
   info: {
     chip: "bg-info",
-    block: "bg-info/15 text-info",
+    block: "bg-info/15 hover:bg-info/25",
     label: "panel.colors.info",
   },
   warning: {
     chip: "bg-warning",
-    block: "bg-warning/15 text-warning",
+    block: "bg-warning/20 hover:bg-warning/30",
     label: "panel.colors.warning",
   },
   success: {
     chip: "bg-success",
-    block: "bg-success/15 text-success",
+    block: "bg-success/15 hover:bg-success/25",
     label: "panel.colors.success",
   },
   error: {
     chip: "bg-error",
-    block: "bg-error/15 text-error",
+    block: "bg-error/15 hover:bg-error/25",
     label: "panel.colors.error",
   },
 }

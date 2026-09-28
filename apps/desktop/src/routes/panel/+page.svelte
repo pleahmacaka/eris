@@ -15,8 +15,14 @@
   import { currentLocale } from "@eris/i18n"
   import { ensureDevice } from "$lib/device"
   import * as native from "$lib/native"
-  import { DayPane, EventDetail, MonthGrid, TodoPane } from "$lib/panel"
-  import { holidaysOn, systemRegion } from "$lib/panel/holidays"
+  import {
+    DayPane,
+    EventDetail,
+    holidaysOn,
+    MonthGrid,
+    systemRegion,
+    TodoPane,
+  } from "$lib/panel"
   import {
     type DeviceSettings,
     defaultDevice,
@@ -236,33 +242,43 @@
       </button>
     </header>
 
-    <div class="flex min-h-0 flex-1 flex-col items-center justify-center gap-1 pb-4">
-      <p class="text-2xl font-semibold tracking-tight">{dateLabel}</p>
-      <p class="tabular text-sm text-base-content/50">{dateKey(today)}</p>
+    <div
+      class={[
+        "flex min-h-0 flex-1 flex-col items-center justify-center gap-1.5",
+        "px-6 pb-4 text-center",
+      ]}
+    >
+      <p class="text-2xl font-semibold tracking-tight text-balance">
+        {dateLabel}
+      </p>
+      <p class="text-sm tabular-nums text-base-content/55">{dateKey(today)}</p>
     </div>
   </main>
 {:else}
 <main class="flex h-full min-h-0 flex-col">
   <header
-    class="flex items-center justify-between gap-2 border-b border-base-300 px-4 py-2.5"
+    class={[
+      "flex min-h-14 items-center justify-between gap-3",
+      "border-b border-base-300 px-4 py-2.5",
+    ]}
   >
-    <div>
-      <h2 class="text-[0.9375rem] font-semibold tracking-tight">
+    <div class="min-w-0">
+      <h1 class="truncate text-base font-semibold tracking-tight tabular-nums">
         {monthLabel}
-      </h2>
-      <p class="tabular text-[0.6875rem] text-base-content/45">
+      </h1>
+      <p class="text-2xs tabular-nums text-base-content/55">
         {$t("panel.header.today", { values: { date: dateKey(today) } })}
       </p>
     </div>
 
-    <div class="flex items-center gap-1">
+    <div class="flex shrink-0 items-center gap-2">
       <div class="join">
         <button
-          class="join-item btn btn-xs btn-ghost"
+          class="join-item btn btn-xs btn-ghost btn-square"
           aria-label={$t("common.previous")}
           onclick={() => shift(-1)}
         >
-          <Icon icon="lucide:chevron-left" class="size-3" />
+          <Icon icon="lucide:chevron-left" class="size-3.5" />
         </button>
 
         <button class="join-item btn btn-xs btn-ghost" onclick={jumpToday}>
@@ -270,31 +286,37 @@
         </button>
 
         <button
-          class="join-item btn btn-xs btn-ghost"
+          class="join-item btn btn-xs btn-ghost btn-square"
           aria-label={$t("common.next")}
           onclick={() => shift(1)}
         >
-          <Icon icon="lucide:chevron-right" class="size-3" />
+          <Icon icon="lucide:chevron-right" class="size-3.5" />
         </button>
       </div>
 
-      <button class="btn btn-xs btn-neutral" onclick={startNew}>
-        <Icon icon="lucide:plus" class="size-3" />
-        {$t("panel.event.new")}
-      </button>
+      <div class="flex items-center gap-1">
+        <button class="btn btn-xs btn-neutral" onclick={startNew}>
+          <Icon icon="lucide:plus" class="size-3.5" />
+          {$t("panel.event.new")}
+        </button>
 
-      <button class="btn btn-xs btn-ghost" onclick={showTodos}>
-        <Icon icon="lucide:list-checks" class="size-3" />
-        {$t("panel.todos")}
-      </button>
+        <button
+          class={["btn btn-xs btn-ghost", mode === "todo" && "btn-active"]}
+          aria-pressed={mode === "todo"}
+          onclick={showTodos}
+        >
+          <Icon icon="lucide:list-checks" class="size-3.5" />
+          {$t("panel.todos")}
+        </button>
 
-      <button
-        class="btn btn-ghost btn-square btn-xs"
-        aria-label={$t("common.close")}
-        onclick={hide}
-      >
-        <Icon icon="lucide:x" class="size-3.5" />
-      </button>
+        <button
+          class="btn btn-ghost btn-square btn-xs"
+          aria-label={$t("common.close")}
+          onclick={hide}
+        >
+          <Icon icon="lucide:x" class="size-3.5" />
+        </button>
+      </div>
     </div>
   </header>
 
@@ -314,35 +336,44 @@
     </div>
 
     <aside
-      class="flex h-auto w-[22rem] min-h-0 shrink-0 flex-col overflow-hidden border-l border-base-300 bg-base-100"
+      class={[
+        "flex min-h-0 w-88 shrink-0 flex-col overflow-hidden",
+        "border-l border-base-300 bg-base-100",
+      ]}
     >
       {#if mode === "todo"}
-        <TodoPane
-          items={todoLive.items}
-          sortBy={profile.todo.sortBy}
-          showCompleted={profile.todo.showCompleted}
-          back={() => (mode = "day")}
-        />
+        <div class="pane">
+          <TodoPane
+            items={todoLive.items}
+            sortBy={profile.todo.sortBy}
+            showCompleted={profile.todo.showCompleted}
+            back={() => (mode = "day")}
+          />
+        </div>
       {:else if openId !== null}
         {#key openId}
-          <EventDetail
-            event={openEvent}
-            day={selected}
-            {editing}
-            setEditing={value => (editing = value)}
-            {close}
-            defaultReminder={profile.calendar.reminderMinutes || null}
-          />
+          <div class="pane">
+            <EventDetail
+              event={openEvent}
+              day={selected}
+              {editing}
+              setEditing={value => (editing = value)}
+              {close}
+              defaultReminder={profile.calendar.reminderMinutes || null}
+            />
+          </div>
         {/key}
       {:else}
-        <DayPane
-          day={selected}
-          events={dayEvents}
-          holidays={holidayFor(selected)}
-          openEvent={show}
-          removeEvent={event => events.remove(event.id)}
-          {startNew}
-        />
+        <div class="pane">
+          <DayPane
+            day={selected}
+            events={dayEvents}
+            holidays={holidayFor(selected)}
+            openEvent={show}
+            removeEvent={event => events.remove(event.id)}
+            {startNew}
+          />
+        </div>
       {/if}
     </aside>
   </div>
@@ -352,5 +383,20 @@
 <style>
   :global(.siri-aura) {
     mask-image: none;
+  }
+
+  .pane {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    animation: pane-in 140ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes pane-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.25rem);
+    }
   }
 </style>

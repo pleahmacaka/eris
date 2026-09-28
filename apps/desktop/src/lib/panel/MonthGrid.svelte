@@ -4,7 +4,7 @@
   import { dateKey } from "$lib/data"
   import type { CalendarEvent } from "$lib/data"
   import { colorMeta, toColor } from "./colors"
-  import { eventTime } from "./format"
+  import { eventTime, longDay } from "./format"
 
   const {
     weeks,
@@ -28,6 +28,8 @@
     weekNumbers?: boolean
   } = $props()
 
+  const CHIPS = 3
+
   const weekdays = $derived(
     weeks[0].map(d => ({
       label: d.toLocaleDateString(currentLocale(), { weekday: "short" }),
@@ -35,12 +37,16 @@
     })),
   )
 
-  const dayTone = (day: Date, holiday: boolean) => {
-    if (holiday || day.getDay() === 0) {
+  const columns = $derived(
+    weekNumbers ? "2rem repeat(7, minmax(0, 1fr))" : undefined,
+  )
+
+  const dayTone = (day: number, holiday: boolean, rest: string) => {
+    if (holiday || day === 0) {
       return "text-error"
     }
 
-    return day.getDay() === 6 ? "text-info" : ""
+    return day === 6 ? "text-info" : rest
   }
 
   const isoWeek = (day: Date) => {
@@ -54,6 +60,10 @@
   }
 
   const onKey = (e: KeyboardEvent, day: Date) => {
+    if (e.target !== e.currentTarget) {
+      return
+    }
+
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault()
       pick(day)
@@ -62,13 +72,8 @@
 </script>
 
 <div
-  class={[
-    "grid grid-cols-7 border-b border-base-300 bg-base-200/40",
-    "text-[0.625rem] font-medium tracking-wider text-base-content/55",
-  ]}
-  style:grid-template-columns={weekNumbers
-    ? "2rem repeat(7, minmax(0, 1fr))"
-    : undefined}
+  class="grid grid-cols-7 border-b border-base-300"
+  style:grid-template-columns={columns}
 >
   {#if weekNumbers}
     <div></div>
@@ -76,104 +81,125 @@
   {#each weekdays as weekday (weekday.label)}
     <div
       class={[
-        "px-2 py-1.5 text-center",
-        weekday.day === 0 && "text-error",
-        weekday.day === 6 && "text-info",
+        "px-1 py-1.5 text-3xs font-medium",
+        dayTone(weekday.day, false, "text-base-content/60"),
       ]}
     >
-      {weekday.label}
+      <span class="inline-flex min-w-5 justify-center">{weekday.label}</span>
     </div>
   {/each}
 </div>
 
 <div
   class="grid min-h-0 flex-1 grid-cols-7 grid-rows-6"
-  style:grid-template-columns={weekNumbers
-    ? "2rem repeat(7, minmax(0, 1fr))"
-    : undefined}
+  style:grid-template-columns={columns}
 >
-  {#each weeks as week (dateKey(week[0]))}
+  {#each weeks as week, row (dateKey(week[0]))}
     {#if weekNumbers}
       <div
         class={[
-          "flex items-center justify-center border-b border-r border-base-300/70",
-          "bg-base-200/30 text-[0.625rem] tabular text-base-content/40",
+          "flex justify-center border-base-300/70 bg-base-200/30 p-1",
+          row > 0 && "border-t",
         ]}
       >
-        {isoWeek(week[0])}
+        <span
+          class="flex h-5 items-center text-3xs tabular-nums text-base-content/50"
+        >
+          {isoWeek(week[0])}
+        </span>
       </div>
     {/if}
-    {#each week as day (dateKey(day))}
+    {#each week as day, column (dateKey(day))}
       {@const outside = day.getMonth() !== month}
       {@const dayEvents = eventsOnDay(day)}
       {@const holidays = holidayFor(day)}
       {@const isToday = dateKey(day) === dateKey(today)}
       {@const isSelected = dateKey(day) === dateKey(selected)}
+      {@const shown = dayEvents.length > CHIPS ? CHIPS - 1 : CHIPS}
       <div
         role="button"
         tabindex="0"
+        aria-label={[longDay(day), ...holidays].join(", ")}
+        aria-current={isToday ? "date" : undefined}
+        aria-pressed={isSelected}
         class={[
-          "flex min-h-0 cursor-pointer flex-col gap-0.5 overflow-hidden",
-          "border-b border-r border-base-300/70 p-1.5 text-left",
-          "text-[0.6875rem] transition-colors hover:bg-base-content/5",
-          outside && "bg-base-200/30 text-base-content/30",
-          isToday && !isSelected && "bg-primary/5",
-          isSelected && "bg-primary/10 ring-1 ring-inset ring-primary",
+          "flex min-h-0 cursor-pointer flex-col gap-0.5 overflow-hidden p-1",
+          "border-base-300/70 text-left transition-colors duration-120",
+          "focus-visible:outline-2 focus-visible:-outline-offset-2",
+          "focus-visible:outline-primary",
+          row > 0 && "border-t",
+          (column > 0 || weekNumbers) && "border-l",
+          outside && "*:opacity-50",
+          outside && !isSelected && "bg-base-200/40",
+          isSelected
+            ? "bg-primary/10 ring-1 ring-primary/50 ring-inset"
+            : "hover:bg-base-content/5",
         ]}
         onclick={() => pick(day)}
         onkeydown={e => onKey(e, day)}
       >
-        <div class="flex items-center justify-between">
+        <div class="flex min-w-0 items-center gap-1">
           <span
             class={[
-              "tabular font-medium",
-              isToday && "text-primary",
-              !isToday && dayTone(day, holidays.length > 0),
+              "grid size-5 shrink-0 place-items-center rounded-full",
+              "text-xs tabular-nums",
+              isToday
+                ? "bg-primary font-semibold text-primary-content"
+                : [
+                    "font-medium",
+                    dayTone(day.getDay(), holidays.length > 0, ""),
+                  ],
             ]}
           >
             {day.getDate()}
           </span>
 
-          {#if dayEvents.length > 0}
-            <span class="tabular text-[0.5625rem] text-base-content/50">
-              {dayEvents.length}
+          {#if holidays.length > 0}
+            <span
+              class="min-w-0 truncate text-3xs font-medium text-error"
+              title={holidays.join(", ")}
+            >
+              {holidays.join(", ")}
             </span>
           {/if}
         </div>
 
-        {#each holidays as name (name)}
-          <span
-            class="mt-0.5 block truncate px-1.5 py-0.5 text-left text-[0.625rem] text-error/80"
-            title={name}
-          >
-            {name}
-          </span>
-        {/each}
-
-        {#each dayEvents.slice(0, 3) as event (event.id + event.start)}
+        {#each dayEvents.slice(0, shown) as event (event.id + event.start)}
+          {@const meta = colorMeta[toColor(event.color)]}
+          {@const label = `${eventTime(event, $t("panel.allDay"))} ${event.title}`}
           <button
             type="button"
             class={[
-              "mt-0.5 block w-full cursor-pointer truncate rounded px-1.5",
-              "py-0.5 text-left text-[0.625rem]",
-              colorMeta[toColor(event.color)].block,
+              "flex h-4 w-full min-w-0 shrink-0 cursor-pointer items-center",
+              "gap-1 rounded-sm px-1 text-left text-3xs text-base-content/85",
+              "transition-colors duration-120 outline-none",
+              "focus-visible:ring-2 focus-visible:ring-primary/50",
+              event.allDay
+                ? [meta.block, "font-medium"]
+                : "hover:bg-base-content/8",
             ]}
-            title="{eventTime(event, $t('panel.allDay'))} {event.title}"
+            title={label}
+            aria-label={label}
             onclick={e => {
               e.stopPropagation()
               openEvent(event)
             }}
           >
-            <span class="tabular font-medium"
-              >{eventTime(event, $t("panel.allDay"))}</span
-            >
-            {event.title}
+            {#if !event.allDay}
+              <span class={["size-1.5 shrink-0 rounded-full", meta.chip]}></span>
+            {/if}
+            <span class="truncate">{event.title}</span>
           </button>
         {/each}
 
-        {#if dayEvents.length > 3}
-          <span class="mt-0.5 px-1.5 text-[0.5625rem] text-base-content/45">
-            +{dayEvents.length - 3}
+        {#if dayEvents.length > shown}
+          <span
+            class={[
+              "flex h-4 shrink-0 items-center px-1",
+              "text-3xs font-medium tabular-nums text-base-content/60",
+            ]}
+          >
+            +{dayEvents.length - shown}
           </span>
         {/if}
       </div>

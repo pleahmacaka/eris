@@ -2,11 +2,13 @@
   import {
     type DeviceSettings,
     type Profile,
+    type TerminalApp,
     defaultDevice,
     defaultProfile,
   } from "@eris/settings"
   import { Row, Section, Segmented } from "@eris/ui"
   import { t } from "svelte-i18n"
+  import { installedTerminals } from "$lib/native"
   import FeatureGate from "../FeatureGate.svelte"
   import HotkeyPicker from "../HotkeyPicker.svelte"
   import { reset } from "../reset"
@@ -20,7 +22,34 @@
   const resetDevice = reset(() => device, defaultDevice)
   const resetLauncher = reset(() => profile.launcher, defaultProfile.launcher)
 
-  const groups = $derived(shortcuts($t, device, device.features.chat))
+  const groups = $derived(shortcuts($t, device))
+
+  const TERMINAL_NAMES: Record<Exclude<TerminalApp, "auto" | "cmd">, string> = {
+    wt: "Windows Terminal",
+    pwsh: "PowerShell 7",
+    powershell: "Windows PowerShell",
+  }
+
+  let terminals = $state<TerminalApp[]>(["powershell", "cmd"])
+
+  $effect(() => {
+    installedTerminals()
+      .then(found => {
+        terminals = found
+      })
+      .catch(() => undefined)
+  })
+
+  const terminalChoices = $derived([
+    ...new Set<TerminalApp>(["auto", ...terminals, device.terminal]),
+  ])
+
+  const terminalName = (app: TerminalApp) =>
+    app === "auto"
+      ? $t("settings.options.terminalAuto")
+      : app === "cmd"
+        ? $t("settings.options.cmd")
+        : TERMINAL_NAMES[app]
 </script>
 
 <FeatureGate bind:device feature="launcher" />
@@ -147,6 +176,22 @@
       <option value="duckduckgo">DuckDuckGo</option>
       <option value="bing">Bing</option>
       <option value="naver">Naver</option>
+    </select>
+  </Row>
+
+  <Row
+    label={$t("settings.rows.terminal")}
+    hint={$t("settings.hints.terminal")}
+    onreset={resetDevice("terminal")}
+  >
+    <select
+      class="select select-sm w-48"
+      aria-label={$t("settings.rows.terminal")}
+      bind:value={device.terminal}
+    >
+      {#each terminalChoices as app (app)}
+        <option value={app}>{terminalName(app)}</option>
+      {/each}
     </select>
   </Row>
 </Section>

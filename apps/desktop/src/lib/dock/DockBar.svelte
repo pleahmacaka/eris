@@ -12,7 +12,6 @@
   import type { DockLayout } from "./layout.svelte"
   import LeadWidgets from "./LeadWidgets.svelte"
   import Tray from "./Tray.svelte"
-  import UchiwaStrip from "./UchiwaStrip.svelte"
 
   type Props = {
     layout: DockLayout
@@ -24,8 +23,8 @@
 
   const device = $derived(layout.device)
 
-  const centered = $derived(
-    !layout.mac && !layout.uchiwa && device.dockAlign === "center",
+  const sideClass = $derived(
+    layout.centered ? "z-10 min-w-max flex-1" : "z-10 min-w-max",
   )
 
   let barMenu = $state(false)
@@ -148,16 +147,12 @@
     <nav
       class={[
         "dock-nav flex shrink-0 items-center gap-1 border-base-content/10",
-        layout.mac || layout.uchiwa
-          ? "rounded-[var(--shell-radius)] border px-3"
-          : "px-2",
-        !layout.mac &&
-          !layout.uchiwa &&
-          (device.dockEdge === "top" ? "border-b" : "border-t"),
+        layout.mac ? "rounded-[var(--shell-radius)] border px-3" : "px-2",
+        !layout.mac && (device.dockEdge === "top" ? "border-b" : "border-t"),
       ]}
       style:height="{device.dockHeight}px"
       aria-label={$t("dock.dockAria")}
-      bind:clientWidth={layout.navWidth}
+      bind:offsetWidth={layout.navWidth}
       oncontextmenu={openBarMenu}
     >
       {#each device.dockWidgets as widget, at (widget.id)}
@@ -167,23 +162,14 @@
             label={$t("edit.spots.widgets")}
             placement={layout.spotPlacement}
             align="start"
-            class={centered ? "flex-1" : ""}
+            class={sideClass}
             onmenu={layout.claimFor(`spot-${widget.id}`)}
           >
             {#snippet options()}
               {@render widgetMove(widget, at)}
             {/snippet}
 
-            <div
-              class={[
-                "flex min-w-0 items-center gap-1",
-                centered && "flex-1",
-              ]}
-            >
-              {#if layout.uchiwa && device.showLauncherButton && device.features.launcher}
-                {@render launcherButton()}
-              {/if}
-
+            <div class={["flex items-center", layout.centered && "flex-1"]}>
               <div class="flex items-center" bind:clientWidth={layout.leadWidth}>
                 {#if !device.topBar}
                   <LeadWidgets {layout} />
@@ -196,7 +182,7 @@
             id={`widget-${widget.id}`}
             label={$t("edit.spots.apps")}
             placement={layout.spotPlacement}
-            class={!layout.uchiwa && !centered ? "flex-1" : ""}
+            class={layout.centered ? "" : "flex-1"}
             onmenu={layout.claimFor(`spot-${widget.id}`)}
           >
             {#snippet options()}
@@ -206,25 +192,19 @@
             <div
               class={[
                 "flex min-w-0 items-center gap-0.5",
-                layout.uchiwa || centered ? "" : "flex-1",
-                layout.uchiwa || device.dockAlign === "center"
-                  ? "justify-center"
-                  : "justify-start",
+                !layout.centered && "flex-1",
+                device.dockAlign === "center" ? "justify-center" : "justify-start",
               ]}
             >
-              {#if layout.uchiwa}
-                <UchiwaStrip {layout} />
-              {:else}
-                {#if device.showLauncherButton && device.features.launcher}
-                  {@render launcherButton()}
+              {#if device.showLauncherButton && device.features.launcher}
+                {@render launcherButton()}
 
-                  {#if device.dockSeparators}
-                    <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
-                  {/if}
+                {#if device.dockSeparators}
+                  <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
                 {/if}
-
-                <AppsStrip {layout} list={layout.shown} offset={0} tail={true} />
               {/if}
+
+              <AppsStrip {layout} list={layout.shown} offset={0} tail={true} />
             </div>
           </EditSpot>
         {:else if widget.kind === "tray"}
@@ -233,19 +213,14 @@
             label={$t("edit.spots.tray")}
             placement={layout.spotPlacement}
             align="end"
-            class={centered ? "flex-1" : ""}
+            class={sideClass}
             onmenu={layout.claimFor(`spot-${widget.id}`)}
           >
             {#snippet options()}
               {@render widgetMove(widget, at)}
             {/snippet}
 
-            <div
-              class={[
-                "flex min-w-0 items-center justify-end",
-                centered && "flex-1",
-              ]}
-            >
+            <div class={["flex items-center justify-end", layout.centered && "flex-1"]}>
               <div class="flex items-center" bind:clientWidth={layout.trailWidth}>
                 {#if !device.topBar}
                   {#if device.dockSeparators}
@@ -272,7 +247,9 @@
         bind:open={barMenu}
         items={barMenuItems}
         x={barMenuX}
-        bottom={device.dockHeight + 8}
+        y={device.dockEdge === "top" ? device.dockHeight + 8 : undefined}
+        bottom={device.dockEdge === "top" ? undefined : device.dockHeight + 8}
+        placement={layout.spotPlacement}
         width={224}
         label={$t("dock.dockMenu")}
         onsize={rect => barClaim(barMenu ? rect : null)}

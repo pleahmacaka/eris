@@ -10,6 +10,8 @@
     y: number
     width: number
     height: number
+    header: number
+    title: string
   }
 
   let slots = $state<Slot[]>([])
@@ -63,8 +65,13 @@
   onmouseleave={() => setHover(false)}
 >
   {#each slots as slot (slot.hwnd)}
+    {@const active = hovered === slot.hwnd}
+
     <div
-      class="absolute"
+      class={[
+        "absolute rounded-field transition-colors duration-100",
+        active ? "bg-base-content/10" : "bg-transparent",
+      ]}
       style:left="{slot.x}px"
       style:top="{slot.y}px"
       style:width="{slot.width}px"
@@ -75,34 +82,29 @@
     >
       <button
         type="button"
-        class="absolute inset-0 transition-shadow duration-100"
-        class:selected={hovered === slot.hwnd}
+        class="absolute inset-0 rounded-field outline-none focus-visible:ring-2 focus-visible:ring-primary"
         aria-label={$t("dock.preview.switchTo")}
         onclick={() => pick(slot)}
       ></button>
 
-      {#if hovered === slot.hwnd}
+      <div
+        class="pointer-events-none relative flex items-center gap-2 pr-1 pl-2"
+        style:height="{slot.header}px"
+      >
+        <span class="min-w-0 flex-1 truncate text-xs text-base-content/80">{slot.title}</span>
+
         <button
           type="button"
-          class="btn btn-circle btn-sm absolute top-1.5 right-1.5 border-0 bg-base-content text-base-100 shadow-lg ring-2 ring-base-100/60 hover:bg-error hover:text-error-content"
+          class={[
+            "btn btn-square btn-ghost btn-xs pointer-events-auto text-base-content transition-opacity duration-100 hover:bg-error hover:text-error-content",
+            active ? "opacity-100" : "opacity-0 focus-visible:opacity-100",
+          ]}
           aria-label={$t("dock.preview.close")}
           onclick={() => close(slot)}
         >
           <Icon icon="lucide:x" class="size-4" />
         </button>
-      {/if}
+      </div>
     </div>
   {/each}
 </div>
-
-<style>
-  button {
-    box-shadow: 0 0 0 1px color-mix(in oklch, var(--color-base-content) 12%, transparent);
-  }
-
-  button.selected {
-    box-shadow:
-      0 0 0 2px var(--color-primary),
-      0 0 0 5px color-mix(in oklch, var(--color-primary) 25%, transparent);
-  }
-</style>

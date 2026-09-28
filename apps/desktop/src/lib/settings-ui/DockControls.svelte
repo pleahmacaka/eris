@@ -4,9 +4,9 @@
   import { startEdit } from "$lib/edit"
   import {
     type ClockAlign,
+    DOCK_STYLES,
     type DeviceSettings,
     type DockAlign,
-    type DockStyle,
     defaultDevice,
   } from "@eris/settings"
   import Icon from "@iconify/svelte"
@@ -21,8 +21,6 @@
   }: { device: DeviceSettings; subset?: boolean } = $props()
 
   const resetRow = reset(() => device, defaultDevice)
-
-  const styles: DockStyle[] = ["windows", "mac", "uchiwa"]
 
   const ALIGNMENTS: { value: DockAlign; icon: string }[] = [
     { value: "start", icon: "lucide:align-start-horizontal" },
@@ -70,13 +68,8 @@
     switch (key) {
       case "showLauncherButton":
         return device.features.launcher
-      case "showClaudeUsage":
-      case "claudeUsageStacked":
-        return device.features.chat
       case "showSpectrum":
         return device.showMedia
-      case "dockSeparators":
-        return !uchiwa
       default:
         return true
     }
@@ -89,8 +82,6 @@
   ]
 
   const mac = $derived(device.dockStyle === "mac")
-  const uchiwa = $derived(device.dockStyle === "uchiwa")
-  const floating = $derived(mac || uchiwa)
 
   const clockAlignments = $derived(
     CLOCK_ALIGNMENTS.map(a => ({
@@ -177,8 +168,8 @@
     <DockPreview {device} />
   </div>
 
-  <div class="grid grid-cols-3 gap-3" role="radiogroup" aria-label={$t("settings.dock.styleAria")}>
-    {#each styles as style (style)}
+  <div class="grid grid-cols-2 gap-3" role="radiogroup" aria-label={$t("settings.dock.styleAria")}>
+    {#each DOCK_STYLES as style (style)}
       {@const active = device.dockStyle === style}
 
       <button
@@ -207,7 +198,7 @@
                 <span class="size-1.5 rounded-sm bg-base-100/80"></span>
               {/each}
             </div>
-          {:else if style === "mac"}
+          {:else}
             <div
               class={[
                 "absolute left-1/2 flex h-3.5 w-1/2 -translate-x-1/2 items-center justify-center gap-1 rounded-full bg-base-content/25",
@@ -216,22 +207,6 @@
             >
               {#each [0, 1, 2, 3] as dot (dot)}
                 <span class="size-1.5 rounded-full bg-base-100/80"></span>
-              {/each}
-            </div>
-          {:else}
-            <div
-              class={[
-                "absolute left-1/2 flex h-5 w-3/4 -translate-x-1/2 items-end justify-center rounded-full bg-base-content/25",
-                device.dockEdge === "top" ? "top-1" : "bottom-1",
-              ]}
-            >
-              {#each [-2, -1, 0, 1, 2] as slot (slot)}
-                <span
-                  class="absolute bottom-1 left-1/2 size-1.5 rounded-full bg-base-100/80"
-                  style:transform="translateX(-50%) rotate({slot * 22}deg) translateY(-0.55rem)"
-                  style:transform-origin="50% 0.55rem"
-                  style:bottom="-0.4rem"
-                ></span>
               {/each}
             </div>
           {/if}
@@ -347,25 +322,23 @@
     />
   </Row>
 
-  {#if device.features.chat}
-    <Row
+  <Row
+    label={$t("settings.rows.claudeUsageSide")}
+    hint={$t("settings.hints.claudeUsageSide")}
+    onreset={resetRow("claudeUsageSide")}
+  >
+    <Segmented
       label={$t("settings.rows.claudeUsageSide")}
-      hint={$t("settings.hints.claudeUsageSide")}
-      onreset={resetRow("claudeUsageSide")}
-    >
-      <Segmented
-        label={$t("settings.rows.claudeUsageSide")}
-        bind:value={device.claudeUsageSide}
-        options={[
-          { value: "left", label: $t("settings.dock.left"), icon: "lucide:align-start-horizontal" },
-          { value: "right", label: $t("settings.dock.right"), icon: "lucide:align-end-horizontal" },
-        ]}
-      />
-    </Row>
-  {/if}
+      bind:value={device.claudeUsageSide}
+      options={[
+        { value: "left", label: $t("settings.dock.left"), icon: "lucide:align-start-horizontal" },
+        { value: "right", label: $t("settings.dock.right"), icon: "lucide:align-end-horizontal" },
+      ]}
+    />
+  </Row>
 {/if}
 
-{#if !subset && !uchiwa}
+{#if !subset}
   <Row
     label={$t("settings.rows.alignment")}
     hint={$t("settings.hints.alignment")}

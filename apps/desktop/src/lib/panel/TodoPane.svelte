@@ -62,11 +62,17 @@
     })
   }
 
+  let renaming: Promise<unknown> = Promise.resolve()
+
+  // the title input blurs and saves before the checkbox click lands, so toggle the saved copy
   const toggle = async (todo: Todo) => {
-    const done = !todo.done
+    await renaming
+
+    const current = (await todos.get(todo.id)) ?? todo
+    const done = !current.done
 
     await todos.put({
-      ...todo,
+      ...current,
       done,
       doneAt: done ? Date.now() : null,
       updatedAt: Date.now(),
@@ -79,12 +85,18 @@
   }
 
   const commitEdit = async (todo: Todo) => {
+    if (editingId !== todo.id) {
+      return
+    }
+
     const title = editDraft.trim()
 
     editingId = null
 
     if (title && title !== todo.title) {
-      await todos.put({ ...todo, title, updatedAt: Date.now() })
+      renaming = todos.put({ ...todo, title, updatedAt: Date.now() })
+
+      await renaming
     }
   }
 
@@ -98,7 +110,9 @@
 </script>
 
 <div class="flex h-full min-h-0 flex-col">
-  <header class="flex items-center gap-2 border-b border-base-300 px-3 py-3">
+  <header
+    class="flex min-h-14 items-center gap-2 border-b border-base-300 px-3 py-3"
+  >
     <button
       type="button"
       class="btn btn-ghost btn-square btn-xs"
@@ -108,17 +122,18 @@
       <Icon icon="lucide:arrow-left" class="size-3.5" />
     </button>
 
-    <div class="min-w-0 flex-1">
-      <div class="text-[0.6875rem] tracking-wider text-base-content/55">
-        {$t("panel.todos")}
-      </div>
-      <div class="mt-0.5 text-[0.8125rem] font-semibold">
+    <h2 class="min-w-0 flex-1 truncate text-base font-semibold tracking-tight">
+      {$t("panel.todos")}
+    </h2>
+
+    {#if openCount > 0}
+      <span class="badge badge-ghost badge-sm shrink-0 tabular-nums">
         {$t("panel.todo.count", { values: { count: openCount } })}
-      </div>
-    </div>
+      </span>
+    {/if}
   </header>
 
-  <div class="border-b border-base-300 px-3 py-2">
+  <div class="border-b border-base-300 p-2">
     <input
       class="input input-sm w-full"
       placeholder={$t("panel.quickAdd.todo")}
@@ -135,105 +150,124 @@
     />
   </div>
 
-  <div class="min-h-0 flex-1 overflow-y-auto px-2 py-2">
+  <div class="min-h-0 flex-1 overflow-y-auto p-2">
     {#if list.length === 0}
-      <div class="px-3 py-8 text-center text-xs text-base-content/50">
-        {$t("panel.todo.allDone")}
+      <div
+        class={[
+          "flex h-full flex-col items-center justify-center gap-2",
+          "text-base-content/50",
+        ]}
+      >
+        <Icon icon="lucide:check-check" class="size-6 opacity-60" />
+        <p class="text-xs">{$t("panel.todo.allDone")}</p>
       </div>
-    {/if}
-
-    <ul>
-      {#each list as todo (todo.id)}
-        <li class="group relative">
-          <div
-            class="flex w-full items-start gap-2.5 rounded-md px-2.5 py-2 transition-colors hover:bg-base-200/60"
-          >
-            <input
-              type="checkbox"
-              class="checkbox checkbox-primary checkbox-sm mt-0.5 shrink-0"
-              checked={todo.done}
-              aria-label={$t(todo.done ? "panel.todo.markNotDone" : "panel.todo.markDone")}
-              onchange={() => toggle(todo)}
-            />
-
-            {#if editingId === todo.id}
+    {:else}
+      <ul class="flex flex-col gap-0.5">
+        {#each list as todo (todo.id)}
+          <li class="group relative">
+            <div
+              class={[
+                "flex w-full items-start gap-2.5 rounded-field py-2 pr-10 pl-2.5",
+                "transition-colors duration-120 hover:bg-base-content/5",
+              ]}
+            >
               <input
-                class="input input-xs min-w-0 flex-1"
-                aria-label={$t("panel.todo.titleAria")}
-                bind:value={editDraft}
-                {@attach node => node.focus()}
-                onblur={() => commitEdit(todo)}
-                onkeydown={e => {
-                  if (e.key === "Enter") {
-                    commitEdit(todo)
-                  } else if (e.key === "Escape") {
-                    e.stopPropagation()
-                    editingId = null
-                  }
-                }}
+                type="checkbox"
+                class="checkbox checkbox-primary checkbox-sm shrink-0"
+                checked={todo.done}
+                aria-label={$t(
+                  todo.done ? "panel.todo.markNotDone" : "panel.todo.markDone",
+                )}
+                onchange={() => toggle(todo)}
               />
-            {:else}
-              <button
-                type="button"
-                class="min-w-0 flex-1 cursor-text text-left"
-                title={$t("panel.todo.editHint")}
-                ondblclick={() => startEdit(todo)}
-              >
-                <div
+
+              {#if editingId === todo.id}
+                <input
+                  class="input input-xs min-w-0 flex-1"
+                  aria-label={$t("panel.todo.titleAria")}
+                  bind:value={editDraft}
+                  {@attach node => node.focus()}
+                  onblur={() => commitEdit(todo)}
+                  onkeydown={e => {
+                    if (e.key === "Enter") {
+                      commitEdit(todo)
+                    } else if (e.key === "Escape") {
+                      e.stopPropagation()
+                      editingId = null
+                    }
+                  }}
+                />
+              {:else}
+                <button
+                  type="button"
                   class={[
-                    "truncate text-[0.8125rem] font-medium",
-                    todo.done && "line-through opacity-55",
+                    "min-w-0 flex-1 cursor-text rounded-sm text-left",
+                    "outline-none focus-visible:ring-2",
+                    "focus-visible:ring-primary/50",
                   ]}
+                  title={$t("panel.todo.editHint")}
+                  ondblclick={() => startEdit(todo)}
                 >
-                  {todo.title}
-                </div>
-
-                {#if todo.due || todo.tags.length}
-                  <div
-                    class="tabular mt-0.5 flex items-center gap-1.5 text-[0.6875rem] text-base-content/55"
+                  <span
+                    class={[
+                      "block truncate text-sm font-medium",
+                      "transition-opacity duration-120",
+                      todo.done && "line-through opacity-55",
+                    ]}
                   >
-                    {#if todo.due}
-                      <span class={isOverdue(todo) ? "text-error" : ""}>
-                        {dueLabel(todo)}
-                      </span>
-                    {/if}
+                    {todo.title}
+                  </span>
 
-                    {#each todo.tags as tag (tag)}
-                      <span class="text-base-content/45">#{tag}</span>
-                    {/each}
-                  </div>
-                {/if}
-              </button>
-            {/if}
+                  {#if todo.due || todo.tags.length}
+                    <span
+                      class={[
+                        "mt-0.5 flex items-center gap-1.5",
+                        "text-2xs tabular-nums text-base-content/60",
+                      ]}
+                    >
+                      {#if todo.due}
+                        <span class={{ "text-error": isOverdue(todo) }}>
+                          {dueLabel(todo)}
+                        </span>
+                      {/if}
 
-            {#if todo.priority}
-              <Icon
-                icon="lucide:flag"
-                class={["mt-1 size-3 shrink-0", flagClass(todo.priority)]}
-              />
-            {/if}
-          </div>
+                      {#each todo.tags as tag (tag)}
+                        <span class="text-base-content/50">#{tag}</span>
+                      {/each}
+                    </span>
+                  {/if}
+                </button>
+              {/if}
 
-          <button
-            type="button"
-            class={[
-              "absolute right-1.5 top-1/2 grid size-6 -translate-y-1/2",
-              "cursor-pointer place-items-center rounded text-base-content/45",
-              "opacity-0 transition-opacity hover:bg-base-300 hover:text-error",
-              "group-hover:opacity-100",
-            ]}
-            aria-label={$t("panel.todo.delete")}
-            onclick={() => todos.remove(todo.id)}
-          >
-            <Icon icon="lucide:trash-2" class="size-3" />
-          </button>
-        </li>
-      {/each}
-    </ul>
+              {#if todo.priority}
+                <Icon
+                  icon="lucide:flag"
+                  class={["mt-1 size-3 shrink-0", flagClass(todo.priority)]}
+                />
+              {/if}
+            </div>
+
+            <button
+              type="button"
+              class={[
+                "btn btn-ghost btn-square btn-xs absolute top-1.5 right-1.5",
+                "text-base-content/60 opacity-0 transition-opacity duration-120",
+                "group-hover:opacity-100 group-focus-within:opacity-100",
+                "hover:text-error focus-visible:opacity-100",
+              ]}
+              aria-label={$t("panel.todo.delete")}
+              onclick={() => todos.remove(todo.id)}
+            >
+              <Icon icon="lucide:trash-2" class="size-3.5" />
+            </button>
+          </li>
+        {/each}
+      </ul>
+    {/if}
   </div>
 
   {#if doneCount}
-    <div class="flex flex-col border-t border-base-300 px-3 py-2">
+    <div class="flex flex-col border-t border-base-300 p-2">
       <button class="btn btn-sm btn-ghost justify-start" onclick={clearDone}>
         <Icon icon="lucide:check-check" class="size-3.5" />
         {$t("panel.todo.clearCompleted")}
