@@ -41,7 +41,7 @@ const tab = (active: boolean, disabled: boolean) => [
 
 <div
   class={[
-    "rounded-box bg-neutral text-neutral-content",
+    "hud bg-neutral/80 text-neutral-content",
     "flex flex-col gap-5 p-5 sm:p-7",
   ]}
 >
@@ -91,7 +91,7 @@ const tab = (active: boolean, disabled: boolean) => [
         </p>
       {/if}
     </div>
-  {/key}
 
-  <Matrix cells={grid} {source} label={m.section_activity()} />
+    <Matrix cells={grid} {source} label={m.section_activity()} />
+  {/key}
 </div>

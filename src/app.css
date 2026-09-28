@@ -2,40 +2,40 @@
 @import "tailwindcss";
 
 @plugin "daisyui" {
-  themes: blueprint --default;
+  themes: arix --default;
 }
 
 @plugin "daisyui/theme" {
-  name: "blueprint";
+  name: "arix";
   default: true;
-  prefersdark: false;
-  color-scheme: "light";
-  --color-base-100: oklch(100% 0 0);
-  --color-base-200: oklch(97.2% 0.004 250);
-  --color-base-300: oklch(92.4% 0.008 250);
-  --color-base-content: oklch(23% 0.021 258);
-  --color-primary: oklch(48% 0.201 262);
-  --color-primary-content: oklch(98% 0.012 262);
-  --color-secondary: oklch(62% 0.13 250);
-  --color-secondary-content: oklch(98% 0.012 262);
-  --color-accent: oklch(48% 0.201 262);
-  --color-accent-content: oklch(98% 0.012 262);
-  --color-neutral: oklch(23% 0.021 258);
-  --color-neutral-content: oklch(97% 0.004 250);
-  --color-info: oklch(62% 0.13 250);
-  --color-info-content: oklch(98% 0.012 262);
-  --color-success: oklch(58% 0.13 160);
-  --color-success-content: oklch(98% 0.01 160);
-  --color-warning: oklch(70% 0.15 70);
-  --color-warning-content: oklch(24% 0.05 70);
-  --color-error: oklch(58% 0.2 24);
-  --color-error-content: oklch(98% 0.01 24);
-  --radius-selector: 0.375rem;
-  --radius-field: 0.375rem;
-  --radius-box: 0.625rem;
+  prefersdark: true;
+  color-scheme: "dark";
+  --color-base-100: oklch(15.5% 0.008 303);
+  --color-base-200: oklch(11% 0.006 303);
+  --color-base-300: oklch(27% 0.012 303);
+  --color-base-content: oklch(94% 0.006 303);
+  --color-primary: oklch(72% 0.15 303);
+  --color-primary-content: oklch(14% 0.03 303);
+  --color-secondary: oklch(75.5% 0.083 303);
+  --color-secondary-content: oklch(14% 0.03 303);
+  --color-accent: oklch(72% 0.15 303);
+  --color-accent-content: oklch(14% 0.03 303);
+  --color-neutral: oklch(13.5% 0.007 303);
+  --color-neutral-content: oklch(94% 0.006 303);
+  --color-info: oklch(72% 0.12 240);
+  --color-info-content: oklch(14% 0.03 240);
+  --color-success: oklch(78% 0.17 152);
+  --color-success-content: oklch(16% 0.04 152);
+  --color-warning: oklch(80% 0.15 75);
+  --color-warning-content: oklch(18% 0.04 75);
+  --color-error: oklch(66% 0.2 24);
+  --color-error-content: oklch(14% 0.03 24);
+  --radius-selector: 0rem;
+  --radius-field: 0rem;
+  --radius-box: 0rem;
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
-  --border: 1px;
+  --border: 0.0625rem;
   --depth: 0;
   --noise: 0;
 }
@@ -44,6 +44,8 @@
   --font-sans: "Pretendard Variable", "Pretendard", sans-serif;
   --font-mono: var(--font-sans);
   --default-transition-duration: 140ms;
+  --text-10xl: 10rem;
+  --text-10xl--line-height: 1;
   --color-cell-0: oklch(28% 0.014 258);
   --color-cell-1: oklch(37% 0.068 262);
   --color-cell-2: oklch(50% 0.135 262);
@@ -53,6 +55,50 @@
   --color-gh-2: oklch(50% 0.126 155);
   --color-gh-3: oklch(64% 0.161 151);
   --color-gh-4: oklch(79% 0.184 149);
+  --animate-flow: flow 2.4s linear infinite;
+  --animate-cell-in: cell-in 360ms ease-out both;
+  --animate-scan: scan 6s linear infinite;
+
+  @keyframes cell-in {
+    from {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+  }
+
+  @keyframes scan {
+    from {
+      background-position: -15% 0;
+    }
+
+    55%,
+    to {
+      background-position: 115% 0;
+    }
+  }
+
+  @keyframes flow {
+    from {
+      background-position: 0 -2rem;
+    }
+
+    40%,
+    to {
+      background-position: 0 calc(100% + 2rem);
+    }
+  }
+}
+
+@property --hud-len {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --hud-color {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: oklch(94% 0.006 303 / 0.35);
 }
 
 @layer base {
@@ -63,6 +109,11 @@
 
   body {
     background-color: var(--color-base-200);
+  }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--color-primary-content);
   }
 
   :focus-visible {
@@ -77,6 +128,107 @@
 
 @utility cell-lower {
   clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+@utility grid-lines {
+  background-image:
+    linear-gradient(
+      to right,
+      oklch(94% 0.006 303 / 0.05) 0.0625rem,
+      transparent 0.0625rem
+    ),
+    linear-gradient(
+      to bottom,
+      oklch(94% 0.006 303 / 0.05) 0.0625rem,
+      transparent 0.0625rem
+    );
+  background-size: 4rem 4rem;
+  background-position: center top;
+}
+
+@utility scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    oklch(0% 0 0 / 0.22) 0,
+    oklch(0% 0 0 / 0.22) 0.0625rem,
+    transparent 0.0625rem,
+    transparent 0.1875rem
+  );
+}
+
+@utility vignette {
+  background-image: radial-gradient(
+    ellipse at center,
+    transparent 45%,
+    oklch(0% 0 0 / 0.65) 100%
+  );
+}
+
+@utility hud {
+  --hud-len: 0.75rem;
+  --hud-thin: 0.0625rem;
+  background-image:
+    linear-gradient(var(--hud-color), var(--hud-color)),
+    linear-gradient(var(--hud-color), var(--hud-color)),
+    linear-gradient(var(--hud-color), var(--hud-color)),
+    linear-gradient(var(--hud-color), var(--hud-color)),
+    linear-gradient(var(--hud-color), var(--hud-color)),
+    linear-gradient(var(--hud-color), var(--hud-color)),
+    linear-gradient(var(--hud-color), var(--hud-color)),
+    linear-gradient(var(--hud-color), var(--hud-color));
+  background-position:
+    top left,
+    top left,
+    top right,
+    top right,
+    bottom left,
+    bottom left,
+    bottom right,
+    bottom right;
+  background-size:
+    var(--hud-len) var(--hud-thin),
+    var(--hud-thin) var(--hud-len),
+    var(--hud-len) var(--hud-thin),
+    var(--hud-thin) var(--hud-len),
+    var(--hud-len) var(--hud-thin),
+    var(--hud-thin) var(--hud-len),
+    var(--hud-len) var(--hud-thin),
+    var(--hud-thin) var(--hud-len);
+  background-repeat: no-repeat;
+  transition:
+    --hud-len 140ms ease-out,
+    --hud-color 140ms ease-out,
+    border-color 140ms ease-out;
+}
+
+@utility hud-lit {
+  --hud-len: 1.5rem;
+  --hud-color: var(--color-primary);
+}
+
+@utility trace {
+  width: 0.0625rem;
+  background-color: oklch(94% 0.006 303 / 0.22);
+  background-image: linear-gradient(
+    to bottom,
+    transparent,
+    var(--color-primary),
+    transparent
+  );
+  background-size: 100% 2rem;
+  background-repeat: no-repeat;
+  animation: var(--animate-flow);
+}
+
+@utility scan-band {
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    oklch(94% 0.006 303 / 0.14),
+    transparent
+  );
+  background-size: 7% 100%;
+  background-repeat: no-repeat;
 }
 
 @layer base {

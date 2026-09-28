@@ -3,16 +3,47 @@ const FALLBACK = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"]
 const reduced = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
-export type ScrambleOptions = {
+type Scramble = { destroy(): void }
+
+type ScrambleOptions = {
   delay?: number
   duration?: number
+  onView?: boolean
 }
 
-export function scramble(node: HTMLElement, options: ScrambleOptions = {}) {
+export function scramble(
+  node: HTMLElement,
+  options: ScrambleOptions = {},
+): Scramble | undefined {
   const target = node.textContent ?? ""
 
   if (target.trim().length === 0 || reduced()) {
     return
+  }
+
+  if (options.onView) {
+    let run: Scramble | undefined
+
+    const observer = new IntersectionObserver(
+      entries => {
+        if (!entries.some(e => e.isIntersecting)) {
+          return
+        }
+
+        observer.disconnect()
+        run = scramble(node, { ...options, onView: false })
+      },
+      { rootMargin: "0px 0px -12% 0px" },
+    )
+
+    observer.observe(node)
+
+    return {
+      destroy() {
+        observer.disconnect()
+        run?.destroy()
+      },
+    }
   }
 
   const { delay = 0, duration = 640 } = options

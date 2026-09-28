@@ -1,5 +1,11 @@
 <script lang="ts">
-import { getLocale, locales, localizeHref } from "$lib/paraglide/runtime"
+import { page } from "$app/state"
+import {
+  deLocalizeHref,
+  getLocale,
+  locales,
+  localizeHref,
+} from "$lib/paraglide/runtime"
 
 const NAMES: Record<string, string> = {
   en: "English",
@@ -9,16 +15,23 @@ const NAMES: Record<string, string> = {
 }
 
 const current = getLocale()
+
+const path = $derived(deLocalizeHref(page.url.pathname))
 </script>
 
-<nav class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+<nav
+  class={[
+    "flex items-center gap-x-2.5 whitespace-nowrap text-xs",
+    "sm:gap-x-3 sm:text-sm",
+  ]}
+>
   {#each locales as locale (locale)}
     <a
       class={[
         "link link-hover",
         locale === current ? "font-medium" : "text-base-content/70",
       ]}
-      href={localizeHref("/", { locale })}
+      href={localizeHref(path, { locale })}
       hreflang={locale}
       aria-current={locale === current ? "true" : undefined}
       data-sveltekit-reload

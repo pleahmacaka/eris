@@ -1,6 +1,6 @@
 import * as m from "$lib/paraglide/messages"
 
-export type GearItem = {
+type GearItem = {
   name: string
   note?: () => string
   spec?: string
@@ -12,21 +12,6 @@ export type GearGroup = {
 }
 
 export const gear: GearGroup[] = [
-  {
-    label: m.gear_workstations,
-    items: [
-      {
-        name: "Radeon RX 9070 XT",
-        note: m.gear_role_main,
-        spec: "Ryzen 7 7800X3D, 32GB DDR5",
-      },
-      {
-        name: "GeForce RTX 2070 SUPER",
-        note: m.gear_role_agents,
-        spec: "Ryzen 7 3700X, 32GB DDR4",
-      },
-    ],
-  },
   {
     label: m.gear_bench,
     items: [
