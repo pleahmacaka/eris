@@ -1,4 +1,5 @@
 export * from "./calendar"
+export * from "./guards"
 export * from "./ics"
 export * from "./notes"
 export * from "./todo"

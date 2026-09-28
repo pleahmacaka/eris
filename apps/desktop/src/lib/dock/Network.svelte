@@ -18,6 +18,7 @@
 
   let open = $state(false)
   let popover = $state<HTMLElement>()
+  let popoverHeight = $state(0)
   let radio = $state<RadioState | null>(null)
   let busy = $state(false)
   let error = $state("")
@@ -44,7 +45,7 @@
   }
 
   $effect(() => {
-    if (open && popover) {
+    if (open && popover && popoverHeight > 0) {
       onmenu?.(popover.getBoundingClientRect())
     }
   })
@@ -79,6 +80,14 @@
       setOpen(false)
     }
   }
+
+  $effect(() => {
+    const close = () => setOpen(false)
+
+    window.addEventListener("eris-close-menus", close)
+
+    return () => window.removeEventListener("eris-close-menus", close)
+  })
 
   const online = $derived(Boolean(network?.connected) && network?.kind !== "none")
 
@@ -149,6 +158,7 @@
   {#if open}
     <div
       bind:this={popover}
+      bind:offsetHeight={popoverHeight}
       class={[
         "absolute right-0 z-50 w-72 rounded-box border border-base-content/10 bg-base-100/90 p-3 shadow-xl backdrop-blur-xl",
         edge === "top" ? "top-full mt-2" : "bottom-full mb-2",

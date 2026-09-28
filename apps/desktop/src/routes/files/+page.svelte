@@ -69,10 +69,13 @@
 
   const crumbs = $derived.by(() => {
     const parts = path.split("\\").filter(Boolean)
+    const segments = path.startsWith("\\\\")
+      ? [`\\\\${parts.slice(0, 2).join("\\")}`, ...parts.slice(2)]
+      : parts
 
-    return parts.map((name, index) => ({
+    return segments.map((name, index) => ({
       name,
-      path: `${parts.slice(0, index + 1).join("\\")}${index === 0 ? "\\" : ""}`,
+      path: `${segments.slice(0, index + 1).join("\\")}${index === 0 ? "\\" : ""}`,
     }))
   })
 
@@ -120,6 +123,7 @@
       parent = listing.parent
       error = ""
       selection = new Set()
+      anchor = null
       deep = null
       filter = ""
 
@@ -285,16 +289,25 @@
     }
   }
 
+  let searchSeq = -1
+
   const runSearch = async () => {
     const query = filter.trim()
-    const seq = ++loadSeq
 
     if (!query) {
+      if (searchSeq === loadSeq) {
+        loadSeq += 1
+        loading = false
+      }
+
       deep = null
 
       return
     }
 
+    const seq = ++loadSeq
+
+    searchSeq = seq
     loading = true
 
     const found = await native.searchDir(path, query).catch(() => [])

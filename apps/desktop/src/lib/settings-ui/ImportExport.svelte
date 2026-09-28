@@ -1,20 +1,22 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import {
+    conform,
     events,
+    isCalendarEvent,
+    isNote,
+    isPreset,
+    isRecord,
+    isTodo,
     notes,
     presets,
     saveProfileSynced,
     todos,
-    type CalendarEvent,
-    type Note,
-    type Preset,
-    type Todo,
   } from "$lib/data"
   import {
+    defaultAppearance,
     defaultDevice,
     defaultProfile,
-    defaultSync,
     loadDevice,
     loadProfile,
     saveDevice,
@@ -27,15 +29,6 @@
 
   const message = (error: unknown) =>
     error instanceof Error ? error.message : String(error)
-
-  const isRecord = (value: unknown): value is Record<string, any> =>
-    typeof value === "object" && value !== null && !Array.isArray(value)
-
-  const records = (value: unknown) =>
-    Array.isArray(value) ? value.filter(isRecord) : []
-
-  const items = <T extends { id: string }>(value: unknown) =>
-    records(value).filter(r => typeof r.id === "string") as T[]
 
   const bundle = async () => ({
     app: "eris",
@@ -86,23 +79,24 @@
     }
   }
 
-  const importBundle = async (data: Record<string, any>) => {
+  const importBundle = async (data: Record<string, unknown>) => {
     let count = 0
+    let skipped = 0
+
+    const valid = <T,>(value: unknown, check: (item: unknown) => item is T) => {
+      const list: unknown[] = Array.isArray(value) ? value : []
+      const kept = list.filter(check)
+
+      skipped += list.length - kept.length
+
+      return kept
+    }
 
     if (isRecord(data.device)) {
       const current = await loadDevice()
 
       await saveDevice({
-        ...defaultDevice,
-        ...data.device,
-        sync: {
-          ...defaultSync,
-          ...data.device.sync,
-          collections: {
-            ...defaultSync.collections,
-            ...data.device.sync?.collections,
-          },
-        },
+        ...conform(defaultDevice, data.device),
         deviceId: current.deviceId,
         deviceName: current.deviceName,
         onboarded: current.onboarded,
@@ -111,38 +105,34 @@
     }
 
     if (isRecord(data.profile)) {
-      await saveProfileSynced({
-        ...defaultProfile,
-        ...data.profile,
-        appearance: { ...defaultProfile.appearance, ...data.profile.appearance },
-        launcher: { ...defaultProfile.launcher, ...data.profile.launcher },
-        calendar: { ...defaultProfile.calendar, ...data.profile.calendar },
-        todo: { ...defaultProfile.todo, ...data.profile.todo },
+      await saveProfileSynced(conform(defaultProfile, data.profile))
+      count += 1
+    }
+
+    for (const item of valid(data.presets, isPreset)) {
+      await presets.put({
+        ...item,
+        appearance: conform(defaultAppearance, item.appearance),
       })
       count += 1
     }
 
-    for (const item of items<Preset>(data.presets)) {
-      await presets.put(item)
-      count += 1
-    }
-
-    for (const item of items<Todo>(data.todos)) {
+    for (const item of valid(data.todos, isTodo)) {
       await todos.put(item)
       count += 1
     }
 
-    for (const item of items<CalendarEvent>(data.events)) {
+    for (const item of valid(data.events, isCalendarEvent)) {
       await events.put(item)
       count += 1
     }
 
-    for (const item of items<Note>(data.notes)) {
+    for (const item of valid(data.notes, isNote)) {
       await notes.put(item)
       count += 1
     }
 
-    return count
+    return { count, skipped }
   }
 
   const onpick = async (e: Event) => {
@@ -164,7 +154,7 @@
         throw new Error($t("settings.backup.notBackup"))
       }
 
-      const count = await importBundle(data)
+      const { count, skipped } = await importBundle(data)
 
       toast(
         count === 0
@@ -172,6 +162,10 @@
           : $t("settings.backup.imported", { values: { count } }),
         count === 0 ? "info" : "success",
       )
+
+      if (skipped > 0) {
+        toast($t("settings.backup.skipped", { values: { count: skipped } }), "error")
+      }
     } catch (error) {
       toast(message(error), "error")
     } finally {
