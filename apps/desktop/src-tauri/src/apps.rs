@@ -7,6 +7,7 @@ use std::time::{Duration, Instant};
 use serde::Serialize;
 
 const TTL: Duration = Duration::from_secs(300);
+const EXPLORER_APP_ID: &str = "Microsoft.Windows.Explorer";
 
 #[derive(Clone, Serialize)]
 pub struct AppEntry {
@@ -53,18 +54,28 @@ fn shortcut_entry(path: &Path) -> Option<AppEntry> {
     let name = path.file_stem()?.to_str()?.to_string();
     let text = path.to_string_lossy().into_owned();
 
-    let folder = path
-        .parent()
-        .and_then(Path::file_name)
-        .and_then(|folder| folder.to_str())
-        .unwrap_or_default()
-        .to_string();
+    let subtitle = if kind == "exe" {
+        path.file_name()?.to_str()?.to_string()
+    } else {
+        let folder = path
+            .parent()
+            .and_then(Path::file_name)
+            .and_then(|folder| folder.to_str())
+            .unwrap_or_default()
+            .to_string();
 
-    let subtitle = shortcut_target(&text)
-        .and_then(|target| Some(Path::new(&target).file_name()?.to_str()?.to_string()))
-        .unwrap_or(folder);
+        shortcut_target(&text)
+            .and_then(|target| Some(Path::new(&target).file_name()?.to_str()?.to_string()))
+            .or_else(|| explorer_link(&text).then_some("explorer.exe".into()))
+            .unwrap_or(folder)
+    };
 
     Some(entry(name, text, kind, subtitle))
+}
+
+// the File Explorer pin targets a shell folder instead of explorer.exe, so only its app id names the program
+fn explorer_link(path: &str) -> bool {
+    win::shortcut_app_id(path).is_some_and(|id| id == EXPLORER_APP_ID)
 }
 
 fn shortcuts_in(root: PathBuf, depth: usize) -> Vec<AppEntry> {
@@ -196,10 +207,15 @@ pub fn shell_execute(
 #[cfg(target_os = "windows")]
 mod win {
     use windows::core::{w, Interface, HSTRING, PCWSTR};
+    use windows::Win32::Storage::EnhancedStorage::PKEY_AppUserModel_ID;
+    use windows::Win32::System::Com::StructuredStorage::{
+        PropVariantClear, PropVariantToStringAlloc,
+    };
     use windows::Win32::System::Com::{
         CoCreateInstance, CoInitializeEx, CoTaskMemFree, IPersistFile, CLSCTX_INPROC_SERVER,
         COINIT_APARTMENTTHREADED, STGM_READ,
     };
+    use windows::Win32::UI::Shell::PropertiesSystem::IPropertyStore;
     use windows::Win32::UI::Shell::{
         BHID_EnumItems, IEnumShellItems, IShellItem, IShellLinkW, SHCreateItemFromParsingName,
         ShellExecuteW, ShellLink, SIGDN, SIGDN_NORMALDISPLAY, SIGDN_PARENTRELATIVEPARSING,
@@ -242,7 +258,7 @@ mod win {
         }
     }
 
-    pub fn shortcut_target(path: &str) -> Option<String> {
+    fn load_link(path: &str) -> Option<IShellLinkW> {
         if !path.to_lowercase().ends_with(".lnk") {
             return None;
         }
@@ -256,13 +272,35 @@ mod win {
 
             file.Load(&HSTRING::from(path), STGM_READ).ok()?;
 
-            let mut buffer = [0u16; 260];
+            Some(link)
+        }
+    }
+
+    pub fn shortcut_app_id(path: &str) -> Option<String> {
+        let store: IPropertyStore = load_link(path)?.cast().ok()?;
+
+        unsafe {
+            let mut value = store.GetValue(&PKEY_AppUserModel_ID).ok()?;
+            let text = PropVariantToStringAlloc(&value).ok();
+            let _ = PropVariantClear(&mut value);
+            let id = text?.to_string().ok();
+
+            CoTaskMemFree(Some(text?.0 as *const _));
+
+            id
+        }
+    }
+
+    pub fn shortcut_target(path: &str) -> Option<String> {
+        let link = load_link(path)?;
+
+        unsafe {
+            let mut buffer = vec![0u16; 32_768];
 
             link.GetPath(&mut buffer, std::ptr::null_mut(), 0).ok()?;
 
-            let target = String::from_utf16_lossy(&buffer)
-                .trim_end_matches(char::from(0))
-                .to_string();
+            let end = buffer.iter().position(|c| *c == 0).unwrap_or(buffer.len());
+            let target = String::from_utf16_lossy(&buffer[..end]);
 
             (!target.is_empty() && std::path::Path::new(&target).exists()).then_some(target)
         }
@@ -348,6 +386,10 @@ mod win {
     }
 
     pub fn shortcut_target(_path: &str) -> Option<String> {
+        None
+    }
+
+    pub fn shortcut_app_id(_path: &str) -> Option<String> {
         None
     }
 

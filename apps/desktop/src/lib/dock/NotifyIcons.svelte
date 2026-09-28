@@ -214,8 +214,16 @@
   let iconMenuX = $state(0)
   let iconMenuY = $state(0)
 
-  const openIconMenu = (e: MouseEvent, icon: TrayIcon) => {
+  const iconContextMenu = (e: MouseEvent, icon: TrayIcon) => {
     e.preventDefault()
+
+    if (!e.shiftKey) {
+      click(icon.id, "right")
+      closeStash()
+
+      return
+    }
+
     iconMenuId = icon.id
     iconMenuOpen = true
     iconMenuX = e.clientX
@@ -232,11 +240,6 @@
     const off = hiddenSet.has(icon.id)
 
     return [
-      {
-        label: $t("tray.icons.appMenu"),
-        icon: "lucide:app-window",
-        action: () => click(icon.id, "right"),
-      },
       icon.promoted || !off
         ? {
             label: $t("tray.icons.hideFromDock"),
@@ -277,7 +280,7 @@
       click(icon.id, "left")
       closeStash()
     }}
-    oncontextmenu={e => openIconMenu(e, icon)}
+    oncontextmenu={e => iconContextMenu(e, icon)}
   >
     {#if icon.icon}
       <img src={icon.icon} alt="" class="size-4" draggable="false" />
