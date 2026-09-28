@@ -175,7 +175,13 @@ mod win {
             .unwrap_or_default();
 
         let ssid = wlan
-            .then(|| profile.WlanConnectionProfileDetails().ok()?.GetConnectedSsid().ok())
+            .then(|| {
+                profile
+                    .WlanConnectionProfileDetails()
+                    .ok()?
+                    .GetConnectedSsid()
+                    .ok()
+            })
             .flatten()
             .map(|ssid| ssid.to_string())
             .unwrap_or_default();

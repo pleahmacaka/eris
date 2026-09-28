@@ -16,9 +16,7 @@ export type TaskbarLayout = {
 export const extendTaskbar = (
   px: number,
   rect?: [number, number, number, number] | null,
-  ring?: [number, number, number, number] | null,
-) =>
-  invoke<void>("extend_taskbar", { px, rect: rect ?? null, ring: ring ?? null })
+) => invoke<void>("extend_taskbar", { px, rect: rect ?? null })
 
 export const applyTaskbar = (layout: TaskbarLayout) =>
   invoke<void>("apply_taskbar", { layout })
@@ -33,14 +31,15 @@ export const extendTopbar = (
 
 export const releaseTopbar = () => invoke<void>("release_topbar")
 
+export const suspendShell = () => invoke<void>("suspend_shell")
+
+export const resumeShell = () => invoke<void>("resume_shell")
+
 export const setWinKeyCapture = (enabled: boolean) =>
   invoke<void>("set_win_key_capture", { enabled })
 
 export const setLauncherShortcut = (shortcut: string | null) =>
   invoke<void>("set_launcher_shortcut", { shortcut })
-
-export const setChatShortcut = (shortcut: string | null) =>
-  invoke<void>("set_chat_shortcut", { shortcut })
 
 export const setFeatures = (features: Features) =>
   invoke<void>("set_features", { features })

@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use serde::Serialize;
 use serde_json::Value;
@@ -268,15 +268,33 @@ fn wsl_launcher(path: &std::path::Path) -> bool {
         .contains("\\system32\\")
 }
 
+fn read_settings(path: &Path) -> Result<Value, String> {
+    let text = match std::fs::read_to_string(path) {
+        Ok(text) => text,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return Ok(serde_json::json!({}));
+        }
+        Err(error) => return Err(error.to_string()),
+    };
+
+    let root: Value = serde_json::from_str(text.strip_prefix('\u{feff}').unwrap_or(&text))
+        .map_err(|e| format!("settings.json is not valid json: {e}"))?;
+
+    if !root.is_object() {
+        return Err("settings.json is not a json object".into());
+    }
+
+    Ok(root)
+}
+
 #[tauri::command(async)]
 pub fn usage_bridge_installed() -> bool {
     let Some(path) = settings_path() else {
         return false;
     };
 
-    std::fs::read_to_string(path)
+    read_settings(&path)
         .ok()
-        .and_then(|text| serde_json::from_str::<Value>(&text).ok())
         .and_then(|value| {
             value
                 .get("statusLine")?
@@ -291,10 +309,7 @@ pub fn usage_bridge_installed() -> bool {
 pub fn install_usage_bridge(enable: bool) -> Result<(), String> {
     let path = settings_path().ok_or("no home directory")?;
 
-    let mut root: Value = std::fs::read_to_string(&path)
-        .ok()
-        .and_then(|text| serde_json::from_str(&text).ok())
-        .unwrap_or_else(|| serde_json::json!({}));
+    let mut root = read_settings(&path)?;
 
     let current = root
         .get("statusLine")

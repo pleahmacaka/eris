@@ -19,6 +19,7 @@ pub struct Notice {
 
 static DISMISSED: Mutex<Vec<i64>> = Mutex::new(Vec::new());
 static SEEN_AT: Mutex<u64> = Mutex::new(0);
+const SHOWN: usize = 100;
 
 fn now_ms() -> u64 {
     SystemTime::now()
@@ -34,6 +35,7 @@ pub fn notices_list() -> Result<Vec<Notice>, String> {
     Ok(win::read()?
         .into_iter()
         .filter(|notice| !dismissed.contains(&notice.id))
+        .take(SHOWN)
         .collect())
 }
 
@@ -116,36 +118,82 @@ fn parse_toast(xml: &str) -> (String, String) {
 
 #[cfg(target_os = "windows")]
 mod win {
+    use std::sync::{Mutex, PoisonError};
+
+    use diesel::prelude::*;
+    use diesel::sqlite::SqliteConnection;
+
     use super::{database_copy, filetime_ms, now_ms, Notice};
 
-    const QUERY: &str = "SELECT n.Id, n.Payload, n.ArrivalTime, n.ExpiryTime, h.PrimaryId \
-        FROM Notification n JOIN NotificationHandler h ON n.HandlerId = h.RecordId \
-        WHERE n.Type = 'toast' ORDER BY n.ArrivalTime DESC LIMIT 100";
+    static DATABASE: Mutex<()> = Mutex::new(());
+
+    const SCAN: i64 = 500;
+
+    diesel::table! {
+        #[sql_name = "Notification"]
+        notification (id) {
+            #[sql_name = "Id"]
+            id -> BigInt,
+            #[sql_name = "HandlerId"]
+            handler_id -> Nullable<BigInt>,
+            #[sql_name = "Type"]
+            kind -> Text,
+            #[sql_name = "Payload"]
+            payload -> Nullable<Binary>,
+            #[sql_name = "ArrivalTime"]
+            arrival_time -> Nullable<BigInt>,
+            #[sql_name = "ExpiryTime"]
+            expiry_time -> Nullable<BigInt>,
+        }
+    }
+
+    diesel::table! {
+        #[sql_name = "NotificationHandler"]
+        notification_handler (record_id) {
+            #[sql_name = "RecordId"]
+            record_id -> BigInt,
+            #[sql_name = "PrimaryId"]
+            primary_id -> Text,
+        }
+    }
+
+    diesel::allow_tables_to_appear_in_same_query!(notification, notification_handler);
+
+    type Row = (i64, Option<Vec<u8>>, Option<i64>, Option<i64>, String);
 
     pub fn read() -> Result<Vec<Notice>, String> {
+        let _copy_in_use = DATABASE.lock().unwrap_or_else(PoisonError::into_inner);
         let copy = database_copy()?;
-        let db = rusqlite::Connection::open(&copy).map_err(|e| e.to_string())?;
-        let mut statement = db.prepare(QUERY).map_err(|e| e.to_string())?;
+        let mut connection =
+            SqliteConnection::establish(&copy.to_string_lossy()).map_err(|e| e.to_string())?;
         let now = now_ms();
 
-        let rows = statement
-            .query_map([], |row| {
-                Ok((
-                    row.get::<_, i64>(0)?,
-                    row.get::<_, Vec<u8>>(1)?,
-                    row.get::<_, i64>(2)?,
-                    row.get::<_, i64>(3)?,
-                    row.get::<_, String>(4)?,
-                ))
-            })
+        let rows: Vec<Row> = notification::table
+            .inner_join(
+                notification_handler::table
+                    .on(notification::handler_id.eq(notification_handler::record_id.nullable())),
+            )
+            .filter(notification::kind.eq("toast"))
+            .order(notification::arrival_time.desc())
+            .limit(SCAN)
+            .select((
+                notification::id,
+                notification::payload,
+                notification::arrival_time,
+                notification::expiry_time,
+                notification_handler::primary_id,
+            ))
+            .load(&mut connection)
             .map_err(|e| e.to_string())?;
 
         let mut notices = Vec::new();
 
-        for row in rows.flatten() {
-            let (id, payload, arrival, expiry, app) = row;
+        for (id, payload, arrival, expiry, app) in rows {
+            let (Some(payload), Some(arrival)) = (payload, arrival) else {
+                continue;
+            };
 
-            if expiry > 0 && filetime_ms(expiry) < now {
+            if expiry.is_some_and(|expiry| expiry > 0 && filetime_ms(expiry) < now) {
                 continue;
             }
 

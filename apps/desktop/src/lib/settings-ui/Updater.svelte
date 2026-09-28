@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { relaunch } from "@tauri-apps/plugin-process"
   import { check, type Update } from "@tauri-apps/plugin-updater"
+  import { resumeShell, suspendShell } from "$lib/native/dock"
 
   type UpdateState = "idle" | "checking" | "none" | "available" | "downloading" | "installing" | "failed"
 
@@ -14,6 +15,11 @@
     downloadTotal > 0 ? Math.min(100, Math.round((downloaded / downloadTotal) * 100)) : 0,
   )
 
+  const fail = (e: unknown) => {
+    updateError = String(e)
+    updateState = "failed"
+  }
+
   const checkUpdates = async () => {
     updateState = "checking"
     updateError = ""
@@ -22,8 +28,7 @@
       update = await check()
       updateState = update ? "available" : "none"
     } catch (e) {
-      updateError = String(e)
-      updateState = "failed"
+      fail(e)
     }
   }
 
@@ -37,7 +42,7 @@
     downloadTotal = 0
 
     try {
-      await update.downloadAndInstall(event => {
+      await update.download(event => {
         if (event.event === "Started") {
           downloadTotal = event.data.contentLength ?? 0
         } else if (event.event === "Progress") {
@@ -46,12 +51,23 @@
           updateState = "installing"
         }
       })
-
-      await relaunch()
     } catch (e) {
-      updateError = String(e)
-      updateState = "failed"
+      fail(e)
+
+      return
     }
+
+    try {
+      await suspendShell()
+      await update.install()
+    } catch (e) {
+      await resumeShell().catch(() => undefined)
+      fail(e)
+
+      return
+    }
+
+    await relaunch().catch(fail)
   }
 </script>
 

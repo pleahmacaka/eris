@@ -60,10 +60,10 @@ mod win {
         CreateWindowExW, DefWindowProcW, DispatchMessageW, GetCursorPos, GetMessageW,
         GetWindowThreadProcessId, IsWindow, PostMessageW, PostQuitMessage, RegisterClassExW,
         RegisterWindowMessageW, SendMessageTimeoutW, SendNotifyMessageW, SetForegroundWindow,
-        SetWindowPos, HWND_BROADCAST, HWND_TOPMOST, MSG, SMTO_ABORTIFHUNG, SWP_NOACTIVATE,
-        SWP_NOMOVE, SWP_NOSIZE, WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_COPYDATA, WM_DESTROY,
-        WM_LBUTTONDOWN, WM_LBUTTONUP, WM_RBUTTONDOWN, WM_RBUTTONUP, WNDCLASSEXW, WS_EX_TOOLWINDOW,
-        WS_EX_TOPMOST, WS_POPUP,
+        SetWindowPos, UnregisterClassW, HWND_BROADCAST, HWND_TOPMOST, MSG, SMTO_ABORTIFHUNG,
+        SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_COPYDATA,
+        WM_DESTROY, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_RBUTTONDOWN, WM_RBUTTONUP, WNDCLASSEXW,
+        WS_EX_TOOLWINDOW, WS_EX_TOPMOST, WS_POPUP,
     };
 
     use super::TrayIcon;
@@ -764,12 +764,19 @@ mod win {
         let _ = unsafe { SendNotifyMessageW(HWND_BROADCAST, created, WPARAM(0), LPARAM(0)) };
     }
 
+    fn hosting(host: isize) -> bool {
+        HOST.lock()
+            .unwrap()
+            .as_ref()
+            .is_some_and(|(current, _)| *current == host)
+    }
+
     // Shell_NotifyIcon delivers to the first window of the class in z order, so stay above the shell's
     fn keep_front(host: isize) {
         std::thread::spawn(move || loop {
             std::thread::sleep(std::time::Duration::from_secs(5));
 
-            if HOST.lock().unwrap().is_none() {
+            if !hosting(host) {
                 return;
             }
 
@@ -788,12 +795,12 @@ mod win {
     }
 
     // an app that was already running when the host appeared only re-adds its icon on this broadcast
-    fn re_announce() {
-        std::thread::spawn(|| {
+    fn re_announce(host: isize) {
+        std::thread::spawn(move || {
             for wait in [2, 8, 20, 45, 90] {
                 std::thread::sleep(std::time::Duration::from_secs(wait));
 
-                if HOST.lock().unwrap().is_none() {
+                if !hosting(host) {
                     return;
                 }
 
@@ -817,6 +824,10 @@ mod win {
     pub fn host(app: Option<AppHandle>) {
         if let Some(app) = app {
             let _ = APP.set(app);
+        }
+
+        if HOST.lock().unwrap().is_some() {
+            return;
         }
 
         let (ready, started) = std::sync::mpsc::channel();
@@ -885,13 +896,14 @@ mod win {
             }
 
             ENTRIES.lock().unwrap().clear();
+            let _ = UnregisterClassW(class, Some(instance.into()));
             announce();
         });
 
         if let Ok(hwnd) = started.recv() {
             *HOST.lock().unwrap() = Some((hwnd, worker));
 
-            re_announce();
+            re_announce(hwnd);
             keep_front(hwnd);
         }
     }

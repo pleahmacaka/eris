@@ -61,12 +61,13 @@ mod win {
     use windows::Win32::UI::Input::KeyboardAndMouse::{SetFocus, VK_MENU};
     use windows::Win32::UI::WindowsAndMessaging::{
         BringWindowToTop, DispatchMessageW, EnumWindows, GetClassNameW, GetForegroundWindow,
-        GetMessageW, GetWindowLongPtrW, GetWindowTextW, GetWindowThreadProcessId, IsHungAppWindow,
-        IsIconic, IsWindowVisible, PostMessageW, SetForegroundWindow, ShowWindowAsync,
-        EVENT_OBJECT_CLOAKED, EVENT_OBJECT_CREATE, EVENT_OBJECT_HIDE, EVENT_OBJECT_NAMECHANGE,
-        EVENT_OBJECT_UNCLOAKED, EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_MINIMIZEEND,
-        EVENT_SYSTEM_MINIMIZESTART, GWL_EXSTYLE, MSG, SW_MINIMIZE, SW_RESTORE,
-        WINEVENT_OUTOFCONTEXT, WINEVENT_SKIPOWNPROCESS, WM_CLOSE, WS_EX_TOOLWINDOW,
+        GetMessageW, GetWindow, GetWindowLongPtrW, GetWindowTextW, GetWindowThreadProcessId,
+        IsHungAppWindow, IsIconic, IsWindowVisible, PostMessageW, SetForegroundWindow,
+        ShowWindowAsync, EVENT_OBJECT_CLOAKED, EVENT_OBJECT_CREATE, EVENT_OBJECT_HIDE,
+        EVENT_OBJECT_NAMECHANGE, EVENT_OBJECT_UNCLOAKED, EVENT_SYSTEM_FOREGROUND,
+        EVENT_SYSTEM_MINIMIZEEND, EVENT_SYSTEM_MINIMIZESTART, GWL_EXSTYLE, GW_OWNER, MSG,
+        SW_MINIMIZE, SW_RESTORE, WINEVENT_OUTOFCONTEXT, WINEVENT_SKIPOWNPROCESS, WM_CLOSE,
+        WS_EX_APPWINDOW, WS_EX_TOOLWINDOW,
     };
 
     use super::WindowEntry;
@@ -114,7 +115,13 @@ mod win {
                 return None;
             }
 
-            if GetWindowLongPtrW(hwnd, GWL_EXSTYLE) as u32 & WS_EX_TOOLWINDOW.0 != 0 {
+            let style = GetWindowLongPtrW(hwnd, GWL_EXSTYLE) as u32;
+
+            if style & WS_EX_TOOLWINDOW.0 != 0 {
+                return None;
+            }
+
+            if style & WS_EX_APPWINDOW.0 == 0 && GetWindow(hwnd, GW_OWNER).is_ok() {
                 return None;
             }
 
@@ -195,7 +202,11 @@ mod win {
 
         // the taskbar is unfocusable, so dock popups learn about outside focus from here
         let foreground = event == EVENT_SYSTEM_FOREGROUND;
-        let last = if foreground { &LAST_FOREGROUND } else { &LAST_EMIT };
+        let last = if foreground {
+            &LAST_FOREGROUND
+        } else {
+            &LAST_EMIT
+        };
         let mut guard = last.lock().unwrap();
         let now = Instant::now();
 
