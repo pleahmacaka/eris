@@ -59,5 +59,8 @@ describe("ranking", () => {
     expect(score("네이버 웨일", "ㄴㅇㅂㅇㅇ")).toBeGreaterThan(
       score("네이버 웨일", "ㅇㅇ"),
     )
+    expect(score("네이버 웨일 브라우저", "ㅇㅇ")).toBeGreaterThan(
+      score("가나다아이", "ㅇㅇ"),
+    )
   })
 })

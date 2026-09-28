@@ -21,6 +21,7 @@
   let { layout, list, offset, tail }: Props = $props()
 
   let overflowOpen = $state(false)
+  let openAtPress: boolean | null = null
 
   const spotClaim = $derived(layout.claimFor("spot-apps"))
   const itemsClaim = $derived(layout.claimFor("items"))
@@ -40,6 +41,16 @@
           : native.launchApp(group.path),
     })),
   )
+
+  const toggleOverflow = () => {
+    // the menu's window mousedown already closed it before this click lands
+    overflowOpen = !(openAtPress ?? overflowOpen)
+    openAtPress = null
+
+    if (!overflowOpen) {
+      overflowClaim(null)
+    }
+  }
 </script>
 
 <EditSpot id="apps" label={$t("edit.spots.apps")} placement={layout.spotPlacement} onmenu={spotClaim}>
@@ -93,13 +104,8 @@
           aria-label={$t("dock.more", { values: { count: layout.spilled.length } })}
           aria-haspopup="menu"
           aria-expanded={overflowOpen}
-          onclick={() => {
-            overflowOpen = !overflowOpen
-
-            if (!overflowOpen) {
-              overflowClaim(null)
-            }
-          }}
+          onpointerdown={() => (openAtPress = overflowOpen)}
+          onclick={toggleOverflow}
         >
           <Icon icon="lucide:ellipsis" class="size-5 text-base-content/70" />
         </button>

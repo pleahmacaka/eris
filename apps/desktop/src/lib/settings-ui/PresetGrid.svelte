@@ -27,13 +27,13 @@
       null,
   )
 
-  const custom: PresetDefinition = {
+  const custom = $derived<PresetDefinition>({
     id: CUSTOM,
     name: "",
     description: "",
     appearance: profile.appearance,
     swatch: swatchFor(profile.appearance),
-  }
+  })
 </script>
 
 {#snippet card(p: PresetDefinition, active: boolean, customName?: string)}

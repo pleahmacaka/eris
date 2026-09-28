@@ -100,7 +100,7 @@
     <div class="flex items-center gap-1">
       {#if items.length > 0}
         <button class="btn btn-xs btn-ghost" onclick={dismissAll}>
-          {$t("tray.notifications.clearAll")}
+          {$t("panel.notifications.clearAll")}
         </button>
       {/if}
 
@@ -120,7 +120,7 @@
         class="flex h-full flex-col items-center justify-center gap-2 text-base-content/40"
       >
         <Icon icon="lucide:bell-off" class="size-7" />
-        <p class="text-sm">{$t("tray.notifications.empty")}</p>
+        <p class="text-sm">{$t("panel.notifications.empty")}</p>
       </div>
     {:else}
       <ul class="flex flex-col gap-1">
@@ -150,7 +150,7 @@
 
             <button
               class="btn btn-ghost btn-square btn-xs shrink-0 opacity-0 group-hover:opacity-100"
-              aria-label={$t("tray.notifications.dismiss")}
+              aria-label={$t("panel.notifications.dismiss")}
               onclick={() => dismiss(notice.id)}
             >
               <Icon icon="lucide:x" class="size-3.5" />

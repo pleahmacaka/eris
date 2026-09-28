@@ -104,13 +104,16 @@ const round = (value: number) => {
     return 0
   }
 
-  const magnitude = Math.ceil(Math.log10(Math.abs(value)))
-
-  return Number(value.toFixed(Math.max(0, Math.min(6 - magnitude, 12))))
+  return Math.abs(value) >= 1e6
+    ? Number(value.toFixed(0))
+    : Number(value.toPrecision(6))
 }
 
 const format = (value: number) =>
-  value.toLocaleString("en-US", { maximumFractionDigits: 12 })
+  value.toLocaleString(
+    "en-US",
+    Math.abs(value) >= 1e6 ? {} : { maximumSignificantDigits: 6 },
+  )
 
 const withUnit = (text: string, symbol: string) =>
   symbol.startsWith("°") ? `${text}${symbol}` : `${text} ${symbol}`

@@ -26,6 +26,8 @@ export const loadFrecency = () => {
 }
 
 export const record = async (id: string) => {
+  await loadFrecency()
+
   const now = Date.now()
   const current = entries.get(id)
 

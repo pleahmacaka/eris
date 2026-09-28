@@ -12,6 +12,7 @@
     compact?: boolean
     edge?: DockEdge
     onmenu?: (rect: MenuBox | null) => void
+    onnetworkmenu?: (rect: MenuBox | null) => void
   }
 
   let {
@@ -20,6 +21,7 @@
     compact = false,
     edge = "bottom",
     onmenu,
+    onnetworkmenu,
   }: Props = $props()
 
   const POLL = 3_000
@@ -86,6 +88,14 @@
     }
   }
 
+  $effect(() => {
+    const close = () => setDetail(false)
+
+    window.addEventListener("eris-close-menus", close)
+
+    return () => window.removeEventListener("eris-close-menus", close)
+  })
+
   $effect(() => () => clearTimeout(clickTimer))
 
   const percent = (ratio: number) => Math.round(ratio * 100)
@@ -120,9 +130,9 @@
 <svelte:window {onmousedown} {onkeydown} />
 
 {#if meters}
-  <div class="flex items-center gap-0.5" data-meters>
+  <div class="flex items-center gap-0.5">
     {#if showMeters}
-      <div class="relative">
+      <div class="relative" data-meters>
         <button
           type="button"
           class="flex items-center gap-1 whitespace-nowrap rounded-field px-1.5 py-1 text-xs tabular-nums text-base-content/80 transition-colors duration-100 hover:bg-base-content/10"
@@ -199,7 +209,7 @@
     {/if}
 
     {#if showNetwork}
-      <Network {network} {edge} {onmenu} onrefresh={refresh} />
+      <Network {network} {edge} onmenu={onnetworkmenu} onrefresh={refresh} />
     {/if}
   </div>
 {/if}

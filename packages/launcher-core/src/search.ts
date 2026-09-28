@@ -233,6 +233,10 @@ export const score = (text: string, rawQuery: string): number => {
       return 850 - lengthPenalty(low)
     }
 
+    if (wordStart(getChoseong(text), compact) >= 0) {
+      return 750 - lengthPenalty(low)
+    }
+
     if (cho.includes(compact)) {
       return 650 - lengthPenalty(low)
     }
