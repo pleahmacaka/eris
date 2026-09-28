@@ -2,17 +2,6 @@ export const syncedCollections = ["notes", "todos", "events"] as const
 
 export type SyncedCollection = (typeof syncedCollections)[number]
 
-export type PeerRole = "hub" | "node"
-
-export type Peer = {
-  id: string
-  label: string
-  url: string
-  token: string
-  role: PeerRole
-  enabled: boolean
-}
-
 export type SyncRecord = {
   collection: SyncedCollection
   id: string
@@ -22,50 +11,14 @@ export type SyncRecord = {
   data: unknown
 }
 
-export type StoredRecord = SyncRecord & { seq: number }
-
-export type PushRequest = {
+export type Snapshot = {
   deviceId: string
-  deviceName: string
   records: SyncRecord[]
 }
 
-export type PushResponse = {
-  seq: number
-  applied: number
-  stale: string[]
-}
+export const MAX_CLOCK_SKEW = 24 * 60 * 60 * 1000
 
-export type PullResponse = {
-  seq: number
-  records: StoredRecord[]
-  hasMore: boolean
-}
-
-export type DeviceInfo = {
-  id: string
-  name: string
-  createdAt: number
-  lastSeen: number
-}
-
-export type RegisterRequest = {
-  deviceId: string
-  deviceName: string
-}
-
-export type ResetResponse = {
-  seq: number
-  tombstoned: number
-}
-
-export type HealthResponse = {
-  ok: true
-  version: string
-  seq: number
-}
+export const TOMBSTONE_TTL = 30 * 24 * 60 * 60 * 1000
 
 export const isSyncedCollection = (value: string): value is SyncedCollection =>
   (syncedCollections as readonly string[]).includes(value)
-
-export const normalizeUrl = (url: string) => url.trim().replace(/\/+$/, "")

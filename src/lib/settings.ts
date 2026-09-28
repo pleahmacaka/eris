@@ -1,7 +1,6 @@
 import { publish, subscribe } from "./platform/events"
 import { type KeyValueStore, openStore } from "./platform/storage"
-import type { Peer, PeerRole, SyncedCollection } from "./sync/protocol"
-import { normalizeUrl, syncedCollections } from "./sync/protocol"
+import { type SyncedCollection, syncedCollections } from "./sync/protocol"
 
 export type ThemeMode = "system" | "dark" | "light"
 
@@ -19,10 +18,8 @@ export type Appearance = {
 }
 
 export type SyncSettings = {
-  enabled: boolean
   intervalMinutes: number
   collections: Record<SyncedCollection, boolean>
-  peers: Peer[]
 }
 
 export type DeviceSettings = {
@@ -42,10 +39,8 @@ export const defaultAppearance: Appearance = {
 }
 
 export const defaultSync: SyncSettings = {
-  enabled: false,
   intervalMinutes: 5,
   collections: { notes: true, todos: true, events: true },
-  peers: [],
 }
 
 export const defaultDevice: DeviceSettings = {
@@ -67,27 +62,17 @@ const store = () => {
   return handle
 }
 
-const peer = (raw: Partial<Peer>): Peer => ({
-  id: raw.id || crypto.randomUUID(),
-  label: raw.label ?? "",
-  url: normalizeUrl(raw.url ?? ""),
-  token: raw.token ?? "",
-  role: (raw.role ?? "node") as PeerRole,
-  enabled: raw.enabled ?? true,
-})
-
 const merge = (saved: Partial<DeviceSettings> | undefined): DeviceSettings => ({
   ...defaultDevice,
   ...saved,
   appearance: { ...defaultAppearance, ...saved?.appearance },
   sync: {
-    ...defaultSync,
-    ...saved?.sync,
+    intervalMinutes:
+      saved?.sync?.intervalMinutes ?? defaultSync.intervalMinutes,
     collections: {
       ...defaultSync.collections,
       ...saved?.sync?.collections,
     },
-    peers: (saved?.sync?.peers ?? []).map(peer),
   },
 })
 
@@ -120,22 +105,6 @@ export const patchAppearance = async (patch: Partial<Appearance>) => {
     ...device,
     appearance: { ...device.appearance, ...patch },
   })
-}
-
-export const upsertPeer = async (raw: Partial<Peer>) => {
-  const device = await loadDevice()
-  const next = peer(raw)
-  const peers = device.sync.peers.some(p => p.id === next.id)
-    ? device.sync.peers.map(p => (p.id === next.id ? { ...p, ...next } : p))
-    : [...device.sync.peers, next]
-
-  return patchSync({ peers })
-}
-
-export const removePeer = async (id: string) => {
-  const device = await loadDevice()
-
-  return patchSync({ peers: device.sync.peers.filter(p => p.id !== id) })
 }
 
 export const enabledCollections = (sync: SyncSettings) =>

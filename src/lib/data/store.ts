@@ -1,20 +1,19 @@
 import { publish, subscribe } from "../platform/events"
 import { type KeyValueStore, openStore } from "../platform/storage"
 import { loadDevice } from "../settings"
-import { type LocalItem, outboxKey, remoteWins, toLocal } from "../sync/merge"
-import type {
-  StoredRecord,
-  SyncedCollection,
-  SyncRecord,
+import { isPoisoned, type LocalItem, remoteWins, toLocal } from "../sync/merge"
+import {
+  type SyncedCollection,
+  type SyncRecord,
+  TOMBSTONE_TTL,
 } from "../sync/protocol"
 import type { CalendarEvent, Note, Todo } from "./types"
 
 export const DATA_EVENT = "data-changed"
 
-export type DataChange = { collection: SyncedCollection }
+export type DataChange = { collection: SyncedCollection; remote: boolean }
 
 export type SyncMeta = {
-  cursors: Record<string, number>
   lastSyncAt: number | null
   lastError: string | null
 }
@@ -31,18 +30,10 @@ export type Collection<T extends LocalItem> = {
 
 const FILE = "data.json"
 const META_KEY = "sync"
-const OUTBOX_PREFIX = "outbox/"
 
 const itemKey = (collection: SyncedCollection, id: string) =>
   `${collection}/${id}`
 
-const outboxStoreKey = (record: Pick<SyncRecord, "collection" | "id">) =>
-  `${OUTBOX_PREFIX}${outboxKey(record)}`
-
-const cursorKey = (peerId: string, collection: SyncedCollection) =>
-  `${peerId}:${collection}`
-
-// ponytail: tombstones are never collected, revisit if the store grows
 type Buried = LocalItem & { deleted: true }
 
 const buried = (item: LocalItem | undefined): item is Buried =>
@@ -63,18 +54,19 @@ const store = () => {
 
 const ownDeviceId = async () => (await loadDevice()).deviceId
 
-const valuesByPrefix = async <T>(prefix: string) => {
-  const entries = await (await store()).entries<T>()
+const prefixed = <T>(entries: [string, unknown][], prefix: string) =>
+  entries
+    .filter(([key]) => key.startsWith(prefix))
+    .map(([, value]) => value as T)
 
-  return entries.filter(([key]) => key.startsWith(prefix)).map(([, v]) => v)
-}
+const valuesByPrefix = async <T>(prefix: string) =>
+  prefixed<T>(await (await store()).entries(), prefix)
 
-const notify = (collection: SyncedCollection) =>
-  publish(DATA_EVENT, { collection } satisfies DataChange)
+const notify = (collection: SyncedCollection, remote = false) =>
+  publish(DATA_EVENT, { collection, remote } satisfies DataChange)
 
-const enqueue = async (record: SyncRecord) => {
-  await (await store()).set(outboxStoreKey(record), record)
-}
+const lastStamp = (updatedAt: number | undefined) =>
+  updatedAt === undefined || isPoisoned(updatedAt) ? 0 : updatedAt
 
 const stampFor = async (
   db: KeyValueStore,
@@ -82,17 +74,10 @@ const stampFor = async (
   id: string,
   device?: string,
 ) => {
-  const [item, pending] = await Promise.all([
-    db.get<LocalItem>(itemKey(collection, id)),
-    db.get<SyncRecord>(outboxStoreKey({ collection, id })),
-  ])
+  const item = await db.get<LocalItem>(itemKey(collection, id))
 
   return {
-    updatedAt: Math.max(
-      Date.now(),
-      (item?.updatedAt ?? 0) + 1,
-      (pending?.updatedAt ?? 0) + 1,
-    ),
+    updatedAt: Math.max(Date.now(), lastStamp(item?.updatedAt) + 1),
     deviceId: device ?? (await ownDeviceId()),
   }
 }
@@ -117,14 +102,6 @@ const collection = <T extends LocalItem>(
     const stamped = { ...item, ...(await stampFor(db, name, item.id, device)) }
 
     await db.set(itemKey(name, stamped.id), stamped)
-    await enqueue({
-      collection: name,
-      id: stamped.id,
-      updatedAt: stamped.updatedAt,
-      deviceId: stamped.deviceId,
-      deleted: false,
-      data: stamped,
-    })
 
     return stamped
   }
@@ -165,16 +142,7 @@ const collection = <T extends LocalItem>(
       const db = await store()
       const stamp = await stampFor(db, name, id)
 
-      // a peer that missed the delete still serves the live row; without a
-      // local tombstone the next pull resurrects it
       await db.set(itemKey(name, id), tombstone(id, stamp))
-      await enqueue({
-        collection: name,
-        id,
-        ...stamp,
-        deleted: true,
-        data: null,
-      })
       await db.save()
       await notify(name)
     },
@@ -220,28 +188,49 @@ export const events = collection<CalendarEvent>("events")
 
 export const newId = () => crypto.randomUUID()
 
-export const clearLocal = async (collections: SyncedCollection[]) => {
+export const localRecords = async (
+  collections: readonly SyncedCollection[],
+  now = Date.now(),
+): Promise<SyncRecord[]> => {
   const db = await store()
-  const prefixes = collections.map(name => `${name}/`)
+  const entries = await db.entries()
+  const deviceId = await ownDeviceId()
+  const records: SyncRecord[] = []
+  const expired: string[] = []
 
-  for (const key of await db.keys()) {
-    if (prefixes.some(prefix => key.startsWith(prefix))) {
-      await db.delete(key)
+  for (const name of collections) {
+    for (const item of prefixed<LocalItem>(entries, `${name}/`)) {
+      const record = {
+        collection: name,
+        id: item.id,
+        updatedAt: item.updatedAt,
+        deviceId: item.deviceId ?? deviceId,
+      }
+
+      if (!buried(item)) {
+        records.push({ ...record, deleted: false, data: item })
+      } else if (item.updatedAt < now - TOMBSTONE_TTL) {
+        expired.push(itemKey(name, item.id))
+      } else {
+        records.push({ ...record, deleted: true, data: null })
+      }
     }
   }
 
-  await db.save()
+  if (expired.length > 0) {
+    for (const key of expired) {
+      await db.delete(key)
+    }
 
-  for (const name of collections) {
-    await notify(name)
+    await db.save()
   }
+
+  return records
 }
 
-// a pulled record is re-queued so the next push carries it to the other peers;
-// last-write-wins rejects it at the origin, which is what ends the hop
+// ponytail: get-then-write is not atomic; a put landing mid-loop loses to the remote
 export const applyRemote = async (
-  records: StoredRecord[],
-  relay = true,
+  records: SyncRecord[],
 ): Promise<SyncedCollection[]> => {
   const db = await store()
   const deviceId = await ownDeviceId()
@@ -249,10 +238,8 @@ export const applyRemote = async (
 
   for (const record of records) {
     const key = itemKey(record.collection, record.id)
-    const item = await db.get<LocalItem>(key)
-    const pending = await db.get<SyncRecord>(outboxStoreKey(record))
 
-    if (!remoteWins(record, item ?? pending, deviceId)) {
+    if (!remoteWins(record, await db.get<LocalItem>(key), deviceId)) {
       continue
     }
 
@@ -268,88 +255,26 @@ export const applyRemote = async (
       await db.set(key, toLocal(record))
     }
 
-    if (relay) {
-      await enqueue({
-        collection: record.collection,
-        id: record.id,
-        updatedAt: record.updatedAt,
-        deleted: record.deleted,
-        deviceId: record.deviceId,
-        data: record.data ?? null,
-      })
-    } else if (pending) {
-      await db.delete(outboxStoreKey(record))
-    }
-
     changed.add(record.collection)
   }
 
   await db.save()
 
   for (const name of changed) {
-    await notify(name)
+    await notify(name, true)
   }
 
   return [...changed]
 }
 
-const handedOut = new Map<string, number>()
+export const syncMeta = async (): Promise<SyncMeta> => {
+  const saved = await (await store()).get<Partial<SyncMeta>>(META_KEY)
 
-export const pendingOutbox = async () => {
-  const { collections } = (await loadDevice()).sync
-  const records = await valuesByPrefix<SyncRecord>(OUTBOX_PREFIX)
-
-  return records.filter(r => collections[r.collection])
-}
-
-export const takeOutbox = async () => {
-  const records = await pendingOutbox()
-
-  for (const record of records) {
-    handedOut.set(outboxKey(record), record.updatedAt)
+  return {
+    lastSyncAt: saved?.lastSyncAt ?? null,
+    lastError: saved?.lastError ?? null,
   }
-
-  return records
 }
-
-// ponytail: get-then-delete is not atomic; an edit landing in between is dropped
-export const clearOutbox = async (keys: string[]) => {
-  const db = await store()
-
-  for (const key of keys) {
-    const storeKey = `${OUTBOX_PREFIX}${key}`
-    const current = await db.get<SyncRecord>(storeKey)
-    const taken = handedOut.get(key) ?? Number.POSITIVE_INFINITY
-
-    if (current && current.updatedAt <= taken) {
-      await db.delete(storeKey)
-    }
-
-    handedOut.delete(key)
-  }
-
-  await db.save()
-}
-
-export const clearAllOutbox = async () => {
-  const db = await store()
-
-  for (const key of await db.keys()) {
-    if (key.startsWith(OUTBOX_PREFIX)) {
-      await db.delete(key)
-    }
-  }
-
-  handedOut.clear()
-  await db.save()
-}
-
-export const syncMeta = async (): Promise<SyncMeta> => ({
-  cursors: {},
-  lastSyncAt: null,
-  lastError: null,
-  ...(await (await store()).get<Partial<SyncMeta>>(META_KEY)),
-})
 
 export const updateSyncMeta = async (patch: Partial<SyncMeta>) => {
   const db = await store()
@@ -359,47 +284,4 @@ export const updateSyncMeta = async (patch: Partial<SyncMeta>) => {
   await db.save()
 
   return next
-}
-
-export const cursorGroups = async (
-  peerId: string,
-  collections: SyncedCollection[],
-) => {
-  const { cursors } = await syncMeta()
-  const groups = new Map<number, SyncedCollection[]>()
-
-  for (const name of collections) {
-    const since = cursors[cursorKey(peerId, name)] ?? 0
-
-    groups.set(since, [...(groups.get(since) ?? []), name])
-  }
-
-  return [...groups].map(([since, names]) => ({ since, names }))
-}
-
-export const advanceCursors = async (
-  peerId: string,
-  collections: SyncedCollection[],
-  seq: number,
-) => {
-  const { cursors } = await syncMeta()
-
-  for (const name of collections) {
-    cursors[cursorKey(peerId, name)] = seq
-  }
-
-  return updateSyncMeta({ cursors })
-}
-
-export const resetCursors = async (peerId?: string) => {
-  const { cursors } = await syncMeta()
-  const kept = peerId
-    ? Object.fromEntries(
-        Object.entries(cursors).filter(
-          ([key]) => !key.startsWith(`${peerId}:`),
-        ),
-      )
-    : {}
-
-  return updateSyncMeta({ cursors: kept })
 }

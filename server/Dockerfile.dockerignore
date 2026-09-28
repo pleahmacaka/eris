@@ -1,9 +1,0 @@
-node_modules
-build
-.svelte-kit
-src-tauri/target
-src-tauri/gen
-server/node_modules
-server/data
-server/.env
-.secrets

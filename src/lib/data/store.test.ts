@@ -29,11 +29,10 @@ mock.module("../platform/events", () => ({
   subscribe: async () => () => {},
 }))
 
-const { applyRemote, newId, notes, pendingOutbox, clearOutbox } = await import(
-  "./store"
-)
+const { applyRemote, localRecords, newId, notes } = await import("./store")
 const { blankNote } = await import("./notes")
 const { saveDevice, defaultDevice } = await import("../settings")
+const { TOMBSTONE_TTL } = await import("../sync/protocol")
 
 beforeEach(async () => {
   for (const data of files.values()) {
@@ -43,28 +42,20 @@ beforeEach(async () => {
   await saveDevice({ ...defaultDevice, deviceId: "here", deviceName: "here" })
 })
 
-const drainOutbox = async () => {
-  const records = await pendingOutbox()
-
-  await clearOutbox(records.map(r => `${r.collection}:${r.id}`))
-
-  return records
-}
-
-test("a put lands in the collection and in the outbox", async () => {
+test("a put lands in the collection and in the snapshot", async () => {
   const note = { ...blankNote(), id: newId(), title: "첫 메모" }
 
   await notes.put(note)
 
   expect((await notes.all()).map(n => n.title)).toEqual(["첫 메모"])
 
-  const [record] = await pendingOutbox()
+  const [record] = await localRecords(["notes"])
 
-  expect(record.collection).toBe("notes")
   expect(record.deleted).toBe(false)
+  expect(record.deviceId).toBe("here")
 })
 
-test("a removed note is hidden but kept as a tombstone", async () => {
+test("a removed note is hidden but published as a tombstone", async () => {
   const note = { ...blankNote(), id: newId() }
 
   await notes.put(note)
@@ -73,9 +64,21 @@ test("a removed note is hidden but kept as a tombstone", async () => {
   expect(await notes.all()).toEqual([])
   expect(await notes.get(note.id)).toBeUndefined()
 
-  const record = (await pendingOutbox()).find(r => r.id === note.id)
+  const [record] = await localRecords(["notes"])
 
-  expect(record?.deleted).toBe(true)
+  expect(record).toMatchObject({ id: note.id, deleted: true, data: null })
+})
+
+test("an expired tombstone is dropped from the store", async () => {
+  const note = { ...blankNote(), id: newId() }
+
+  await notes.put(note)
+  await notes.remove(note.id)
+
+  expect(await localRecords(["notes"], Date.now() + TOMBSTONE_TTL * 2)).toEqual(
+    [],
+  )
+  expect(await localRecords(["notes"])).toEqual([])
 })
 
 test("a peer that missed the delete cannot resurrect the note", async () => {
@@ -84,11 +87,9 @@ test("a peer that missed the delete cannot resurrect the note", async () => {
   const stored = await notes.put(note)
 
   await notes.remove(note.id)
-  await drainOutbox()
 
   await applyRemote([
     {
-      seq: 9,
       collection: "notes",
       id: note.id,
       updatedAt: stored.updatedAt,
@@ -101,16 +102,13 @@ test("a peer that missed the delete cannot resurrect the note", async () => {
   expect(await notes.all()).toEqual([])
 })
 
-test("a newer remote edit wins and is relayed to the other peers", async () => {
+test("a newer remote edit wins", async () => {
   const note = { ...blankNote(), id: newId(), title: "로컬" }
 
   const stored = await notes.put(note)
 
-  await drainOutbox()
-
-  await applyRemote([
+  const changed = await applyRemote([
     {
-      seq: 4,
       collection: "notes",
       id: note.id,
       updatedAt: stored.updatedAt + 1000,
@@ -120,24 +118,18 @@ test("a newer remote edit wins and is relayed to the other peers", async () => {
     },
   ])
 
+  expect(changed).toEqual(["notes"])
   expect((await notes.all()).map(n => n.title)).toEqual(["원격"])
-
-  const relayed = await pendingOutbox()
-
-  expect(relayed).toHaveLength(1)
-  expect(relayed[0].deviceId).toBe("peer-b")
+  expect((await localRecords(["notes"]))[0].deviceId).toBe("peer-b")
 })
 
-test("an older remote edit is ignored and not relayed", async () => {
+test("an older remote edit is ignored", async () => {
   const note = { ...blankNote(), id: newId(), title: "로컬" }
 
   const stored = await notes.put(note)
 
-  await drainOutbox()
-
-  await applyRemote([
+  const changed = await applyRemote([
     {
-      seq: 4,
       collection: "notes",
       id: note.id,
       updatedAt: stored.updatedAt - 1000,
@@ -147,6 +139,23 @@ test("an older remote edit is ignored and not relayed", async () => {
     },
   ])
 
+  expect(changed).toEqual([])
   expect((await notes.all()).map(n => n.title)).toEqual(["로컬"])
-  expect(await pendingOutbox()).toEqual([])
+})
+
+test("a remote delete of an unseen note still leaves a tombstone", async () => {
+  await applyRemote([
+    {
+      collection: "notes",
+      id: "ghost",
+      updatedAt: Date.now(),
+      deleted: true,
+      deviceId: "peer-b",
+      data: null,
+    },
+  ])
+
+  expect(await localRecords(["notes"])).toMatchObject([
+    { id: "ghost", deleted: true },
+  ])
 })

@@ -9,10 +9,6 @@
     "core:window:default",
     "core:webview:default",
     "store:default",
-    "os:allow-hostname",
-    {
-      "identifier": "http:default",
-      "allow": [{ "url": "http://*:*/*" }, { "url": "https://*/*" }]
-    }
+    "os:allow-hostname"
   ]
 }

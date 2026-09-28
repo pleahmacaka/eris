@@ -5,7 +5,6 @@ node_modules
 .env
 .env.*
 !.env.example
-server/data
 *.keystore
 *.jks
 .keys

@@ -1,41 +1,49 @@
-import type { Peer } from "./protocol"
+import { syncMeta } from "../data/store"
+import { p2pStatus, p2pSupported } from "../platform/p2p"
 
-export type PeerState = "unknown" | "online" | "offline"
-
-export type PeerStatus = {
-  id: string
-  label: string
-  url: string
-  role: Peer["role"]
-  state: PeerState
-  seq: number | null
-  latencyMs: number | null
-  lastError: string | null
-}
-
-export type SyncState = "disabled" | "idle" | "syncing" | "error"
+export type SyncState =
+  | "unsupported"
+  | "unpaired"
+  | "syncing"
+  | "idle"
+  | "error"
 
 export const sync = $state({
-  state: "disabled" as SyncState,
+  state: "unpaired" as SyncState,
   lastSyncAt: null as number | null,
   lastError: null as string | null,
-  pending: 0,
-  peers: [] as PeerStatus[],
+  peers: 0,
 })
 
 export const setSyncStatus = (patch: Partial<typeof sync>) => {
   Object.assign(sync, patch)
 }
 
-export const setPeerStatus = (status: PeerStatus) => {
-  const at = sync.peers.findIndex(p => p.id === status.id)
+export const refreshPairing = async () => {
+  const { paired, peers } = await p2pStatus()
 
-  sync.peers =
-    at === -1
-      ? [...sync.peers, status]
-      : sync.peers.map(p => (p.id === status.id ? status : p))
+  const state: SyncState = !paired
+    ? "unpaired"
+    : sync.state === "unpaired"
+      ? "idle"
+      : sync.state
+
+  setSyncStatus({ state, peers: peers.length })
 }
 
-export const dropPeerStatus = (id: string) => {
-  sync.peers = sync.peers.filter(p => p.id !== id)
+export const hydrateSyncStatus = async () => {
+  if (!p2pSupported()) {
+    setSyncStatus({ state: "unsupported" })
+
+    return
+  }
+
+  const [meta, pairing] = await Promise.all([syncMeta(), p2pStatus()])
+
+  setSyncStatus({
+    state: !pairing.paired ? "unpaired" : meta.lastError ? "error" : "idle",
+    lastSyncAt: meta.lastSyncAt,
+    lastError: meta.lastError,
+    peers: pairing.peers.length,
+  })
 }
