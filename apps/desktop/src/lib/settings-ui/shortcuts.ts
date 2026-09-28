@@ -7,7 +7,7 @@ export type ShortcutGroup = { title: string; items: ShortcutItem[] }
 
 export type ShortcutDevice = Pick<
   DeviceSettings,
-  "launcherTrigger" | "launcherShortcut" | "chatShortcut"
+  "launcherTrigger" | "launcherShortcut"
 >
 
 export const chips = (shortcut: string) =>
@@ -16,7 +16,6 @@ export const chips = (shortcut: string) =>
 export const shortcuts = (
   t: Translate,
   device: ShortcutDevice,
-  showChat = true,
 ): ShortcutGroup[] => {
   const key = (name: string) => t(`settings.shortcuts.keys.${name}`)
 
@@ -59,19 +58,6 @@ export const shortcuts = (
         { keys: ["Esc"], action: t("settings.shortcuts.clearThenClose") },
       ],
     },
-    ...(showChat
-      ? [
-          {
-            title: t("settings.shortcuts.chat"),
-            items: [
-              {
-                keys: chips(device.chatShortcut),
-                action: t("settings.shortcuts.toggleChat"),
-              },
-            ],
-          },
-        ]
-      : []),
     {
       title: t("settings.shortcuts.panel"),
       items: [

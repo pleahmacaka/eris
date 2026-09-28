@@ -45,11 +45,7 @@ pub fn edit_raise(app: AppHandle) {
 }
 
 fn lift_features(app: &AppHandle, up: bool) {
-    let rests = [
-        ("taskbar", !appbar::desktop_pinned()),
-        ("topbar", true),
-        ("chat", true),
-    ];
+    let rests = [("taskbar", !appbar::desktop_pinned()), ("topbar", true)];
 
     for (label, rest) in rests {
         let Some(window) = app.get_webview_window(label) else {

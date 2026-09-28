@@ -302,46 +302,4 @@
     animation: none;
   }
 
-  .prose-chat {
-    overflow-wrap: anywhere;
-  }
-
-  .prose-chat > * + * {
-    margin-top: 0.5rem;
-  }
-
-  .prose-chat ul,
-  .prose-chat ol {
-    padding-left: 1.25rem;
-    list-style: disc;
-  }
-
-  .prose-chat ol {
-    list-style: decimal;
-  }
-
-  .prose-chat a {
-    color: var(--color-primary);
-    text-decoration: underline;
-  }
-
-  .prose-chat code {
-    padding: 0.05rem 0.3rem;
-    border-radius: 0.3rem;
-    background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
-    font-size: 0.85em;
-  }
-
-  .prose-chat pre {
-    overflow-x: auto;
-    padding: 0.6rem 0.75rem;
-    border-radius: var(--radius-field);
-    background: color-mix(in oklch, var(--color-base-content) 8%, transparent);
-  }
-
-  .prose-chat pre code {
-    padding: 0;
-    background: transparent;
-  }
-
 }
