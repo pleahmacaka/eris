@@ -21,7 +21,7 @@
   })
 </script>
 
-<div class="flex h-dvh bg-base-100 text-base-content">
+<div class="flex h-dvh bg-base-200 text-base-content">
   <Sidebar />
 
   <div class="flex min-w-0 flex-1 flex-col">

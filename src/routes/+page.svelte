@@ -9,7 +9,7 @@
 
 <TopBar title="메모" />
 
-<main class="relative mx-auto flex w-full max-w-3xl min-h-0 flex-1 flex-col pt-2">
+<main class="relative mx-auto flex w-full max-w-3xl min-h-0 flex-1 flex-col pt-3">
   <NoteList open={note => (editing = note)} />
 
   {#if editing}

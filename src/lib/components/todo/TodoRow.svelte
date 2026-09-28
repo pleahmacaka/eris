@@ -48,7 +48,8 @@
 
 <li
   class={[
-    "flex items-center gap-3 rounded-box bg-base-200 px-3 py-2.5",
+    "flex items-center gap-3 border border-base-content/10 bg-base-100",
+    "px-3 py-2.5 transition-opacity",
     todo.done && "opacity-45",
   ]}
 >
@@ -73,7 +74,7 @@
         ondblclick={startEdit}
         onclick={toggle}
       >
-        <span class={todo.done ? "line-through" : ""}>{todo.title}</span>
+        <span class={{ "line-through": todo.done }}>{todo.title}</span>
       </button>
     {/if}
 
@@ -91,7 +92,7 @@
   </div>
 
   <button
-    class={["btn btn-ghost btn-circle btn-xs shrink-0", TONE[todo.priority]]}
+    class={["btn btn-ghost btn-square btn-sm shrink-0", TONE[todo.priority]]}
     aria-label="중요도"
     onclick={cycle}
   >
@@ -102,7 +103,7 @@
   </button>
 
   <button
-    class="btn btn-ghost btn-circle btn-xs shrink-0 text-base-content/40"
+    class="btn btn-ghost btn-square btn-sm shrink-0 text-base-content/40"
     aria-label="삭제"
     onclick={() => todos.remove(todo.id)}
   >

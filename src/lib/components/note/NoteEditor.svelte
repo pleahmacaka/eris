@@ -1,13 +1,14 @@
 <script lang="ts">
+  import { untrack } from "svelte"
   import { notes } from "$lib/data/store"
   import type { Note } from "$lib/data/types"
   import TopBar from "$lib/components/ui/TopBar.svelte"
 
   const { note, close }: { note: Note; close: () => void } = $props()
 
-  let title = $state(note.title)
-  let body = $state(note.body)
-  let pinned = $state(note.pinned)
+  let title = $state(untrack(() => note.title))
+  let body = $state(untrack(() => note.body))
+  let pinned = $state(untrack(() => note.pinned))
 
   const dirty = $derived(
     title !== note.title || body !== note.body || pinned !== note.pinned,
@@ -38,13 +39,15 @@
     close()
   }
 
-  const stamp = new Date(note.updatedAt).toLocaleString("ko-KR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  })
+  const stamp = $derived(
+    new Date(note.updatedAt).toLocaleString("ko-KR", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }),
+  )
 </script>
 
-<div class="absolute inset-0 z-30 flex flex-col bg-base-100">
+<div class="absolute inset-0 z-30 flex flex-col bg-base-200">
   <TopBar
     title={pinned ? "고정된 메모" : "메모"}
     subtitle={stamp}
@@ -64,7 +67,10 @@
 
   <div class="flex min-h-0 flex-1 flex-col gap-2 px-4 py-3">
     <input
-      class="w-full bg-transparent text-2xl font-semibold outline-none"
+      class={[
+        "w-full bg-transparent text-2xl font-bold tracking-tight",
+        "outline-none",
+      ]}
       placeholder="제목"
       bind:value={title}
       onblur={persist}

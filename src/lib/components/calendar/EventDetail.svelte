@@ -101,9 +101,9 @@
 </script>
 
 <div class="flex h-full min-h-0 flex-col">
-  <header class="flex items-center gap-2 border-b border-base-300 px-4 py-3">
+  <header class="flex items-center gap-2 border-b border-base-content/10 px-4 py-3">
     <Icon icon="lucide:calendar-check" class="size-3.5 opacity-60" />
-    <span class="flex-1 text-[0.6875rem] tracking-wider text-base-content/55">
+    <span class="flex-1 text-xs text-base-content/55">
       {editing ? "일정 편집" : "일정 상세"}
     </span>
 
@@ -133,13 +133,13 @@
   <div class="min-h-0 flex-1 overflow-y-auto px-5 py-4">
     {#if editing}
       <label class="block">
-        <span class="text-[0.6875rem] font-medium tracking-wider text-base-content/55">
+        <span class="text-xs font-medium text-base-content/55">
           제목
         </span>
         <input
           class={[
-            "mt-1 w-full border-0 border-b border-base-300 bg-transparent",
-            "px-0 py-1.5 text-[1.0625rem] font-semibold outline-none",
+            "mt-1 w-full border-0 border-b border-base-content/10 bg-transparent",
+            "px-0 py-1.5 text-lg font-semibold outline-none",
             "focus:border-primary",
           ]}
           placeholder="새 일정 제목"
@@ -148,7 +148,7 @@
       </label>
 
       <label class="mt-4 flex cursor-pointer items-center justify-between">
-        <span class="text-[0.8125rem]">종일</span>
+        <span class="text-sm">종일</span>
         <input
           type="checkbox"
           class="toggle toggle-primary toggle-sm"
@@ -159,7 +159,7 @@
       {#if !allDay}
         <div class="mt-3 grid grid-cols-2 gap-3">
           <label class="block">
-            <span class="text-[0.6875rem] font-medium tracking-wider text-base-content/55">
+            <span class="text-xs font-medium text-base-content/55">
               시작
             </span>
             <input
@@ -170,7 +170,7 @@
           </label>
 
           <label class="block">
-            <span class="text-[0.6875rem] font-medium tracking-wider text-base-content/55">
+            <span class="text-xs font-medium text-base-content/55">
               종료
             </span>
             <input
@@ -183,15 +183,15 @@
       {/if}
 
       <div class="mt-3">
-        <span class="text-[0.6875rem] font-medium tracking-wider text-base-content/55">
+        <span class="text-xs font-medium text-base-content/55">
           색상
         </span>
-        <div class="mt-1.5 flex gap-1.5">
+        <div class="mt-1.5 flex gap-2">
           {#each eventColors as option (option)}
             <button
               type="button"
               class={[
-                "size-5 cursor-pointer rounded-full ring-2 ring-offset-2",
+                "size-7 cursor-pointer ring-2 ring-offset-2",
                 "ring-offset-base-100",
                 colorMeta[option].chip,
                 color === option ? "ring-base-content" : "ring-transparent",
@@ -204,7 +204,7 @@
       </div>
 
       <label class="mt-4 block">
-        <span class="text-[0.6875rem] font-medium tracking-wider text-base-content/55">
+        <span class="text-xs font-medium text-base-content/55">
           반복
         </span>
         <select class="select select-sm mt-1 w-full" bind:value={recurrence}>
@@ -215,11 +215,11 @@
       </label>
 
       <label class="mt-4 block">
-        <span class="text-[0.6875rem] font-medium tracking-wider text-base-content/55">
+        <span class="text-xs font-medium text-base-content/55">
           메모
         </span>
         <textarea
-          class="textarea textarea-bordered mt-1 w-full text-[0.8125rem]"
+          class="textarea mt-1 w-full text-sm"
           rows="5"
           placeholder="메모, 안건, 링크"
           bind:value={notes}
@@ -240,29 +240,29 @@
     {:else if event}
       {@const meta = colorMeta[toColor(event.color)]}
       <div class="flex items-center gap-2">
-        <span class={["size-2.5 rounded-full", meta.chip]}></span>
-        <span class="text-[0.6875rem] tracking-wider text-base-content/55">
+        <span class={["size-2.5", meta.chip]}></span>
+        <span class="text-xs text-base-content/55">
           {meta.label}
         </span>
       </div>
 
       <h2 class="mt-2 text-xl font-semibold leading-tight">{event.title}</h2>
 
-      <div class="mt-3 grid grid-cols-[5rem_1fr] gap-y-2 text-[0.8125rem]">
+      <div class="mt-3 grid grid-cols-4 gap-y-2 text-sm">
         <div class="text-base-content/55">날짜</div>
-        <div>{longDay(parseLocal(event.start))}</div>
+        <div class="col-span-3">{longDay(parseLocal(event.start))}</div>
 
         <div class="text-base-content/55">시간</div>
-        <div class="tabular">{eventSpan(event)}</div>
+        <div class="tabular col-span-3">{eventSpan(event)}</div>
 
         <div class="text-base-content/55">반복</div>
-        <div>
+        <div class="col-span-3">
           {RECURRENCES.find(r => r.id === event.recurrence)?.label ?? "반복 없음"}
         </div>
       </div>
 
-      <div class="mt-4 border-t border-base-300 pt-4">
-        <div class="text-[0.6875rem] tracking-wider text-base-content/55">
+      <div class="mt-4 border-t border-base-content/10 pt-4">
+        <div class="text-xs text-base-content/55">
           메모
         </div>
         <p

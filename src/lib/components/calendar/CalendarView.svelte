@@ -98,15 +98,15 @@
   <div class="flex min-h-0 min-w-0 flex-1 flex-col">
     <header
       class={[
-        "flex items-center justify-between gap-2 border-b border-base-300",
-        "px-4 py-2.5",
+        "flex items-center justify-between gap-2 border-b border-base-content/10",
+        "bg-base-100 px-4 py-2.5",
       ]}
     >
       <div>
-        <h2 class="text-[0.9375rem] font-semibold tracking-tight">
+        <h2 class="text-base font-bold tracking-tight">
           {monthLabel}
         </h2>
-        <p class="tabular text-[0.6875rem] text-base-content/45">
+        <p class="tabular text-xs text-base-content/45">
           오늘 {dateKey(today)}
         </p>
       </div>
@@ -114,28 +114,28 @@
       <div class="flex items-center gap-1">
         <div class="join">
           <button
-            class="join-item btn btn-xs btn-ghost"
+            class="join-item btn btn-sm btn-ghost btn-square"
             aria-label="이전 달"
             onclick={() => shift(-1)}
           >
-            <Icon icon="lucide:chevron-left" class="size-3" />
+            <Icon icon="lucide:chevron-left" class="size-4" />
           </button>
 
-          <button class="join-item btn btn-xs btn-ghost" onclick={jumpToday}>
+          <button class="join-item btn btn-sm btn-ghost" onclick={jumpToday}>
             오늘
           </button>
 
           <button
-            class="join-item btn btn-xs btn-ghost"
+            class="join-item btn btn-sm btn-ghost btn-square"
             aria-label="다음 달"
             onclick={() => shift(1)}
           >
-            <Icon icon="lucide:chevron-right" class="size-3" />
+            <Icon icon="lucide:chevron-right" class="size-4" />
           </button>
         </div>
 
-        <button class="btn btn-xs btn-neutral" onclick={startNew}>
-          <Icon icon="lucide:plus" class="size-3" />
+        <button class="btn btn-sm btn-primary" onclick={startNew}>
+          <Icon icon="lucide:plus" class="size-4" />
           새 일정
         </button>
       </div>
@@ -155,9 +155,9 @@
 
   <aside
     class={[
-      "flex min-h-0 shrink-0 flex-col overflow-hidden border-base-300",
-      "border-t lg:h-auto lg:w-[22rem] lg:border-l lg:border-t-0",
-      "h-[18rem] bg-base-100",
+      "flex min-h-0 shrink-0 flex-col overflow-hidden border-base-content/10",
+      "border-t lg:h-auto lg:w-88 lg:border-l lg:border-t-0",
+      "h-72 bg-base-100",
     ]}
   >
     {#if openId !== null}

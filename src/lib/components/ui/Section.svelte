@@ -14,9 +14,11 @@
   } = $props()
 </script>
 
-<section class="mb-7 flex flex-col gap-3">
-  <div class="flex items-center justify-between gap-2">
-    <h2 class="text-sm font-semibold text-base-content/50">{title}</h2>
+<section class="mb-8 flex flex-col gap-3">
+  <div class="flex items-center gap-3">
+    <h2 class="shrink-0 text-sm font-medium text-base-content/60">{title}</h2>
+
+    <span class="flex-1 border-t border-base-content/10"></span>
 
     {#if aside}
       {@render aside()}
@@ -24,7 +26,7 @@
   </div>
 
   {#if hint}
-    <p class="-mt-1 text-xs text-base-content/45">{hint}</p>
+    <p class="-mt-1 text-xs text-base-content/50">{hint}</p>
   {/if}
 
   {@render children()}

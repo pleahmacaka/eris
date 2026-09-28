@@ -38,8 +38,8 @@
 
 <div
   class={[
-    "grid grid-cols-7 border-b border-base-300 bg-base-200/40",
-    "text-[0.625rem] font-medium tracking-wider text-base-content/55",
+    "grid grid-cols-7 border-b border-base-content/10 bg-base-100",
+    "text-xs font-medium text-base-content/55",
   ]}
 >
   {#each weekdays as label (label)}
@@ -47,7 +47,7 @@
   {/each}
 </div>
 
-<div class="grid min-h-0 flex-1 grid-cols-7 grid-rows-6">
+<div class="grid min-h-0 flex-1 grid-cols-7 grid-rows-6 bg-base-100">
   {#each weeks as week (week[0].toISOString())}
     {#each week as day (day.toISOString())}
       {@const outside = day.getMonth() !== month}
@@ -60,9 +60,9 @@
         tabindex="0"
         class={[
           "flex min-h-0 cursor-pointer flex-col gap-0.5 overflow-hidden",
-          "border-b border-r border-base-300/70 p-1.5 text-left",
-          "text-[0.6875rem] transition-colors hover:bg-base-content/5",
-          outside && "bg-base-200/30 text-base-content/30",
+          "border-b border-r border-base-content/10 p-1.5 text-left",
+          "text-xs transition-colors hover:bg-base-content/5",
+          outside && "bg-base-200/60 text-base-content/30",
           isToday && !isSelected && "bg-primary/5",
           isSelected && "bg-primary/10 ring-1 ring-inset ring-primary",
         ]}
@@ -75,7 +75,7 @@
           </span>
 
           {#if dayEvents.length + pending > 0}
-            <span class="tabular text-[0.5625rem] text-base-content/50">
+            <span class="tabular text-2xs text-base-content/50">
               {dayEvents.length + pending}
             </span>
           {/if}
@@ -85,8 +85,8 @@
           <button
             type="button"
             class={[
-              "mt-0.5 block w-full cursor-pointer truncate rounded px-1.5",
-              "py-0.5 text-left text-[0.625rem]",
+              "mt-0.5 block w-full cursor-pointer truncate px-1.5",
+              "py-0.5 text-left text-2xs",
               colorMeta[toColor(event.color)].block,
             ]}
             title="{eventTime(event)} {event.title}"
@@ -101,7 +101,7 @@
         {/each}
 
         {#if dayEvents.length > 3}
-          <span class="mt-0.5 px-1.5 text-[0.5625rem] text-base-content/45">
+          <span class="mt-0.5 px-1.5 text-2xs text-base-content/45">
             +{dayEvents.length - 3}
           </span>
         {/if}
