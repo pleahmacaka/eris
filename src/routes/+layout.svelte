@@ -3,6 +3,7 @@ import { injectAnalytics } from "@vercel/analytics/sveltekit"
 import { injectSpeedInsights } from "@vercel/speed-insights/sveltekit"
 import { browser, dev } from "$app/environment"
 import { page } from "$app/state"
+import socialCard from "$lib/assets/og.png"
 import { OPERATOR } from "$lib/data/nodes"
 import { services, serviceUrl } from "$lib/data/services"
 import * as m from "$lib/paraglide/messages"
@@ -72,7 +73,7 @@ const site = {
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
   <meta property="og:url" content={canonical} />
-  <meta property="og:image" content="{SITE_URL}/og.png" />
+  <meta property="og:image" content={new URL(socialCard, SITE_URL).href} />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
