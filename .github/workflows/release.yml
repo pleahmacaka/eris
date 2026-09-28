@@ -10,18 +10,17 @@ on:
         description: Existing release tag to build
         required: true
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   version:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     outputs:
       tag: ${{ github.event.inputs.tag || steps.release.outputs['apps/desktop--tag_name'] }}
       build: ${{ github.event_name == 'workflow_dispatch' || steps.release.outputs['apps/desktop--release_created'] == 'true' }}
     steps:
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4.4.1
         id: release
         if: github.event_name == 'push'
 
@@ -29,26 +28,49 @@ jobs:
     needs: version
     if: needs.version.outputs.build == 'true'
     runs-on: windows-latest
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ needs.version.outputs.tag }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.version.outputs.tag }}
+          persist-credentials: false
 
-      - uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
 
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+        with:
+          toolchain: stable
 
-      - uses: swatinem/rust-cache@v2
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: './apps/desktop/src-tauri -> target'
 
       - run: bun install --frozen-lockfile
 
-      - uses: tauri-apps/tauri-action@v1
+      - id: release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          id=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases" --jq '.[] | select(.tag_name == env.TAG) | .id')
+          test -n "$id"
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
+      - uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # action-v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: apps/desktop
-          tagName: ${{ needs.version.outputs.tag }}
-          releaseName: ${{ needs.version.outputs.tag }}
-          includeUpdaterJson: true
+          releaseId: ${{ steps.release.outputs.id }}
+          uploadUpdaterJson: true
+
+      - shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_ID: ${{ steps.release.outputs.id }}
+        run: gh api --silent -X PATCH "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" -F draft=false
