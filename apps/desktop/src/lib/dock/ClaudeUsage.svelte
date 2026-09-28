@@ -1,7 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
-  import { claudeIcon } from "$lib/claude"
+  import { claudeIcon } from "./claudeIcon"
   import { http } from "$lib/http"
   import {
     type ClaudeUsage,

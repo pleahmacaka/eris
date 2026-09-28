@@ -5,7 +5,7 @@ use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, Webview, WebviewWindow};
 use tauri_plugin_store::StoreExt;
 
-use crate::{appbar, chat_window, desktop};
+use crate::{appbar, desktop};
 
 const BLUR_TOGGLE_GUARD: Duration = Duration::from_millis(250);
 const SHOW_SETTLE: Duration = Duration::from_millis(400);
@@ -236,13 +236,12 @@ fn show_now(app: &AppHandle, label: &str) {
         "main" => center_on_cursor_monitor(&window),
         "panel" | "notices" => dock_panel(app, &window),
         "settings" | "onboarding" => window.center(),
-        "chat" => chat_window::park_chat(&window),
         _ => Ok(()),
     };
 
     reveal(&window);
 
-    if !matches!(label, "taskbar" | "topbar" | "chat") {
+    if !matches!(label, "taskbar" | "topbar") {
         let _ = window.set_focus();
         desktop::force_foreground(&window);
     }

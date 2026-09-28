@@ -7,7 +7,6 @@
   const ROW: Record<keyof DeviceSettings["features"], string> = {
     dock: "featureDock",
     launcher: "featureLauncher",
-    chat: "featureChat",
     calendar: "featureCalendar",
   }
 

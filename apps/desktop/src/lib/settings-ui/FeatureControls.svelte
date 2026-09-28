@@ -20,20 +20,16 @@
   const FEATURES: { key: Feature; row: string; icon: string }[] = [
     { key: "dock", row: "featureDock", icon: "lucide:panel-bottom" },
     { key: "launcher", row: "featureLauncher", icon: "lucide:search" },
-    { key: "chat", row: "featureChat", icon: "lucide:message-circle" },
   ]
 
   const PRESETS: Preset[] = [
-    { id: "all", icon: "lucide:layout-grid", features: { dock: true, launcher: true, chat: true, calendar: true } },
-    { id: "desk", icon: "lucide:panel-bottom", features: { dock: true, launcher: true, chat: false, calendar: true } },
-    { id: "search", icon: "lucide:search", features: { dock: false, launcher: true, chat: false, calendar: true } },
-    { id: "bubble", icon: "lucide:message-circle", features: { dock: false, launcher: false, chat: true, calendar: true } },
+    { id: "all", icon: "lucide:layout-grid", features: { dock: true, launcher: true, calendar: true } },
+    { id: "search", icon: "lucide:search", features: { dock: false, launcher: true, calendar: true } },
   ]
 
   const same = (a: DeviceSettings["features"], b: DeviceSettings["features"]) =>
     a.dock === b.dock &&
     a.launcher === b.launcher &&
-    a.chat === b.chat &&
     a.calendar === b.calendar
 </script>
 

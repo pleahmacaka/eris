@@ -14,7 +14,6 @@ test("launcher group lists the win key and the shortcut chips", () => {
   const device = {
     launcherTrigger: "both" as const,
     launcherShortcut: "Super+Space",
-    chatShortcut: "Ctrl+Space",
   }
 
   const launcher = shortcuts(t, device)[0]

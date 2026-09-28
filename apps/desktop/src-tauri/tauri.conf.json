@@ -147,22 +147,6 @@
         "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-gpu-compositing"
       },
       {
-        "label": "chat",
-        "url": "/chat",
-        "title": "Claude",
-        "width": 1280,
-        "height": 800,
-        "resizable": false,
-        "transparent": true,
-        "decorations": false,
-        "shadow": false,
-        "alwaysOnTop": true,
-        "skipTaskbar": true,
-        "visible": false,
-        "dragDropEnabled": false,
-        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-gpu-compositing"
-      },
-      {
         "label": "files",
         "url": "/files",
         "title": "Eris Files",

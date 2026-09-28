@@ -22,9 +22,7 @@
   const mediaClaim = $derived(layout.claimFor("media"))
 
   const leftWidgets = $derived(
-    (device.features.chat &&
-      device.showClaudeUsage &&
-      device.claudeUsageSide === "left") ||
+    (device.showClaudeUsage && device.claudeUsageSide === "left") ||
       (device.showMedia && device.mediaSide === "left"),
   )
 </script>
@@ -35,7 +33,7 @@
       <EditOptions {layout} kind="widgets" />
     {/snippet}
 
-    {#if device.features.chat && device.showClaudeUsage && device.claudeUsageSide === "left"}
+    {#if device.showClaudeUsage && device.claudeUsageSide === "left"}
       <ClaudeUsage
         source={device.claudeUsageSource}
         compact={widgetCompact}

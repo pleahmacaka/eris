@@ -21,7 +21,6 @@
     Advanced,
     AppearanceSection,
     CalendarSection,
-    ChatSection,
     DockSection,
     ExperimentalSection,
     GeneralSection,
@@ -266,8 +265,6 @@
             <DockSection bind:device />
           {:else if section === "launcher"}
             <LauncherSection bind:profile bind:device />
-          {:else if section === "chat"}
-            <ChatSection bind:device />
           {:else if section === "appearance"}
             <AppearanceSection bind:profile />
           {:else if section === "calendar"}
