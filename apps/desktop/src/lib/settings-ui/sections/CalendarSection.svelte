@@ -6,7 +6,7 @@
   } from "@eris/settings"
   import { Row, Section, Segmented } from "@eris/ui"
   import { currentLocale } from "@eris/i18n"
-  import { regions } from "$lib/panel/holidays"
+  import { regions } from "$lib/panel"
   import { t } from "svelte-i18n"
   import FeatureGate from "../FeatureGate.svelte"
   import { reset } from "../reset"

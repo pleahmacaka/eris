@@ -50,10 +50,16 @@ export const holidaysOn = (
   region: string,
   lang: string,
 ): string[] => {
-  try {
-    const found = engine(region, lang).isHoliday(day)
+  const month = String(day.getMonth() + 1).padStart(2, "0")
+  const date = String(day.getDate()).padStart(2, "0")
 
-    return found ? found.map(holiday => holiday.name) : []
+  try {
+    // a Date is shifted into the region's timezone and can land on the previous day
+    const found = engine(region, lang).isHoliday(
+      `${day.getFullYear()}-${month}-${date}`,
+    )
+
+    return found ? [...new Set(found.map(holiday => holiday.name))] : []
   } catch {
     return []
   }

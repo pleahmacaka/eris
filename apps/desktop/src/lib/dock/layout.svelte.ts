@@ -16,26 +16,12 @@ const GROW_SLOTS = 6
 
 export const TOPBAR_H = 34
 
-export const FAN_STEP = 9
-export const FAN_ARC = 45
-
 export type MenuBox = {
   left: number
   top: number
   right: number
   bottom: number
 }
-
-export const fanOrbit = (count: number) =>
-  Math.min(220, Math.max(104, 72 + count * 9))
-
-export const fanBand = (icon: number) => icon + 28
-
-export const fanOuter = (count: number, icon: number) =>
-  fanOrbit(count) + fanBand(icon) / 2
-
-export const fanSpan = (count: number, icon: number) =>
-  Math.ceil(2 * fanOuter(count, icon))
 
 export class DockLayout {
   constructor(private surface: "taskbar" | "topbar" = "taskbar") {}
@@ -70,7 +56,7 @@ export class DockLayout {
 
   mac = $derived(this.device.dockStyle === "mac")
 
-  uchiwa = $derived(this.device.dockStyle === "uchiwa")
+  centered = $derived(!this.mac && this.device.dockAlign === "center")
 
   desktop = $derived(this.mac && this.device.dockDesktop)
 
@@ -87,11 +73,9 @@ export class DockLayout {
   )
 
   chrome = $derived(
-    (this.mac || this.uchiwa ? 32 : 24) +
+    (this.mac ? 34 : 24) +
       (this.launcherShown ? 36 : 0) +
-      (!this.uchiwa && this.launcherShown && this.device.dockSeparators
-        ? 25
-        : 0),
+      (this.launcherShown && this.device.dockSeparators ? 25 : 0),
   )
 
   spacerWidth = $derived(
@@ -101,19 +85,18 @@ export class DockLayout {
     ),
   )
 
+  sides = $derived(
+    this.centered
+      ? 2 * Math.max(this.leadWidth, this.trailWidth)
+      : this.leadWidth + this.trailWidth,
+  )
+
   roomForIcons = $derived(
-    Math.max(
-      0,
-      this.navWidth -
-        this.leadWidth -
-        this.trailWidth -
-        this.spacerWidth -
-        this.chrome,
-    ),
+    Math.max(0, this.navWidth - this.sides - this.spacerWidth - this.chrome),
   )
 
   fits = $derived.by(() => {
-    if (this.uchiwa || this.navWidth === 0) {
+    if (this.navWidth === 0) {
       return Number.POSITIVE_INFINITY
     }
 
@@ -142,17 +125,10 @@ export class DockLayout {
   )
 
   naturalWidth = $derived(
-    this.uchiwa
-      ? this.leadWidth +
-          this.trailWidth +
-          this.spacerWidth +
-          fanSpan(this.groups.length, this.device.dockIconSize) +
-          this.chrome
-      : this.leadWidth +
-          this.trailWidth +
-          this.spacerWidth +
-          this.groups.length * (this.device.dockIconSize + 18) +
-          this.chrome,
+    this.sides +
+      this.spacerWidth +
+      this.chrome +
+      this.groups.length * this.slotWidth,
   )
 
   pinnedCount = $derived(this.groups.filter(g => g.pinned !== null).length)
@@ -160,10 +136,6 @@ export class DockLayout {
   runningCount = $derived(this.groups.length - this.pinnedCount)
 
   dockWidth = $derived.by(() => {
-    if (this.uchiwa) {
-      return Math.min(this.maxDockWidth, this.naturalWidth)
-    }
-
     if (this.mac) {
       return Math.min(
         this.maxDockWidth,
@@ -173,11 +145,7 @@ export class DockLayout {
 
     const visible = this.pinnedCount + Math.min(this.runningCount, GROW_SLOTS)
     const needed =
-      this.leadWidth +
-      this.trailWidth +
-      this.spacerWidth +
-      this.chrome +
-      visible * this.slotWidth
+      this.sides + this.spacerWidth + this.chrome + visible * this.slotWidth
 
     return Math.min(this.maxDockWidth, Math.max(this.device.dockWidth, needed))
   })
@@ -206,8 +174,6 @@ export class DockLayout {
 
     return box
   })
-
-  fanRing = $state<[number, number, number, number] | null>(null)
 
   lift = $derived(
     this.mac && this.inside && !this.collapsed

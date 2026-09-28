@@ -47,13 +47,11 @@
 
   $effect(() => {
     const box = layout.menuBox
-    const ring = layout.fanRing
 
     native
       .extendTaskbar(
         layout.lift,
         box ? [box.left, box.top, box.right, box.bottom] : null,
-        ring,
       )
       .catch(() => undefined)
   })
@@ -72,10 +70,6 @@
   }
 
   const togglePanel = async () => {
-    if (!layout.device.features.calendar) {
-      return
-    }
-
     const panel = await Window.getByLabel("panel")
     const visible = (await panel?.isVisible().catch(() => false)) ?? false
 
@@ -234,16 +228,6 @@
     }
 
     native.setFeatures($state.snapshot(device.features)).catch(() => undefined)
-  })
-
-  $effect(() => {
-    if (!ready) {
-      return
-    }
-
-    native
-      .setChatShortcut(device.features.chat ? device.chatShortcut : null)
-      .catch(() => undefined)
   })
 
   $effect(() => {

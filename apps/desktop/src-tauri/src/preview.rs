@@ -9,6 +9,8 @@ pub struct PreviewSlot {
     pub y: f64,
     pub width: f64,
     pub height: f64,
+    pub header: f64,
+    pub title: String,
 }
 
 #[tauri::command]
@@ -32,14 +34,18 @@ mod win {
         DWM_THUMBNAIL_PROPERTIES, DWM_TNP_OPACITY, DWM_TNP_RECTDESTINATION,
         DWM_TNP_SOURCECLIENTAREAONLY, DWM_TNP_VISIBLE,
     };
-    use windows::Win32::UI::WindowsAndMessaging::{ShowWindow, SW_HIDE, SW_SHOWNA};
+    use windows::Win32::UI::WindowsAndMessaging::{GetWindowTextW, ShowWindow, SW_HIDE, SW_SHOWNA};
 
     use super::PreviewSlot;
 
     const THUMB_WIDTH: f64 = 208.0;
     const THUMB_HEIGHT: f64 = 124.0;
-    const PADDING: f64 = 10.0;
-    const GAP: f64 = 8.0;
+    const PADDING: f64 = 8.0;
+    const TILE_PADDING: f64 = 6.0;
+    const HEADER: f64 = 30.0;
+    const TILE_WIDTH: f64 = THUMB_WIDTH + TILE_PADDING * 2.0;
+    const TILE_HEIGHT: f64 = HEADER + THUMB_HEIGHT + TILE_PADDING;
+    const GAP: f64 = 4.0;
     const DOCK_GAP: f64 = 8.0;
     const MAX_THUMBS: usize = 4;
 
@@ -56,7 +62,7 @@ mod win {
     fn slots(count: usize) -> Vec<(f64, f64)> {
         (0..count)
             .map(|index| {
-                let left = PADDING + index as f64 * (THUMB_WIDTH + GAP);
+                let left = PADDING + index as f64 * (TILE_WIDTH + GAP);
 
                 (left, PADDING)
             })
@@ -64,9 +70,16 @@ mod win {
     }
 
     fn layout(count: usize) -> (f64, f64) {
-        let width = PADDING * 2.0 + count as f64 * THUMB_WIDTH + (count - 1) as f64 * GAP;
+        let width = PADDING * 2.0 + count as f64 * TILE_WIDTH + (count - 1) as f64 * GAP;
 
-        (width, PADDING * 2.0 + THUMB_HEIGHT)
+        (width, PADDING * 2.0 + TILE_HEIGHT)
+    }
+
+    fn title(hwnd: HWND) -> String {
+        let mut buffer = [0u16; 256];
+        let length = unsafe { GetWindowTextW(hwnd, &mut buffer) }.max(0) as usize;
+
+        String::from_utf16_lossy(&buffer[..length])
     }
 
     pub fn show(app: &AppHandle, windows: &[isize], center: f64) {
@@ -82,15 +95,15 @@ mod win {
             app.get_webview_window("preview"),
             app.get_webview_window("taskbar"),
         ) else {
-            return;
+            return hide(app);
         };
 
         let Ok(scale) = dock.scale_factor() else {
-            return;
+            return hide(app);
         };
 
         let Ok(Some(monitor)) = dock.current_monitor() else {
-            return;
+            return hide(app);
         };
 
         // a menu extends the dock window upward, so anchor to the band it reserves instead
@@ -98,7 +111,7 @@ mod win {
             Some(frame) => frame,
             None => {
                 let (Ok(position), Ok(size)) = (dock.outer_position(), dock.outer_size()) else {
-                    return;
+                    return hide(app);
                 };
 
                 [
@@ -137,18 +150,21 @@ mod win {
                 .set_position(PhysicalPosition::new(left, top))
                 .is_err()
         {
-            return;
+            return hide(app);
         }
 
         let Ok(handle) = preview.hwnd() else {
-            return;
+            return hide(app);
         };
 
         let destination = HWND(handle.0 as _);
         let mut registered = Vec::new();
         let mut placed = Vec::new();
 
+        // DWM draws thumbnails above the page, so nothing interactive may sit inside their rect
         for (source, (x, y)) in sources.iter().zip(slots(sources.len())) {
+            let (thumb_left, thumb_top) = (x + TILE_PADDING, y + HEADER);
+
             let Ok(thumb) = (unsafe { DwmRegisterThumbnail(destination, HWND(*source as _)) })
             else {
                 continue;
@@ -160,10 +176,10 @@ mod win {
                     | DWM_TNP_OPACITY
                     | DWM_TNP_SOURCECLIENTAREAONLY,
                 rcDestination: RECT {
-                    left: (x * scale).round() as i32,
-                    top: (y * scale).round() as i32,
-                    right: ((x + THUMB_WIDTH) * scale).round() as i32,
-                    bottom: ((y + THUMB_HEIGHT) * scale).round() as i32,
+                    left: (thumb_left * scale).round() as i32,
+                    top: (thumb_top * scale).round() as i32,
+                    right: ((thumb_left + THUMB_WIDTH) * scale).round() as i32,
+                    bottom: ((thumb_top + THUMB_HEIGHT) * scale).round() as i32,
                 },
                 opacity: 255,
                 fVisible: true.into(),
@@ -184,13 +200,15 @@ mod win {
                 hwnd: *source,
                 x,
                 y,
-                width: THUMB_WIDTH,
-                height: THUMB_HEIGHT,
+                width: TILE_WIDTH,
+                height: TILE_HEIGHT,
+                header: HEADER,
+                title: title(HWND(*source as _)),
             });
         }
 
         if registered.is_empty() {
-            return;
+            return hide(app);
         }
 
         *THUMBS.lock().unwrap() = registered;

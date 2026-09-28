@@ -1,7 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { updateDevice, type WebSearchEngine } from "@eris/settings"
-  import { Segmented } from "@eris/ui"
   import { t } from "svelte-i18n"
   import { EditSpot } from "$lib/edit"
   import type { Launcher } from "./launcher.svelte"
@@ -71,11 +70,19 @@
   {@render launcherToggle("showTodos", $t("settings.rows.todos"))}
   {@render launcherToggle("calculator", $t("settings.rows.calculator"))}
 
-  <div class="flex items-center justify-between gap-3 py-1 text-xs">
-    <span>{$t("settings.rows.webSearch")}</span>
+  <label class="flex items-center justify-between gap-3 py-1 text-xs">
+    <span class="shrink-0">{$t("settings.rows.webSearch")}</span>
 
-    <Segmented value={launcher.profile.launcher.webSearch} options={engineOptions} onchange={v => launcher.patchLauncher("webSearch", v)} />
-  </div>
+    <select
+      class="select select-xs w-32"
+      value={launcher.profile.launcher.webSearch}
+      onchange={e => launcher.patchLauncher("webSearch", e.currentTarget.value as WebSearchEngine)}
+    >
+      {#each engineOptions as option (option.value)}
+        <option value={option.value}>{option.label}</option>
+      {/each}
+    </select>
+  </label>
 
   <label class="flex items-center justify-between gap-3 py-1 text-xs">
     <span>{$t("settings.rows.showKeymap")}</span>

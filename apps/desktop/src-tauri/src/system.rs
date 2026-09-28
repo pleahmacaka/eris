@@ -60,6 +60,23 @@ pub fn run_command(command: String) -> Result<(), String> {
     )
 }
 
+// the Windows Terminal alias in WindowsApps is a reparse point that metadata() cannot follow
+fn on_path(exe: &str) -> bool {
+    std::env::var_os("PATH").is_some_and(|path| {
+        std::env::split_paths(&path).any(|dir| std::fs::symlink_metadata(dir.join(exe)).is_ok())
+    })
+}
+
+#[tauri::command(async)]
+pub fn installed_terminals() -> Vec<&'static str> {
+    [("wt", "wt.exe"), ("pwsh", "pwsh.exe")]
+        .into_iter()
+        .filter(|(_, exe)| on_path(exe))
+        .map(|(id, _)| id)
+        .chain(["powershell", "cmd"])
+        .collect()
+}
+
 #[tauri::command]
 pub fn machine_name() -> String {
     ["COMPUTERNAME", "HOSTNAME"]

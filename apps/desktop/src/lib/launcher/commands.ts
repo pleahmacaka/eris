@@ -1,5 +1,6 @@
 import { tr } from "@eris/i18n"
 import type { Result } from "@eris/launcher-core"
+import { loadDevice, type TerminalApp } from "@eris/settings"
 import { emit } from "@tauri-apps/api/event"
 import { exit } from "@tauri-apps/plugin-process"
 import {
@@ -32,6 +33,20 @@ const command = (
   secondaryActions: [],
   score: 0,
 })
+
+const TERMINAL_COMMANDS: Record<TerminalApp, string> = {
+  auto: 'wt || start "" cmd',
+  wt: "wt",
+  pwsh: "pwsh",
+  powershell: "powershell",
+  cmd: "cmd",
+}
+
+const openTerminal = async () => {
+  const { terminal } = await loadDevice()
+
+  await runCommand(TERMINAL_COMMANDS[terminal] ?? TERMINAL_COMMANDS.auto)
+}
 
 const power = (id: PowerAction, icon: string, keywords: string[] = []) =>
   command(
@@ -193,7 +208,7 @@ export const systemCommands = (): Result[] => [
     tr("launcher.commands.terminal"),
     tr("launcher.subtitles.windows"),
     "lucide:terminal",
-    () => runCommand('wt || start "" cmd'),
+    openTerminal,
     ["cmd", "console", "shell", "powershell"],
   ),
   command(

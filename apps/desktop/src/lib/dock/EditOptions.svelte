@@ -1,15 +1,17 @@
 <script lang="ts">
   import { t } from "svelte-i18n"
   import { Segmented } from "@eris/ui"
-  import type {
-    ClockAlign,
-    DeviceSettings,
-    DockAlign,
-    DockEdge,
-    DockSide,
-    DockStyle,
-    LauncherTrigger,
-    SpectrumStyle,
+  import {
+    type ClockAlign,
+    DOCK_ALIGNS,
+    DOCK_STYLES,
+    type DeviceSettings,
+    type DockAlign,
+    type DockEdge,
+    type DockSide,
+    type DockStyle,
+    type LauncherTrigger,
+    type SpectrumStyle,
   } from "@eris/settings"
   import type { DockLayout } from "./layout.svelte"
 
@@ -29,14 +31,14 @@
   const device = $derived(layout.device)
 
   const styleOptions = $derived<{ value: DockStyle; label: string }[]>(
-    (["windows", "mac", "uchiwa"] as DockStyle[]).map(value => ({
+    DOCK_STYLES.map(value => ({
       value,
       label: $t(`settings.dock.styles.${value}.label`),
     })),
   )
 
   const alignOptions = $derived<{ value: DockAlign; label: string }[]>(
-    (["start", "center"] as DockAlign[]).map(value => ({
+    DOCK_ALIGNS.map(value => ({
       value,
       label: $t(`settings.dock.${value}`),
     })),
@@ -134,13 +136,11 @@
     <Segmented value={device.dockEdge} options={edgeOptions} onchange={v => layout.patch("dockEdge", v)} />
   </div>
 
-  {#if !layout.uchiwa}
-    <div class="flex items-center justify-between gap-3 py-1 text-xs">
-      <span>{$t("settings.rows.alignment")}</span>
+  <div class="flex items-center justify-between gap-3 py-1 text-xs">
+    <span>{$t("settings.rows.alignment")}</span>
 
-      <Segmented value={device.dockAlign} options={alignOptions} onchange={v => layout.patch("dockAlign", v)} />
-    </div>
-  {/if}
+    <Segmented value={device.dockAlign} options={alignOptions} onchange={v => layout.patch("dockAlign", v)} />
+  </div>
 
   {#if layout.mac}
     {@render rangeRow("dockWidth", $t("settings.rows.width"), 320, 1400, 20)}
@@ -155,9 +155,7 @@
 
   {@render toggleRow("showRunningApps", $t("settings.rows.showRunningApps"))}
 
-  {#if !layout.uchiwa}
-    {@render toggleRow("dockSeparators", $t("settings.rows.dockSeparators"))}
-  {/if}
+  {@render toggleRow("dockSeparators", $t("settings.rows.dockSeparators"))}
   {@render toggleRow("dockAutoHide", $t("settings.rows.autoHide"))}
   {#if device.dockAutoHide}
     {@render toggleRow("dockHideAnimation", $t("settings.rows.hideAnimation"))}

@@ -1,3 +1,4 @@
+import type { TerminalApp } from "@eris/settings"
 import { invoke } from "@tauri-apps/api/core"
 
 export type Battery = { percent: number; charging: boolean }
@@ -28,6 +29,9 @@ export const openUrl = (url: string) => invoke<void>("open_url", { url })
 
 export const runCommand = (command: string) =>
   invoke<void>("run_command", { command })
+
+export const installedTerminals = () =>
+  invoke<TerminalApp[]>("installed_terminals")
 
 export const machineName = () => invoke<string>("machine_name")
 
