@@ -55,15 +55,11 @@
       },
       "sync": {
         "label": "Sync",
-        "blurb": "Devices in step through your own server"
+        "blurb": "Devices in step, directly with each other"
       },
       "advanced": {
         "label": "Advanced",
         "blurb": "Stored data, caches, resets, and version info"
-      },
-      "chat": {
-        "label": "AI chat",
-        "blurb": "Configure the Claude chat bubble and usage display."
       },
       "experimental": {
         "label": "Experimental",
@@ -77,10 +73,6 @@
         "description": "Turn whole parts of Eris on or off"
       },
       "featureGate": "Enable",
-      "chat": {
-        "title": "Chat bubble",
-        "description": "How close to a screen edge the bubble has to be to snap"
-      },
       "hotkey": {
         "title": "Launcher hotkey",
         "description": "A Win tap opens Eris. Win combos keep working."
@@ -114,10 +106,6 @@
         "title": "Dock",
         "description": "How the dock blends with the rest of the theme"
       },
-      "chatHotkey": {
-        "title": "Chat",
-        "description": "Global shortcut for the chat bubble"
-      },
       "tray": "Windows tray",
       "experimental": {
         "title": "Experimental",
@@ -131,8 +119,6 @@
       "language": "Language",
       "featureDock": "Dock",
       "featureLauncher": "Launcher",
-      "featureChat": "Chat bubble",
-      "snapDistance": "Snap distance",
       "setupWizard": "Setup wizard",
       "openWith": "Open with",
       "shortcut": "Shortcut",
@@ -143,6 +129,7 @@
       "todos": "Todos",
       "calculator": "Calculator",
       "webSearch": "Web search",
+      "terminal": "Terminal",
       "presets": "Presets",
       "mode": "Mode",
       "background": "Background",
@@ -199,14 +186,10 @@
       "claudeBridge": "Claude statusline bridge",
       "usageSnapshot": "Usage snapshot",
       "mediaSide": "Media controls",
-      "serverUrl": "Server URL",
-      "token": "Token",
       "enableSync": "Enable sync",
       "interval": "Interval",
       "collections": "Collections",
-      "replaceLocal": "Replace local data with server",
-      "resetCollection": "Reset collection on server",
-      "unlinkDevice": "Unlink this device",
+      "unlinkDevice": "Disconnect this device",
       "dockSeparators": "Separators",
       "clockAlign": "Clock alignment",
       "editMode": "Edit mode",
@@ -215,31 +198,20 @@
       "dockRadius": "Dock corners",
       "dockTint": "Dock tint",
       "dockBorder": "Dock border",
-      "chatShortcut": "Chat shortcut",
       "updates": "Updates",
       "showBluetooth": "Show Bluetooth",
       "showNotifications": "Show notification bell",
       "showDesktopButton": "Show desktop button",
       "showTaskView": "Show task view button",
       "showInputLanguage": "Show input language",
-      "chatModel": "Model",
-      "chatEffort": "Effort",
-      "chatPermission": "Permissions",
-      "chatThinking": "Thinking",
-      "chatAutoCompact": "Auto-compact",
-      "chatLanguage": "Response language",
-      "chatBudget": "Budget per session",
-      "chatSystemPrompt": "Extra system prompt",
-      "chatHover": "On hover",
-      "chatMultiBubble": "Multiple bubbles",
-      "chatBubbleColors": "Bubble colors",
-      "chatQueueMode": "Queued messages",
       "hideAnimation": "Hide animation",
       "topBar": "Top info bar",
       "panelPosition": "Panel position",
       "holidayRegion": "Holiday region",
       "featureCalendar": "Calendar panel",
-      "dockLayout": "Dock layout"
+      "dockLayout": "Dock layout",
+      "pairDevice": "Add a device",
+      "joinDevice": "Join another device"
     },
     "hints": {
       "deviceName": "Shown in the sync device list",
@@ -248,7 +220,6 @@
       "language": "Follows Windows unless you pick one",
       "featureDock": "The bar that replaces the Windows taskbar",
       "featureLauncher": "Win key search for apps, windows, and commands",
-      "featureChat": "Claude and Claude Code in a floating bubble",
       "setupWizard": "Runs the first-start setup again",
       "openWith": "Which keys bring up the launcher",
       "shortcut": "Click, then press the combination",
@@ -257,6 +228,7 @@
       "todos": "Add a todo straight from the search box",
       "calculator": "Type an expression to evaluate it",
       "webSearch": "Engine for queries nothing else matches",
+      "terminal": "App opened by the Terminal command.",
       "weekNumbers": "Show week numbers in the month grid",
       "defaultReminder": "Before an event starts",
       "showCompleted": "Keep done items in the list",
@@ -302,14 +274,10 @@
       "claudeBridge": "Writes the 5-hour and weekly windows Claude Code reports",
       "usageSnapshot": "File written by the bridge, or a URL",
       "mediaSide": "Which end of the bar they sit on",
-      "serverUrl": "Where the Eris sync server runs",
-      "token": "The ERIS_TOKEN the server was started with",
       "enableSync": "Runs in the background while Eris is open",
-      "interval": "How often to check the server",
+      "interval": "How often to sync with paired devices",
       "collections": "What this device sends and receives",
-      "replaceLocal": "Drops local {collections} and pulls everything again",
-      "resetCollection": "Marks every record deleted so all devices clear it",
-      "unlinkDevice": "Forgets the server, token, and pending changes on this device",
+      "unlinkDevice": "Stops syncing with every paired device",
       "dockSeparators": "Thin lines between the launcher, apps and tray",
       "clockAlign": "How the time and date line up",
       "editMode": "Dim the screen and click any part of Eris to change its options",
@@ -318,36 +286,27 @@
       "dockRadius": "Corner rounding of the floating dock, relative to the window corners",
       "dockTint": "Accent color washed over the dock",
       "dockBorder": "Hairline around the dock",
-      "chatShortcut": "Opens or closes the Claude chat from anywhere",
       "updates": "Downloads the installer and restarts Eris on the new version",
       "showBluetooth": "Radio toggle and connected devices",
       "showNotifications": "Opens the Windows notification center",
       "showDesktopButton": "Thin strip at the right end that shows the desktop",
       "showTaskView": "Opens the Windows task view",
       "showInputLanguage": "Keyboard layout of the active window; only with two or more layouts",
-      "chatModel": "An alias like sonnet or a full model id; a [1m] suffix picks the 1M context",
-      "chatEffort": "Passed as --effort; Default follows your Claude Code settings",
-      "chatPermission": "How tool calls get approved",
-      "chatThinking": "Extended thinking on supported models",
-      "chatAutoCompact": "Compacts the context automatically as it fills up",
-      "chatLanguage": "For example korean or english",
-      "chatBudget": "USD; 0 means no limit",
-      "chatSystemPrompt": "Appended to the default system prompt",
-      "chatHover": "What a bubble shows while the pointer rests on it",
-      "chatMultiBubble": "A plus button on a bubble's edge opens another session",
-      "chatBubbleColors": "Each bubble gets its own ring color",
-      "chatQueueMode": "When a message typed during a reply gets delivered",
       "hideAnimation": "Slide the dock out when it hides instead of snapping",
       "topBar": "Move clock, tray, and widgets to a separate bar on top",
       "panelPosition": "Where calendar and notification panels open",
       "holidayRegion": "Country used for public holidays; System follows Windows",
       "featureCalendar": "Calendar and events panel behind the clock",
-      "dockLayout": "Assemble the dock from widgets, including adjustable spacers"
+      "dockLayout": "Assemble the dock from widgets, including adjustable spacers",
+      "pairDevice": "Create a code here and enter it on the other device",
+      "joinDevice": "Paste the code made on the other device"
     },
     "options": {
       "win": "Win key",
       "shortcut": "Shortcut",
       "both": "Both",
+      "terminalAuto": "Automatic",
+      "cmd": "Command Prompt",
       "monday": "Monday",
       "sunday": "Sunday",
       "manual": "Manual",
@@ -369,19 +328,11 @@
     "featurePresets": {
       "all": {
         "name": "Everything",
-        "hint": "Dock, launcher, and chat"
-      },
-      "desk": {
-        "name": "Desk",
-        "hint": "Dock and launcher, no chat"
+        "hint": "Dock and launcher"
       },
       "search": {
         "name": "Launcher only",
         "hint": "Keep the Windows taskbar"
-      },
-      "bubble": {
-        "name": "Chat only",
-        "hint": "Just the Claude bubble"
       },
       "aria": "Feature preset"
     },
@@ -438,9 +389,7 @@
         "right": "Right",
         "arrows": "Arrows",
         "menu": "Menu"
-      },
-      "chat": "Chat",
-      "toggleChat": "Open or close the chat"
+      }
     },
     "appearance": {
       "presetDescriptions": {
@@ -493,10 +442,6 @@
         "mac": {
           "label": "Mac",
           "hint": "Floating centered dock"
-        },
-        "uchiwa": {
-          "label": "Uchiwa",
-          "hint": "Fan of icons that spins like a magazine"
         }
       },
       "styleAria": "Dock style",
@@ -505,7 +450,6 @@
       "primary": "Primary",
       "start": "Start",
       "center": "Center",
-      "uchiwa": "Uchiwa",
       "bottom": "Bottom",
       "top": "Top",
       "bars": "Bars",
@@ -522,18 +466,9 @@
       "openEditMode": "Open"
     },
     "sync": {
-      "server": {
-        "title": "Server",
-        "description": "Keeps {collections} in step across devices."
-      },
-      "status": "Status",
       "devices": {
         "title": "Devices",
-        "description": "Everything registered with this server"
-      },
-      "danger": {
-        "title": "Danger zone",
-        "description": "These cannot be undone"
+        "description": "Devices paired with this one"
       },
       "collections": {
         "todos": "Todos",
@@ -542,49 +477,42 @@
         "presets": "Presets",
         "notes": "Notes"
       },
-      "hideToken": "Hide token",
-      "revealToken": "Reveal token",
-      "testConnection": "Test connection",
-      "connected": "Connected, server {version}, seq {seq}",
       "everyHour": "Every hour",
       "everyMinutes": "Every {minutes} min",
       "states": {
-        "idle": "Up to date",
+        "disabled": "Off",
+        "unpaired": "Not connected",
+        "waiting": "Waiting for pairing",
+        "idle": "Connected",
         "syncing": "Syncing",
-        "error": "Error",
-        "disabled": "Off"
+        "error": "Error"
       },
       "lastSync": "Last sync {when}",
       "neverSynced": "Never synced",
-      "pending": "{count} pending",
       "justNow": "just now",
       "syncNow": "Sync now",
-      "noDevices": "No devices yet",
-      "setServerFirst": "Set a server URL and token first",
+      "noDevices": "No paired devices",
       "seen": "Seen {when}",
       "thisDevice": "This device",
-      "forget": "Forget",
-      "replace": "Replace",
-      "unlink": "Unlink",
-      "collection": "Collection",
+      "unlink": "Disconnect",
       "toasts": {
         "failed": "Sync failed",
-        "enableFirst": "Enable sync and fill in the server first",
-        "synced": "Synced: {pushed} pushed, {pulled} pulled",
-        "deviceForgotten": "Device forgotten",
-        "localReplaced": "Local data replaced from the server",
-        "recordsCleared": "{count} records cleared",
-        "collectionReset": "{collection} reset on the server",
-        "unlinked": "Device unlinked"
+        "synced": "{count, plural, one {Synced with # device} other {Synced with # devices}}",
+        "unlinked": "Disconnected",
+        "noPeers": "No paired device is reachable",
+        "joined": "Connected",
+        "copied": "Code copied"
       },
       "confirm": {
-        "replaceTitle": "Replace local data?",
-        "replaceBody": "Local {collections} are deleted and replaced with what the server has. Unsynced changes are lost.",
-        "resetTitle": "Reset {collection} on the server?",
-        "resetBody": "Every record in this collection is marked deleted on the server and removed from all synced devices.",
-        "unlinkTitle": "Unlink this device?",
-        "unlinkBody": "Sync is turned off and the server address, token, and pending changes are cleared. Local data stays."
-      }
+        "unlinkTitle": "Disconnect this device?",
+        "unlinkBody": "This device stops syncing with the others. Local data stays."
+      },
+      "description": "Keeps {collections} in step across devices.",
+      "neverSeen": "Not seen yet",
+      "createCode": "Create pairing code",
+      "joinWithCode": "Connect with code",
+      "copyCode": "Copy code",
+      "codePlaceholder": "Pairing code"
     },
     "backup": {
       "exportJson": "Export JSON",
@@ -594,7 +522,8 @@
       "copied": "JSON copied to the clipboard",
       "notBackup": "Not an Eris backup",
       "nothing": "Nothing to import",
-      "imported": "Imported {count} items"
+      "imported": "Imported {count} items",
+      "skipped": "Skipped {count, plural, one {# invalid item} other {# invalid items}}"
     },
     "sectionsAria": "Sections"
   },
@@ -858,7 +787,6 @@
       "tray": "Tray and clock",
       "widgets": "Widgets",
       "search": "Launcher",
-      "bubble": "Chat bubble",
       "spacer": "Spacer"
     }
   },
@@ -1100,7 +1028,7 @@
     },
     "sync": {
       "title": "Sync across devices",
-      "blurb": "Optional. Point Eris at your own sync server, or skip and set it up later."
+      "blurb": "Optional. Pair with another device, or skip and set it up later."
     },
     "tips": {
       "title": "A few tips",
@@ -1161,9 +1089,10 @@
       "failed": "Sync failed: {error}",
       "unknownError": "unknown error",
       "syncing": "Syncing",
-      "pending": "Sync: {count} pending",
       "synced": "Synced {time}",
-      "ready": "Sync ready"
+      "ready": "Sync ready",
+      "unpaired": "Sync: not connected",
+      "waiting": "Sync: waiting for pairing"
     },
     "notifications": {
       "title": "Notifications",
@@ -1209,7 +1138,6 @@
       "unhide": "Show in overflow",
       "showAll": "Show all",
       "allHidden": "{count} icons hidden",
-      "appMenu": "Open app menu",
       "hideFromDock": "Hide from dock",
       "showInDock": "Show in dock"
     },
@@ -1246,101 +1174,6 @@
       "weekly": "Weekly {percent}%",
       "leftHours": "{hours} h {minutes} min left",
       "leftMinutes": "{minutes} min left"
-    }
-  },
-  "chat": {
-    "title": "Claude",
-    "rename": "Rename chat",
-    "closeFolder": "Close folder",
-    "openFolder": "Open folder",
-    "newChat": "New chat",
-    "newBubble": "New bubble",
-    "cliMissing": "Claude Code CLI is not installed",
-    "placeholder": "Message",
-    "queuePlaceholder": "Queue a message",
-    "send": "Send",
-    "queueSend": "Queue",
-    "stop": "Stop",
-    "deny": "Deny",
-    "allow": "Allow",
-    "allowAlways": "Always allow",
-    "usageUnknown": "Usage unavailable",
-    "context": "Context {percent}% ({used} / {total} tokens)",
-    "empty": {
-      "ask": "Ask anything",
-      "askHint": "Open a folder to start coding",
-      "code": "Ask for code changes",
-      "codeHint": "/ for commands, @ for files"
-    },
-    "history": {
-      "title": "History",
-      "home": "Home",
-      "current": "In progress",
-      "untitled": "Untitled",
-      "empty": "No history",
-      "recentFolders": "Recent folders",
-      "meta": "{count} messages, {when}"
-    },
-    "usage": {
-      "fiveHour": "5 hours",
-      "sevenDay": "7 days",
-      "resets": "Resets {time}"
-    },
-    "config": {
-      "title": "Claude Code settings",
-      "model": "Model",
-      "modelDefault": "Default model",
-      "modelCustom": "Custom…",
-      "effort": "Effort",
-      "permission": "Permissions",
-      "thinking": "Thinking",
-      "autoCompact": "Auto-compact",
-      "language": "Response language",
-      "languageDefault": "Default",
-      "budget": "Budget per session (USD)",
-      "budgetNone": "No limit",
-      "systemPrompt": "Extra system prompt",
-      "restartHint": "Restart the session to apply",
-      "restart": "Restart"
-    },
-    "effort": {
-      "default": "Default effort",
-      "low": "Low",
-      "medium": "Medium",
-      "high": "High",
-      "xhigh": "Extra high",
-      "max": "Max"
-    },
-    "permission": {
-      "default": "Ask",
-      "acceptEdits": "Accept edits",
-      "plan": "Plan",
-      "auto": "Auto",
-      "dontAsk": "Don't ask",
-      "bypassPermissions": "Bypass"
-    },
-    "tri": {
-      "default": "Default",
-      "on": "On",
-      "off": "Off"
-    },
-    "hover": {
-      "none": "Nothing",
-      "title": "Title",
-      "preview": "Last message"
-    },
-    "queue": {
-      "afterTool": "After tool",
-      "afterReply": "After reply",
-      "toggle": "Switch delivery"
-    },
-    "commands": {
-      "clear": "Clear the conversation and start over",
-      "resume": "Pick a previous session",
-      "usage": "Show plan usage limits",
-      "model": "Pick the model",
-      "effort": "Pick the effort level",
-      "config": "Claude Code settings"
     }
   }
 }

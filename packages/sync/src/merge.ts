@@ -1,11 +1,11 @@
-import type { SyncRecord } from "./protocol"
+import { isSyncedCollection, MAX_CLOCK_SKEW, type SyncRecord } from "./protocol"
 
 export type Versioned = { updatedAt: number; deviceId?: string }
 
 export type LocalItem = Versioned & { id: string }
 
-export const outboxKey = (record: Pick<SyncRecord, "collection" | "id">) =>
-  `${record.collection}:${record.id}`
+export const isPoisoned = (updatedAt: number, now = Date.now()) =>
+  !Number.isSafeInteger(updatedAt) || updatedAt > now + MAX_CLOCK_SKEW
 
 export const remoteWins = (
   remote: Pick<SyncRecord, "updatedAt" | "deviceId">,
@@ -13,6 +13,7 @@ export const remoteWins = (
   ownDeviceId: string,
 ) =>
   !local ||
+  isPoisoned(local.updatedAt) ||
   remote.updatedAt > local.updatedAt ||
   (remote.updatedAt === local.updatedAt &&
     remote.deviceId < (local.deviceId ?? ownDeviceId))
@@ -29,4 +30,37 @@ export const toLocal = (
     updatedAt: record.updatedAt,
     deviceId: record.deviceId,
   }
+}
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+
+const isText = (value: unknown): value is string =>
+  typeof value === "string" && value !== ""
+
+const isSyncRecord = (value: unknown, now: number): value is SyncRecord =>
+  isObject(value) &&
+  isText(value.collection) &&
+  isSyncedCollection(value.collection) &&
+  isText(value.id) &&
+  typeof value.updatedAt === "number" &&
+  !isPoisoned(value.updatedAt, now) &&
+  typeof value.deleted === "boolean" &&
+  isText(value.deviceId) &&
+  (value.deleted || isObject(value.data))
+
+export const readSnapshot = (text: string, now = Date.now()): SyncRecord[] => {
+  let parsed: unknown
+
+  try {
+    parsed = JSON.parse(text)
+  } catch {
+    return []
+  }
+
+  if (!isObject(parsed) || !Array.isArray(parsed.records)) {
+    return []
+  }
+
+  return parsed.records.filter(r => isSyncRecord(r, now))
 }

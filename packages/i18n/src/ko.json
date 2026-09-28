@@ -55,15 +55,11 @@
       },
       "sync": {
         "label": "동기화",
-        "blurb": "내 서버를 통해 장치 간 데이터를 동기화합니다."
+        "blurb": "장치 간 데이터를 직접 동기화합니다."
       },
       "advanced": {
         "label": "고급",
         "blurb": "저장된 데이터, 캐시, 초기화와 버전 정보를 관리합니다."
-      },
-      "chat": {
-        "label": "AI 채팅",
-        "blurb": "Claude 대화 상자와 사용량 표시를 설정합니다."
       },
       "experimental": {
         "label": "실험적 기능",
@@ -77,10 +73,6 @@
         "description": "Eris의 주요 기능을 켜거나 끕니다."
       },
       "featureGate": "기능 사용",
-      "chat": {
-        "title": "채팅 버블",
-        "description": "채팅 버블의 동작과 Claude Code 옵션을 설정합니다."
-      },
       "hotkey": {
         "title": "런처 단축키",
         "description": "Win 키를 한 번 누르면 Eris가 열립니다. Win 조합키는 그대로 동작합니다."
@@ -114,10 +106,6 @@
         "title": "독",
         "description": "독이 나머지 테마와 어울리는 방식을 조정합니다."
       },
-      "chatHotkey": {
-        "title": "채팅",
-        "description": "채팅 버블을 여는 전역 단축키를 설정합니다."
-      },
       "tray": "Windows 트레이",
       "experimental": {
         "title": "실험적 기능",
@@ -131,8 +119,6 @@
       "language": "언어",
       "featureDock": "독",
       "featureLauncher": "런처",
-      "featureChat": "채팅 버블",
-      "snapDistance": "스냅 거리",
       "setupWizard": "설정 마법사",
       "openWith": "여는 키",
       "shortcut": "단축키",
@@ -143,6 +129,7 @@
       "todos": "할 일",
       "calculator": "계산기",
       "webSearch": "웹 검색",
+      "terminal": "터미널",
       "presets": "프리셋",
       "mode": "모드",
       "background": "배경",
@@ -199,13 +186,9 @@
       "claudeBridge": "Claude 상태 표시줄 브리지",
       "usageSnapshot": "사용량 스냅샷",
       "mediaSide": "미디어 컨트롤",
-      "serverUrl": "서버 URL",
-      "token": "토큰",
       "enableSync": "동기화 사용",
       "interval": "주기",
       "collections": "컬렉션",
-      "replaceLocal": "로컬 데이터를 서버 데이터로 교체",
-      "resetCollection": "서버의 컬렉션 초기화",
       "unlinkDevice": "이 장치 연결 해제",
       "dockSeparators": "구분선",
       "clockAlign": "시계 정렬",
@@ -215,31 +198,20 @@
       "dockRadius": "독 모서리",
       "dockTint": "독 색조",
       "dockBorder": "독 테두리",
-      "chatShortcut": "채팅 단축키",
       "updates": "업데이트",
       "showBluetooth": "Bluetooth 표시",
       "showNotifications": "알림 버튼 표시",
       "showDesktopButton": "바탕 화면 표시 버튼",
       "showTaskView": "작업 보기 버튼 표시",
       "showInputLanguage": "입력 언어 표시",
-      "chatModel": "모델",
-      "chatEffort": "노력 수준",
-      "chatPermission": "권한 모드",
-      "chatThinking": "확장 사고",
-      "chatAutoCompact": "자동 압축",
-      "chatLanguage": "응답 언어",
-      "chatBudget": "세션당 예산",
-      "chatSystemPrompt": "추가 시스템 프롬프트",
-      "chatHover": "마우스 오버 시",
-      "chatMultiBubble": "다중 버블",
-      "chatBubbleColors": "버블 색상",
-      "chatQueueMode": "예약 전송",
       "hideAnimation": "숨김 애니메이션",
       "topBar": "상단 정보 표시줄",
       "panelPosition": "패널 위치",
       "holidayRegion": "공휴일 지역",
       "featureCalendar": "캘린더 패널",
-      "dockLayout": "독 레이아웃"
+      "dockLayout": "독 레이아웃",
+      "pairDevice": "장치 추가",
+      "joinDevice": "다른 장치에 연결"
     },
     "hints": {
       "deviceName": "동기화 장치 목록에 표시되는 이름입니다.",
@@ -248,7 +220,6 @@
       "language": "직접 선택하지 않으면 Windows 표시 언어를 따릅니다.",
       "featureDock": "Windows 작업 표시줄을 대체하는 막대를 표시합니다.",
       "featureLauncher": "앱, 창, 명령을 검색하는 런처를 사용합니다.",
-      "featureChat": "화면 가장자리의 버블에서 Claude와 Claude Code를 사용합니다.",
       "setupWizard": "첫 실행 안내를 다시 실행합니다.",
       "openWith": "런처를 여는 방식을 선택합니다.",
       "shortcut": "입력란을 선택한 뒤 원하는 키 조합을 누르면 저장됩니다.",
@@ -257,6 +228,7 @@
       "todos": "검색창에서 바로 할 일을 추가합니다.",
       "calculator": "수식을 입력하면 결과를 바로 계산합니다.",
       "webSearch": "일치하는 결과가 없을 때 사용할 검색 엔진입니다.",
+      "terminal": "터미널 명령으로 실행할 앱입니다.",
       "weekNumbers": "월 그리드 왼쪽에 주 번호를 표시합니다.",
       "defaultReminder": "새 일정에 기본으로 적용되는 알림 시점입니다.",
       "showCompleted": "완료한 할 일을 목록 아래에 계속 표시합니다.",
@@ -302,14 +274,10 @@
       "claudeBridge": "Claude Code가 보고하는 5시간 및 주간 한도를 기록합니다.",
       "usageSnapshot": "사용량 브리지가 기록한 파일 경로 또는 URL입니다.",
       "mediaSide": "미디어 컨트롤을 배치할 쪽을 선택합니다.",
-      "serverUrl": "Eris 동기화 서버 주소입니다.",
-      "token": "서버를 시작할 때 지정한 ERIS_TOKEN 값을 입력합니다.",
       "enableSync": "Eris가 열려 있는 동안 백그라운드에서 동기화합니다.",
-      "interval": "서버에서 변경 사항을 확인하는 주기입니다.",
-      "collections": "이 장치가 서버와 주고받는 항목을 선택합니다.",
-      "replaceLocal": "이 장치의 {collections} 데이터를 삭제하고 서버에서 다시 가져옵니다.",
-      "resetCollection": "모든 레코드를 삭제됨으로 표시해 모든 장치에서 제거합니다.",
-      "unlinkDevice": "이 장치에서 서버, 토큰, 대기 중인 변경 사항을 제거합니다.",
+      "interval": "페어링된 장치와 동기화하는 주기입니다.",
+      "collections": "이 장치가 다른 장치와 주고받는 항목을 선택합니다.",
+      "unlinkDevice": "페어링된 모든 장치와의 동기화를 중단합니다.",
       "dockSeparators": "런처, 앱, 트레이 사이에 얇은 구분선을 표시합니다.",
       "clockAlign": "시간과 날짜의 정렬 위치를 선택합니다.",
       "editMode": "화면을 어둡게 하고 편집할 부분을 선택해 옵션을 바꿉니다.",
@@ -318,36 +286,27 @@
       "dockRadius": "떠 있는 독의 모서리 둥글기를 조절합니다.",
       "dockTint": "독 위에 입히는 강조색의 양을 조절합니다.",
       "dockBorder": "독 둘레에 가는 테두리를 표시합니다.",
-      "chatShortcut": "어디서나 Claude 채팅을 열거나 닫습니다.",
       "updates": "설치 파일을 내려받고 새 버전으로 Eris를 다시 시작합니다.",
       "showBluetooth": "Bluetooth 상태와 연결된 장치를 표시합니다.",
       "showNotifications": "Windows 알림 센터를 여는 버튼을 표시합니다.",
       "showDesktopButton": "오른쪽 끝에 바탕 화면 보기 버튼을 표시합니다.",
       "showTaskView": "Windows 작업 보기를 여는 버튼을 표시합니다.",
       "showInputLanguage": "활성 창의 키보드 레이아웃을 표시합니다. 레이아웃이 두 개 이상일 때만 나타납니다.",
-      "chatModel": "sonnet 같은 별칭 또는 전체 모델 ID입니다. [1m] 접미사를 붙이면 1M 컨텍스트를 사용합니다",
-      "chatEffort": "--effort로 전달됩니다. 기본값은 Claude Code 설정을 따릅니다",
-      "chatPermission": "도구 호출을 승인하는 방식입니다",
-      "chatThinking": "지원되는 모델에서 확장 사고를 사용합니다",
-      "chatAutoCompact": "컨텍스트가 차면 자동으로 압축합니다",
-      "chatLanguage": "예: korean 또는 english",
-      "chatBudget": "USD 단위이며 0은 제한 없음입니다",
-      "chatSystemPrompt": "기본 시스템 프롬프트 뒤에 추가됩니다",
-      "chatHover": "포인터를 올려 둔 동안 버블에 표시할 내용입니다",
-      "chatMultiBubble": "버블 가장자리의 더하기 버튼으로 다른 세션을 엽니다",
-      "chatBubbleColors": "버블마다 고유한 테두리 색을 사용합니다",
-      "chatQueueMode": "답변 중에 입력한 메시지를 전달하는 시점입니다",
       "hideAnimation": "독이 숨을 때 즉시 사라지지 않고 밀려 나가는 애니메이션을 사용합니다.",
       "topBar": "시계, 트레이, 위젯을 화면 상단의 별도 표시줄로 분리합니다.",
       "panelPosition": "캘린더와 알림 패널이 열리는 위치를 선택합니다.",
       "holidayRegion": "공휴일을 표시할 국가를 선택합니다. 시스템은 Windows 설정을 따릅니다.",
       "featureCalendar": "시계를 눌러 여는 캘린더와 일정 패널을 사용합니다",
-      "dockLayout": "위젯을 조합해 독을 구성하고 여백의 너비를 조절합니다"
+      "dockLayout": "위젯을 조합해 독을 구성하고 여백의 너비를 조절합니다",
+      "pairDevice": "여기서 코드를 만들고 다른 장치에서 입력하세요.",
+      "joinDevice": "다른 장치에서 만든 코드를 붙여 넣으세요."
     },
     "options": {
       "win": "Win 키",
       "shortcut": "단축키",
       "both": "둘 다",
+      "terminalAuto": "자동",
+      "cmd": "명령 프롬프트",
       "monday": "월요일",
       "sunday": "일요일",
       "manual": "수동",
@@ -369,19 +328,11 @@
     "featurePresets": {
       "all": {
         "name": "전체",
-        "hint": "독, 런처, 채팅"
-      },
-      "desk": {
-        "name": "데스크",
-        "hint": "독과 런처, 채팅 제외"
+        "hint": "독과 런처"
       },
       "search": {
         "name": "런처만",
         "hint": "Windows 작업 표시줄 유지"
-      },
-      "bubble": {
-        "name": "채팅만",
-        "hint": "Claude 버블만"
       },
       "aria": "기능 프리셋"
     },
@@ -438,9 +389,7 @@
         "right": "오른쪽",
         "arrows": "방향키",
         "menu": "메뉴"
-      },
-      "chat": "채팅",
-      "toggleChat": "채팅 열기 또는 닫기"
+      }
     },
     "appearance": {
       "presetDescriptions": {
@@ -493,10 +442,6 @@
         "mac": {
           "label": "Mac",
           "hint": "가운데에 떠 있는 독"
-        },
-        "uchiwa": {
-          "label": "우치와",
-          "hint": "부채처럼 펼쳐지고 탄창처럼 돌아가는 독"
         }
       },
       "styleAria": "독 스타일",
@@ -505,7 +450,6 @@
       "primary": "주 디스플레이",
       "start": "시작",
       "center": "가운데",
-      "uchiwa": "우치와",
       "bottom": "아래",
       "top": "위",
       "bars": "막대",
@@ -522,18 +466,9 @@
       "openEditMode": "열기"
     },
     "sync": {
-      "server": {
-        "title": "서버",
-        "description": "{collections} 데이터를 장치 간에 동기화합니다."
-      },
-      "status": "상태",
       "devices": {
         "title": "장치",
-        "description": "이 서버에 등록된 모든 장치"
-      },
-      "danger": {
-        "title": "위험 구역",
-        "description": "되돌릴 수 없습니다"
+        "description": "이 장치와 페어링된 장치"
       },
       "collections": {
         "todos": "할 일",
@@ -542,49 +477,42 @@
         "presets": "프리셋",
         "notes": "메모"
       },
-      "hideToken": "토큰 숨기기",
-      "revealToken": "토큰 표시",
-      "testConnection": "연결 테스트",
-      "connected": "연결됨, 서버 {version}, seq {seq}",
       "everyHour": "1시간마다",
       "everyMinutes": "{minutes}분마다",
       "states": {
-        "idle": "최신 상태",
+        "disabled": "끔",
+        "unpaired": "미연결",
+        "waiting": "페어링 대기",
+        "idle": "연결됨",
         "syncing": "동기화 중",
-        "error": "오류",
-        "disabled": "끔"
+        "error": "오류"
       },
       "lastSync": "마지막 동기화 {when}",
       "neverSynced": "동기화 기록 없음",
-      "pending": "대기 중 {count}개",
       "justNow": "방금",
       "syncNow": "지금 동기화",
-      "noDevices": "등록된 장치 없음",
-      "setServerFirst": "먼저 서버 URL과 토큰을 설정하세요",
+      "noDevices": "페어링된 장치 없음",
       "seen": "마지막 접속 {when}",
       "thisDevice": "이 장치",
-      "forget": "제거",
-      "replace": "교체",
       "unlink": "연결 해제",
-      "collection": "컬렉션",
       "toasts": {
         "failed": "동기화에 실패했습니다",
-        "enableFirst": "먼저 동기화를 활성화하고 서버를 입력하세요",
-        "synced": "동기화 완료: 보냄 {pushed}, 받음 {pulled}",
-        "deviceForgotten": "장치를 제거했습니다",
-        "localReplaced": "로컬 데이터를 서버 데이터로 교체했습니다",
-        "recordsCleared": "레코드 {count}개를 삭제했습니다",
-        "collectionReset": "서버의 {collection} 컬렉션을 초기화했습니다",
-        "unlinked": "장치 연결을 해제했습니다"
+        "synced": "장치 {count}대와 동기화했습니다",
+        "unlinked": "장치 연결을 해제했습니다",
+        "noPeers": "연결할 수 있는 장치가 없습니다",
+        "joined": "연결했습니다",
+        "copied": "코드를 복사했습니다"
       },
       "confirm": {
-        "replaceTitle": "로컬 데이터를 교체할까요?",
-        "replaceBody": "로컬 {collections} 데이터를 삭제하고 서버 데이터로 교체합니다. 동기화되지 않은 변경 사항은 사라집니다.",
-        "resetTitle": "서버의 {collection} 컬렉션을 초기화할까요?",
-        "resetBody": "이 컬렉션의 모든 레코드가 서버에서 삭제됨으로 표시되고 동기화된 모든 장치에서 제거됩니다.",
         "unlinkTitle": "이 장치의 연결을 해제할까요?",
-        "unlinkBody": "동기화가 꺼지고 서버 주소, 토큰, 대기 중인 변경 사항이 삭제됩니다. 로컬 데이터는 유지됩니다."
-      }
+        "unlinkBody": "다른 장치와의 동기화를 중단합니다. 로컬 데이터는 유지됩니다."
+      },
+      "description": "{collections} 데이터를 장치 간에 동기화합니다.",
+      "neverSeen": "접속 기록 없음",
+      "createCode": "페어링 코드 만들기",
+      "joinWithCode": "코드로 연결",
+      "copyCode": "코드 복사",
+      "codePlaceholder": "페어링 코드"
     },
     "backup": {
       "exportJson": "JSON 내보내기",
@@ -594,7 +522,8 @@
       "copied": "JSON을 클립보드에 복사했습니다",
       "notBackup": "Eris 백업 파일이 아닙니다",
       "nothing": "가져올 항목 없음",
-      "imported": "{count}개 항목을 가져왔습니다"
+      "imported": "{count}개 항목을 가져왔습니다",
+      "skipped": "잘못된 항목 {count}개를 제외했습니다"
     },
     "sectionsAria": "섹션"
   },
@@ -858,7 +787,6 @@
       "tray": "트레이 및 시계",
       "widgets": "위젯",
       "search": "런처",
-      "bubble": "채팅 버블",
       "spacer": "여백"
     }
   },
@@ -1100,7 +1028,7 @@
     },
     "sync": {
       "title": "장치 간 동기화",
-      "blurb": "선택 사항입니다. 내 동기화 서버를 지정하거나 건너뛰고 나중에 설정하세요."
+      "blurb": "선택 사항입니다. 다른 장치와 페어링하거나 건너뛰고 나중에 설정하세요."
     },
     "tips": {
       "title": "몇 가지 팁",
@@ -1161,9 +1089,10 @@
       "failed": "동기화에 실패했습니다: {error}",
       "unknownError": "알 수 없는 오류",
       "syncing": "동기화 중",
-      "pending": "동기화: 대기 {count}개",
       "synced": "{time} 동기화 완료",
-      "ready": "동기화 준비됨"
+      "ready": "동기화 준비됨",
+      "unpaired": "동기화 미연결",
+      "waiting": "동기화 페어링 대기"
     },
     "notifications": {
       "title": "알림",
@@ -1209,7 +1138,6 @@
       "unhide": "오버플로에 표시",
       "showAll": "숨김 표시",
       "allHidden": "아이콘 {count}개 숨김",
-      "appMenu": "앱 메뉴 열기",
       "hideFromDock": "독에서 숨기기",
       "showInDock": "독에 표시"
     },
@@ -1246,101 +1174,6 @@
       "weekly": "주간 {percent}%",
       "leftHours": "{hours}시간 {minutes}분 남음",
       "leftMinutes": "{minutes}분 남음"
-    }
-  },
-  "chat": {
-    "title": "Claude",
-    "rename": "채팅 이름 변경",
-    "closeFolder": "폴더 닫기",
-    "openFolder": "폴더 열기",
-    "newChat": "새 채팅",
-    "newBubble": "새 버블",
-    "cliMissing": "Claude Code CLI가 설치되어 있지 않습니다",
-    "placeholder": "메시지",
-    "queuePlaceholder": "메시지 예약",
-    "send": "전송",
-    "queueSend": "예약",
-    "stop": "중지",
-    "deny": "거부",
-    "allow": "허용",
-    "allowAlways": "항상 허용",
-    "usageUnknown": "사용량 확인 불가",
-    "context": "컨텍스트 {percent}% ({used} / {total} 토큰)",
-    "empty": {
-      "ask": "무엇이든 물어보세요",
-      "askHint": "코딩을 시작하려면 폴더를 여세요",
-      "code": "코드 변경을 요청하세요",
-      "codeHint": "명령은 /, 파일은 @"
-    },
-    "history": {
-      "title": "기록",
-      "home": "홈",
-      "current": "진행 중",
-      "untitled": "제목 없음",
-      "empty": "기록 없음",
-      "recentFolders": "최근 폴더",
-      "meta": "메시지 {count}개, {when}"
-    },
-    "usage": {
-      "fiveHour": "5시간",
-      "sevenDay": "7일",
-      "resets": "{time} 초기화"
-    },
-    "config": {
-      "title": "Claude Code 설정",
-      "model": "모델",
-      "modelDefault": "기본 모델",
-      "modelCustom": "사용자 지정…",
-      "effort": "노력 수준",
-      "permission": "권한 모드",
-      "thinking": "확장 사고",
-      "autoCompact": "자동 압축",
-      "language": "응답 언어",
-      "languageDefault": "기본값",
-      "budget": "세션당 예산 (USD)",
-      "budgetNone": "제한 없음",
-      "systemPrompt": "추가 시스템 프롬프트",
-      "restartHint": "적용하려면 세션을 다시 시작하세요",
-      "restart": "다시 시작"
-    },
-    "effort": {
-      "default": "기본 노력 수준",
-      "low": "낮음",
-      "medium": "보통",
-      "high": "높음",
-      "xhigh": "매우 높음",
-      "max": "최대"
-    },
-    "permission": {
-      "default": "매번 확인",
-      "acceptEdits": "편집 허용",
-      "plan": "계획",
-      "auto": "자동",
-      "dontAsk": "확인 안 함",
-      "bypassPermissions": "권한 우회"
-    },
-    "tri": {
-      "default": "기본값",
-      "on": "켬",
-      "off": "끔"
-    },
-    "hover": {
-      "none": "없음",
-      "title": "제목",
-      "preview": "마지막 메시지"
-    },
-    "queue": {
-      "afterTool": "도구 완료 후",
-      "afterReply": "답변 후",
-      "toggle": "전송 시점 전환"
-    },
-    "commands": {
-      "clear": "대화를 비우고 새로 시작합니다",
-      "resume": "이전 세션을 선택합니다",
-      "usage": "플랜 사용량 한도를 표시합니다",
-      "model": "모델을 선택합니다",
-      "effort": "노력 수준을 선택합니다",
-      "config": "Claude Code 설정"
     }
   }
 }

@@ -183,10 +183,7 @@
     {
       icon: "lucide:refresh-cw",
       label: $t("onboarding.steps.sync"),
-      value:
-        device.sync.enabled && device.sync.url
-          ? device.sync.url
-          : $t("common.off"),
+      value: device.sync.enabled ? $t("common.on") : $t("common.off"),
     },
   ])
 </script>

@@ -55,15 +55,11 @@
       },
       "sync": {
         "label": "同步",
-        "blurb": "通过自有服务器让各设备保持一致"
+        "blurb": "在设备之间直接同步数据"
       },
       "advanced": {
         "label": "高级",
         "blurb": "存储的数据、缓存、重置与版本信息"
-      },
-      "chat": {
-        "label": "AI 聊天",
-        "blurb": "配置 Claude 聊天气泡与用量显示。"
       },
       "experimental": {
         "label": "实验性功能",
@@ -77,10 +73,6 @@
         "description": "整体开启或关闭 Eris 的各个部分"
       },
       "featureGate": "启用",
-      "chat": {
-        "title": "聊天气泡",
-        "description": "气泡离屏幕边缘多近时会吸附"
-      },
       "hotkey": {
         "title": "启动器快捷键",
         "description": "轻按 Win 键打开 Eris。Win 组合键照常可用。"
@@ -114,10 +106,6 @@
         "title": "程序坞",
         "description": "程序坞如何与主题的其余部分融合"
       },
-      "chatHotkey": {
-        "title": "聊天",
-        "description": "聊天气泡的全局快捷键"
-      },
       "tray": "Windows 托盘",
       "experimental": {
         "title": "实验性功能",
@@ -131,8 +119,6 @@
       "language": "语言",
       "featureDock": "程序坞",
       "featureLauncher": "启动器",
-      "featureChat": "聊天气泡",
-      "snapDistance": "吸附距离",
       "setupWizard": "设置向导",
       "openWith": "打开方式",
       "shortcut": "快捷键",
@@ -143,6 +129,7 @@
       "todos": "待办",
       "calculator": "计算器",
       "webSearch": "网页搜索",
+      "terminal": "终端",
       "presets": "预设",
       "mode": "模式",
       "background": "背景",
@@ -199,14 +186,10 @@
       "claudeBridge": "Claude 状态栏桥接",
       "usageSnapshot": "用量快照",
       "mediaSide": "媒体控件",
-      "serverUrl": "服务器 URL",
-      "token": "令牌",
       "enableSync": "启用同步",
       "interval": "间隔",
       "collections": "集合",
-      "replaceLocal": "用服务器数据替换本地数据",
-      "resetCollection": "重置服务器上的集合",
-      "unlinkDevice": "解除此设备关联",
+      "unlinkDevice": "断开此设备",
       "dockSeparators": "分隔线",
       "clockAlign": "时钟对齐",
       "editMode": "编辑模式",
@@ -215,31 +198,20 @@
       "dockRadius": "程序坞圆角",
       "dockTint": "程序坞着色",
       "dockBorder": "程序坞边框",
-      "chatShortcut": "聊天快捷键",
       "updates": "更新",
       "showBluetooth": "显示 Bluetooth",
       "showNotifications": "显示通知铃铛",
       "showDesktopButton": "显示“显示桌面”按钮",
       "showTaskView": "显示任务视图按钮",
       "showInputLanguage": "显示输入语言",
-      "chatModel": "模型",
-      "chatEffort": "思考强度",
-      "chatPermission": "权限模式",
-      "chatThinking": "扩展思考",
-      "chatAutoCompact": "自动压缩",
-      "chatLanguage": "回复语言",
-      "chatBudget": "每会话预算",
-      "chatSystemPrompt": "附加系统提示词",
-      "chatHover": "悬停显示",
-      "chatMultiBubble": "多气泡",
-      "chatBubbleColors": "气泡颜色",
-      "chatQueueMode": "排队消息",
       "hideAnimation": "隐藏动画",
       "topBar": "顶部信息栏",
       "panelPosition": "面板位置",
       "holidayRegion": "节假日地区",
       "featureCalendar": "日历面板",
-      "dockLayout": "Dock 布局"
+      "dockLayout": "Dock 布局",
+      "pairDevice": "添加设备",
+      "joinDevice": "连接到其他设备"
     },
     "hints": {
       "deviceName": "显示在同步设备列表中",
@@ -248,7 +220,6 @@
       "language": "未选择时跟随 Windows",
       "featureDock": "替代 Windows 任务栏的工具栏",
       "featureLauncher": "按 Win 键搜索应用、窗口和命令",
-      "featureChat": "在浮动气泡中使用 Claude 和 Claude Code",
       "setupWizard": "重新运行首次启动设置",
       "openWith": "用哪些按键呼出启动器",
       "shortcut": "点击后按下组合键",
@@ -257,6 +228,7 @@
       "todos": "直接在搜索框中添加待办",
       "calculator": "输入表达式即可计算",
       "webSearch": "没有其他匹配结果时使用的搜索引擎",
+      "terminal": "终端命令打开的应用。",
       "weekNumbers": "在月视图中显示周数",
       "defaultReminder": "日程开始前",
       "showCompleted": "在列表中保留已完成项",
@@ -302,14 +274,10 @@
       "claudeBridge": "写入 Claude Code 报告的 5 小时与每周窗口数据",
       "usageSnapshot": "桥接写入的文件，或一个 URL",
       "mediaSide": "位于工具栏的哪一端",
-      "serverUrl": "Eris 同步服务器的运行地址",
-      "token": "启动服务器时使用的 ERIS_TOKEN",
       "enableSync": "Eris 打开时在后台运行",
-      "interval": "检查服务器的频率",
+      "interval": "与已配对设备同步的频率",
       "collections": "此设备发送和接收的内容",
-      "replaceLocal": "丢弃本地的{collections}并重新拉取全部数据",
-      "resetCollection": "将每条记录标记为已删除，使所有设备一并清除",
-      "unlinkDevice": "忘记此设备上的服务器、令牌和待同步更改",
+      "unlinkDevice": "停止与所有已配对设备同步",
       "dockSeparators": "启动器、应用与托盘之间的细线",
       "clockAlign": "时间与日期的对齐方式",
       "editMode": "调暗屏幕，点击 Eris 的任意部分即可更改其选项",
@@ -318,36 +286,27 @@
       "dockRadius": "浮动程序坞的圆角程度，相对于窗口圆角",
       "dockTint": "覆盖在程序坞上的主题色",
       "dockBorder": "程序坞周围的细边框",
-      "chatShortcut": "在任意位置打开或关闭 Claude 聊天",
       "updates": "下载安装程序并以新版本重启 Eris",
       "showBluetooth": "无线开关与已连接设备",
       "showNotifications": "打开 Windows 通知中心",
       "showDesktopButton": "右端的细条，点击可显示桌面",
       "showTaskView": "打开 Windows 任务视图",
       "showInputLanguage": "活动窗口的键盘布局；仅在有两个及以上布局时显示",
-      "chatModel": "别名（如 sonnet）或完整模型 ID；加 [1m] 后缀可选用 1M 上下文",
-      "chatEffort": "作为 --effort 传入；“默认”跟随 Claude Code 设置",
-      "chatPermission": "工具调用的批准方式",
-      "chatThinking": "在支持的模型上启用扩展思考",
-      "chatAutoCompact": "上下文快满时自动压缩",
-      "chatLanguage": "例如 korean 或 english",
-      "chatBudget": "单位为美元；0 表示不限制",
-      "chatSystemPrompt": "追加到默认系统提示词之后",
-      "chatHover": "光标停留在气泡上时显示的内容",
-      "chatMultiBubble": "气泡边缘的加号按钮可打开另一个会话",
-      "chatBubbleColors": "每个气泡各有一种外圈颜色",
-      "chatQueueMode": "回复期间输入的消息何时发送",
       "hideAnimation": "程序坞隐藏时滑出而不是立即消失",
       "topBar": "将时钟、托盘和小组件分离到顶部独立栏",
       "panelPosition": "日历和通知面板打开的位置",
       "holidayRegion": "显示节假日的国家/地区。系统跟随 Windows",
       "featureCalendar": "通过时钟打开的日历与日程面板",
-      "dockLayout": "通过小组件组装 Dock，并可调节留白宽度"
+      "dockLayout": "通过小组件组装 Dock，并可调节留白宽度",
+      "pairDevice": "在此创建配对码，然后在另一台设备上输入",
+      "joinDevice": "粘贴在另一台设备上创建的配对码"
     },
     "options": {
       "win": "Win 键",
       "shortcut": "快捷键",
       "both": "两者",
+      "terminalAuto": "自动",
+      "cmd": "命令提示符",
       "monday": "星期一",
       "sunday": "星期日",
       "manual": "手动",
@@ -369,19 +328,11 @@
     "featurePresets": {
       "all": {
         "name": "全部",
-        "hint": "程序坞、启动器与聊天"
-      },
-      "desk": {
-        "name": "工作台",
-        "hint": "程序坞与启动器，不含聊天"
+        "hint": "程序坞与启动器"
       },
       "search": {
         "name": "仅启动器",
         "hint": "保留 Windows 任务栏"
-      },
-      "bubble": {
-        "name": "仅聊天",
-        "hint": "仅 Claude 气泡"
       },
       "aria": "功能预设"
     },
@@ -438,9 +389,7 @@
         "right": "右",
         "arrows": "方向键",
         "menu": "菜单键"
-      },
-      "chat": "聊天",
-      "toggleChat": "打开或关闭聊天"
+      }
     },
     "appearance": {
       "presetDescriptions": {
@@ -493,10 +442,6 @@
         "mac": {
           "label": "Mac",
           "hint": "居中浮动的程序坞"
-        },
-        "uchiwa": {
-          "label": "团扇",
-          "hint": "扇形展开、可旋转切换的程序坞"
         }
       },
       "styleAria": "程序坞样式",
@@ -505,7 +450,6 @@
       "primary": "主显示器",
       "start": "左对齐",
       "center": "居中",
-      "uchiwa": "团扇",
       "bottom": "底部",
       "top": "顶部",
       "bars": "条形",
@@ -522,18 +466,9 @@
       "openEditMode": "打开"
     },
     "sync": {
-      "server": {
-        "title": "服务器",
-        "description": "让{collections}在各设备间保持一致。"
-      },
-      "status": "状态",
       "devices": {
         "title": "设备",
-        "description": "此服务器上注册的全部设备"
-      },
-      "danger": {
-        "title": "危险区域",
-        "description": "这些操作无法撤销"
+        "description": "与此设备配对的设备"
       },
       "collections": {
         "todos": "待办",
@@ -542,49 +477,42 @@
         "presets": "预设",
         "notes": "笔记"
       },
-      "hideToken": "隐藏令牌",
-      "revealToken": "显示令牌",
-      "testConnection": "测试连接",
-      "connected": "已连接，服务器 {version}，序号 {seq}",
       "everyHour": "每小时",
       "everyMinutes": "每 {minutes} 分钟",
       "states": {
-        "idle": "已是最新",
+        "disabled": "已关闭",
+        "unpaired": "未连接",
+        "waiting": "等待配对",
+        "idle": "已连接",
         "syncing": "同步中",
-        "error": "错误",
-        "disabled": "已关闭"
+        "error": "错误"
       },
       "lastSync": "上次同步 {when}",
       "neverSynced": "从未同步",
-      "pending": "{count} 项待同步",
       "justNow": "刚刚",
       "syncNow": "立即同步",
-      "noDevices": "暂无设备",
-      "setServerFirst": "请先设置服务器 URL 和令牌",
+      "noDevices": "暂无已配对设备",
       "seen": "上次在线 {when}",
       "thisDevice": "此设备",
-      "forget": "忘记",
-      "replace": "替换",
-      "unlink": "解除关联",
-      "collection": "集合",
+      "unlink": "断开连接",
       "toasts": {
         "failed": "同步失败",
-        "enableFirst": "请先启用同步并填写服务器",
-        "synced": "已同步：推送 {pushed} 项，拉取 {pulled} 项",
-        "deviceForgotten": "已忘记设备",
-        "localReplaced": "已用服务器数据替换本地数据",
-        "recordsCleared": "已清除 {count} 条记录",
-        "collectionReset": "服务器上的{collection}已重置",
-        "unlinked": "已解除设备关联"
+        "synced": "已与 {count} 台设备同步",
+        "unlinked": "已断开连接",
+        "noPeers": "没有可连接的设备",
+        "joined": "已连接",
+        "copied": "已复制配对码"
       },
       "confirm": {
-        "replaceTitle": "替换本地数据？",
-        "replaceBody": "本地的{collections}将被删除，并替换为服务器上的数据。未同步的更改将丢失。",
-        "resetTitle": "在服务器上重置{collection}？",
-        "resetBody": "此集合中的每条记录都将在服务器上标记为已删除，并从所有已同步设备中移除。",
-        "unlinkTitle": "解除此设备关联？",
-        "unlinkBody": "同步将关闭，服务器地址、令牌和待同步更改将被清除。本地数据保留。"
-      }
+        "unlinkTitle": "断开此设备？",
+        "unlinkBody": "此设备将停止与其他设备同步。本地数据会保留。"
+      },
+      "description": "让{collections}在各设备间保持一致。",
+      "neverSeen": "暂无在线记录",
+      "createCode": "创建配对码",
+      "joinWithCode": "用配对码连接",
+      "copyCode": "复制配对码",
+      "codePlaceholder": "配对码"
     },
     "backup": {
       "exportJson": "导出 JSON",
@@ -594,7 +522,8 @@
       "copied": "已将 JSON 复制到剪贴板",
       "notBackup": "不是 Eris 备份文件",
       "nothing": "没有可导入的内容",
-      "imported": "已导入 {count} 项"
+      "imported": "已导入 {count} 项",
+      "skipped": "已跳过 {count} 个无效项"
     },
     "sectionsAria": "分区"
   },
@@ -858,7 +787,6 @@
       "tray": "托盘与时钟",
       "widgets": "小组件",
       "search": "启动器",
-      "bubble": "聊天气泡",
       "spacer": "留白"
     }
   },
@@ -1100,7 +1028,7 @@
     },
     "sync": {
       "title": "跨设备同步",
-      "blurb": "可选。将 Eris 指向你自己的同步服务器，或跳过并稍后设置。"
+      "blurb": "可选。与另一台设备配对，或跳过并稍后设置。"
     },
     "tips": {
       "title": "几点提示",
@@ -1161,9 +1089,10 @@
       "failed": "同步失败：{error}",
       "unknownError": "未知错误",
       "syncing": "正在同步",
-      "pending": "同步：{count} 项待同步",
       "synced": "已同步 {time}",
-      "ready": "同步就绪"
+      "ready": "同步就绪",
+      "unpaired": "同步：未连接",
+      "waiting": "同步：等待配对"
     },
     "notifications": {
       "title": "通知",
@@ -1209,7 +1138,6 @@
       "unhide": "在溢出区显示",
       "showAll": "全部显示",
       "allHidden": "已隐藏 {count} 个图标",
-      "appMenu": "打开应用菜单",
       "hideFromDock": "在 Dock 中隐藏",
       "showInDock": "在 Dock 中显示"
     },
@@ -1246,101 +1174,6 @@
       "weekly": "每周 {percent}%",
       "leftHours": "剩余 {hours} 小时 {minutes} 分钟",
       "leftMinutes": "剩余 {minutes} 分钟"
-    }
-  },
-  "chat": {
-    "title": "Claude",
-    "rename": "重命名聊天",
-    "closeFolder": "关闭文件夹",
-    "openFolder": "打开文件夹",
-    "newChat": "新建聊天",
-    "newBubble": "新建气泡",
-    "cliMissing": "未安装 Claude Code CLI",
-    "placeholder": "输入消息",
-    "queuePlaceholder": "输入排队消息",
-    "send": "发送",
-    "queueSend": "排队",
-    "stop": "停止",
-    "deny": "拒绝",
-    "allow": "允许",
-    "allowAlways": "始终允许",
-    "usageUnknown": "用量不可用",
-    "context": "上下文 {percent}%（{used} / {total} tokens）",
-    "empty": {
-      "ask": "随便问些什么",
-      "askHint": "打开文件夹即可开始编码",
-      "code": "请求修改代码",
-      "codeHint": "/ 输入命令，@ 引用文件"
-    },
-    "history": {
-      "title": "历史记录",
-      "home": "主目录",
-      "current": "进行中",
-      "untitled": "无标题",
-      "empty": "无历史记录",
-      "recentFolders": "最近的文件夹",
-      "meta": "{count} 条消息，{when}"
-    },
-    "usage": {
-      "fiveHour": "5 小时",
-      "sevenDay": "7 天",
-      "resets": "{time} 重置"
-    },
-    "config": {
-      "title": "Claude Code 设置",
-      "model": "模型",
-      "modelDefault": "默认模型",
-      "modelCustom": "自定义…",
-      "effort": "思考强度",
-      "permission": "权限模式",
-      "thinking": "扩展思考",
-      "autoCompact": "自动压缩",
-      "language": "回复语言",
-      "languageDefault": "默认",
-      "budget": "每会话预算（USD）",
-      "budgetNone": "不限制",
-      "systemPrompt": "附加系统提示词",
-      "restartHint": "重启会话后生效",
-      "restart": "重启"
-    },
-    "effort": {
-      "default": "默认强度",
-      "low": "低",
-      "medium": "中",
-      "high": "高",
-      "xhigh": "超高",
-      "max": "最高"
-    },
-    "permission": {
-      "default": "询问",
-      "acceptEdits": "接受编辑",
-      "plan": "计划",
-      "auto": "自动",
-      "dontAsk": "不询问",
-      "bypassPermissions": "绕过权限"
-    },
-    "tri": {
-      "default": "默认",
-      "on": "开",
-      "off": "关"
-    },
-    "hover": {
-      "none": "无",
-      "title": "标题",
-      "preview": "最后一条消息"
-    },
-    "queue": {
-      "afterTool": "工具完成后",
-      "afterReply": "回复后",
-      "toggle": "切换发送时机"
-    },
-    "commands": {
-      "clear": "清空对话并重新开始",
-      "resume": "选择之前的会话",
-      "usage": "显示套餐用量限额",
-      "model": "选择模型",
-      "effort": "选择思考强度",
-      "config": "Claude Code 设置"
     }
   }
 }

@@ -7,7 +7,6 @@ export type SectionId =
   | "experimental"
   | "dock"
   | "launcher"
-  | "chat"
 
 export type NavSection = {
   id: SectionId
@@ -32,7 +31,6 @@ export const sections: NavSection[] = [
   { id: "experimental", icon: "lucide:flask-conical" },
   { id: "dock", icon: "lucide:panel-bottom", feature: true },
   { id: "launcher", icon: "lucide:search", feature: true },
-  { id: "chat", icon: "lucide:message-circle", feature: true },
 ]
 
 const entry = (
@@ -46,32 +44,10 @@ export const index: SearchEntry[] = [
   entry("general", "autostart", "autostart startup boot sign in"),
 
   entry("general", "language", "english korean japanese chinese locale"),
-  entry("chat", "featureChat", "feature enable disable claude"),
-  entry("chat", "snapDistance", "chat bubble edge percent"),
-  entry("chat", "chatModel", "chat claude code model opus sonnet haiku"),
-  entry("chat", "chatEffort", "chat claude code effort thinking level"),
-  entry(
-    "chat",
-    "chatPermission",
-    "chat claude code permission mode bypass plan",
-  ),
-  entry("chat", "chatThinking", "chat claude code extended thinking"),
-  entry("chat", "chatAutoCompact", "chat claude code context compact"),
-  entry("chat", "chatLanguage", "chat claude code response language"),
-  entry("chat", "chatBudget", "chat claude code cost limit usd"),
-  entry(
-    "chat",
-    "chatSystemPrompt",
-    "chat claude code system prompt instructions",
-  ),
-  entry("chat", "chatHover", "chat bubble tooltip title preview"),
-  entry("chat", "chatMultiBubble", "chat bubbles sessions plus stack"),
-  entry("chat", "chatBubbleColors", "chat bubble ring hue color"),
-  entry("chat", "chatQueueMode", "chat queue message after tool reply"),
   entry("general", "setupWizard", "onboarding first run"),
   entry("general", "backup", "export import json file restore"),
   entry("dock", "featureDock", "feature enable disable"),
-  entry("dock", "style", "windows mac floating uchiwa fan semicircle"),
+  entry("dock", "style", "windows mac floating"),
   entry("dock", "display", "monitor screen multiple external primary"),
   entry("dock", "edge", "bottom top screen side"),
   entry("dock", "alignment", "start center launcher middle"),
@@ -112,7 +88,6 @@ export const index: SearchEntry[] = [
   entry("launcher", "featureLauncher", "feature enable disable"),
   entry("launcher", "openWith", "hotkey trigger win key launcher"),
   entry("launcher", "shortcut", "hotkey keybinding combination"),
-  entry("chat", "chatShortcut", "claude bubble hotkey ctrl space"),
   entry("launcher", "keyboardShortcuts", "keys hotkeys launcher panel"),
   entry("launcher", "resultsPerGroup", "max count"),
   entry("launcher", "openWindows", "switch running"),
@@ -120,6 +95,7 @@ export const index: SearchEntry[] = [
   entry("launcher", "todos", "quick add task"),
   entry("launcher", "calculator", "math expression"),
   entry("launcher", "webSearch", "google duckduckgo bing naver engine"),
+  entry("launcher", "terminal", "cmd powershell pwsh wt console shell"),
   entry("appearance", "presets", "theme look aurora glass nord"),
   entry("appearance", "mode", "dark light system theme"),
   entry("appearance", "background", "aura glass solid surface"),
@@ -151,14 +127,12 @@ export const index: SearchEntry[] = [
   entry("calendar", "defaultReminder", "notification minutes alert"),
   entry("calendar", "showCompleted", "done todo"),
   entry("calendar", "sortBy", "order manual due priority"),
-  entry("sync", "serverUrl", "address host endpoint"),
-  entry("sync", "token", "secret auth bearer"),
   entry("sync", "enableSync", "background"),
   entry("sync", "interval", "minutes frequency"),
   entry("sync", "collections", "todos events presets profile"),
-  entry("sync", "replaceLocal", "reset pull danger"),
-  entry("sync", "resetCollection", "danger wipe"),
-  entry("sync", "unlinkDevice", "disconnect forget danger"),
+  entry("sync", "pairDevice", "pairing code invite peer"),
+  entry("sync", "joinDevice", "pairing code connect peer"),
+  entry("sync", "unlinkDevice", "disconnect leave unpair peer"),
   entry("advanced", "storedData", "counts todos events presets"),
   entry(
     "advanced",
