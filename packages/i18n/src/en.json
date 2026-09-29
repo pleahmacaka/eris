@@ -882,7 +882,10 @@
         "yearly": "Yearly"
       },
       "detail": "Event details",
-      "noNotes": "No notes"
+      "noNotes": "No notes",
+      "openInNote": "Open in Note",
+      "previewMissing": "No preview",
+      "timeFromTitle": "Starts at {time}"
     },
     "ics": {
       "options": "Calendar options",
@@ -953,7 +956,8 @@
     },
     "header": {
       "today": "Today {date}"
-    }
+    },
+    "holiday": "Holiday"
   },
   "files": {
     "forward": "Forward",

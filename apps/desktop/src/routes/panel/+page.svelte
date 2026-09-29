@@ -48,6 +48,8 @@
   let openId = $state<string | null>(null)
   let editing = $state(false)
   let mode = $state<"day" | "todo">("day")
+  let rangeDays = $state(0)
+  let rangeEnd = $state<Date | null>(null)
 
   const today = $derived(startOfDay(now))
 
@@ -108,6 +110,7 @@
 
   const pick = (day: Date) => {
     selected = day
+    rangeEnd = null
     openId = null
     editing = false
     mode = "day"
@@ -118,15 +121,25 @@
   }
 
   const show = (event: CalendarEvent) => {
+    rangeEnd = null
     openId = event.id
     editing = false
     mode = "day"
   }
 
   const startNew = () => {
+    rangeDays = 0
+    rangeEnd = null
     openId = "new"
     editing = true
     mode = "day"
+  }
+
+  const startRange = (start: Date, end: Date) => {
+    selected = start
+    startNew()
+    rangeDays = Math.round((end.getTime() - start.getTime()) / 86_400_000)
+    rangeEnd = end
   }
 
   const showTodos = () => {
@@ -136,6 +149,7 @@
   }
 
   const close = () => {
+    rangeEnd = null
     openId = null
     editing = false
   }
@@ -327,9 +341,11 @@
         month={cursor.getMonth()}
         {today}
         {selected}
+        {rangeEnd}
         eventsOnDay={day => eventsOn(eventLive.items, day)}
         {holidayFor}
         {pick}
+        selectRange={startRange}
         openEvent={show}
         weekNumbers={profile.calendar.showWeekNumbers}
       />
@@ -360,6 +376,7 @@
               setEditing={value => (editing = value)}
               {close}
               defaultReminder={profile.calendar.reminderMinutes || null}
+              span={openId === "new" ? rangeDays : 0}
             />
           </div>
         {/key}

@@ -882,7 +882,10 @@
         "yearly": "每年"
       },
       "detail": "日程详情",
-      "noNotes": "无备注"
+      "noNotes": "无备注",
+      "openInNote": "在 Note 中打开",
+      "previewMissing": "无预览",
+      "timeFromTitle": "{time} 开始"
     },
     "ics": {
       "options": "日历选项",
@@ -953,7 +956,8 @@
     },
     "header": {
       "today": "今天 {date}"
-    }
+    },
+    "holiday": "节假日"
   },
   "files": {
     "forward": "前进",

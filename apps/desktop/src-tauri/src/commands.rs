@@ -3,8 +3,8 @@ use tauri::Wry;
 
 use crate::{
     appbar, apps, audio, clipboard, desktop, edit, features, files, icons, media, meters, monitors,
-    notices, notify, p2p, pins, preview, quick, shortcuts, spectrum, system, usage, windowing,
-    winkey,
+    note, notices, notify, p2p, pins, preview, quick, shortcuts, spectrum, system, usage,
+    windowing, winkey,
 };
 
 pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
@@ -82,6 +82,8 @@ pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
         notices::notices_open_panel,
         notices::notices_activate,
         pins::reorder_pins,
+        note::note_linkable,
+        note::note_preview,
         edit::edit_raise,
         clipboard::clipboard_history,
         clipboard::clipboard_copy,

@@ -54,9 +54,19 @@
       {/if}
     </div>
 
-    {#each holidays as name (name)}
-      <p class="mt-1 truncate text-2xs font-medium text-error">{name}</p>
-    {/each}
+    {#if holidays.length > 0}
+      <div class="mt-1.5 flex flex-wrap gap-1">
+        {#each holidays as name (name)}
+          <span
+            class="badge badge-sm badge-soft badge-error max-w-full gap-1"
+            title={$t("panel.holiday")}
+          >
+            <Icon icon="lucide:flag" class="size-3 shrink-0" />
+            <span class="truncate">{name}</span>
+          </span>
+        {/each}
+      </div>
+    {/if}
   </header>
 
   <div class="min-h-0 flex-1 overflow-y-auto p-2">
