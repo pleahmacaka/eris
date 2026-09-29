@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { scramble } from "$lib/ascii/scramble"
   import { isAndroid } from "$lib/platform/runtime"
   import { layout } from "$lib/workspace/layout.svelte"
   import { focusedTab, tabTitle } from "$lib/workspace/workspace.svelte"
@@ -27,7 +28,7 @@
 
   <div data-tauri-drag-region class="flex items-center gap-2 pl-3 max-lg:hidden">
     <Icon icon="lucide:notebook-pen" class="size-4.5 text-primary" />
-    <span class="text-sm font-black tracking-tighter">note</span>
+    <span class="text-sm font-black tracking-tighter" use:scramble>note</span>
   </div>
 
   <div data-tauri-drag-region class="flex min-w-0 flex-1 justify-center px-2">

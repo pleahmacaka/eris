@@ -40,6 +40,7 @@
   import Palette from "./Palette.svelte"
   import PaneView from "./PaneView.svelte"
   import SideBar from "./SideBar.svelte"
+  import StatusBar from "./StatusBar.svelte"
   import TitleBar from "./TitleBar.svelte"
 
   const SAVE_DELAY = 500
@@ -245,6 +246,7 @@
     {/if}
   </div>
 
+  <StatusBar />
 </div>
 
 <Palette />

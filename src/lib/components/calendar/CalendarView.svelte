@@ -94,8 +94,9 @@
   }
 </script>
 
-<div class="flex min-h-0 flex-1 flex-col lg:flex-row">
-  <div class="flex min-h-0 min-w-0 flex-1 flex-col">
+<div class="@container flex min-h-0 flex-1 flex-col overflow-y-auto">
+<div class="flex flex-1 flex-col @4xl:min-h-0 @4xl:flex-row">
+  <div class="flex min-w-0 flex-1 flex-col @4xl:overflow-y-auto">
     <header
       class={[
         "flex items-center justify-between gap-2 border-b border-base-content/10",
@@ -155,9 +156,8 @@
 
   <aside
     class={[
-      "flex min-h-0 shrink-0 flex-col overflow-hidden border-base-content/10",
-      "border-t lg:h-auto lg:w-88 lg:border-l lg:border-t-0",
-      "h-72 bg-base-100",
+      "flex min-h-72 shrink-0 flex-col border-base-content/10 bg-base-100",
+      "border-t @4xl:min-h-0 @4xl:w-80 @4xl:border-l @4xl:border-t-0",
     ]}
   >
     {#if openId !== null}
@@ -182,4 +182,5 @@
       />
     {/if}
   </aside>
+</div>
 </div>

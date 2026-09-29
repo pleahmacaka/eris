@@ -47,7 +47,7 @@
   {/each}
 </div>
 
-<div class="grid min-h-0 flex-1 grid-cols-7 grid-rows-6 bg-base-100">
+<div class="grid grid-cols-7 bg-base-100">
   {#each weeks as week (week[0].toISOString())}
     {#each week as day (day.toISOString())}
       {@const outside = day.getMonth() !== month}
@@ -59,7 +59,8 @@
         role="button"
         tabindex="0"
         class={[
-          "flex min-h-0 cursor-pointer flex-col gap-0.5 overflow-hidden",
+          "flex min-h-16 min-w-0 cursor-pointer flex-col gap-0.5 overflow-hidden",
+          "@3xl:aspect-4/3 @3xl:min-h-0",
           "border-b border-r border-base-content/10 p-1.5 text-left",
           "text-xs transition-colors hover:bg-base-content/5",
           outside && "bg-base-200/60 text-base-content/30",

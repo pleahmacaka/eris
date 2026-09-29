@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import AsciiField from "$lib/components/ui/AsciiField.svelte"
   import { copyText } from "$lib/menu/clipboard"
   import { showMenu } from "$lib/menu/menu.svelte"
   import { newNote } from "$lib/workspace/commands"
@@ -34,6 +35,8 @@
   const current = $derived(activeTab(pane))
 
   const focused = $derived(workspace.focus === pane.id)
+
+  const MARK = ["┌──────┐", "│ note │", "└──────┘"].join("\n")
 
   let hover = $state<string | null>(null)
 
@@ -193,6 +196,7 @@
       <ViewHost tab={current} />
     {:else}
       <div class="relative flex flex-1 items-center justify-center p-6">
+        <AsciiField />
         <div
           class={[
             "relative flex w-full max-w-sm flex-col items-center gap-3 border",
@@ -200,6 +204,9 @@
             "text-center backdrop-blur-sm",
           ]}
         >
+          <pre
+            class="text-xs leading-tight text-primary"
+            aria-hidden="true">{MARK}</pre>
           <p class="font-medium">열린 파일 없음</p>
           <p class="text-sm text-base-content/50">
             새 노트를 만들거나 파일을 여세요.

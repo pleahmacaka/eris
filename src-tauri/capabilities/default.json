@@ -10,6 +10,11 @@
     "core:event:default",
     "core:window:default",
     "core:webview:default",
+    "core:window:allow-is-maximized",
+    "core:window:allow-close",
+    "core:window:allow-toggle-maximize",
+    "core:window:allow-minimize",
+    "core:window:allow-start-dragging",
     "store:default",
     "os:allow-hostname",
     "dialog:allow-open",
@@ -37,13 +42,6 @@
         }
       ]
     },
-    "core:window:allow-start-dragging",
-    "core:window:allow-minimize",
-    "core:window:allow-toggle-maximize",
-    "core:window:allow-close",
-    "core:window:allow-is-maximized",
-    "clipboard-manager:allow-read-text",
-    "clipboard-manager:allow-write-text",
     "deep-link:default",
     {
       "identifier": "opener:allow-open-url",
@@ -55,6 +53,8 @@
           "url": "http://*"
         }
       ]
-    }
+    },
+    "clipboard-manager:allow-read-text",
+    "clipboard-manager:allow-write-text"
   ]
 }
