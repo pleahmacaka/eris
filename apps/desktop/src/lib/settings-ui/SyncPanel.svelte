@@ -216,6 +216,19 @@
       bind:checked={device.sync.enabled}
     />
   </Row>
+
+  <Row
+    label={$t("settings.rows.showSyncStatus")}
+    hint={$t("settings.hints.showSyncStatus")}
+  >
+    <input
+      type="checkbox"
+      class="toggle toggle-primary"
+      aria-label={$t("settings.rows.showSyncStatus")}
+      disabled={!device.sync.enabled}
+      bind:checked={device.showSyncStatus}
+    />
+  </Row>
 </Section>
 
 <fieldset

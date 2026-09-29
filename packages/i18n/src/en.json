@@ -211,7 +211,8 @@
       "featureCalendar": "Calendar panel",
       "dockLayout": "Dock layout",
       "pairDevice": "Add a device",
-      "joinDevice": "Join another device"
+      "joinDevice": "Join another device",
+      "showSyncStatus": "Status in dock"
     },
     "hints": {
       "deviceName": "Shown in the sync device list",
@@ -300,6 +301,7 @@
       "dockLayout": "Assemble the dock from widgets, including adjustable spacers",
       "pairDevice": "Create a code here and enter it on the other device",
       "joinDevice": "Paste the code made on the other device",
+      "showSyncStatus": "Shows a sync status dot next to the clock",
       "lastEntryPoint": "Keep the dock or the launcher on.",
       "dockLayoutLocked": "Turn on edit mode under Experimental to use this"
     },

@@ -101,6 +101,7 @@ export type DeviceSettings = {
   showTaskView: boolean
   showInputLanguage: boolean
   showSeconds: boolean
+  showSyncStatus: boolean
   clock24h: boolean
   launcherTrigger: LauncherTrigger
   launcherShortcut: string
@@ -263,6 +264,7 @@ export const defaultDevice: DeviceSettings = {
   showTaskView: false,
   showInputLanguage: true,
   showSeconds: false,
+  showSyncStatus: false,
   clock24h: false,
   launcherTrigger: "both",
   launcherShortcut: "Alt+Space",

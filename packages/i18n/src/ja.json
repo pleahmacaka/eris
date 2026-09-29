@@ -211,7 +211,8 @@
       "featureCalendar": "カレンダーパネル",
       "dockLayout": "ドックレイアウト",
       "pairDevice": "デバイスを追加",
-      "joinDevice": "別のデバイスに接続"
+      "joinDevice": "別のデバイスに接続",
+      "showSyncStatus": "Dock に状態を表示"
     },
     "hints": {
       "deviceName": "同期のデバイス一覧に表示されます。",
@@ -300,6 +301,7 @@
       "dockLayout": "ウィジェットを組み合わせてドックを構成し、余白の幅を調節します",
       "pairDevice": "ここでコードを作成し、もう一方のデバイスで入力してください。",
       "joinDevice": "もう一方のデバイスで作成したコードを貼り付けてください。",
+      "showSyncStatus": "時計の横に同期状態のドットを表示します",
       "lastEntryPoint": "Dock かランチャーのどちらかをオンにしてください。",
       "dockLayoutLocked": "実験的機能で編集モードをオンにすると使えます"
     },

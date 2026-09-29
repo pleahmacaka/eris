@@ -531,7 +531,7 @@
       <Icon icon="lucide:layout-grid" class="size-4 text-base-content/70" />
     </button>
   {:else if id === "clock"}
-    {#if device.sync.enabled}
+    {#if device.sync.enabled && device.showSyncStatus}
       <span
         class={["mx-1 inline-block size-1.5 rounded-full", syncTone]}
         title={syncTitle}
