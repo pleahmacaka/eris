@@ -12,8 +12,7 @@
     "tauri": "tauri",
     "lint": "biome check .",
     "format": "biome check --write .",
-    "test": "bun test",
-    "icons": "bun run scripts/icons.ts && biome check --write src/lib/icons.ts"
+    "test": "bun test"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.11",

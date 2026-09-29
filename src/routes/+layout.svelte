@@ -1,8 +1,8 @@
 <script lang="ts">
+  import { icons as lucide } from "@iconify-json/lucide"
   import { addCollection } from "@iconify/svelte"
   import BottomNav from "$lib/components/ui/BottomNav.svelte"
   import Sidebar from "$lib/components/ui/Sidebar.svelte"
-  import { lucideSubset } from "$lib/icons"
   import { device, watchDevice } from "$lib/settings.svelte"
   import { startAutoSync } from "$lib/sync/engine"
   import { applyAppearance } from "$lib/theme"
@@ -10,7 +10,7 @@
 
   const { children } = $props()
 
-  addCollection(lucideSubset)
+  addCollection(lucide)
 
   $effect(() => watchDevice())
 
