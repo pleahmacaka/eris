@@ -1,20 +1,22 @@
 <script lang="ts">
-  import NoteEditor from "$lib/components/note/NoteEditor.svelte"
-  import NoteList from "$lib/components/note/NoteList.svelte"
-  import TopBar from "$lib/components/ui/TopBar.svelte"
-  import type { Note } from "$lib/data/types"
-
-  let editing = $state<Note | null>(null)
+  import AppShell from "$lib/components/shell/AppShell.svelte"
+  import { isTauri } from "$lib/platform/runtime"
 </script>
 
-<TopBar title="메모" />
-
-<main class="relative mx-auto flex w-full max-w-3xl min-h-0 flex-1 flex-col pt-3">
-  <NoteList open={note => (editing = note)} />
-
-  {#if editing}
-    {#key editing.id}
-      <NoteEditor note={editing} close={() => (editing = null)} />
-    {/key}
-  {/if}
-</main>
+{#if isTauri()}
+  <AppShell />
+{:else}
+  <main class="flex h-dvh items-center justify-center bg-base-200 p-6">
+    <div
+      class={[
+        "flex max-w-sm flex-col items-center gap-2 border border-dashed",
+        "border-base-content/15 px-6 py-10 text-center",
+      ]}
+    >
+      <p class="font-medium">브라우저 미지원</p>
+      <p class="text-sm text-base-content/50">
+        Windows 또는 Android 앱에서 실행하세요.
+      </p>
+    </div>
+  </main>
+{/if}
