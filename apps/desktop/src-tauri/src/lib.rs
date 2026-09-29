@@ -88,9 +88,15 @@ pub fn run() {
     #[allow(unused_mut)]
     let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _, _| {
-            if LAUNCHER_ON.load(Ordering::Relaxed) {
-                windowing::show(app, "main");
-            }
+            let label = if !onboarded(app) {
+                "onboarding"
+            } else if LAUNCHER_ON.load(Ordering::Relaxed) {
+                "main"
+            } else {
+                "settings"
+            };
+
+            windowing::show(app, label);
         }))
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())

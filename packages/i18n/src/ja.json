@@ -299,7 +299,9 @@
       "featureCalendar": "時計から開くカレンダーと予定パネルを使用します",
       "dockLayout": "ウィジェットを組み合わせてドックを構成し、余白の幅を調節します",
       "pairDevice": "ここでコードを作成し、もう一方のデバイスで入力してください。",
-      "joinDevice": "もう一方のデバイスで作成したコードを貼り付けてください。"
+      "joinDevice": "もう一方のデバイスで作成したコードを貼り付けてください。",
+      "lastEntryPoint": "Dock かランチャーのどちらかをオンにしてください。",
+      "dockLayoutLocked": "実験的機能で編集モードをオンにすると使えます"
     },
     "options": {
       "win": "Win キー",
@@ -344,7 +346,8 @@
       "iconCacheCleared": "アイコンキャッシュをクリアしました。",
       "iconCacheFailed": "アイコンキャッシュをクリアできませんでした: {error}",
       "appearanceReset": "外観をリセットしました。",
-      "settingsReset": "設定をリセットしました。"
+      "settingsReset": "設定をリセットしました。",
+      "bridgeFailed": "Claude ブリッジを変更できませんでした: {error}"
     },
     "about": {
       "tagline": "Windows 11 のためのランチャー、ドック、カレンダー",

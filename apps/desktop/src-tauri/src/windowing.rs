@@ -233,9 +233,8 @@ fn show_now(app: &AppHandle, label: &str) {
     };
 
     let _ = match label {
-        "main" => center_on_cursor_monitor(&window),
+        "main" | "settings" | "onboarding" | "files" => center_on_cursor_monitor(&window),
         "panel" | "notices" => dock_panel(app, &window),
-        "settings" | "onboarding" => window.center(),
         _ => Ok(()),
     };
 
@@ -274,8 +273,8 @@ fn center_on_cursor_monitor(window: &WebviewWindow) -> tauri::Result<()> {
 
     let work = monitor.work_area();
     let (width, height) = physical_size_on(window, monitor.scale_factor())?;
-    let x = work.position.x + (work.size.width as i32 - width) / 2;
-    let y = work.position.y + (work.size.height as i32 - height) / 2;
+    let x = work.position.x + ((work.size.width as i32 - width) / 2).max(0);
+    let y = work.position.y + ((work.size.height as i32 - height) / 2).max(0);
 
     window.set_position(PhysicalPosition::new(x, y))
 }
@@ -339,6 +338,13 @@ fn dock_panel(app: &AppHandle, window: &WebviewWindow) -> tauri::Result<()> {
         Some((position, _)) => position.y - gap - height,
         None => screen_bottom - gap - height,
     };
+
+    let x = x
+        .min(screen_right - gap - width)
+        .max(monitor.position().x + gap);
+    let y = y
+        .min(screen_bottom - gap - height)
+        .max(monitor.position().y + gap);
 
     window.set_position(PhysicalPosition::new(x, y))
 }

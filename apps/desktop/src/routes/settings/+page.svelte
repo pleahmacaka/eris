@@ -5,7 +5,11 @@
   import { tick } from "svelte"
   import { saveProfileSynced } from "$lib/data"
   import { ensureDevice } from "$lib/device"
-  import { onWindowShown, showWindow } from "$lib/native/windows"
+  import {
+    onWindowHiding,
+    onWindowShown,
+    showWindow,
+  } from "$lib/native/windows"
   import { setLauncherShortcut, setWinKeyCapture } from "$lib/native/dock"
   import {
     type DeviceSettings,
@@ -91,6 +95,20 @@
     await saveProfileSynced(snapshot)
   }
 
+  const flush = () => {
+    if (!ready) {
+      return
+    }
+
+    if (stableJson(device) !== deviceJson) {
+      persistDevice()
+    }
+
+    if (stableJson(profile) !== profileJson) {
+      persistProfile()
+    }
+  }
+
   $effect(() => {
     Promise.all([ensureDevice(), loadProfile()]).then(([d, p]) => {
       deviceJson = stableJson(d)
@@ -121,6 +139,7 @@
         query = ""
         takeIntent()
       }),
+      onWindowHiding("settings", flush),
     ]
 
     takeIntent()
@@ -165,18 +184,19 @@
   })
 
   const hotkey = $derived(
-    `${device.launcherTrigger}|${device.launcherShortcut}`,
+    `${device.features.launcher}|${device.launcherTrigger}|${device.launcherShortcut}`,
   )
 
   $effect(() => {
-    const [trigger, shortcut] = hotkey.split("|")
+    const [launcher, trigger, shortcut] = hotkey.split("|")
+    const on = launcher === "true"
 
     if (!ready) {
       return
     }
 
-    setWinKeyCapture(trigger !== "shortcut").catch(() => undefined)
-    setLauncherShortcut(trigger === "win" ? null : shortcut).catch(error =>
+    setWinKeyCapture(on && trigger !== "shortcut").catch(() => undefined)
+    setLauncherShortcut(on && trigger !== "win" ? shortcut : null).catch(error =>
       toast(
         $t("settings.toasts.shortcutFailed", { values: { error: message(error) } }),
         "error",

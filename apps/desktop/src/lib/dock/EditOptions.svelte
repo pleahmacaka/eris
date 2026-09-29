@@ -193,30 +193,36 @@
   {@render toggleRow("showSettingsButton", $t("settings.rows.showSettingsButton"))}
 {:else if kind === "widgets"}
   {@render toggleRow("showClaudeUsage", $t("settings.rows.showClaudeUsage"))}
-  {@render toggleRow("claudeUsageStacked", $t("settings.rows.claudeUsageStacked"))}
 
-  <div class="flex items-center justify-between gap-3 py-1 text-xs">
-    <span>{$t("settings.rows.claudeUsageSide")}</span>
+  {#if device.showClaudeUsage}
+    {@render toggleRow("claudeUsageStacked", $t("settings.rows.claudeUsageStacked"))}
 
-    <Segmented value={device.claudeUsageSide} options={sideOptions} onchange={v => layout.patch("claudeUsageSide", v)} />
-  </div>
-
-  {@render toggleRow("showMedia", $t("settings.rows.showMedia"))}
-  {@render toggleRow("showSpectrum", $t("settings.rows.showSpectrum"))}
-
-  {#if device.showSpectrum}
     <div class="flex items-center justify-between gap-3 py-1 text-xs">
-      <span>{$t("settings.rows.spectrumStyle")}</span>
+      <span>{$t("settings.rows.claudeUsageSide")}</span>
 
-      <Segmented value={device.spectrumStyle} options={spectrumOptions} onchange={v => layout.patch("spectrumStyle", v)} />
+      <Segmented value={device.claudeUsageSide} options={sideOptions} onchange={v => layout.patch("claudeUsageSide", v)} />
     </div>
   {/if}
 
-  <div class="flex items-center justify-between gap-3 py-1 text-xs">
-    <span>{$t("settings.rows.mediaSide")}</span>
+  {@render toggleRow("showMedia", $t("settings.rows.showMedia"))}
 
-    <Segmented value={device.mediaSide} options={sideOptions} onchange={v => layout.patch("mediaSide", v)} />
-  </div>
+  {#if device.showMedia}
+    {@render toggleRow("showSpectrum", $t("settings.rows.showSpectrum"))}
+
+    {#if device.showSpectrum}
+      <div class="flex items-center justify-between gap-3 py-1 text-xs">
+        <span>{$t("settings.rows.spectrumStyle")}</span>
+
+        <Segmented value={device.spectrumStyle} options={spectrumOptions} onchange={v => layout.patch("spectrumStyle", v)} />
+      </div>
+    {/if}
+
+    <div class="flex items-center justify-between gap-3 py-1 text-xs">
+      <span>{$t("settings.rows.mediaSide")}</span>
+
+      <Segmented value={device.mediaSide} options={sideOptions} onchange={v => layout.patch("mediaSide", v)} />
+    </div>
+  {/if}
 {:else}
   {@render toggleRow("showLauncherButton", $t("settings.rows.showLauncherButton"))}
   {@render toggleRow("showKeymap", $t("settings.rows.showKeymap"))}

@@ -22,7 +22,7 @@
     allPresets,
     SyncPanel,
   } from "$lib/settings-ui"
-  import { Row, Section, Segmented, Toasts } from "@eris/ui"
+  import { Row, Section, Segmented, Toasts, toast } from "@eris/ui"
   import { applyAppearance } from "$lib/theme"
 
   const steps = [
@@ -108,17 +108,39 @@
 
     finishing = true
 
+    const launcher = device.features.launcher
+
     try {
+      await setLauncherShortcut(
+        launcher && device.launcherTrigger !== "win"
+          ? device.launcherShortcut
+          : null,
+      )
+    } catch (error) {
+      toast(
+        $t("settings.toasts.shortcutFailed", {
+          values: { error: error instanceof Error ? error.message : String(error) },
+        }),
+        "error",
+      )
+      at = steps.indexOf("hotkeys")
+      finishing = false
+
+      return
+    }
+
+    try {
+      await setWinKeyCapture(
+        launcher && device.launcherTrigger !== "shortcut",
+      ).catch(() => undefined)
       device.onboarded = true
       await saveDevice($state.snapshot(device))
       await saveProfileSynced($state.snapshot(profile))
-      await setWinKeyCapture(device.launcherTrigger !== "shortcut").catch(
-        () => undefined,
-      )
-      await setLauncherShortcut(
-        device.launcherTrigger === "win" ? null : device.launcherShortcut,
-      ).catch(() => undefined)
-      await showWindow("main")
+
+      if (launcher) {
+        await showWindow("main")
+      }
+
       await native.hideWindow("onboarding")
     } finally {
       finishing = false
@@ -303,6 +325,22 @@
             <Section title={$t("settings.groups.features.title")}>
               <FeatureControls bind:device presets />
             </Section>
+
+            <div class="mt-4">
+              <Section title={$t("settings.groups.device")}>
+                <Row
+                  label={$t("settings.rows.autostart")}
+                  hint={$t("settings.hints.autostart")}
+                >
+                  <input
+                    type="checkbox"
+                    class="toggle toggle-primary"
+                    aria-label={$t("settings.rows.autostart")}
+                    bind:checked={device.autostart}
+                  />
+                </Row>
+              </Section>
+            </div>
           {:else if step === "style"}
             <div class="mb-4 flex items-end justify-between gap-4">
               <div>

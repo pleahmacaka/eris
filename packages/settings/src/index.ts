@@ -21,6 +21,10 @@ export type Features = {
   calendar: boolean
 }
 
+export const isLastEntryPoint = (features: Features, key: keyof Features) =>
+  (key === "dock" && features.dock && !features.launcher) ||
+  (key === "launcher" && features.launcher && !features.dock)
+
 export type DockWidgetKind = "lead" | "apps" | "tray" | "spacer"
 
 export type DockWidget = {
@@ -232,7 +236,7 @@ export const defaultDevice: DeviceSettings = {
   panelPosition: "right",
   dockSeparators: true,
   clockAlign: "end",
-  editMode: true,
+  editMode: false,
   features: { dock: true, launcher: true, calendar: true },
   dockMonitor: null,
   hideSystemTaskbar: true,
@@ -241,7 +245,7 @@ export const defaultDevice: DeviceSettings = {
   showTrayIcons: true,
   showKeymap: false,
   showSettingsButton: false,
-  showClaudeUsage: true,
+  showClaudeUsage: false,
   claudeUsageSource: "",
   claudeUsageSide: "left",
   claudeUsageStacked: false,
