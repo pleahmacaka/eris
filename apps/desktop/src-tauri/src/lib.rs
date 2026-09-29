@@ -21,6 +21,7 @@ mod icons;
 mod media;
 mod meters;
 mod monitors;
+mod note;
 mod notices;
 mod notify;
 mod p2p;

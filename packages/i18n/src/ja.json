@@ -882,7 +882,10 @@
         "yearly": "毎年"
       },
       "detail": "予定の詳細",
-      "noNotes": "メモなし"
+      "noNotes": "メモなし",
+      "openInNote": "Note で開く",
+      "previewMissing": "プレビューなし",
+      "timeFromTitle": "{time} 開始"
     },
     "ics": {
       "options": "カレンダーのオプション",
@@ -953,7 +956,8 @@
     },
     "header": {
       "today": "今日 {date}"
-    }
+    },
+    "holiday": "祝日"
   },
   "files": {
     "forward": "進む",

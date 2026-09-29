@@ -10,11 +10,14 @@
     events as eventStore,
     newId,
     parseLocal,
+    parseTimeToken,
     startOfDay,
+    withoutToken,
   } from "$lib/data"
   import type { CalendarEvent, Recurrence } from "$lib/data"
   import { colorMeta, eventColors, type EventColor, toColor } from "./colors"
-  import { eventSpan, longDay } from "./format"
+  import { eventSpan, longDay, shortDay } from "./format"
+  import NoteText from "./NoteText.svelte"
 
   const {
     event,
@@ -23,6 +26,7 @@
     setEditing,
     close,
     defaultReminder = null,
+    span = 0,
   }: {
     event: CalendarEvent | null
     day: Date
@@ -30,6 +34,7 @@
     setEditing: (value: boolean) => void
     close: () => void
     defaultReminder?: number | null
+    span?: number
   } = $props()
 
   const RECURRENCES: Recurrence[] = [
@@ -44,6 +49,8 @@
   const REMINDERS: (number | null)[] = [null, 0, 5, 10, 15, 30, 60, 1440]
 
   const DAY = 86_400_000
+  const DAY_MINUTES = 1_440
+  const DEFAULT_LENGTH = 60
 
   const reminderLabel = (minutes: number | null) => {
     if (minutes === null) {
@@ -75,6 +82,12 @@
     return hour * 60 + minute
   }
 
+  const hhmm = (total: number) => {
+    const wrapped = (total + DAY_MINUTES) % DAY_MINUTES
+
+    return `${String(Math.floor(wrapped / 60)).padStart(2, "0")}:${String(wrapped % 60).padStart(2, "0")}`
+  }
+
   let title = $state("")
   let notes = $state("")
   let allDay = $state(false)
@@ -83,16 +96,56 @@
   let color = $state<EventColor>("primary")
   let recurrence = $state<Recurrence>("none")
   let reminder = $state<number | null>(null)
+  let appliedToken = -1
+  let titleInput = $state<HTMLInputElement>()
+  let titleMirror = $state<HTMLDivElement>()
+
+  const token = $derived(parseTimeToken(title))
+
+  const finalTitle = $derived(
+    (token && !allDay ? withoutToken(title, token) : title).trim(),
+  )
 
   const load = () => {
     title = event?.title ?? ""
+    appliedToken = parseTimeToken(title)?.minutes ?? -1
     notes = event?.notes ?? ""
-    allDay = event?.allDay ?? false
+    allDay = event?.allDay ?? span > 0
     startTime = event && !event.allDay ? inputTime(event.start) : "10:00"
     endTime = event && !event.allDay ? inputTime(event.end) : "11:00"
     color = toColor(event?.color ?? null)
     recurrence = event?.recurrence ?? "none"
     reminder = event?.reminderMinutes ?? defaultReminder
+  }
+
+  $effect(() => {
+    const at = token?.minutes ?? -1
+
+    if (at === appliedToken) {
+      return
+    }
+
+    appliedToken = at
+
+    if (at < 0) {
+      return
+    }
+
+    untrack(() => {
+      const length =
+        (minutes(endTime) - minutes(startTime) + DAY_MINUTES) % DAY_MINUTES ||
+        DEFAULT_LENGTH
+
+      startTime = hhmm(at)
+      endTime = hhmm(at + length)
+      allDay = false
+    })
+  })
+
+  const syncMirror = () => {
+    if (titleMirror && titleInput) {
+      titleMirror.scrollLeft = titleInput.scrollLeft
+    }
   }
 
   const eventId = $derived(event?.id)
@@ -109,7 +162,7 @@
 
   const keptDays = $derived.by(() => {
     if (!event) {
-      return 0
+      return span
     }
 
     const start = parseLocal(event.start)
@@ -133,7 +186,7 @@
     return end < startAt ? addDays(end, 1) : end
   })
 
-  const valid = $derived(title.trim() !== "" && (allDay || endAt > startAt))
+  const valid = $derived(finalTitle !== "" && (allDay || endAt > startAt))
 
   const save = async () => {
     if (!valid) {
@@ -143,7 +196,7 @@
     const stamp = Date.now()
     const next: CalendarEvent = {
       id: event?.id ?? newId(),
-      title: title.trim(),
+      title: finalTitle,
       notes,
       allDay,
       start: allDay ? dateKey(base) : dateTimeKey(startAt),
@@ -219,16 +272,45 @@
       <div class="flex flex-col gap-4">
         <label class="flex flex-col gap-1">
           {@render caption($t("panel.title"))}
-          <input
-            class={[
-              "w-full border-0 border-b border-base-300 bg-transparent px-0",
-              "py-1.5 text-lg font-semibold outline-none",
-              "transition-colors duration-120 focus:border-primary",
-              "placeholder:text-base-content/35",
-            ]}
-            placeholder={$t("panel.event.new")}
-            bind:value={title}
-          />
+          <div class="relative">
+            {#if token && !allDay}
+              <div
+                bind:this={titleMirror}
+                aria-hidden="true"
+                class={[
+                  "pointer-events-none absolute inset-0 overflow-hidden whitespace-pre",
+                  "border-b border-transparent px-0 py-1.5 text-lg font-semibold",
+                  "text-transparent",
+                ]}
+              >{title.slice(0, token.start)}<mark class="rounded-sm bg-primary/25 text-transparent">{title.slice(token.start, token.end)}</mark>{title.slice(token.end)}</div>
+            {/if}
+
+            <input
+              bind:this={titleInput}
+              class={[
+                "relative w-full border-0 border-b border-base-300 bg-transparent px-0",
+                "py-1.5 text-lg font-semibold outline-none",
+                "transition-colors duration-120 focus:border-primary",
+                "placeholder:text-base-content/35",
+              ]}
+              placeholder={$t("panel.event.new")}
+              bind:value={title}
+              onscroll={syncMirror}
+              oninput={syncMirror}
+            />
+          </div>
+
+          <span class="text-2xs tabular-nums text-base-content/60">
+            {keptDays > 0
+              ? `${shortDay(base)} – ${shortDay(addDays(base, keptDays))}`
+              : shortDay(base)}
+          </span>
+
+          {#if token && !allDay}
+            <span class="text-2xs text-primary">
+              {$t("panel.event.timeFromTitle", { values: { time: hhmm(token.minutes) } })}
+            </span>
+          {/if}
         </label>
 
         <div class="flex flex-col gap-3">
@@ -378,14 +460,14 @@
 
       <div class="mt-5 flex flex-col gap-1.5 border-t border-base-300 pt-4">
         {@render caption($t("panel.event.notes"))}
-        <p
-          class={[
-            "text-sm leading-relaxed whitespace-pre-line break-words",
-            event.notes ? "text-base-content/85" : "text-base-content/50",
-          ]}
-        >
-          {event.notes || $t("panel.event.noNotes")}
-        </p>
+
+        {#if event.notes}
+          <NoteText text={event.notes} />
+        {:else}
+          <p class="text-sm leading-relaxed text-base-content/50">
+            {$t("panel.event.noNotes")}
+          </p>
+        {/if}
       </div>
     {/if}
   </div>

@@ -882,7 +882,10 @@
         "yearly": "매년"
       },
       "detail": "일정 상세",
-      "noNotes": "메모 없음"
+      "noNotes": "메모 없음",
+      "openInNote": "Note에서 열기",
+      "previewMissing": "미리보기 없음",
+      "timeFromTitle": "{time} 시작"
     },
     "ics": {
       "options": "캘린더 옵션",
@@ -953,7 +956,8 @@
     },
     "header": {
       "today": "오늘 {date}"
-    }
+    },
+    "holiday": "공휴일"
   },
   "files": {
     "forward": "앞으로",

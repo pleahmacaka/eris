@@ -1,19 +1,22 @@
 <script lang="ts">
+  import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
   import { currentLocale } from "@eris/i18n"
-  import { dateKey } from "$lib/data"
+  import { dateKey, splitCitations } from "$lib/data"
   import type { CalendarEvent } from "$lib/data"
   import { colorMeta, toColor } from "./colors"
-  import { eventTime, longDay } from "./format"
+  import { eventSpan, eventTime, longDay } from "./format"
 
   const {
     weeks,
     month,
     today,
     selected,
+    rangeEnd = null,
     eventsOnDay,
     holidayFor,
     pick,
+    selectRange,
     openEvent,
     weekNumbers = false,
   }: {
@@ -21,14 +24,100 @@
     month: number
     today: Date
     selected: Date
+    rangeEnd?: Date | null
     eventsOnDay: (day: Date) => CalendarEvent[]
     holidayFor: (day: Date) => string[]
     pick: (day: Date) => void
+    selectRange: (start: Date, end: Date) => void
     openEvent: (event: CalendarEvent) => void
     weekNumbers?: boolean
   } = $props()
 
   const CHIPS = 3
+  const PREVIEW_DELAY = 350
+  const PREVIEW_WIDTH = 256
+  const PREVIEW_HEIGHT = 160
+  const PREVIEW_GAP = 4
+  const NOTE_LINES = 3
+
+  type Preview = { event: CalendarEvent; left: number; top: number }
+
+  let anchor = $state<Date | null>(null)
+  let reach = $state<Date | null>(null)
+  let preview = $state<Preview | null>(null)
+  let previewTimer: ReturnType<typeof setTimeout> | undefined
+
+  const ordered = (from: Date | null, to: Date | null) => {
+    if (!from || !to) {
+      return null
+    }
+
+    return from <= to ? [from, to] : [to, from]
+  }
+
+  const dragged = $derived(ordered(anchor, reach))
+
+  const range = $derived(dragged ?? ordered(rangeEnd && selected, rangeEnd))
+
+  const inRange = (day: Date) =>
+    range !== null && day >= range[0] && day <= range[1]
+
+  const startDrag = (e: PointerEvent, day: Date) => {
+    if (e.button !== 0 || (e.target as Element).closest("button")) {
+      return
+    }
+
+    anchor = day
+    reach = day
+  }
+
+  const extendDrag = (day: Date) => {
+    if (anchor) {
+      reach = day
+    }
+  }
+
+  const endDrag = () => {
+    if (dragged && dateKey(dragged[0]) !== dateKey(dragged[1])) {
+      selectRange(dragged[0], dragged[1])
+    }
+
+    anchor = null
+    reach = null
+  }
+
+  const showPreview = (e: Event, event: CalendarEvent) => {
+    const box = (e.currentTarget as HTMLElement).getBoundingClientRect()
+
+    clearTimeout(previewTimer)
+    previewTimer = setTimeout(() => {
+      const below = box.bottom + PREVIEW_GAP + PREVIEW_HEIGHT <= window.innerHeight
+
+      preview = {
+        event,
+        left: Math.max(
+          PREVIEW_GAP,
+          Math.min(box.left, window.innerWidth - PREVIEW_WIDTH - PREVIEW_GAP),
+        ),
+        top: below
+          ? box.bottom + PREVIEW_GAP
+          : Math.max(PREVIEW_GAP, box.top - PREVIEW_GAP - PREVIEW_HEIGHT),
+      }
+    }, PREVIEW_DELAY)
+  }
+
+  const hidePreview = () => {
+    clearTimeout(previewTimer)
+    preview = null
+  }
+
+  const noteLines = (notes: string) =>
+    splitCitations(notes)
+      .map(part => (typeof part === "string" ? part : part.title))
+      .join("")
+      .split("\n")
+      .filter(line => line.trim() !== "")
+      .slice(0, NOTE_LINES)
 
   const weekdays = $derived(
     weeks[0].map(d => ({
@@ -90,8 +179,10 @@
   {/each}
 </div>
 
+<svelte:window onpointerup={endDrag} onblur={endDrag} />
+
 <div
-  class="grid min-h-0 flex-1 grid-cols-7 grid-rows-6"
+  class="grid min-h-0 flex-1 grid-cols-7 grid-rows-6 select-none"
   style:grid-template-columns={columns}
 >
   {#each weeks as week, row (dateKey(week[0]))}
@@ -131,12 +222,16 @@
           (column > 0 || weekNumbers) && "border-l",
           outside && "*:opacity-50",
           outside && !isSelected && "bg-base-200/40",
+          holidays.length > 0 && !isSelected && "bg-error/5",
+          inRange(day) && "bg-primary/15",
           isSelected
             ? "bg-primary/10 ring-1 ring-primary/50 ring-inset"
-            : "hover:bg-base-content/5",
+            : !inRange(day) && "hover:bg-base-content/5",
         ]}
         onclick={() => pick(day)}
         onkeydown={e => onKey(e, day)}
+        onpointerdown={e => startDrag(e, day)}
+        onpointerenter={() => extendDrag(day)}
       >
         <div class="flex min-w-0 items-center gap-1">
           <span
@@ -178,10 +273,14 @@
                 ? [meta.block, "font-medium"]
                 : "hover:bg-base-content/8",
             ]}
-            title={label}
             aria-label={label}
+            onpointerenter={e => showPreview(e, event)}
+            onpointerleave={hidePreview}
+            onfocus={e => showPreview(e, event)}
+            onblur={hidePreview}
             onclick={e => {
               e.stopPropagation()
+              hidePreview()
               openEvent(event)
             }}
           >
@@ -206,3 +305,42 @@
     {/each}
   {/each}
 </div>
+
+{#if preview}
+  {@const meta = colorMeta[toColor(preview.event.color)]}
+  {@const lines = noteLines(preview.event.notes)}
+
+  <div
+    role="tooltip"
+    class={[
+      "pointer-events-none fixed z-50 flex w-64 flex-col gap-1.5 rounded-box",
+      "border border-base-content/10 bg-base-100 p-3 shadow-lg",
+    ]}
+    style:left="{preview.left}px"
+    style:top="{preview.top}px"
+  >
+    <div class="flex min-w-0 items-center gap-2">
+      <span class={["size-2 shrink-0 rounded-full", meta.chip]}></span>
+      <span class="truncate text-sm font-semibold">{preview.event.title}</span>
+    </div>
+
+    <div class="flex items-center gap-2 text-2xs tabular-nums text-base-content/65">
+      <span>{eventSpan(preview.event, $t("panel.allDay"))}</span>
+
+      {#if preview.event.recurrence !== "none"}
+        <span class="flex items-center gap-1">
+          <Icon icon="lucide:repeat" class="size-3" />
+          {$t(`panel.event.recurrences.${preview.event.recurrence}`)}
+        </span>
+      {/if}
+    </div>
+
+    {#if lines.length > 0}
+      <p class="border-t border-base-content/10 pt-1.5 text-xs leading-relaxed text-base-content/75">
+        {#each lines as line, index (index)}
+          <span class="block truncate">{line}</span>
+        {/each}
+      </p>
+    {/if}
+  </div>
+{/if}
