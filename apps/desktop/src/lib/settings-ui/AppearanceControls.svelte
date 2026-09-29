@@ -5,6 +5,7 @@
     type Appearance,
     type Profile,
     defaultAppearance,
+    defaultProfile,
   } from "@eris/settings"
   import { allPresets, CUSTOM, sameAppearance } from "./presets"
   import { reset as resetField } from "./reset"
@@ -60,7 +61,9 @@
 
   $effect(() => () => user.stop())
 
-  let base = $state(profile.presetId === CUSTOM ? "aurora" : profile.presetId)
+  let base = $state(
+    profile.presetId === CUSTOM ? defaultProfile.presetId : profile.presetId,
+  )
 
   $effect(() => {
     if (profile.presetId !== CUSTOM) {

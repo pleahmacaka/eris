@@ -13,7 +13,7 @@ export const swatchFor = (a: Appearance): [string, string, string] => {
   const surface =
     a.mode === "light"
       ? `oklch(96% 0.01 ${a.accentHue})`
-      : `oklch(22% 0.015 ${a.accentHue})`
+      : `oklch(18% 0.015 ${a.accentHue})`
 
   return [
     surface,

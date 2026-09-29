@@ -16,6 +16,7 @@
   --text-2xs--line-height: 1rem;
   --text-3xs: 0.625rem;
   --text-3xs--line-height: 0.875rem;
+  --default-transition-duration: 140ms;
 }
 
 @plugin "daisyui/theme" {
@@ -23,9 +24,9 @@
   default: true;
   prefersdark: true;
   color-scheme: "dark";
-  --color-base-100: oklch(22% calc(var(--vividness) * 0.25) var(--accent-hue));
-  --color-base-200: oklch(19% calc(var(--vividness) * 0.25) var(--accent-hue));
-  --color-base-300: oklch(16% calc(var(--vividness) * 0.25) var(--accent-hue));
+  --color-base-100: oklch(18% calc(var(--vividness) * 0.25) var(--accent-hue));
+  --color-base-200: oklch(15% calc(var(--vividness) * 0.25) var(--accent-hue));
+  --color-base-300: oklch(12% calc(var(--vividness) * 0.25) var(--accent-hue));
   --color-base-content: oklch(93% calc(var(--vividness) * 0.12) var(--accent-hue));
   --color-primary: oklch(70% min(0.25, calc(var(--vividness) * 2)) var(--accent-hue));
   --color-primary-content: oklch(16% calc(var(--vividness) * 0.5) var(--accent-hue));
@@ -33,7 +34,7 @@
   --color-secondary-content: oklch(16% calc(var(--vividness) * 0.5) calc(var(--accent-hue) + var(--accent-spread)));
   --color-accent: oklch(78% var(--vividness) calc(var(--accent-hue) - var(--accent-spread)));
   --color-accent-content: oklch(18% calc(var(--vividness) * 0.5) calc(var(--accent-hue) - var(--accent-spread)));
-  --color-neutral: oklch(28% calc(var(--vividness) * 0.25) var(--accent-hue));
+  --color-neutral: oklch(24% calc(var(--vividness) * 0.25) var(--accent-hue));
   --color-neutral-content: oklch(92% calc(var(--vividness) * 0.12) var(--accent-hue));
   --color-info: oklch(74% 0.13 232);
   --color-info-content: oklch(18% 0.05 232);
@@ -48,8 +49,8 @@
   --radius-box: calc(1rem * var(--radius-scale));
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 1;
+  --border: 0.0625rem;
+  --depth: 0;
   --noise: 0;
 }
 
@@ -83,8 +84,8 @@
   --radius-box: calc(1rem * var(--radius-scale));
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 1;
+  --border: 0.0625rem;
+  --depth: 0;
   --noise: 0;
 }
 
@@ -131,6 +132,32 @@
   html {
     font-family: var(--font-sans);
     font-size: calc(100% * var(--font-scale));
+    font-feature-settings: "tnum" 1;
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: inherit;
+  }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--color-primary-content);
+  }
+
+  :focus-visible {
+    outline: 0.125rem solid var(--color-primary);
+    outline-offset: 0.125rem;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--color-base-content) 18%, transparent)
+      transparent;
   }
 
   :root[data-density="compact"] {

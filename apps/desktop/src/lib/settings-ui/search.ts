@@ -96,7 +96,7 @@ export const index: SearchEntry[] = [
   entry("launcher", "calculator", "math expression"),
   entry("launcher", "webSearch", "google duckduckgo bing naver engine"),
   entry("launcher", "terminal", "cmd powershell pwsh wt console shell"),
-  entry("appearance", "presets", "theme look aurora glass nord"),
+  entry("appearance", "presets", "theme look arix aurora glass nord"),
   entry("appearance", "mode", "dark light system theme"),
   entry("appearance", "background", "aura glass solid surface"),
   entry("appearance", "followAccent", "accent color system"),

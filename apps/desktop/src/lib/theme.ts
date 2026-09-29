@@ -13,21 +13,42 @@ export type PresetDefinition = {
   swatch: [string, string, string]
 }
 
+const classic: Appearance = {
+  ...defaultAppearance,
+  mode: "system",
+  background: "aura",
+  useSystemAccent: true,
+  accentHue: 215,
+  accentSpread: 14,
+  vividness: 0.06,
+  texture: 0.3,
+  radius: 1,
+}
+
 const preset = (
   id: string,
   name: string,
   description: string,
   swatch: [string, string, string],
   appearance: Partial<Appearance>,
+  base = classic,
 ): PresetDefinition => ({
   id,
   name,
   description,
   swatch,
-  appearance: { ...defaultAppearance, ...appearance },
+  appearance: { ...base, ...appearance },
 })
 
 export const presets: PresetDefinition[] = [
+  preset(
+    "arix",
+    "Arix",
+    "Flat near-black with sharp edges",
+    ["#131018", "#ac89e8", "#e8e7ed"],
+    {},
+    defaultAppearance,
+  ),
   preset(
     "aurora",
     "Aurora",

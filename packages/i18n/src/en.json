@@ -408,7 +408,8 @@
         "sunset": "Orange and gold on dusk",
         "forest": "Mossy greens with grain",
         "ocean": "Deep teal currents",
-        "user": "Saved from your settings"
+        "user": "Saved from your settings",
+        "arix": "Flat near-black with sharp edges"
       },
       "followingAccent": "Following the Windows accent",
       "baseColor": "Base color for the whole theme",

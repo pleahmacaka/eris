@@ -162,14 +162,14 @@ export type Profile = {
 }
 
 export const defaultAppearance: Appearance = {
-  mode: "system",
-  background: "aura",
-  useSystemAccent: true,
-  accentHue: 215,
-  accentSpread: 14,
-  vividness: 0.06,
-  texture: 0.3,
-  radius: 1,
+  mode: "dark",
+  background: "solid",
+  useSystemAccent: false,
+  accentHue: 300,
+  accentSpread: 0,
+  vividness: 0.07,
+  texture: 0,
+  radius: 0,
   blur: 1,
   fontScale: 1,
   surfaceOpacity: 1,
@@ -184,7 +184,7 @@ export const defaultAppearance: Appearance = {
 }
 
 export const defaultProfile: Profile = {
-  presetId: "aurora",
+  presetId: "arix",
   appearance: defaultAppearance,
   launcher: {
     maxResults: 8,
