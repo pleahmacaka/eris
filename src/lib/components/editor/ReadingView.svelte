@@ -2,11 +2,15 @@
   import { citedPath } from "$lib/markdown/cite"
   import { renderMarkdown } from "$lib/markdown/render"
   import { openExternal } from "$lib/platform/links"
+  import { device } from "$lib/settings.svelte"
+  import SandboxFrame from "./SandboxFrame.svelte"
   import { openLink, openPath } from "$lib/workspace/navigate"
 
   const { text, path }: { text: string; path: string } = $props()
 
-  const html = $derived(renderMarkdown(text))
+  const scripts = $derived(device.value.advanced.scripts)
+
+  const html = $derived(renderMarkdown(text, scripts))
 
   const follow = (event: MouseEvent) => {
     const link = (event.target as HTMLElement).closest<HTMLAnchorElement>("a")
@@ -48,6 +52,12 @@
   }
 </script>
 
-<article class="markdown mx-auto max-w-184 px-6 py-6 pb-40" use:links>
-  {@html html}
-</article>
+{#if scripts}
+  <div class="mx-auto max-w-184 px-6 py-6 pb-40">
+    <SandboxFrame {html} onlink={go} />
+  </div>
+{:else}
+  <article class="markdown mx-auto max-w-184 px-6 py-6 pb-40" use:links>
+    {@html html}
+  </article>
+{/if}

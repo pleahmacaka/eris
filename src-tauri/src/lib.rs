@@ -1,5 +1,10 @@
 mod p2p;
 
+const SANDBOX: &[u8] = include_bytes!("sandbox.html");
+
+// note scripts run here; no connect-src keeps them away from the ipc endpoint
+const SANDBOX_CSP: &str = "default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src data: https:; media-src data: https:; font-src data:";
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = tauri::Builder::default();
@@ -23,6 +28,13 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_persisted_scope::init())
+        .register_uri_scheme_protocol("sandbox", |_ctx, _request| {
+            tauri::http::Response::builder()
+                .header("Content-Type", "text/html; charset=utf-8")
+                .header("Content-Security-Policy", SANDBOX_CSP)
+                .body(SANDBOX.to_vec())
+                .unwrap_or_else(|_| tauri::http::Response::new(Vec::new()))
+        })
         .setup(|app| {
             #[cfg(any(windows, target_os = "linux"))]
             {

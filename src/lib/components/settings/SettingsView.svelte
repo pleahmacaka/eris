@@ -1,4 +1,5 @@
 <script lang="ts">
+  import AdvancedSection from "./AdvancedSection.svelte"
   import AppearanceSection from "./AppearanceSection.svelte"
   import LayoutSection from "./LayoutSection.svelte"
   import SyncSection from "./SyncSection.svelte"
@@ -13,5 +14,6 @@
     <SyncSection />
     <AppearanceSection />
     <LayoutSection />
+    <AdvancedSection />
   </div>
 </div>
