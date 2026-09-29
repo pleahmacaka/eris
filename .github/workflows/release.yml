@@ -47,32 +47,6 @@ jobs:
             src-tauri/target/release/bundle/nsis/*.exe
             src-tauri/target/release/bundle/msi/*.msi
 
-  web:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - run: bun install --frozen-lockfile
-
-      - run: bun run scripts/set-version.ts "$VERSION"
-
-      - run: bun run build
-
-      - name: Pack web bundle
-        run: |
-          mkdir -p dist
-          (cd build && zip -qr "../dist/Note-web-$VERSION.zip" .)
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: web
-          if-no-files-found: error
-          path: dist/*.zip
-
   android:
     runs-on: ubuntu-latest
     steps:
@@ -144,7 +118,7 @@ jobs:
           path: dist/*.apk
 
   publish:
-    needs: [windows, web, android]
+    needs: [windows, android]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v8
@@ -162,5 +136,4 @@ jobs:
           files: |
             artifacts/windows/**/*.exe
             artifacts/windows/**/*.msi
-            artifacts/web/*.zip
             artifacts/android/*.apk
