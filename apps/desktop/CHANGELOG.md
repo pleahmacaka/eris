@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.3.1](https://github.com/pleahmacaka/eris/compare/0.3.0...0.3.1) (2026-09-29)
+
+
+### Features
+
+* **calendar:** cite note memos, drag-select days, read title times ([b6d16c7](https://github.com/pleahmacaka/eris/commit/b6d16c7824d33e269b1f02d03edbeca1d7cbace7))
+* **dock:** anchor notices, follow taskbar pins and cap growth ([0466dc5](https://github.com/pleahmacaka/eris/commit/0466dc5f096de177b3ebeeee9125e2fc89df7e4a))
+* **dock:** hide the sync status dot by default ([36145f1](https://github.com/pleahmacaka/eris/commit/36145f144c3b214fdf6648f5a34064d307bff040))
+* **studio:** preview every window with mocked ipc ([a5d00eb](https://github.com/pleahmacaka/eris/commit/a5d00eba8bc7e978ba28167264dd77a616b47fa0))
+* **sync:** share only calendar events with note ([aaee74a](https://github.com/pleahmacaka/eris/commit/aaee74a052d95ac97fde8738b586804f86ad60d5))
+* **theme:** make the flat arix preset the default ([b6fe46a](https://github.com/pleahmacaka/eris/commit/b6fe46aee4d75aa5bdfe4f5e7332b59897874461))
+* **updater:** announce new versions at startup ([5f35b7b](https://github.com/pleahmacaka/eris/commit/5f35b7b5917e3b2c7105820635ead86dd30ed43a))
+
+
+### Bug Fixes
+
+* **dock:** reserve the work area beside the tray host ([c61282d](https://github.com/pleahmacaka/eris/commit/c61282d288392ece135bef321755212a04eb6991))
+* harden first run, window placement and settings defaults ([bfb9844](https://github.com/pleahmacaka/eris/commit/bfb9844afc6a39c31a65408e666ac348f6fe170c))
+
 ## [0.3.0](https://github.com/pleahmacaka/eris/compare/0.2.2...0.3.0) (2026-09-28)
 
 
