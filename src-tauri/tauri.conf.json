@@ -55,5 +55,14 @@
         "installMode": "perMachine"
       }
     }
+  },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": [
+          "arixlab-note"
+        ]
+      }
+    }
   }
 }

@@ -3,13 +3,14 @@
   import { SvelteSet } from "svelte/reactivity"
   import ConfirmDialog from "$lib/components/ui/ConfirmDialog.svelte"
   import { newCanvas, newFolder, newNote } from "$lib/workspace/commands"
+  import { citeUrl } from "$lib/markdown/cite"
   import { copyText } from "$lib/menu/clipboard"
   import { type MenuItem, showMenu } from "$lib/menu/menu.svelte"
   import { accept, endDrag, payload } from "$lib/workspace/drag.svelte"
   import { closePanelsOnNarrow } from "$lib/workspace/layout.svelte"
   import { openPath } from "$lib/workspace/navigate"
   import { forget, focusedTab, retarget } from "$lib/workspace/workspace.svelte"
-  import { basename } from "$lib/vault/paths"
+  import { basename, isNote } from "$lib/vault/paths"
   import { buildTree, type TreeNode } from "$lib/vault/tree"
   import {
     movePath,
@@ -134,6 +135,9 @@
       { label: "이름 변경", icon: "lucide:pencil", keys: "F2", run: () => (renaming = node.path) },
       { label: "경로 복사", icon: "lucide:clipboard-copy", run: () => copyText(node.path) },
     ]
+    const cite: MenuItem[] = isNote(node.path)
+      ? [{ label: "인용 링크 복사", icon: "lucide:quote", run: () => copyText(citeUrl(node.path)) }]
+      : []
     const danger: MenuItem = {
       label: "삭제",
       icon: "lucide:trash-2",
@@ -159,6 +163,7 @@
             },
             "separator",
             ...common,
+            ...cite,
             "separator",
             danger,
           ],

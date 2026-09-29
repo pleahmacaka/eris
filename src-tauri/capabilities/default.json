@@ -31,6 +31,9 @@
         },
         {
           "path": "$APPDATA/vault/**"
+        },
+        {
+          "path": "$APPDATA/bridge.json"
         }
       ]
     },
@@ -40,6 +43,18 @@
     "core:window:allow-close",
     "core:window:allow-is-maximized",
     "clipboard-manager:allow-read-text",
-    "clipboard-manager:allow-write-text"
+    "clipboard-manager:allow-write-text",
+    "deep-link:default",
+    {
+      "identifier": "opener:allow-open-url",
+      "allow": [
+        {
+          "url": "https://*"
+        },
+        {
+          "url": "http://*"
+        }
+      ]
+    }
   ]
 }

@@ -1,6 +1,8 @@
 <script lang="ts">
+  import { citedPath } from "$lib/markdown/cite"
   import { renderMarkdown } from "$lib/markdown/render"
-  import { openLink } from "$lib/workspace/navigate"
+  import { openExternal } from "$lib/platform/links"
+  import { openLink, openPath } from "$lib/workspace/navigate"
 
   const { text, path }: { text: string; path: string } = $props()
 
@@ -14,9 +16,26 @@
     }
 
     event.preventDefault()
+    go({
+      target: link.dataset.target ?? null,
+      href: link.getAttribute("href"),
+      newTab: event.ctrlKey || event.metaKey,
+    })
+  }
 
-    if (link.dataset.target) {
-      openLink(link.dataset.target, path, event.ctrlKey || event.metaKey)
+  const go = (link: {
+    target: string | null
+    href: string | null
+    newTab: boolean
+  }) => {
+    const cited = citedPath(link.href ?? "")
+
+    if (link.target) {
+      openLink(link.target, path, link.newTab)
+    } else if (cited) {
+      openPath(cited, { newTab: link.newTab })
+    } else if (link.href) {
+      openExternal(link.href)
     }
   }
 

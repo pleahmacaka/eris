@@ -17,6 +17,7 @@ export type PaletteMode =
   | "files"
   | "insert-template"
   | "new-template"
+  | "cite-note"
 
 type Saved = {
   docks: Record<Side, PanelId[]>
@@ -57,6 +58,7 @@ export const layout = $state({
   } as Record<Side, PanelId | null>,
   palette: null as PaletteMode | null,
   todoDay: null as string | null,
+  citeInto: null as ((path: string) => void) | null,
 })
 
 export const sideOf = (panel: PanelId): Side =>

@@ -9,6 +9,9 @@
   } from "$lib/data/calendar"
   import { events as eventStore, newId } from "$lib/data/store"
   import type { CalendarEvent, Recurrence } from "$lib/data/types"
+  import { citeLink, segments } from "$lib/markdown/cite"
+  import { layout } from "$lib/workspace/layout.svelte"
+  import { openPath } from "$lib/workspace/navigate"
   import { colorMeta, eventColors, type EventColor, toColor } from "./colors"
   import { clock, eventSpan, longDay } from "./format"
 
@@ -25,6 +28,15 @@
     setEditing: (value: boolean) => void
     close: () => void
   } = $props()
+
+  const cite = () => {
+    layout.citeInto = path => {
+      const gap = notes === "" || notes.endsWith("\n") ? "" : "\n"
+
+      notes = `${notes}${gap}${citeLink(path)}`
+    }
+    layout.palette = "cite-note"
+  }
 
   const RECURRENCES: { id: Recurrence; label: string }[] = [
     { id: "none", label: "반복 없음" },
@@ -226,6 +238,11 @@
         ></textarea>
       </label>
 
+      <button class="btn btn-ghost btn-xs mt-1" onclick={cite}>
+        <Icon icon="lucide:quote" class="size-3.5" />
+        노트 인용
+      </button>
+
       <div class="mt-5 flex gap-2">
         <button class="btn btn-sm btn-ghost flex-1" onclick={close}>취소</button>
 
@@ -268,7 +285,26 @@
         <p
           class="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-base-content/85"
         >
-          {event.notes || "메모 없음"}
+          {#if !event.notes}
+            메모 없음
+          {/if}
+          {#each segments(event.notes) as part, i (i)}
+            {#if "path" in part}
+              <button
+                class={[
+                  "mx-0.5 inline-flex cursor-pointer items-center gap-1 border",
+                  "border-primary/30 bg-primary/10 px-1.5 align-baseline text-xs",
+                  "text-primary hover:bg-primary/20",
+                ]}
+                onclick={() => openPath(part.path)}
+              >
+                <Icon icon="lucide:file-text" class="size-3" />
+                {part.label}
+              </button>
+            {:else}
+              {part.text}
+            {/if}
+          {/each}
         </p>
       </div>
     {/if}

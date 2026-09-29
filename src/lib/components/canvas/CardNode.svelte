@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { openExternal } from "$lib/platform/links"
   import Icon from "@iconify/svelte"
   import {
     Handle,
@@ -97,6 +98,8 @@
     const target = anchor.dataset.target
 
     if (!target) {
+      openExternal(anchor.getAttribute("href") ?? "")
+
       return
     }
 

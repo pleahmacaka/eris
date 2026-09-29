@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { isCanvas, stem } from "$lib/vault/paths"
+  import { isCanvas, isNote, stem } from "$lib/vault/paths"
   import { type Command, commands, currentFolder } from "$lib/workspace/commands"
   import { layout } from "$lib/workspace/layout.svelte"
   import { filePaths, openPath } from "$lib/workspace/navigate"
@@ -31,7 +31,7 @@
   const placeholder = $derived(
     mode === "commands"
       ? "명령 검색"
-      : mode === "files"
+      : mode === "files" || mode === "cite-note"
         ? "파일 이름 검색"
         : "템플릿 검색",
   )
@@ -61,6 +61,14 @@
       return filePaths().map(path =>
         fromPath(path, newTab => openPath(path, { newTab })),
       )
+    }
+
+    if (mode === "cite-note") {
+      const into = layout.citeInto
+
+      return filePaths()
+        .filter(isNote)
+        .map(path => fromPath(path, () => into?.(path)))
     }
 
     if (mode === "insert-template") {
@@ -104,6 +112,7 @@
 
     if (!next) {
       dialog.close()
+      layout.citeInto = null
 
       return
     }

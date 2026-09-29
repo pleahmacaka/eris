@@ -2,10 +2,15 @@
   import { onMount, untrack } from "svelte"
   import { fade } from "svelte/transition"
   import ContextMenu from "$lib/components/ui/ContextMenu.svelte"
+  import { citedPath } from "$lib/markdown/cite"
   import { fieldMenu } from "$lib/menu/edit"
   import { showMenu } from "$lib/menu/menu.svelte"
+  import { onAppLinks } from "$lib/platform/links"
+  import { isAndroid } from "$lib/platform/runtime"
   import { device } from "$lib/settings.svelte"
+  import { writeBridge } from "$lib/vault/bridge"
   import { onVaultChange, openVault, vault } from "$lib/vault/vault.svelte"
+  import { openPath } from "$lib/workspace/navigate"
   import { closeActiveTab, newNote } from "$lib/workspace/commands"
   import {
     accept,
@@ -43,9 +48,21 @@
   let timer: ReturnType<typeof setTimeout> | undefined
 
   onMount(() => {
-    Promise.all([restoreWorkspace(), restoreLayout()]).finally(
-      () => (restored = true),
-    )
+    const links = Promise.all([restoreWorkspace(), restoreLayout()])
+      .finally(() => (restored = true))
+      .then(() =>
+        onAppLinks(url => {
+          const path = citedPath(url)
+
+          if (path) {
+            openPath(path)
+          }
+        }),
+      )
+
+    return () => {
+      links.then(stop => stop()).catch(() => undefined)
+    }
   })
 
   const vaultPath = $derived(device.ready ? device.value.vault.path : undefined)
@@ -79,6 +96,12 @@
   $effect(() => {
     if (vault.ready && vault.error === null && restored) {
       untrack(prune)
+    }
+  })
+
+  $effect(() => {
+    if (vault.ready && vault.error === null && vault.root && !isAndroid()) {
+      writeBridge(vault.root).catch(() => undefined)
     }
   })
 

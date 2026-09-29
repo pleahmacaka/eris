@@ -25,6 +25,8 @@ tauri-plugin-fs = { version = "2.6.0", features = ["watch"] }
 tauri-plugin-dialog = "2.8.0"
 tauri-plugin-persisted-scope = "2.4.0"
 tauri-plugin-clipboard-manager = "2.4.0"
+tauri-plugin-deep-link = "2.5.0"
+tauri-plugin-opener = "2.6.0"
 
 [profile.release]
 codegen-units = 1
@@ -32,3 +34,6 @@ lto = true
 opt-level = "s"
 panic = "abort"
 strip = true
+
+[target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
+tauri-plugin-single-instance = { version = "2.5.0", features = ["deep-link"] }
