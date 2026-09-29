@@ -34,6 +34,10 @@ pub fn release() {
     win::release();
 }
 
+pub fn beside_host<T>(call: impl FnOnce() -> T) -> T {
+    win::beside_host(call)
+}
+
 #[cfg(target_os = "windows")]
 mod win {
     use std::collections::{HashMap, HashSet};
@@ -60,10 +64,10 @@ mod win {
         CreateWindowExW, DefWindowProcW, DispatchMessageW, GetCursorPos, GetMessageW,
         GetWindowThreadProcessId, IsWindow, PostMessageW, PostQuitMessage, RegisterClassExW,
         RegisterWindowMessageW, SendMessageTimeoutW, SendNotifyMessageW, SetForegroundWindow,
-        SetWindowPos, UnregisterClassW, HWND_BROADCAST, HWND_TOPMOST, MSG, SMTO_ABORTIFHUNG,
-        SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, WM_CLOSE, WM_COMMAND, WM_CONTEXTMENU, WM_COPYDATA,
-        WM_DESTROY, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_RBUTTONDOWN, WM_RBUTTONUP, WNDCLASSEXW,
-        WS_EX_TOOLWINDOW, WS_EX_TOPMOST, WS_POPUP,
+        SetWindowPos, UnregisterClassW, HWND_BOTTOM, HWND_BROADCAST, HWND_TOPMOST, MSG,
+        SMTO_ABORTIFHUNG, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, WM_CLOSE, WM_COMMAND,
+        WM_CONTEXTMENU, WM_COPYDATA, WM_DESTROY, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_RBUTTONDOWN,
+        WM_RBUTTONUP, WNDCLASSEXW, WS_EX_TOOLWINDOW, WS_EX_TOPMOST, WS_POPUP,
     };
 
     use super::TrayIcon;
@@ -809,6 +813,32 @@ mod win {
         });
     }
 
+    // an appbar message this process routes through the host never lands in explorer (work area stayed full screen), so the real tray goes first meanwhile
+    pub fn beside_host<T>(call: impl FnOnce() -> T) -> T {
+        let host = HOST
+            .lock()
+            .unwrap()
+            .as_ref()
+            .map(|(hwnd, _)| HWND(*hwnd as _));
+        let flags = SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE;
+
+        if let Some(host) = host {
+            unsafe {
+                let _ = SetWindowPos(host, Some(HWND_BOTTOM), 0, 0, 0, 0, flags);
+            }
+        }
+
+        let result = call();
+
+        if let Some(host) = host {
+            unsafe {
+                let _ = SetWindowPos(host, Some(HWND_TOPMOST), 0, 0, 0, 0, flags);
+            }
+        }
+
+        result
+    }
+
     pub fn release() {
         let Some((hwnd, worker)) = HOST.lock().unwrap().take() else {
             return;
@@ -937,6 +967,10 @@ mod win {
     }
 
     pub fn host(_app: Option<AppHandle>) {}
+
+    pub fn beside_host<T>(call: impl FnOnce() -> T) -> T {
+        call()
+    }
 
     pub fn release() {}
 }

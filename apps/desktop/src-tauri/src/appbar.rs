@@ -131,7 +131,7 @@ pub fn apply_topbar(app: AppHandle, layout: TaskbarLayout) -> Result<(), String>
         .get_webview_window("topbar")
         .ok_or("topbar window is missing")?;
 
-    apply_as(&window, &layout, false).map_err(|e| e.to_string())
+    apply_as(&window, &layout, false, false).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -156,10 +156,15 @@ pub fn release_topbar(app: AppHandle) -> Result<(), String> {
 }
 
 pub fn apply(window: &WebviewWindow, layout: &TaskbarLayout) -> tauri::Result<()> {
-    apply_as(window, layout, true)
+    apply_as(window, layout, true, false)
 }
 
-fn apply_as(window: &WebviewWindow, layout: &TaskbarLayout, primary: bool) -> tauri::Result<()> {
+fn apply_as(
+    window: &WebviewWindow,
+    layout: &TaskbarLayout,
+    primary: bool,
+    force: bool,
+) -> tauri::Result<()> {
     if SUSPENDED.load(Ordering::Relaxed) {
         PARKED
             .lock()
@@ -193,7 +198,7 @@ fn apply_as(window: &WebviewWindow, layout: &TaskbarLayout, primary: bool) -> ta
         win::keep_system_taskbar_hidden(layout.hide_system_taskbar);
     }
 
-    win::place(window, layout, &screen)?;
+    win::place(window, layout, &screen, force)?;
     win::raise(window);
 
     Ok(())
@@ -203,7 +208,7 @@ pub fn reapply(window: &WebviewWindow) {
     let entry = LAST.lock().unwrap().get(window.label()).cloned();
 
     if let Some((layout, primary)) = entry {
-        let _ = apply_as(window, &layout, primary);
+        let _ = apply_as(window, &layout, primary, true);
     }
 }
 
@@ -241,7 +246,7 @@ pub fn restore_all(app: &AppHandle) {
 
     for (label, (layout, primary)) in parked {
         if let Some(bar) = app.get_webview_window(&label) {
-            let _ = apply_as(&bar, &layout, primary);
+            let _ = apply_as(&bar, &layout, primary, true);
         }
     }
 }
@@ -341,6 +346,8 @@ mod win {
         reach: i32,
         hole: Option<[i32; 4]>,
         registered: bool,
+        request: Option<(RECT, bool, bool)>,
+        granted: Option<RECT>,
     }
 
     fn payload(hwnd: HWND, edge: u32) -> APPBARDATA {
@@ -381,6 +388,7 @@ mod win {
         window: &WebviewWindow,
         layout: &TaskbarLayout,
         monitor: &Monitor,
+        force: bool,
     ) -> tauri::Result<()> {
         let scale = monitor.scale_factor();
         let origin = monitor.position();
@@ -410,40 +418,52 @@ mod win {
         fit_band(&mut data, band);
 
         let label = window.label().to_string();
-        let was_registered = BARS
-            .lock()
-            .unwrap()
-            .get(&label)
-            .is_some_and(|bar| bar.registered);
+        let request = (data.rc, layout.auto_hide, layout.desktop);
+        let (was_registered, granted) =
+            BARS.lock()
+                .unwrap()
+                .get(&label)
+                .map_or((false, None), |bar| {
+                    let unchanged = !force && bar.request == Some(request);
+
+                    (bar.registered, bar.granted.filter(|_| unchanged))
+                });
 
         // the shell calls back into this thread while it waits here, so no lock may be held across these
-        let registered = unsafe {
-            if layout.desktop {
-                if was_registered {
-                    SHAppBarMessage(ABM_REMOVE, &mut data);
-                }
+        let registered = match granted {
+            Some(granted) => {
+                data.rc = granted;
 
-                Some(false)
-            } else if layout.auto_hide {
-                SHAppBarMessage(ABM_REMOVE, &mut data);
-
-                let joined = SHAppBarMessage(ABM_NEW, &mut data) != 0;
-
-                data.lParam = LPARAM(1);
-                SHAppBarMessage(ABM_SETAUTOHIDEBAR, &mut data);
-
-                Some(joined)
-            } else {
-                let joined = !was_registered && SHAppBarMessage(ABM_NEW, &mut data) != 0;
-
-                data.lParam = LPARAM(0);
-                SHAppBarMessage(ABM_SETAUTOHIDEBAR, &mut data);
-                SHAppBarMessage(ABM_QUERYPOS, &mut data);
-                fit_band(&mut data, band);
-                SHAppBarMessage(ABM_SETPOS, &mut data);
-
-                joined.then_some(true)
+                None
             }
+            None => crate::notify::beside_host(|| unsafe {
+                if layout.desktop {
+                    if was_registered {
+                        SHAppBarMessage(ABM_REMOVE, &mut data);
+                    }
+
+                    Some(false)
+                } else if layout.auto_hide {
+                    SHAppBarMessage(ABM_REMOVE, &mut data);
+
+                    let joined = SHAppBarMessage(ABM_NEW, &mut data) != 0;
+
+                    data.lParam = LPARAM(1);
+                    SHAppBarMessage(ABM_SETAUTOHIDEBAR, &mut data);
+
+                    Some(joined)
+                } else {
+                    let joined = !was_registered && SHAppBarMessage(ABM_NEW, &mut data) != 0;
+
+                    data.lParam = LPARAM(0);
+                    SHAppBarMessage(ABM_SETAUTOHIDEBAR, &mut data);
+                    SHAppBarMessage(ABM_QUERYPOS, &mut data);
+                    fit_band(&mut data, band);
+                    SHAppBarMessage(ABM_SETPOS, &mut data);
+
+                    joined.then_some(true)
+                }
+            }),
         };
 
         let (left, width) = span(&data.rc, layout.floating, width);
@@ -467,6 +487,8 @@ mod win {
             }
 
             bar.frame = Some(frame);
+            bar.request = Some(request);
+            bar.granted = Some(data.rc);
 
             (bar.reach, bar.hole)
         };
@@ -699,9 +721,9 @@ mod win {
         if let Ok(hwnd) = window.hwnd() {
             let mut data = payload(hwnd, ABE_BOTTOM);
 
-            unsafe {
+            crate::notify::beside_host(|| unsafe {
                 SHAppBarMessage(ABM_REMOVE, &mut data);
-            }
+            });
         }
 
         BARS.lock().unwrap().remove(window.label());
@@ -760,9 +782,9 @@ mod win {
 
         data.lParam = LPARAM(state as isize);
 
-        unsafe {
+        crate::notify::beside_host(|| unsafe {
             SHAppBarMessage(ABM_SETSTATE, &mut data);
-        }
+        });
 
         true
     }
@@ -770,7 +792,7 @@ mod win {
     fn current_shell_state() -> usize {
         let mut data = payload(HWND::default(), ABE_BOTTOM);
 
-        unsafe { SHAppBarMessage(ABM_GETSTATE, &mut data) }
+        crate::notify::beside_host(|| unsafe { SHAppBarMessage(ABM_GETSTATE, &mut data) })
     }
 
     fn saved_shell_state() -> Option<usize> {
@@ -904,6 +926,7 @@ mod win {
         _window: &WebviewWindow,
         _layout: &TaskbarLayout,
         _monitor: &Monitor,
+        _force: bool,
     ) -> tauri::Result<()> {
         Ok(())
     }
