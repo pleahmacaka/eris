@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { readSnapshot, remoteWins, toLocal } from "./merge"
-import type { SyncRecord } from "./protocol"
+import { readSnapshot, remoteWins, toLocal } from "../../../src/lib/sync/merge"
+import type { SyncRecord } from "../../../src/lib/sync/protocol"
 
 const record = (over: Partial<SyncRecord> = {}): SyncRecord => ({
   collection: "todos",

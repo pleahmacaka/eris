@@ -6,8 +6,8 @@ import {
   monthGrid,
   parseQuickEvent,
   upcoming,
-} from "./calendar"
-import type { CalendarEvent } from "./types"
+} from "../../../src/lib/data/calendar"
+import type { CalendarEvent } from "../../../src/lib/data/types"
 
 const now = new Date(2026, 8, 2, 10, 0)
 

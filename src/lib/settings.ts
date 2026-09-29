@@ -22,11 +22,22 @@ export type SyncSettings = {
   collections: Record<SyncedCollection, boolean>
 }
 
+export type VaultSettings = {
+  path: string | null
+  templates: string
+}
+
+export type AdvancedSettings = {
+  scripts: boolean
+}
+
 export type DeviceSettings = {
   deviceId: string
   deviceName: string
   appearance: Appearance
   sync: SyncSettings
+  vault: VaultSettings
+  advanced: AdvancedSettings
 }
 
 export const defaultAppearance: Appearance = {
@@ -43,11 +54,22 @@ export const defaultSync: SyncSettings = {
   collections: { notes: true, todos: true, events: true },
 }
 
+export const defaultVault: VaultSettings = {
+  path: null,
+  templates: "templates",
+}
+
+export const defaultAdvanced: AdvancedSettings = {
+  scripts: false,
+}
+
 export const defaultDevice: DeviceSettings = {
   deviceId: "",
   deviceName: "",
   appearance: defaultAppearance,
   sync: defaultSync,
+  vault: defaultVault,
+  advanced: defaultAdvanced,
 }
 
 const FILE = "settings.json"
@@ -69,11 +91,15 @@ const merge = (saved: Partial<DeviceSettings> | undefined): DeviceSettings => ({
   sync: {
     intervalMinutes:
       saved?.sync?.intervalMinutes ?? defaultSync.intervalMinutes,
-    collections: {
-      ...defaultSync.collections,
-      ...saved?.sync?.collections,
-    },
+    collections: Object.fromEntries(
+      syncedCollections.map(name => [
+        name,
+        saved?.sync?.collections?.[name] ?? defaultSync.collections[name],
+      ]),
+    ) as SyncSettings["collections"],
   },
+  vault: { ...defaultVault, ...saved?.vault },
+  advanced: { ...defaultAdvanced, ...saved?.advanced },
 })
 
 export const loadDevice = async () =>
@@ -105,6 +131,18 @@ export const patchAppearance = async (patch: Partial<Appearance>) => {
     ...device,
     appearance: { ...device.appearance, ...patch },
   })
+}
+
+export const patchVault = async (patch: Partial<VaultSettings>) => {
+  const device = await loadDevice()
+
+  return saveDevice({ ...device, vault: { ...device.vault, ...patch } })
+}
+
+export const patchAdvanced = async (patch: Partial<AdvancedSettings>) => {
+  const device = await loadDevice()
+
+  return saveDevice({ ...device, advanced: { ...device.advanced, ...patch } })
 }
 
 export const enabledCollections = (sync: SyncSettings) =>

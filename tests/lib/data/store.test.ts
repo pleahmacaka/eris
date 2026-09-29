@@ -20,19 +20,21 @@ const fakeStore = (file: string) => {
   }
 }
 
-mock.module("../platform/storage", () => ({
+mock.module("../../../src/lib/platform/storage", () => ({
   openStore: async (file: string) => fakeStore(file),
 }))
 
-mock.module("../platform/events", () => ({
+mock.module("../../../src/lib/platform/events", () => ({
   publish: async () => {},
   subscribe: async () => () => {},
 }))
 
-const { applyRemote, localRecords, newId, notes } = await import("./store")
-const { blankNote } = await import("./notes")
-const { saveDevice, defaultDevice } = await import("../settings")
-const { TOMBSTONE_TTL } = await import("../sync/protocol")
+const { applyRemote, localRecords, newId, notes } = await import(
+  "../../../src/lib/data/store"
+)
+const { blankNote } = await import("../../../src/lib/data/notes")
+const { saveDevice, defaultDevice } = await import("../../../src/lib/settings")
+const { TOMBSTONE_TTL } = await import("../../../src/lib/sync/protocol")
 
 beforeEach(async () => {
   for (const data of files.values()) {

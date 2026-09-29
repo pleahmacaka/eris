@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test"
-import { dueLabel, isOverdue, parseQuickAdd, sortTodos } from "./todo"
-import type { Todo } from "./types"
+import {
+  dueLabel,
+  isOverdue,
+  parseQuickAdd,
+  sortTodos,
+} from "../../../src/lib/data/todo"
+import type { Todo } from "../../../src/lib/data/types"
 
 const now = new Date(2026, 8, 2, 10, 0)
 

@@ -16,6 +16,7 @@ export type DataChange = { collection: SyncedCollection; remote: boolean }
 export type SyncMeta = {
   lastSyncAt: number | null
   lastError: string | null
+  importedInto: string[]
 }
 
 export type Collection<T extends LocalItem> = {
@@ -273,6 +274,7 @@ export const syncMeta = async (): Promise<SyncMeta> => {
   return {
     lastSyncAt: saved?.lastSyncAt ?? null,
     lastError: saved?.lastError ?? null,
+    importedInto: saved?.importedInto ?? [],
   }
 }
 

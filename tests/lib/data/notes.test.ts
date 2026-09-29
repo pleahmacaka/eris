@@ -1,6 +1,11 @@
 import { expect, test } from "bun:test"
-import { notePreview, noteTitle, searchNotes, sortNotes } from "./notes"
-import type { Note } from "./types"
+import {
+  notePreview,
+  noteTitle,
+  searchNotes,
+  sortNotes,
+} from "../../../src/lib/data/notes"
+import type { Note } from "../../../src/lib/data/types"
 
 const note = (over: Partial<Note> = {}): Note => ({
   id: "n",
