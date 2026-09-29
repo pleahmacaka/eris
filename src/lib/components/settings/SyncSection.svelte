@@ -26,7 +26,7 @@
   }
 
   const LABELS: Record<SyncedCollection, string> = {
-    notes: "메모",
+    files: "노트",
     todos: "할 일",
     events: "일정",
   }

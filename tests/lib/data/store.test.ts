@@ -29,10 +29,23 @@ mock.module("../../../src/lib/platform/events", () => ({
   subscribe: async () => () => {},
 }))
 
-const { applyRemote, localRecords, newId, notes } = await import(
+const { applyRemote, localRecords, newId, todos } = await import(
   "../../../src/lib/data/store"
 )
-const { blankNote } = await import("../../../src/lib/data/notes")
+
+const blankTodo = () => ({
+  id: newId(),
+  title: "",
+  notes: "",
+  done: false,
+  doneAt: null,
+  priority: 0 as const,
+  due: null,
+  tags: [],
+  order: 0,
+  createdAt: 1,
+  updatedAt: 1,
+})
 const { saveDevice, defaultDevice } = await import("../../../src/lib/settings")
 const { TOMBSTONE_TTL } = await import("../../../src/lib/sync/protocol")
 
@@ -45,55 +58,55 @@ beforeEach(async () => {
 })
 
 test("a put lands in the collection and in the snapshot", async () => {
-  const note = { ...blankNote(), id: newId(), title: "첫 메모" }
+  const todo = { ...blankTodo(), id: newId(), title: "첫 메모" }
 
-  await notes.put(note)
+  await todos.put(todo)
 
-  expect((await notes.all()).map(n => n.title)).toEqual(["첫 메모"])
+  expect((await todos.all()).map(n => n.title)).toEqual(["첫 메모"])
 
-  const [record] = await localRecords(["notes"])
+  const [record] = await localRecords(["todos"])
 
   expect(record.deleted).toBe(false)
   expect(record.deviceId).toBe("here")
 })
 
-test("a removed note is hidden but published as a tombstone", async () => {
-  const note = { ...blankNote(), id: newId() }
+test("a removed todo is hidden but published as a tombstone", async () => {
+  const todo = { ...blankTodo(), id: newId() }
 
-  await notes.put(note)
-  await notes.remove(note.id)
+  await todos.put(todo)
+  await todos.remove(todo.id)
 
-  expect(await notes.all()).toEqual([])
-  expect(await notes.get(note.id)).toBeUndefined()
+  expect(await todos.all()).toEqual([])
+  expect(await todos.get(todo.id)).toBeUndefined()
 
-  const [record] = await localRecords(["notes"])
+  const [record] = await localRecords(["todos"])
 
-  expect(record).toMatchObject({ id: note.id, deleted: true, data: null })
+  expect(record).toMatchObject({ id: todo.id, deleted: true, data: null })
 })
 
 test("an expired tombstone is dropped from the store", async () => {
-  const note = { ...blankNote(), id: newId() }
+  const todo = { ...blankTodo(), id: newId() }
 
-  await notes.put(note)
-  await notes.remove(note.id)
+  await todos.put(todo)
+  await todos.remove(todo.id)
 
-  expect(await localRecords(["notes"], Date.now() + TOMBSTONE_TTL * 2)).toEqual(
+  expect(await localRecords(["todos"], Date.now() + TOMBSTONE_TTL * 2)).toEqual(
     [],
   )
-  expect(await localRecords(["notes"])).toEqual([])
+  expect(await localRecords(["todos"])).toEqual([])
 })
 
-test("a peer that missed the delete cannot resurrect the note", async () => {
-  const note = { ...blankNote(), id: newId(), title: "삭제됨" }
+test("a peer that missed the delete cannot resurrect the todo", async () => {
+  const todo = { ...blankTodo(), id: newId(), title: "삭제됨" }
 
-  const stored = await notes.put(note)
+  const stored = await todos.put(todo)
 
-  await notes.remove(note.id)
+  await todos.remove(todo.id)
 
   await applyRemote([
     {
-      collection: "notes",
-      id: note.id,
+      collection: "todos",
+      id: todo.id,
       updatedAt: stored.updatedAt,
       deleted: false,
       deviceId: "stale-peer",
@@ -101,18 +114,18 @@ test("a peer that missed the delete cannot resurrect the note", async () => {
     },
   ])
 
-  expect(await notes.all()).toEqual([])
+  expect(await todos.all()).toEqual([])
 })
 
 test("a newer remote edit wins", async () => {
-  const note = { ...blankNote(), id: newId(), title: "로컬" }
+  const todo = { ...blankTodo(), id: newId(), title: "로컬" }
 
-  const stored = await notes.put(note)
+  const stored = await todos.put(todo)
 
   const changed = await applyRemote([
     {
-      collection: "notes",
-      id: note.id,
+      collection: "todos",
+      id: todo.id,
       updatedAt: stored.updatedAt + 1000,
       deleted: false,
       deviceId: "peer-b",
@@ -120,20 +133,20 @@ test("a newer remote edit wins", async () => {
     },
   ])
 
-  expect(changed).toEqual(["notes"])
-  expect((await notes.all()).map(n => n.title)).toEqual(["원격"])
-  expect((await localRecords(["notes"]))[0].deviceId).toBe("peer-b")
+  expect(changed).toEqual(["todos"])
+  expect((await todos.all()).map(n => n.title)).toEqual(["원격"])
+  expect((await localRecords(["todos"]))[0].deviceId).toBe("peer-b")
 })
 
 test("an older remote edit is ignored", async () => {
-  const note = { ...blankNote(), id: newId(), title: "로컬" }
+  const todo = { ...blankTodo(), id: newId(), title: "로컬" }
 
-  const stored = await notes.put(note)
+  const stored = await todos.put(todo)
 
   const changed = await applyRemote([
     {
-      collection: "notes",
-      id: note.id,
+      collection: "todos",
+      id: todo.id,
       updatedAt: stored.updatedAt - 1000,
       deleted: false,
       deviceId: "peer-b",
@@ -142,13 +155,13 @@ test("an older remote edit is ignored", async () => {
   ])
 
   expect(changed).toEqual([])
-  expect((await notes.all()).map(n => n.title)).toEqual(["로컬"])
+  expect((await todos.all()).map(n => n.title)).toEqual(["로컬"])
 })
 
-test("a remote delete of an unseen note still leaves a tombstone", async () => {
+test("a remote delete of an unseen todo still leaves a tombstone", async () => {
   await applyRemote([
     {
-      collection: "notes",
+      collection: "todos",
       id: "ghost",
       updatedAt: Date.now(),
       deleted: true,
@@ -157,7 +170,7 @@ test("a remote delete of an unseen note still leaves a tombstone", async () => {
     },
   ])
 
-  expect(await localRecords(["notes"])).toMatchObject([
+  expect(await localRecords(["todos"])).toMatchObject([
     { id: "ghost", deleted: true },
   ])
 })

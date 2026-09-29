@@ -53,42 +53,56 @@ describe("toLocal", () => {
 })
 
 describe("readSnapshot", () => {
-  const note = {
-    id: "n",
-    title: "t",
-    body: "b",
-    pinned: false,
-    color: null,
-    createdAt: 1,
-    updatedAt: 100,
-  }
+  const file = { content: "# 제목", base: null }
 
-  const payload = (records: unknown[]) =>
-    JSON.stringify({ deviceId: "dev-b", records })
+  const payload = (records: unknown[], app?: string) =>
+    JSON.stringify({ deviceId: "dev-b", app, records })
 
   test("keeps valid records and drops the rest", () => {
-    const kept = readSnapshot(
-      payload([
-        record({ collection: "notes", id: "n", data: note }),
-        record({ collection: "notes", id: "bad", data: { title: 1 } }),
-        record({ collection: "profile" as never, id: "profile", data: {} }),
-        record({ id: "gone", deleted: true, data: { leaked: true } }),
-      ]),
+    const { records } = readSnapshot(
+      payload(
+        [
+          record({ collection: "files", id: "a/노트.md", data: file }),
+          record({ collection: "files", id: "bad.md", data: { content: 1 } }),
+          record({ collection: "files", id: "../p2p.json", data: file }),
+          record({ collection: "files", id: "a/../b.md", data: file }),
+          record({ collection: "files", id: ".obsidian/x.md", data: file }),
+          record({ collection: "profile" as never, id: "profile", data: {} }),
+          record({ id: "gone", deleted: true, data: { leaked: true } }),
+        ],
+        "note",
+      ),
       1_000,
     )
 
-    expect(kept.map(r => r.id)).toEqual(["n", "gone"])
-    expect(kept[1].data).toBeNull()
+    expect(records.map(r => r.id)).toEqual(["a/노트.md", "gone"])
+    expect(records[1].data).toBeNull()
+  })
+
+  test("accepts only events from a snapshot that is not from note", () => {
+    const event = record({ collection: "events", id: "e", deleted: true })
+
+    for (const app of ["eris", undefined]) {
+      const { records } = readSnapshot(
+        payload(
+          [record({ collection: "files", id: "a.md", data: file }), event],
+          app,
+        ),
+        1_000,
+      )
+
+      expect(records.map(r => r.id)).toEqual(["e"])
+    }
   })
 
   test("drops records stamped far in the future", () => {
     const future = record({ updatedAt: 10 ** 12, deleted: true, data: null })
 
-    expect(readSnapshot(payload([future]), 0)).toEqual([])
+    expect(readSnapshot(payload([future], "note"), 0).records).toEqual([])
   })
 
   test("returns nothing for malformed input", () => {
-    expect(readSnapshot("not json")).toEqual([])
-    expect(readSnapshot(JSON.stringify({ records: 1 }))).toEqual([])
+    expect(readSnapshot("not json").records).toEqual([])
+    expect(readSnapshot(JSON.stringify({ records: 1 })).records).toEqual([])
   })
 })

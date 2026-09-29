@@ -3,7 +3,7 @@ import { type KeyValueStore, openStore } from "../platform/storage"
 import { loadDevice } from "../settings"
 import { isPoisoned, type LocalItem, remoteWins, toLocal } from "../sync/merge"
 import {
-  type SyncedCollection,
+  type StoredCollection,
   type SyncRecord,
   TOMBSTONE_TTL,
 } from "../sync/protocol"
@@ -11,7 +11,9 @@ import type { CalendarEvent, Note, Todo } from "./types"
 
 export const DATA_EVENT = "data-changed"
 
-export type DataChange = { collection: SyncedCollection; remote: boolean }
+export type LocalCollection = StoredCollection | "notes"
+
+export type DataChange = { collection: LocalCollection; remote: boolean }
 
 export type SyncMeta = {
   lastSyncAt: number | null
@@ -20,7 +22,7 @@ export type SyncMeta = {
 }
 
 export type Collection<T extends LocalItem> = {
-  name: SyncedCollection
+  name: LocalCollection
   all(): Promise<T[]>
   get(id: string): Promise<T | undefined>
   put(item: T): Promise<T>
@@ -32,7 +34,7 @@ export type Collection<T extends LocalItem> = {
 const FILE = "data.json"
 const META_KEY = "sync"
 
-const itemKey = (collection: SyncedCollection, id: string) =>
+const itemKey = (collection: LocalCollection, id: string) =>
   `${collection}/${id}`
 
 type Buried = LocalItem & { deleted: true }
@@ -63,7 +65,7 @@ const prefixed = <T>(entries: [string, unknown][], prefix: string) =>
 const valuesByPrefix = async <T>(prefix: string) =>
   prefixed<T>(await (await store()).entries(), prefix)
 
-const notify = (collection: SyncedCollection, remote = false) =>
+const notify = (collection: LocalCollection, remote = false) =>
   publish(DATA_EVENT, { collection, remote } satisfies DataChange)
 
 const lastStamp = (updatedAt: number | undefined) =>
@@ -71,7 +73,7 @@ const lastStamp = (updatedAt: number | undefined) =>
 
 const stampFor = async (
   db: KeyValueStore,
-  collection: SyncedCollection,
+  collection: LocalCollection,
   id: string,
   device?: string,
 ) => {
@@ -87,7 +89,7 @@ export const onDataChange = (handler: (change: DataChange) => void) =>
   subscribe<DataChange>(DATA_EVENT, handler)
 
 const collection = <T extends LocalItem>(
-  name: SyncedCollection,
+  name: LocalCollection,
 ): Collection<T> => {
   const prefix = `${name}/`
 
@@ -190,7 +192,7 @@ export const events = collection<CalendarEvent>("events")
 export const newId = () => crypto.randomUUID()
 
 export const localRecords = async (
-  collections: readonly SyncedCollection[],
+  collections: readonly StoredCollection[],
   now = Date.now(),
 ): Promise<SyncRecord[]> => {
   const db = await store()
@@ -232,12 +234,16 @@ export const localRecords = async (
 // ponytail: get-then-write is not atomic; a put landing mid-loop loses to the remote
 export const applyRemote = async (
   records: SyncRecord[],
-): Promise<SyncedCollection[]> => {
+): Promise<StoredCollection[]> => {
   const db = await store()
   const deviceId = await ownDeviceId()
-  const changed = new Set<SyncedCollection>()
+  const changed = new Set<StoredCollection>()
 
   for (const record of records) {
+    if (record.collection === "files") {
+      continue
+    }
+
     const key = itemKey(record.collection, record.id)
 
     if (!remoteWins(record, await db.get<LocalItem>(key), deviceId)) {

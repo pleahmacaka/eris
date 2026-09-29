@@ -51,7 +51,7 @@ export const defaultAppearance: Appearance = {
 
 export const defaultSync: SyncSettings = {
   intervalMinutes: 5,
-  collections: { notes: true, todos: true, events: true },
+  collections: { files: true, todos: true, events: true },
 }
 
 export const defaultVault: VaultSettings = {

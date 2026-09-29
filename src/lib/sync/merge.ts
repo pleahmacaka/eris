@@ -1,5 +1,12 @@
-import { isCalendarEvent, isNote, isRecord, isTodo } from "../data/guards"
-import { isSyncedCollection, MAX_CLOCK_SKEW, type SyncRecord } from "./protocol"
+import { isCalendarEvent, isRecord, isTodo } from "../data/guards"
+import { filePath } from "../vault/paths"
+import {
+  type AppTag,
+  isSyncedCollection,
+  MAX_CLOCK_SKEW,
+  MAX_FILE,
+  type SyncRecord,
+} from "./protocol"
 
 export type Versioned = { updatedAt: number; deviceId?: string }
 
@@ -31,14 +38,26 @@ export const toLocal = (
 const isText = (value: unknown): value is string =>
   typeof value === "string" && value !== ""
 
+const isFileData = (value: unknown) =>
+  isRecord(value) &&
+  typeof value.content === "string" &&
+  value.content.length <= MAX_FILE &&
+  (value.base === null ||
+    value.base === undefined ||
+    typeof value.base === "string")
+
 const fitsCollection = (record: SyncRecord) => {
+  if (record.collection === "files" && filePath(record.id) !== record.id) {
+    return false
+  }
+
   if (record.deleted) {
     return true
   }
 
   switch (record.collection) {
-    case "notes":
-      return isNote(record.data)
+    case "files":
+      return isFileData(record.data)
     case "todos":
       return isTodo(record.data)
     case "events":
@@ -57,20 +76,27 @@ const isSyncRecord = (value: unknown, now: number): value is SyncRecord =>
   isText(value.deviceId) &&
   fitsCollection(value as SyncRecord)
 
-export const readSnapshot = (text: string, now = Date.now()): SyncRecord[] => {
+export type Received = { app: AppTag; records: SyncRecord[] }
+
+export const readSnapshot = (text: string, now = Date.now()): Received => {
   let parsed: unknown
 
   try {
     parsed = JSON.parse(text)
   } catch {
-    return []
+    return { app: "eris", records: [] }
   }
 
   if (!isRecord(parsed) || !Array.isArray(parsed.records)) {
-    return []
+    return { app: "eris", records: [] }
   }
 
-  return parsed.records
+  const app: AppTag = parsed.app === "note" ? "note" : "eris"
+
+  const records = parsed.records
     .filter(r => isSyncRecord(r, now))
     .map(r => (r.deleted ? { ...r, data: null } : r))
+    .filter(r => app === "note" || r.collection === "events")
+
+  return { app, records }
 }

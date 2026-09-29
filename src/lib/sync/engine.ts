@@ -20,8 +20,15 @@ import {
   onDevice,
   type SyncSettings,
 } from "../settings"
+import { applyVaultRemote, isEcho, vaultRecords } from "../vault/sync"
+import { onVaultChange, vault } from "../vault/vault.svelte"
 import { readSnapshot } from "./merge"
-import type { Snapshot } from "./protocol"
+import {
+  MAX_SNAPSHOT,
+  type Snapshot,
+  type StoredCollection,
+  type SyncRecord,
+} from "./protocol"
 import {
   hydrateSyncStatus,
   refreshPairing,
@@ -33,12 +40,31 @@ const DEBOUNCE = 1_000
 const message = (error: unknown) =>
   error instanceof Error ? error.message : String(error)
 
-const publish = async (device: DeviceSettings) => {
-  const records = await localRecords(enabledCollections(device.sync))
+const pack = (deviceId: string, records: SyncRecord[]) =>
+  JSON.stringify({ deviceId, app: "note", records } satisfies Snapshot)
 
-  await p2pPublish(
-    JSON.stringify({ deviceId: device.deviceId, records } satisfies Snapshot),
-  )
+const publish = async (device: DeviceSettings) => {
+  const enabled = enabledCollections(device.sync)
+  const stored = enabled.filter((c): c is StoredCollection => c !== "files")
+  const records = await localRecords(stored)
+  const loaded = vault.ready && vault.error === null && vault.root !== ""
+  const files =
+    enabled.includes("files") && loaded
+      ? await vaultRecords(device.deviceId)
+      : { records: [], oversized: [] }
+  const full = pack(device.deviceId, [...records, ...files.records])
+
+  if (full.length <= MAX_SNAPSHOT) {
+    await p2pPublish(full)
+
+    return files.oversized.length > 0
+      ? `1MB를 넘는 파일 ${files.oversized.length}개는 동기화에서 제외했습니다.`
+      : null
+  }
+
+  await p2pPublish(pack(device.deviceId, records))
+
+  return "볼트가 동기화 한도(24MB)를 넘어 노트 파일을 동기화하지 않았습니다."
 }
 
 const exclusive = <T>(task: () => Promise<T>) =>
@@ -59,7 +85,7 @@ const run = async () => {
   }
 
   try {
-    await publish(await ensureDevice())
+    const warning = await publish(await ensureDevice())
 
     const { paired, peers } = await p2pStatus()
 
@@ -74,14 +100,14 @@ const run = async () => {
     const reached = await p2pSync()
     const meta = await updateSyncMeta(
       reached > 0
-        ? { lastSyncAt: Date.now(), lastError: null }
-        : { lastError: null },
+        ? { lastSyncAt: Date.now(), lastError: warning }
+        : { lastError: warning },
     )
 
     setSyncStatus({
-      state: "idle",
+      state: warning ? "error" : "idle",
       lastSyncAt: meta.lastSyncAt,
-      lastError: null,
+      lastError: warning,
       peers: peers.length,
     })
 
@@ -107,11 +133,22 @@ const applySnapshot = (payload: string) =>
   exclusive(async () => {
     try {
       const device = await ensureDevice()
-      const records = readSnapshot(payload).filter(
+      const records = readSnapshot(payload).records.filter(
         r => device.sync.collections[r.collection],
       )
+      const loaded = vault.ready && vault.error === null && vault.root !== ""
+      const files = loaded ? records.filter(r => r.collection === "files") : []
 
-      if ((await applyRemote(records)).length > 0) {
+      if (files.length > 0) {
+        await vaultRecords(device.deviceId)
+      }
+
+      const touched = [
+        ...(await applyRemote(records)),
+        ...(await applyVaultRemote(files, device.deviceId)),
+      ]
+
+      if (touched.length > 0) {
         await publish(device)
       }
 
@@ -168,6 +205,13 @@ export const startAutoSync = () => {
         schedule(DEBOUNCE)
       }
     }),
+    Promise.resolve(
+      onVaultChange(change => {
+        if (!change.external || change.paths.some(p => !isEcho(p))) {
+          schedule(DEBOUNCE)
+        }
+      }),
+    ),
     onP2pSnapshot(applySnapshot),
     onP2pPeers(() => {
       refreshPairing().catch(() => undefined)
