@@ -1,6 +1,9 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte"
   import { fade } from "svelte/transition"
+  import ContextMenu from "$lib/components/ui/ContextMenu.svelte"
+  import { fieldMenu } from "$lib/menu/edit"
+  import { showMenu } from "$lib/menu/menu.svelte"
   import { device } from "$lib/settings.svelte"
   import { onVaultChange, openVault, vault } from "$lib/vault/vault.svelte"
   import { closeActiveTab, newNote } from "$lib/workspace/commands"
@@ -153,13 +156,27 @@
     endDrag()
   }
 
+  const nativeMenu = (event: MouseEvent) => {
+    const items = fieldMenu(event.target)
+
+    if (items) {
+      showMenu(event, items)
+    } else {
+      event.preventDefault()
+    }
+  }
+
   const closePanels = () => {
     layout.open.left = false
     layout.open.right = false
   }
 </script>
 
-<svelte:window onkeydown={keydown} ondragend={endDrag} />
+<svelte:window
+  onkeydown={keydown}
+  ondragend={endDrag}
+  oncontextmenu={nativeMenu}
+/>
 
 <div class="flex h-dvh flex-col bg-base-200 text-base-content">
   <TitleBar />
@@ -208,3 +225,4 @@
 </div>
 
 <Palette />
+<ContextMenu />

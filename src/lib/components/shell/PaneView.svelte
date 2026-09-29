@@ -1,5 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { copyText } from "$lib/menu/clipboard"
+  import { showMenu } from "$lib/menu/menu.svelte"
   import { newNote } from "$lib/workspace/commands"
   import {
     accept,
@@ -13,10 +15,13 @@
   import {
     activate,
     activeTab,
+    closeOthers,
     closeTab,
     focusPane,
     moveTab,
+    openView,
     type Pane,
+    type Tab,
     splitPane,
     tabIcon,
     tabTitle,
@@ -31,6 +36,37 @@
   const focused = $derived(workspace.focus === pane.id)
 
   let hover = $state<string | null>(null)
+
+  const tabMenu = (event: MouseEvent, tab: Tab) =>
+    showMenu(event, [
+      { label: "닫기", icon: "lucide:x", keys: "Ctrl W", run: () => closeTab(pane, tab.id) },
+      {
+        label: "다른 탭 닫기",
+        icon: "lucide:copy-x",
+        disabled: pane.tabs.length < 2,
+        run: () => closeOthers(pane, tab.id),
+      },
+      "separator",
+      {
+        label: "오른쪽으로 분할",
+        icon: "lucide:columns-2",
+        keys: "Ctrl \\",
+        run: () => {
+          activate(pane, tab.id)
+          openView(tab.kind, tab.path, { split: true })
+        },
+      },
+      ...(tab.path
+        ? [
+            "separator" as const,
+            {
+              label: "경로 복사",
+              icon: "lucide:clipboard-copy",
+              run: () => copyText(tab.path ?? ""),
+            },
+          ]
+        : []),
+    ])
 
   const drop = (event: DragEvent, before: string | null) => {
     event.stopPropagation()
@@ -87,6 +123,7 @@
               ? "bg-base-100 text-base-content"
               : "text-base-content/55 hover:bg-base-content/5",
           ]}
+          oncontextmenu={e => tabMenu(e, tab)}
           ondragstart={e => startDrag(e, "tab", tab.id)}
           ondragend={endDrag}
           ondragenter={() => (hover = tab.id)}

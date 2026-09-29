@@ -16,6 +16,7 @@
     rename,
     act,
     moveInto,
+    menu,
   }: {
     node: TreeNode
     depth: number
@@ -27,6 +28,7 @@
     rename: (node: TreeNode, name: string | null) => void
     act: (node: TreeNode, action: "rename" | "delete" | "note") => void
     moveInto: (event: DragEvent, folder: string) => void
+    menu: (event: MouseEvent, node: TreeNode) => void
   } = $props()
 
   let target = $state(false)
@@ -66,6 +68,7 @@
       target && "bg-primary/15 outline outline-primary/50",
     ]}
     style:padding-left="{0.5 + depth * 0.875}rem"
+    oncontextmenu={e => menu(e, node)}
     ondragstart={e => startDrag(e, "path", node.path)}
     ondragend={endDrag}
     ondragenter={() => (target = node.folder)}
@@ -154,6 +157,7 @@
           {rename}
           {act}
           {moveInto}
+          {menu}
         />
       {/each}
     </ul>

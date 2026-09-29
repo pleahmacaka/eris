@@ -2,7 +2,10 @@
   import type { EditorView } from "@codemirror/view"
   import Icon from "@iconify/svelte"
   import { onMount } from "svelte"
+  import { editorMenu } from "$lib/editor/menu"
   import { editors } from "$lib/editor/registry"
+  import { contextmenu } from "$lib/menu/menu.svelte"
+  import { layout } from "$lib/workspace/layout.svelte"
   import { createEditor, replaceDoc } from "$lib/editor/setup"
   import { stem } from "$lib/vault/paths"
   import {
@@ -65,6 +68,22 @@
       fail(error)
     }
   }
+
+  const menuItems = () =>
+    view
+      ? editorMenu(view, [
+          {
+            label: "템플릿 삽입",
+            icon: "lucide:clipboard-paste",
+            run: () => (layout.palette = "insert-template"),
+          },
+          {
+            label: "읽기 모드",
+            icon: "lucide:book-open",
+            run: () => (reading = true),
+          },
+        ])
+      : []
 
   onMount(() => {
     let disposed = false
@@ -154,6 +173,7 @@
     <div
       bind:this={host}
       class={["absolute inset-0 overflow-hidden", reading && "invisible"]}
+      use:contextmenu={menuItems}
     ></div>
 
     {#if reading && loaded}

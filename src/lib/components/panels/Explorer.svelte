@@ -3,6 +3,8 @@
   import { SvelteSet } from "svelte/reactivity"
   import ConfirmDialog from "$lib/components/ui/ConfirmDialog.svelte"
   import { newCanvas, newFolder, newNote } from "$lib/workspace/commands"
+  import { copyText } from "$lib/menu/clipboard"
+  import { type MenuItem, showMenu } from "$lib/menu/menu.svelte"
   import { accept, endDrag, payload } from "$lib/workspace/drag.svelte"
   import { closePanelsOnNarrow } from "$lib/workspace/layout.svelte"
   import { openPath } from "$lib/workspace/navigate"
@@ -100,6 +102,69 @@
     })
   }
 
+  const creators = (folder: string): MenuItem[] => [
+    {
+      label: "새 노트",
+      icon: "lucide:file-plus",
+      run: () => {
+        open.add(folder)
+        attempt(() => newNote(folder))
+      },
+    },
+    {
+      label: "새 캔버스",
+      icon: "lucide:layout-dashboard",
+      run: () => {
+        open.add(folder)
+        attempt(() => newCanvas(folder))
+      },
+    },
+    {
+      label: "새 폴더",
+      icon: "lucide:folder-plus",
+      run: () => {
+        open.add(folder)
+        attempt(() => newFolder(folder))
+      },
+    },
+  ]
+
+  const menu = (event: MouseEvent, node: TreeNode) => {
+    const common: MenuItem[] = [
+      { label: "이름 변경", icon: "lucide:pencil", keys: "F2", run: () => (renaming = node.path) },
+      { label: "경로 복사", icon: "lucide:clipboard-copy", run: () => copyText(node.path) },
+    ]
+    const danger: MenuItem = {
+      label: "삭제",
+      icon: "lucide:trash-2",
+      danger: true,
+      run: () => act(node, "delete"),
+    }
+
+    showMenu(
+      event,
+      node.folder
+        ? [...creators(node.path), "separator", ...common, "separator", danger]
+        : [
+            { label: "열기", icon: "lucide:file-text", run: () => openPath(node.path) },
+            {
+              label: "새 탭에서 열기",
+              icon: "lucide:panel-top-open",
+              run: () => openPath(node.path, { newTab: true }),
+            },
+            {
+              label: "오른쪽에 분할해서 열기",
+              icon: "lucide:columns-2",
+              run: () => openPath(node.path, { split: true }),
+            },
+            "separator",
+            ...common,
+            "separator",
+            danger,
+          ],
+    )
+  }
+
   const erase = () => {
     const node = doomed
 
@@ -163,6 +228,7 @@
     class="min-h-0 flex-1 overflow-y-auto py-1"
     role="tree"
     tabindex="-1"
+    oncontextmenu={e => showMenu(e, creators(""))}
     ondragover={e => accept(e, "path")}
     ondrop={e => moveInto(e, "")}
   >
@@ -191,6 +257,7 @@
             {rename}
             {act}
             {moveInto}
+            {menu}
           />
         {/each}
       </ul>

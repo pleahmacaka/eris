@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { showMenu } from "$lib/menu/menu.svelte"
   import { newCanvas, newNote } from "$lib/workspace/commands"
   import {
     accept,
@@ -15,6 +16,7 @@
     movePanel,
     PANELS,
     type PanelId,
+    resetLayout,
     showPanel,
   } from "$lib/workspace/layout.svelte"
   import { openView } from "$lib/workspace/workspace.svelte"
@@ -43,6 +45,25 @@
   }
 
   let hover = $state<string | null>(null)
+
+  const barMenu = (event: MouseEvent, panel?: PanelId) =>
+    showMenu(event, [
+      ...(panel
+        ? [
+            {
+              label: "오른쪽 사이드바로 이동",
+              icon: "lucide:panel-right",
+              run: () => movePanel(panel, "right"),
+            },
+            "separator" as const,
+          ]
+        : []),
+      {
+        label: "레이아웃 초기화",
+        icon: "lucide:rotate-ccw",
+        run: resetLayout,
+      },
+    ])
 
   const dropPanel = (event: DragEvent, before?: PanelId) => {
     const panel = payload(event, "panel") as PanelId
@@ -76,6 +97,7 @@
     drag.kind === "panel" && "bg-primary/5",
   ]}
   aria-label="활동 표시줄"
+  oncontextmenu={e => barMenu(e)}
   ondragover={e => accept(e, "panel")}
   ondrop={e => dropPanel(e)}
 >
@@ -91,6 +113,7 @@
       aria-label={PANELS[panel].label}
       title={PANELS[panel].label}
       onclick={() => showPanel(panel)}
+      oncontextmenu={e => barMenu(e, panel)}
       ondragstart={e => startDrag(e, "panel", panel)}
       ondragend={endDrag}
       ondragenter={() => (hover = panel)}

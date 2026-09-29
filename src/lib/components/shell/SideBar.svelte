@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { rem } from "$lib/ascii/motion"
+  import { showMenu } from "$lib/menu/menu.svelte"
   import PanelView from "$lib/components/panels/PanelView.svelte"
   import ActivityBar from "./ActivityBar.svelte"
   import {
@@ -29,6 +30,19 @@
   let resizing = $state(false)
 
   const open = $derived(layout.open[side])
+
+  const panelMenu = (event: MouseEvent, panel: PanelId) => {
+    const other = side === "left" ? "right" : "left"
+
+    showMenu(event, [
+      {
+        label: other === "left" ? "왼쪽 사이드바로 이동" : "오른쪽 사이드바로 이동",
+        icon: other === "left" ? "lucide:panel-left" : "lucide:panel-right",
+        run: () => movePanel(panel, other),
+      },
+      { label: "사이드바 닫기", icon: "lucide:x", run: () => (layout.open[side] = false) },
+    ])
+  }
 
   const drop = (event: DragEvent, before?: PanelId) => {
     event.stopPropagation()
@@ -113,6 +127,7 @@
             ]}
             title={PANELS[panel].label}
             onclick={() => (layout.active[side] = panel)}
+            oncontextmenu={e => panelMenu(e, panel)}
             ondragstart={e => startDrag(e, "panel", panel)}
             ondragend={endDrag}
             ondragenter={() => (hover = panel)}
