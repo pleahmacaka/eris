@@ -76,7 +76,7 @@ const received = (payload: string, sync: SyncSettings) =>
     .filter(r => r !== null)
 
 const snapshot = (deviceId: string, records: SyncRecord[]) =>
-  JSON.stringify({ deviceId, records } satisfies Snapshot)
+  JSON.stringify({ deviceId, app: "eris", records } satisfies Snapshot)
 
 const publish = async (device: DeviceSettings) => {
   const enabled = syncedCollections.filter(
