@@ -17,6 +17,8 @@
     type Profile,
   } from "@eris/settings"
   import { startAutoSync } from "$lib/sync"
+  import { announceUpdate } from "$lib/updates"
+  import { t } from "svelte-i18n"
 
   const HIDE_DELAY = 1_200
   const HIDE_SLIDE = 120
@@ -244,6 +246,19 @@
     isEnabled()
       .then(on => (on === wanted ? undefined : wanted ? enable() : disable()))
       .catch(() => undefined)
+  })
+
+  $effect(() => {
+    if (!ready || !device.onboarded) {
+      return
+    }
+
+    untrack(() =>
+      announceUpdate(version => ({
+        title: $t("tray.update.title"),
+        body: $t("tray.update.body", { values: { version } }),
+      })),
+    )
   })
 
   $effect(() => {

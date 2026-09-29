@@ -1177,6 +1177,10 @@
       "weekly": "每周 {percent}%",
       "leftHours": "剩余 {hours} 小时 {minutes} 分钟",
       "leftMinutes": "剩余 {minutes} 分钟"
+    },
+    "update": {
+      "title": "Eris 有可用更新",
+      "body": "请在设置的高级中安装 {version} 版本。"
     }
   }
 }

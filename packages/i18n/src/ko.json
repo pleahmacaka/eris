@@ -1177,6 +1177,10 @@
       "weekly": "주간 {percent}%",
       "leftHours": "{hours}시간 {minutes}분 남음",
       "leftMinutes": "{minutes}분 남음"
+    },
+    "update": {
+      "title": "Eris 업데이트",
+      "body": "설정의 고급에서 {version} 버전을 설치하세요."
     }
   }
 }
