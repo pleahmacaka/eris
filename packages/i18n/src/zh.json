@@ -213,6 +213,7 @@
       "pairDevice": "添加设备",
       "joinDevice": "连接到其他设备",
       "showSyncStatus": "在 Dock 显示状态",
+      "dockGrowth": "窗口较多时横向扩展",
       "studio": "Studio"
     },
     "hints": {
@@ -305,6 +306,7 @@
       "showSyncStatus": "在时钟旁显示同步状态圆点",
       "lastEntryPoint": "请保持 Dock 或启动器之一开启。",
       "dockLayoutLocked": "在实验性功能中开启编辑模式后可用",
+      "dockGrowth": "扩展到此比例后，其余应用归入 ⋯ 菜单。0% 时宽度固定。",
       "studio": "在沙盒中用你的设置预览所有窗口，并将结果应用到 Eris"
     },
     "options": {

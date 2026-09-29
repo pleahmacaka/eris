@@ -17,4 +17,8 @@ export const noticesSeen = () => invoke<void>("notices_seen")
 export const noticesDismiss = (ids: number[]) =>
   invoke<void>("notices_dismiss", { ids })
 
-export const noticesOpenPanel = () => invoke<void>("notices_open_panel")
+export const noticesOpenPanel = (anchor: [number, number, number, number]) =>
+  invoke<void>("notices_open_panel", { anchor })
+
+export const noticesActivate = (id: number) =>
+  invoke<void>("notices_activate", { id })

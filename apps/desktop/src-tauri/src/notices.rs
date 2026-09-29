@@ -3,9 +3,9 @@ use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::Serialize;
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, WebviewWindow};
 
-use crate::windowing;
+use crate::{apps, windowing};
 
 #[derive(Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -15,6 +15,8 @@ pub struct Notice {
     pub title: String,
     pub body: String,
     pub arrived: u64,
+    #[serde(skip)]
+    pub launch: Option<String>,
 }
 
 static DISMISSED: Mutex<Vec<i64>> = Mutex::new(Vec::new());
@@ -64,8 +66,27 @@ pub fn notices_dismiss(app: AppHandle, ids: Vec<i64>) {
 }
 
 #[tauri::command]
-pub fn notices_open_panel(app: AppHandle) {
+pub fn notices_open_panel(app: AppHandle, window: WebviewWindow, anchor: Option<[f64; 4]>) {
+    windowing::set_anchor("notices", &window, anchor);
     windowing::show(&app, "notices");
+}
+
+// a foreground toast activates through the sender's COM activator, which only the shell can reach, so reopen the app instead
+#[tauri::command(async)]
+pub fn notices_activate(app: AppHandle, id: i64) -> Result<(), String> {
+    let notice = win::read()?
+        .into_iter()
+        .find(|notice| notice.id == id)
+        .ok_or("notification is gone")?;
+    let target = notice
+        .launch
+        .unwrap_or_else(|| format!("shell:AppsFolder\\{}", notice.app));
+
+    apps::shell_execute("open", &target, None, true)?;
+    notices_dismiss(app.clone(), vec![id]);
+    windowing::hide(&app, "notices");
+
+    Ok(())
 }
 
 fn database_copy() -> Result<PathBuf, String> {
@@ -98,10 +119,16 @@ fn filetime_ms(filetime: i64) -> u64 {
     (filetime / 10_000 - EPOCH_GAP_MS).max(0) as u64
 }
 
-fn parse_toast(xml: &str) -> (String, String) {
+fn parse_toast(xml: &str) -> (String, String, Option<String>) {
     let Ok(doc) = roxmltree::Document::parse(xml) else {
-        return (String::new(), String::new());
+        return (String::new(), String::new(), None);
     };
+
+    let toast = doc.root_element();
+    let launch = (toast.attribute("activationType") == Some("protocol"))
+        .then(|| toast.attribute("launch"))
+        .flatten()
+        .map(str::to_string);
 
     let mut texts = doc
         .descendants()
@@ -113,7 +140,7 @@ fn parse_toast(xml: &str) -> (String, String) {
     let title = texts.next().unwrap_or_default().to_string();
     let body = texts.collect::<Vec<_>>().join("\n");
 
-    (title, body)
+    (title, body, launch)
 }
 
 #[cfg(target_os = "windows")]
@@ -197,7 +224,7 @@ mod win {
                 continue;
             }
 
-            let (title, body) = super::parse_toast(&String::from_utf8_lossy(&payload));
+            let (title, body, launch) = super::parse_toast(&String::from_utf8_lossy(&payload));
 
             if title.is_empty() && body.is_empty() {
                 continue;
@@ -209,6 +236,7 @@ mod win {
                 title,
                 body,
                 arrived: filetime_ms(arrival),
+                launch,
             });
         }
 
@@ -233,7 +261,19 @@ mod tests {
     fn toast_text_splits_into_title_and_body() {
         let xml = "<toast><visual><binding template='ToastGeneric'><text>Hello</text><text>World</text><text> </text></binding></visual></toast>";
 
-        assert_eq!(parse_toast(xml), ("Hello".into(), "World".into()));
+        assert_eq!(parse_toast(xml), ("Hello".into(), "World".into(), None));
+    }
+
+    #[test]
+    fn only_protocol_toasts_carry_a_launch_target() {
+        let protocol = "<toast activationType='protocol' launch='discord://channels/1'><visual><binding><text>Hi</text></binding></visual></toast>";
+        let foreground = "<toast launch='action=open'><visual><binding><text>Hi</text></binding></visual></toast>";
+
+        assert_eq!(
+            parse_toast(protocol).2.as_deref(),
+            Some("discord://channels/1")
+        );
+        assert_eq!(parse_toast(foreground).2, None);
     }
 
     #[test]

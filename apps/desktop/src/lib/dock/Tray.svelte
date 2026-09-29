@@ -239,9 +239,13 @@
     }
   })
 
-  const openNotices = () => {
+  const openNotices = (e: MouseEvent) => {
+    const box = (e.currentTarget as HTMLElement).getBoundingClientRect()
+
     unseen = 0
-    native.noticesOpenPanel().catch(() => undefined)
+    native
+      .noticesOpenPanel([box.left, box.top, box.right, box.bottom])
+      .catch(() => undefined)
   }
 
   let leaveTimer: ReturnType<typeof setTimeout> | undefined

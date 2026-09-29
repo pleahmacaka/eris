@@ -158,18 +158,36 @@ pub fn list_apps() -> Vec<AppEntry> {
 
 #[tauri::command(async)]
 pub fn pinned_apps() -> Vec<AppEntry> {
-    let Some(appdata) = std::env::var_os("APPDATA") else {
+    let Some(root) = crate::pins::folder() else {
         return Vec::new();
     };
 
-    let root = PathBuf::from(appdata)
-        .join(r"Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar");
-
     let mut entries = shortcuts_in(root, 1);
+    let names: Vec<String> = entries.iter().map(|found| file_name(&found.path)).collect();
+    let order = crate::pins::read_favorites()
+        .map(|favorites| crate::pins::taskbar_order(&favorites, &names))
+        .unwrap_or_default();
 
-    entries.sort_by_key(|found| found.name.to_lowercase());
+    entries.sort_by_key(|found| {
+        let name = file_name(&found.path);
+
+        (
+            order
+                .iter()
+                .position(|pinned| *pinned == name)
+                .unwrap_or(usize::MAX),
+            found.name.to_lowercase(),
+        )
+    });
 
     entries
+}
+
+fn file_name(path: &str) -> String {
+    Path::new(path)
+        .file_name()
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_default()
 }
 
 #[tauri::command(async)]

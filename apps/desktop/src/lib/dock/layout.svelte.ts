@@ -141,8 +141,11 @@ export class DockLayout {
 
   dockWidth = $derived.by(() => {
     if (this.mac) {
+      const limit = this.device.dockWidth * (1 + this.device.dockGrowth)
+
       return Math.min(
         this.maxDockWidth,
+        limit,
         Math.max(this.naturalWidth, this.device.dockWidth),
       )
     }
@@ -321,6 +324,19 @@ export class DockLayout {
 
     paths.splice(before ? at : at + 1, 0, from)
 
+    const pinned = new Map(dock.pinned.map(app => [app.path, app]))
+    const taskbar = paths.filter(path => pinned.has(path))
+    const moved = new Set(taskbar)
+    let next = 0
+    const reordered = dock.pinned.map(app =>
+      moved.has(app.path) ? (pinned.get(taskbar[next++]) ?? app) : app,
+    )
+
+    if (reordered.some((app, at) => app.path !== dock.pinned[at]?.path)) {
+      dock.pinned = reordered
+      native.reorderPins(taskbar).catch(() => undefined)
+    }
+
     await updateDevice(device => ({ ...device, dockOrder: paths }))
   }
 
@@ -394,11 +410,17 @@ export class DockLayout {
       }
     }
 
-    return [...list].sort(
+    const sorted = [...list].sort(
       (a, b) =>
         (rank.get(a.path) ?? Number.MAX_SAFE_INTEGER) -
           (rank.get(b.path) ?? Number.MAX_SAFE_INTEGER) ||
         (this.seen.get(a.path) ?? 0) - (this.seen.get(b.path) ?? 0),
+    )
+    const taskbar = list.filter(group => group.pinned === "windows")
+    let next = 0
+
+    return sorted.map(group =>
+      group.pinned === "windows" ? taskbar[next++] : group,
     )
   }
 }

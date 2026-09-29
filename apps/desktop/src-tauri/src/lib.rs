@@ -24,6 +24,7 @@ mod monitors;
 mod notices;
 mod notify;
 mod p2p;
+mod pins;
 mod preview;
 mod quick;
 mod shortcuts;

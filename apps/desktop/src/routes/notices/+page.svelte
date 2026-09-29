@@ -29,6 +29,15 @@
     await native.noticesDismiss([id]).catch(() => undefined)
   }
 
+  const activate = async (id: number) => {
+    try {
+      await native.noticesActivate(id)
+      items = items.filter(notice => notice.id !== id)
+    } catch {
+      refresh()
+    }
+  }
+
   const dismissAll = async () => {
     const ids = items.map(notice => notice.id)
 
@@ -126,9 +135,13 @@
       <ul class="flex flex-col gap-1">
         {#each items as notice (notice.id)}
           <li
-            class="group flex items-start gap-2.5 rounded-field border border-base-content/10 bg-base-100/60 px-3 py-2.5"
+            class="group flex items-start gap-2.5 rounded-field border border-base-content/10 bg-base-100/60 px-3 py-2.5 transition-colors hover:bg-base-content/5"
           >
-            <div class="min-w-0 flex-1">
+            <button
+              type="button"
+              class="min-w-0 flex-1 text-left"
+              onclick={() => activate(notice.id)}
+            >
               <div class="flex items-baseline justify-between gap-2">
                 <span class="truncate text-xs font-medium text-base-content/60">
                   {notice.app}
@@ -146,7 +159,7 @@
                   {notice.body}
                 </p>
               {/if}
-            </div>
+            </button>
 
             <button
               class="btn btn-ghost btn-square btn-xs shrink-0 opacity-0 group-hover:opacity-100"
