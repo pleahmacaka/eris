@@ -1,4 +1,9 @@
-import { isSyncedCollection, MAX_CLOCK_SKEW, type SyncRecord } from "./protocol"
+import {
+  crossAppCollections,
+  isSyncedCollection,
+  MAX_CLOCK_SKEW,
+  type SyncRecord,
+} from "./protocol"
 
 export type Versioned = { updatedAt: number; deviceId?: string }
 
@@ -62,5 +67,11 @@ export const readSnapshot = (text: string, now = Date.now()): SyncRecord[] => {
     return []
   }
 
-  return parsed.records.filter(r => isSyncRecord(r, now))
+  const foreign = parsed.app !== undefined && parsed.app !== "eris"
+
+  return parsed.records.filter(
+    r =>
+      isSyncRecord(r, now) &&
+      (!foreign || crossAppCollections.includes(r.collection)),
+  )
 }

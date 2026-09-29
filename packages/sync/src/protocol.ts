@@ -17,10 +17,15 @@ export type SyncRecord = {
   data: unknown
 }
 
+export type SnapshotApp = "eris" | "note"
+
 export type Snapshot = {
   deviceId: string
+  app?: SnapshotApp
   records: SyncRecord[]
 }
+
+export const crossAppCollections: readonly SyncedCollection[] = ["events"]
 
 export const MAX_CLOCK_SKEW = 24 * 60 * 60 * 1000
 
