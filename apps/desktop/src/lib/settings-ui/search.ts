@@ -118,6 +118,11 @@ export const index: SearchEntry[] = [
   entry("dock", "clockAlign", "clock time date left center right"),
   entry("dock", "dockLayout", "widgets spacer gap compose assemble"),
   entry("experimental", "editMode", "edit layout customize experimental"),
+  entry(
+    "experimental",
+    "studio",
+    "debug studio developer preview sandbox apply ipc",
+  ),
   entry("dock", "showTrayIcons", "notification area system tray icons"),
   entry("dock", "showClaudeUsage", "claude usage limit widget"),
   entry("dock", "claudeUsageStacked", "claude usage two lines compact"),

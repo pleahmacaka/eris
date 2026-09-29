@@ -212,7 +212,8 @@
       "dockLayout": "Dock 布局",
       "pairDevice": "添加设备",
       "joinDevice": "连接到其他设备",
-      "showSyncStatus": "在 Dock 显示状态"
+      "showSyncStatus": "在 Dock 显示状态",
+      "studio": "Studio"
     },
     "hints": {
       "deviceName": "显示在同步设备列表中",
@@ -303,7 +304,8 @@
       "joinDevice": "粘贴在另一台设备上创建的配对码",
       "showSyncStatus": "在时钟旁显示同步状态圆点",
       "lastEntryPoint": "请保持 Dock 或启动器之一开启。",
-      "dockLayoutLocked": "在实验性功能中开启编辑模式后可用"
+      "dockLayoutLocked": "在实验性功能中开启编辑模式后可用",
+      "studio": "在沙盒中用你的设置预览所有窗口，并将结果应用到 Eris"
     },
     "options": {
       "win": "Win 键",
@@ -327,7 +329,8 @@
       "minBefore": "提前 {minutes} 分钟",
       "deg": "{value} 度",
       "runSetup": "运行向导",
-      "inherit": "与窗口相同"
+      "inherit": "与窗口相同",
+      "openStudio": "打开 Studio"
     },
     "featurePresets": {
       "all": {

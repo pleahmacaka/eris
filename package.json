@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "dev": "bun run --cwd apps/desktop tauri dev",
+    "studio": "bun run --cwd apps/desktop dev --open /studio",
     "build": "bun run --cwd apps/desktop tauri build",
     "check": "bun run --filter '*' check",
     "test": "bun test",

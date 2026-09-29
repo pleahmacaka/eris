@@ -47,7 +47,8 @@
                   "$lib/edit/*",
                   "$lib/sync/*",
                   "$lib/data/*",
-                  "$lib/settings-ui/*"
+                  "$lib/settings-ui/*",
+                  "$lib/studio/*"
                 ],
                 "message": "Import the feature's index ($lib/<feature>) instead of a file inside it."
               }

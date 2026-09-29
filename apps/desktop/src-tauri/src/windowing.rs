@@ -10,7 +10,7 @@ use crate::{appbar, desktop};
 const BLUR_TOGGLE_GUARD: Duration = Duration::from_millis(250);
 const SHOW_SETTLE: Duration = Duration::from_millis(400);
 const FADE_OUT: Duration = Duration::from_millis(140);
-const LAZY: [&str; 4] = ["settings", "files", "onboarding", "edit"];
+const LAZY: [&str; 5] = ["settings", "files", "onboarding", "edit", "studio"];
 
 static BLUR_HIDDEN_AT: Mutex<Option<Instant>> = Mutex::new(None);
 static FADES: LazyLock<Mutex<HashMap<String, u64>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -233,7 +233,9 @@ fn show_now(app: &AppHandle, label: &str) {
     };
 
     let _ = match label {
-        "main" | "settings" | "onboarding" | "files" => center_on_cursor_monitor(&window),
+        "main" | "settings" | "onboarding" | "files" | "studio" => {
+            center_on_cursor_monitor(&window)
+        }
         "panel" | "notices" => dock_panel(app, &window),
         _ => Ok(()),
     };
