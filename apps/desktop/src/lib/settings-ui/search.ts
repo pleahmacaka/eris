@@ -136,6 +136,7 @@ export const index: SearchEntry[] = [
   entry("calendar", "showCompleted", "done todo"),
   entry("calendar", "sortBy", "order manual due priority"),
   entry("sync", "enableSync", "background"),
+  entry("sync", "showSyncStatus", "dock dot indicator clock tray"),
   entry("sync", "interval", "minutes frequency"),
   entry("sync", "collections", "todos events presets profile"),
   entry("sync", "pairDevice", "pairing code invite peer"),
