@@ -1177,6 +1177,10 @@
       "weekly": "週 {percent}%",
       "leftHours": "残り{hours}時間{minutes}分",
       "leftMinutes": "残り{minutes}分"
+    },
+    "update": {
+      "title": "Eris のアップデート",
+      "body": "設定の詳細設定からバージョン {version} をインストールしてください。"
     }
   }
 }

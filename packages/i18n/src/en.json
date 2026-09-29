@@ -1177,6 +1177,10 @@
       "weekly": "Weekly {percent}%",
       "leftHours": "{hours} h {minutes} min left",
       "leftMinutes": "{minutes} min left"
+    },
+    "update": {
+      "title": "Eris update available",
+      "body": "Install version {version} from Settings, Advanced."
     }
   }
 }
