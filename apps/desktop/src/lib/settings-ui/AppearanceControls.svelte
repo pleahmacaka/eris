@@ -6,7 +6,7 @@
     type Profile,
     defaultAppearance,
   } from "@eris/settings"
-  import { allPresets, CUSTOM } from "./presets"
+  import { allPresets, CUSTOM, sameAppearance } from "./presets"
   import { reset as resetField } from "./reset"
   import { Row, Segmented } from "@eris/ui"
   import { toast } from "@eris/ui"
@@ -74,11 +74,16 @@
     profile.presetId = CUSTOM
   }
 
-  const resetAppearance = resetField(() => profile.appearance, defaultAppearance)
-
   const resetRow = (key: keyof Appearance) => () => {
-    resetAppearance(key)()
-    markCustom()
+    const target = basePreset?.appearance ?? defaultAppearance
+
+    resetField(() => profile.appearance, target)(key)()
+
+    if (basePreset && sameAppearance(profile.appearance, basePreset.appearance)) {
+      profile.presetId = basePreset.id
+    } else {
+      markCustom()
+    }
   }
 
   const reset = () => {

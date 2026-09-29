@@ -299,7 +299,9 @@
       "featureCalendar": "Calendar and events panel behind the clock",
       "dockLayout": "Assemble the dock from widgets, including adjustable spacers",
       "pairDevice": "Create a code here and enter it on the other device",
-      "joinDevice": "Paste the code made on the other device"
+      "joinDevice": "Paste the code made on the other device",
+      "lastEntryPoint": "Keep the dock or the launcher on.",
+      "dockLayoutLocked": "Turn on edit mode under Experimental to use this"
     },
     "options": {
       "win": "Win key",
@@ -344,7 +346,8 @@
       "iconCacheCleared": "Icon cache cleared",
       "iconCacheFailed": "Icon cache not cleared: {error}",
       "appearanceReset": "Appearance reset",
-      "settingsReset": "Settings reset"
+      "settingsReset": "Settings reset",
+      "bridgeFailed": "Could not change the Claude bridge: {error}"
     },
     "about": {
       "tagline": "Launcher, dock, and calendar for Windows 11",

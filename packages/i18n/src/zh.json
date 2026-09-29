@@ -299,7 +299,9 @@
       "featureCalendar": "通过时钟打开的日历与日程面板",
       "dockLayout": "通过小组件组装 Dock，并可调节留白宽度",
       "pairDevice": "在此创建配对码，然后在另一台设备上输入",
-      "joinDevice": "粘贴在另一台设备上创建的配对码"
+      "joinDevice": "粘贴在另一台设备上创建的配对码",
+      "lastEntryPoint": "请保持 Dock 或启动器之一开启。",
+      "dockLayoutLocked": "在实验性功能中开启编辑模式后可用"
     },
     "options": {
       "win": "Win 键",
@@ -344,7 +346,8 @@
       "iconCacheCleared": "已清除图标缓存",
       "iconCacheFailed": "无法清除图标缓存：{error}",
       "appearanceReset": "已重置外观",
-      "settingsReset": "已重置设置"
+      "settingsReset": "已重置设置",
+      "bridgeFailed": "无法更改 Claude 桥接：{error}"
     },
     "about": {
       "tagline": "适用于 Windows 11 的启动器、程序坞与日历",

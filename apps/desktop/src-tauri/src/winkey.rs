@@ -375,7 +375,9 @@ mod win {
 
         std::thread::spawn(move || {
             while receiver.recv().is_ok() {
-                crate::windowing::toggle(&app, "main");
+                if crate::features::LAUNCHER_ON.load(Ordering::Relaxed) {
+                    crate::windowing::toggle(&app, "main");
+                }
             }
         });
 

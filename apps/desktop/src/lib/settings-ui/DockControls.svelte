@@ -12,7 +12,7 @@
   import Icon from "@iconify/svelte"
   import DockPreview from "./DockPreview.svelte"
   import { reset } from "./reset"
-  import { Row, Segmented } from "@eris/ui"
+  import { Row, Segmented, toast } from "@eris/ui"
   import { t } from "svelte-i18n"
 
   let {
@@ -70,6 +70,8 @@
         return device.features.launcher
       case "showSpectrum":
         return device.showMedia
+      case "claudeUsageStacked":
+        return device.showClaudeUsage
       default:
         return true
     }
@@ -132,7 +134,14 @@
 
   const toggleBridge = async () => {
     bridging = true
-    await installUsageBridge(!bridged).catch(() => undefined)
+    await installUsageBridge(!bridged).catch(error =>
+      toast(
+        $t("settings.toasts.bridgeFailed", {
+          values: { error: error instanceof Error ? error.message : String(error) },
+        }),
+        "error",
+      ),
+    )
     readBridge()
     bridging = false
   }
@@ -259,7 +268,7 @@
   />
 </Row>
 
-{#if !subset && device.showSpectrum}
+{#if !subset && device.showMedia && device.showSpectrum}
   <Row
     label={$t("settings.rows.spectrumStyle")}
     hint={$t("settings.hints.spectrumStyle")}
@@ -278,7 +287,7 @@
   </Row>
 {/if}
 
-{#if !subset}
+{#if !subset && device.showClaudeUsage}
   <Row label={$t("settings.rows.claudeBridge")} hint={$t("settings.hints.claudeBridge")}>
     <button
       class={["btn btn-sm", bridged ? "btn-ghost" : "btn-primary"]}
@@ -306,7 +315,7 @@
   {/if}
 {/if}
 
-{#if !subset}
+{#if !subset && device.showMedia}
   <Row
     label={$t("settings.rows.mediaSide")}
     hint={$t("settings.hints.mediaSide")}
@@ -321,7 +330,9 @@
       ]}
     />
   </Row>
+{/if}
 
+{#if !subset && device.showClaudeUsage}
   <Row
     label={$t("settings.rows.claudeUsageSide")}
     hint={$t("settings.hints.claudeUsageSide")}
@@ -503,7 +514,9 @@
 
   <Row
     label={$t("settings.rows.dockLayout")}
-    hint={$t("settings.hints.dockLayout")}
+    hint={device.editMode
+      ? $t("settings.hints.dockLayout")
+      : $t("settings.hints.dockLayoutLocked")}
     onreset={resetRow("dockWidgets")}
   >
     <button

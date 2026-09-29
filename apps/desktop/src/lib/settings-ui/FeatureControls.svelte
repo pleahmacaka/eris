@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import type { DeviceSettings } from "@eris/settings"
+  import { type DeviceSettings, isLastEntryPoint } from "@eris/settings"
   import { Row } from "@eris/ui"
   import { t } from "svelte-i18n"
 
@@ -63,11 +63,15 @@
 {/if}
 
 {#each FEATURES as feature (feature.key)}
+  {@const locked = isLastEntryPoint(device.features, feature.key)}
+
   <Row label={$t(`settings.rows.${feature.row}`)} hint={$t(`settings.hints.${feature.row}`)}>
     <input
       type="checkbox"
       class="toggle toggle-primary"
       aria-label={$t(`settings.rows.${feature.row}`)}
+      title={locked ? $t("settings.hints.lastEntryPoint") : undefined}
+      disabled={locked}
       bind:checked={device.features[feature.key]}
     />
   </Row>

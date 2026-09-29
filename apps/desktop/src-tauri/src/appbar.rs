@@ -96,9 +96,10 @@ pub fn stored_layout(app: &AppHandle) -> TaskbarLayout {
         auto_hide: field("dockAutoHide")
             .and_then(|v| v.as_bool())
             .unwrap_or(base.auto_hide),
-        hide_system_taskbar: field("hideSystemTaskbar")
-            .and_then(|v| v.as_bool())
-            .unwrap_or(base.hide_system_taskbar),
+        hide_system_taskbar: field("onboarded").is_some_and(|v| v.as_bool() == Some(true))
+            && field("hideSystemTaskbar")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(base.hide_system_taskbar),
         monitor: field("dockMonitor").and_then(|v| v.as_str().map(String::from)),
         desktop: field("dockStyle").is_some_and(|v| v.as_str() == Some("mac"))
             && field("dockDesktop")

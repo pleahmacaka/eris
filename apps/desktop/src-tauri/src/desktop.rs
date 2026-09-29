@@ -54,8 +54,8 @@ mod win {
     use windows::Win32::Foundation::{CloseHandle, HWND, LPARAM, WPARAM};
     use windows::Win32::Graphics::Dwm::{DwmGetWindowAttribute, DWMWA_CLOAKED};
     use windows::Win32::System::Threading::{
-        AttachThreadInput, GetCurrentProcessId, GetCurrentThreadId, OpenProcess,
-        QueryFullProcessImageNameW, PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION,
+        AttachThreadInput, GetCurrentThreadId, OpenProcess, QueryFullProcessImageNameW,
+        PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION,
     };
     use windows::Win32::UI::Accessibility::{SetWinEventHook, HWINEVENTHOOK};
     use windows::Win32::UI::Input::KeyboardAndMouse::{SetFocus, VK_MENU};
@@ -145,10 +145,6 @@ mod win {
 
             let mut pid = 0u32;
             GetWindowThreadProcessId(hwnd, Some(&mut pid));
-
-            if pid == GetCurrentProcessId() {
-                return None;
-            }
 
             Some(WindowEntry {
                 hwnd: hwnd.0 as isize,

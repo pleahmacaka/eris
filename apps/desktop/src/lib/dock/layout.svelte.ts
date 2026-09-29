@@ -60,6 +60,10 @@ export class DockLayout {
 
   desktop = $derived(this.mac && this.device.dockDesktop)
 
+  hideSystemTaskbar = $derived(
+    this.device.hideSystemTaskbar && this.device.onboarded,
+  )
+
   hidden = $derived(new Set(this.device.hiddenApps))
 
   spotPlacement = $derived<"up" | "down">(
@@ -188,7 +192,7 @@ export class DockLayout {
       this.device.dockHeight,
       this.device.dockAutoHide,
       this.desktop,
-      this.device.hideSystemTaskbar,
+      this.hideSystemTaskbar,
       this.device.dockMonitor,
       this.collapsed,
     ].join("|"),
@@ -342,7 +346,7 @@ export class DockLayout {
           floating: false,
           autoHide: false,
           desktop: false,
-          hideSystemTaskbar: this.device.hideSystemTaskbar,
+          hideSystemTaskbar: this.hideSystemTaskbar,
           monitor: this.device.dockMonitor,
         })
         .catch(() => undefined)
@@ -360,7 +364,7 @@ export class DockLayout {
         floating: this.device.dockStyle !== "windows",
         autoHide: this.device.dockAutoHide,
         desktop: this.desktop,
-        hideSystemTaskbar: this.device.hideSystemTaskbar,
+        hideSystemTaskbar: this.hideSystemTaskbar,
         monitor: this.device.dockMonitor,
       })
       .catch(() => undefined)

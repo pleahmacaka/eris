@@ -235,6 +235,10 @@
       return
     }
 
+    if (!device.onboarded) {
+      return
+    }
+
     const wanted = device.autostart
 
     isEnabled()
@@ -307,7 +311,7 @@
 
   $effect(() =>
     scheduleReminders(
-      $state.snapshot(eventLive.items),
+      device.features.calendar ? $state.snapshot(eventLive.items) : [],
       $state.snapshot(profile),
     ),
   )
