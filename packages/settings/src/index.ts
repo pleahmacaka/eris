@@ -115,6 +115,7 @@ export type DeviceSettings = {
   trayHidden: string[]
   traySlots: TraySlot[]
   sync: SyncSettings
+  studio: boolean
 }
 
 export type Appearance = {
@@ -296,6 +297,7 @@ export const defaultDevice: DeviceSettings = {
     "desktop",
   ],
   sync: defaultSync,
+  studio: false,
 }
 
 const FILE = "settings.json"

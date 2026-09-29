@@ -6,12 +6,14 @@
     title,
     body,
     action,
+    cancel,
     onconfirm,
   }: {
     open?: boolean
     title: string
     body: string
     action?: string
+    cancel?: string
     onconfirm: () => void
   } = $props()
 
@@ -45,7 +47,7 @@
 
     <div class="modal-action">
       <button type="button" class="btn btn-ghost btn-sm" onclick={() => (open = false)}>
-        {$t("common.cancel")}
+        {cancel ?? $t("common.cancel")}
       </button>
 
       <button type="button" class="btn btn-error btn-sm" onclick={confirm}>

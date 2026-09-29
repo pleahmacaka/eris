@@ -212,7 +212,8 @@
       "dockLayout": "독 레이아웃",
       "pairDevice": "장치 추가",
       "joinDevice": "다른 장치에 연결",
-      "showSyncStatus": "Dock 상태 표시"
+      "showSyncStatus": "Dock 상태 표시",
+      "studio": "Studio"
     },
     "hints": {
       "deviceName": "동기화 장치 목록에 표시되는 이름입니다.",
@@ -303,7 +304,8 @@
       "joinDevice": "다른 장치에서 만든 코드를 붙여 넣으세요.",
       "showSyncStatus": "시계 옆에 동기화 상태 점을 표시합니다.",
       "lastEntryPoint": "Dock이나 런처 중 하나는 켜 두세요.",
-      "dockLayoutLocked": "실험적 기능에서 편집 모드를 켜면 사용할 수 있습니다."
+      "dockLayoutLocked": "실험적 기능에서 편집 모드를 켜면 사용할 수 있습니다.",
+      "studio": "내 설정으로 모든 창을 샌드박스에서 미리 보고, 다듬은 결과를 Eris에 적용합니다."
     },
     "options": {
       "win": "Win 키",
@@ -327,7 +329,8 @@
       "minBefore": "{minutes}분 전",
       "deg": "{value}도",
       "runSetup": "설정 실행",
-      "inherit": "창과 동일"
+      "inherit": "창과 동일",
+      "openStudio": "Studio 열기"
     },
     "featurePresets": {
       "all": {

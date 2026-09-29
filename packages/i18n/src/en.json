@@ -212,7 +212,8 @@
       "dockLayout": "Dock layout",
       "pairDevice": "Add a device",
       "joinDevice": "Join another device",
-      "showSyncStatus": "Status in dock"
+      "showSyncStatus": "Status in dock",
+      "studio": "Studio"
     },
     "hints": {
       "deviceName": "Shown in the sync device list",
@@ -303,7 +304,8 @@
       "joinDevice": "Paste the code made on the other device",
       "showSyncStatus": "Shows a sync status dot next to the clock",
       "lastEntryPoint": "Keep the dock or the launcher on.",
-      "dockLayoutLocked": "Turn on edit mode under Experimental to use this"
+      "dockLayoutLocked": "Turn on edit mode under Experimental to use this",
+      "studio": "Preview every window with your settings in a sandbox, then apply the result to Eris"
     },
     "options": {
       "win": "Win key",
@@ -327,7 +329,8 @@
       "minBefore": "{minutes} min before",
       "deg": "{value} deg",
       "runSetup": "Run setup",
-      "inherit": "Same as windows"
+      "inherit": "Same as windows",
+      "openStudio": "Open studio"
     },
     "featurePresets": {
       "all": {

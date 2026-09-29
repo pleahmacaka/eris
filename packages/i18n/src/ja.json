@@ -212,7 +212,8 @@
       "dockLayout": "ドックレイアウト",
       "pairDevice": "デバイスを追加",
       "joinDevice": "別のデバイスに接続",
-      "showSyncStatus": "Dock に状態を表示"
+      "showSyncStatus": "Dock に状態を表示",
+      "studio": "Studio"
     },
     "hints": {
       "deviceName": "同期のデバイス一覧に表示されます。",
@@ -303,7 +304,8 @@
       "joinDevice": "もう一方のデバイスで作成したコードを貼り付けてください。",
       "showSyncStatus": "時計の横に同期状態のドットを表示します",
       "lastEntryPoint": "Dock かランチャーのどちらかをオンにしてください。",
-      "dockLayoutLocked": "実験的機能で編集モードをオンにすると使えます"
+      "dockLayoutLocked": "実験的機能で編集モードをオンにすると使えます",
+      "studio": "自分の設定ですべてのウィンドウをサンドボックスでプレビューし、結果を Eris に適用します"
     },
     "options": {
       "win": "Win キー",
@@ -327,7 +329,8 @@
       "minBefore": "{minutes}分前",
       "deg": "{value} deg",
       "runSetup": "セットアップを実行",
-      "inherit": "ウィンドウと同じ"
+      "inherit": "ウィンドウと同じ",
+      "openStudio": "Studio を開く"
     },
     "featurePresets": {
       "all": {

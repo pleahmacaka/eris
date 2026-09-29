@@ -12,7 +12,8 @@
     "preview",
     "files",
     "edit",
-    "topbar"
+    "topbar",
+    "studio"
   ],
   "permissions": [
     "core:default",
