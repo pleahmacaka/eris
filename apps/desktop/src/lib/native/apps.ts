@@ -14,6 +14,9 @@ export const listApps = () => invoke<AppEntry[]>("list_apps")
 
 export const pinnedApps = () => invoke<AppEntry[]>("pinned_apps")
 
+export const reorderPins = (paths: string[]) =>
+  invoke<void>("reorder_pins", { paths })
+
 export const launchApp = (path: string, admin = false) =>
   invoke<void>("launch_app", { path, admin })
 

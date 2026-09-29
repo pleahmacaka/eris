@@ -53,6 +53,7 @@ export const index: SearchEntry[] = [
   entry("dock", "alignment", "start center launcher middle"),
   entry("dock", "height", "size thickness"),
   entry("dock", "width", "size mac"),
+  entry("dock", "dockGrowth", "grow wider overflow more apps windows mac"),
   entry("dock", "iconSize", "icons"),
   entry("dock", "pinDesktop", "mac behind windows wallpaper layer"),
   entry("dock", "autoHide", "reveal slide"),

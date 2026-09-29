@@ -213,6 +213,7 @@
       "pairDevice": "デバイスを追加",
       "joinDevice": "別のデバイスに接続",
       "showSyncStatus": "Dock に状態を表示",
+      "dockGrowth": "ウィンドウが多いときの横幅拡張",
       "studio": "Studio"
     },
     "hints": {
@@ -305,6 +306,7 @@
       "showSyncStatus": "時計の横に同期状態のドットを表示します",
       "lastEntryPoint": "Dock かランチャーのどちらかをオンにしてください。",
       "dockLayoutLocked": "実験的機能で編集モードをオンにすると使えます",
+      "dockGrowth": "この割合まで広がった後、残りのアプリは ⋯ メニューにまとめます。0% で幅を固定します。",
       "studio": "自分の設定ですべてのウィンドウをサンドボックスでプレビューし、結果を Eris に適用します"
     },
     "options": {

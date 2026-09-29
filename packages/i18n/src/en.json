@@ -213,6 +213,7 @@
       "pairDevice": "Add a device",
       "joinDevice": "Join another device",
       "showSyncStatus": "Status in dock",
+      "dockGrowth": "Grow with more windows",
       "studio": "Studio"
     },
     "hints": {
@@ -305,6 +306,7 @@
       "showSyncStatus": "Shows a sync status dot next to the clock",
       "lastEntryPoint": "Keep the dock or the launcher on.",
       "dockLayoutLocked": "Turn on edit mode under Experimental to use this",
+      "dockGrowth": "The dock widens up to this much before extra apps move into the ⋯ menu. 0% keeps the width fixed.",
       "studio": "Preview every window with your settings in a sandbox, then apply the result to Eris"
     },
     "options": {

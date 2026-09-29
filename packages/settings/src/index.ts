@@ -66,6 +66,7 @@ export type DeviceSettings = {
   dockAlign: DockAlign
   dockHeight: number
   dockWidth: number
+  dockGrowth: number
   dockIconSize: number
   dockAutoHide: boolean
   dockHideAnimation: boolean
@@ -230,6 +231,7 @@ export const defaultDevice: DeviceSettings = {
   dockAlign: "center",
   dockHeight: 48,
   dockWidth: 720,
+  dockGrowth: 0.25,
   dockIconSize: 24,
   dockAutoHide: false,
   dockHideAnimation: true,

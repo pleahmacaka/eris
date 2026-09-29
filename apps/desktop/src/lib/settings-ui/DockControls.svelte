@@ -394,6 +394,24 @@
         bind:value={device.dockWidth}
       />
     </Row>
+
+    <Row
+      label={$t("settings.rows.dockGrowth")}
+      hint={$t("settings.hints.dockGrowth")}
+      value="{Math.round(device.dockGrowth * 100)}%"
+      stacked
+      onreset={resetRow("dockGrowth")}
+    >
+      <input
+        type="range"
+        class="range range-primary range-xs w-full"
+        min="0"
+        max="1"
+        step="0.05"
+        aria-label={$t("settings.rows.dockGrowth")}
+        bind:value={device.dockGrowth}
+      />
+    </Row>
   {/if}
 
   <Row

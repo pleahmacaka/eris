@@ -19,6 +19,35 @@ static FADES: LazyLock<Mutex<HashMap<String, u64>>> = LazyLock::new(|| Mutex::ne
 static PENDING_INTENT: LazyLock<Mutex<HashMap<String, String>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 
+static ANCHORS: LazyLock<Mutex<HashMap<String, [i32; 4]>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
+
+pub fn set_anchor(label: &str, caller: &WebviewWindow, rect: Option<[f64; 4]>) {
+    let screen = rect.and_then(|[left, top, right, bottom]| {
+        let origin = caller.inner_position().ok()?;
+        let scale = caller.scale_factor().ok()?;
+        let at = |value: f64, base: i32| base + (value * scale).round() as i32;
+
+        Some([
+            at(left, origin.x),
+            at(top, origin.y),
+            at(right, origin.x),
+            at(bottom, origin.y),
+        ])
+    });
+
+    let mut anchors = ANCHORS.lock().unwrap();
+
+    match screen {
+        Some(screen) => anchors.insert(label.to_string(), screen),
+        None => anchors.remove(label),
+    };
+}
+
+fn anchor_of(label: &str) -> Option<[i32; 4]> {
+    ANCHORS.lock().unwrap().get(label).copied()
+}
+
 #[tauri::command]
 pub fn show_window(app: AppHandle, label: String) {
     show(&app, &label);
@@ -236,7 +265,11 @@ fn show_now(app: &AppHandle, label: &str) {
         "main" | "settings" | "onboarding" | "files" | "studio" => {
             center_on_cursor_monitor(&window)
         }
-        "panel" | "notices" => dock_panel(app, &window),
+        "panel" => dock_panel(app, &window),
+        "notices" => match anchor_of(label) {
+            Some(anchor) => anchor_panel(&window, anchor),
+            None => dock_panel(app, &window),
+        },
         _ => Ok(()),
     };
 
@@ -347,6 +380,45 @@ fn dock_panel(app: &AppHandle, window: &WebviewWindow) -> tauri::Result<()> {
     let y = y
         .min(screen_bottom - gap - height)
         .max(monitor.position().y + gap);
+
+    window.set_position(PhysicalPosition::new(x, y))
+}
+
+fn anchor_panel(window: &WebviewWindow, anchor: [i32; 4]) -> tauri::Result<()> {
+    let [left, top, right, bottom] = anchor;
+    let center_x = (left + right) / 2;
+    let center_y = (top + bottom) / 2;
+
+    let Some(monitor) = window.monitor_from_point(f64::from(center_x), f64::from(center_y))? else {
+        return window.center();
+    };
+
+    let [band_top, band_bottom] = ["taskbar", "topbar"]
+        .into_iter()
+        .filter_map(appbar::bar_frame)
+        .find(|[x, y, width, height]| {
+            (*x..x + width).contains(&center_x) && (*y..y + height).contains(&center_y)
+        })
+        .map_or([top, bottom], |[_, y, _, height]| [y, y + height]);
+
+    let scale = monitor.scale_factor();
+    let gap = (8.0 * scale).round() as i32;
+    let (width, height) = physical_size_on(window, scale)?;
+    let screen_left = monitor.position().x;
+    let screen_top = monitor.position().y;
+    let screen_right = screen_left + monitor.size().width as i32;
+    let screen_bottom = screen_top + monitor.size().height as i32;
+
+    let opens_up = center_y > screen_top + monitor.size().height as i32 / 2;
+    let y = if opens_up {
+        band_top - gap - height
+    } else {
+        band_bottom + gap
+    };
+    let x = center_x - width / 2;
+
+    let x = x.min(screen_right - gap - width).max(screen_left + gap);
+    let y = y.min(screen_bottom - gap - height).max(screen_top + gap);
 
     window.set_position(PhysicalPosition::new(x, y))
 }
