@@ -70,6 +70,7 @@ export type DeviceSettings = {
   dockIconSize: number
   dockAutoHide: boolean
   dockHideAnimation: boolean
+  dockHideDelay: number
   dockDesktop: boolean
   topBar: boolean
   panelPosition: "left" | "center" | "right"
@@ -235,6 +236,7 @@ export const defaultDevice: DeviceSettings = {
   dockIconSize: 24,
   dockAutoHide: false,
   dockHideAnimation: true,
+  dockHideDelay: 1080,
   dockDesktop: false,
   topBar: false,
   panelPosition: "right",
