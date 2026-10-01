@@ -5,7 +5,7 @@
   import { getCurrentWindow, Window } from "@tauri-apps/api/window"
   import { live, scheduleReminders, events } from "$lib/data"
   import { ensureDevice } from "$lib/device"
-  import { DockBar, DockLayout, dockAwake, startDock } from "$lib/dock"
+  import { DockBar, DockLayout, dockAwake, previewHover, startDock } from "$lib/dock"
   import { watchEdit } from "$lib/edit"
   import { startTimerWatch } from "$lib/launcher"
   import * as native from "$lib/native"
@@ -273,6 +273,7 @@
       edgeHover ||
       held ||
       peeking ||
+      previewHover.over ||
       layout.menuBox !== null
     ) {
       layout.collapsed = false

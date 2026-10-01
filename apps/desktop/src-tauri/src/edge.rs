@@ -18,8 +18,8 @@ mod win {
     use windows::Win32::System::Threading::GetCurrentProcessId;
     use windows::Win32::UI::WindowsAndMessaging::{
         GetClassNameW, GetCursorPos, GetForegroundWindow, GetWindowRect, GetWindowThreadProcessId,
-        SetWindowPos, ShowWindow, HWND_TOPMOST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE,
-        SWP_SHOWWINDOW, SW_HIDE,
+        IsWindowVisible, SetWindowPos, ShowWindow, HWND_TOPMOST, SWP_NOACTIVATE, SWP_NOMOVE,
+        SWP_NOSIZE, SWP_SHOWWINDOW, SW_HIDE,
     };
 
     const TICK: Duration = Duration::from_millis(80);
@@ -43,11 +43,15 @@ mod win {
             return;
         };
         let dock = dock.0 as isize;
+        let preview = app
+            .get_webview_window("preview")
+            .and_then(|window| window.hwnd().ok())
+            .map(|preview| preview.0 as isize);
 
-        std::thread::spawn(move || run(app, HWND(dock as _)));
+        std::thread::spawn(move || run(app, HWND(dock as _), preview.map(|hwnd| HWND(hwnd as _))));
     }
 
-    fn run(app: AppHandle, dock: HWND) {
+    fn run(app: AppHandle, dock: HWND, preview: Option<HWND>) {
         let mut at_edge = false;
         let mut fullscreen = false;
         let mut revealed = false;
@@ -84,7 +88,7 @@ mod win {
                     lifted = true;
                     left_band = None;
                     crate::appbar::lift(dock, true);
-                } else if lifted && !stay_revealed(cursor, at_edge, band(dock)) {
+                } else if lifted && !holds(cursor, at_edge, dock, preview) {
                     if left_band.get_or_insert_with(Instant::now).elapsed() >= LINGER {
                         lifted = false;
                         left_band = None;
@@ -121,7 +125,7 @@ mod win {
                 continue;
             }
 
-            if stay_revealed(cursor, at_edge, band(dock)) {
+            if holds(cursor, at_edge, dock, preview) {
                 left_band = None;
             } else if left_band.get_or_insert_with(Instant::now).elapsed() >= LINGER {
                 revealed = false;
@@ -223,6 +227,14 @@ mod win {
 
     pub fn stay_revealed(cursor: POINT, at_edge: bool, dock: RECT) -> bool {
         at_edge || inside(cursor, &inflate(dock, SLACK))
+    }
+
+    fn holds(cursor: POINT, at_edge: bool, dock: HWND, preview: Option<HWND>) -> bool {
+        stay_revealed(cursor, at_edge, band(dock))
+            || preview.is_some_and(|preview| {
+                unsafe { IsWindowVisible(preview) }.as_bool()
+                    && inside(cursor, &window_rect(preview))
+            })
     }
 
     fn class_name(hwnd: HWND) -> String {

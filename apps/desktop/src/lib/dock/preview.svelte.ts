@@ -6,8 +6,9 @@ const LEAVE_GRACE = 260
 
 let openTimer: ReturnType<typeof setTimeout> | undefined
 let closeTimer: ReturnType<typeof setTimeout> | undefined
-let overPreview = false
 let listening = false
+
+export const previewHover = $state({ over: false })
 
 const stopTimers = () => {
   clearTimeout(openTimer)
@@ -21,17 +22,22 @@ const watchPreview = () => {
 
   listening = true
 
-  listen<boolean>("preview-hover", e => {
-    overPreview = e.payload
+  Promise.all([
+    listen<boolean>("preview-hover", e => {
+      previewHover.over = e.payload
 
-    if (overPreview) {
-      clearTimeout(closeTimer)
+      if (previewHover.over) {
+        clearTimeout(closeTimer)
 
-      return
-    }
+        return
+      }
 
-    closePreview()
-  }).catch(() => {
+      closePreview()
+    }),
+    listen("preview-hidden", () => {
+      previewHover.over = false
+    }),
+  ]).catch(() => {
     listening = false
   })
 }
@@ -53,7 +59,7 @@ export const closePreview = () => {
   stopTimers()
 
   closeTimer = setTimeout(() => {
-    if (overPreview) {
+    if (previewHover.over) {
       return
     }
 
@@ -63,6 +69,6 @@ export const closePreview = () => {
 
 export const dismissPreview = () => {
   stopTimers()
-  overPreview = false
+  previewHover.over = false
   native.previewHide().catch(() => undefined)
 }
