@@ -346,6 +346,28 @@ pub fn install_usage_bridge(enable: bool) -> Result<(), String> {
     std::fs::write(&path, text).map_err(|e| e.to_string())
 }
 
+pub fn repoint_usage_bridge() {
+    let (Some(path), Ok(exe)) = (settings_path(), std::env::current_exe()) else {
+        return;
+    };
+
+    let ours = format!("\"{}\" --usage-bridge", exe.display());
+
+    let stale = read_settings(&path)
+        .ok()
+        .and_then(|root| {
+            root.get("statusLine")?
+                .get("command")?
+                .as_str()
+                .map(|command| command.contains("--usage-bridge") && !command.starts_with(&ours))
+        })
+        .unwrap_or(false);
+
+    if stale && install_usage_bridge(false).is_ok() {
+        let _ = install_usage_bridge(true);
+    }
+}
+
 #[tauri::command(async)]
 pub fn claude_usage(path: Option<String>) -> Option<ClaudeUsage> {
     candidates(path).into_iter().find_map(|file| {
