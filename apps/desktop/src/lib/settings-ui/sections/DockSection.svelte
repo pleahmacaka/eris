@@ -1,14 +1,15 @@
 <script lang="ts">
-  import { type DeviceSettings, defaultDevice } from "@eris/settings"
-  import { Row, Section } from "@eris/ui"
+  import type { DeviceSettings, Profile } from "@eris/settings"
+  import { Section } from "@eris/ui"
   import { t } from "svelte-i18n"
+  import AppearanceControls from "../AppearanceControls.svelte"
   import DockControls from "../DockControls.svelte"
   import FeatureGate from "../FeatureGate.svelte"
-  import { reset } from "../reset"
 
-  let { device = $bindable() }: { device: DeviceSettings } = $props()
-
-  const resetRow = reset(() => device, defaultDevice)
+  let {
+    device = $bindable(),
+    profile = $bindable(),
+  }: { device: DeviceSettings; profile: Profile } = $props()
 </script>
 
 <FeatureGate bind:device feature="dock" />
@@ -20,25 +21,26 @@
   ]}
   disabled={!device.features.dock}
 >
-  <Section title={$t("settings.groups.dock")}>
-    <DockControls bind:device />
+  <Section title={$t("settings.groups.dockStyle")}>
+    <DockControls bind:device part="style" />
   </Section>
 
-  <Section title={$t("settings.groups.tray")}>
-    {#each ["showBluetooth", "showNotifications", "showDesktopButton", "showTaskView", "showInputLanguage"] as const as toggle (toggle)}
-      <Row
-        label={$t(`settings.rows.${toggle}`)}
-        hint={$t(`settings.hints.${toggle}`)}
-        tag={toggle === "showBluetooth" || toggle === "showNotifications" ? "partial" : undefined}
-        onreset={resetRow(toggle)}
-      >
-        <input
-          type="checkbox"
-          class="toggle toggle-primary"
-          aria-label={$t(`settings.rows.${toggle}`)}
-          bind:checked={device[toggle]}
-        />
-      </Row>
-    {/each}
+  <Section title={$t("settings.groups.dockSize")}>
+    <DockControls bind:device part="size" />
+  </Section>
+
+  <Section title={$t("settings.groups.dockBehavior")}>
+    <DockControls bind:device part="behavior" />
+  </Section>
+
+  <Section title={$t("settings.groups.dockArrange")}>
+    <DockControls bind:device part="arrange" />
+  </Section>
+
+  <Section
+    title={$t("settings.groups.dockLook.title")}
+    description={$t("settings.groups.dockLook.description")}
+  >
+    <AppearanceControls bind:profile part="dock" />
   </Section>
 </fieldset>

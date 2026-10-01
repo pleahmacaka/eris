@@ -4,7 +4,6 @@
   import { LANGUAGES } from "@eris/i18n"
   import { Row, Section, toast } from "@eris/ui"
   import { t } from "svelte-i18n"
-  import ImportExport from "../ImportExport.svelte"
   import { reset } from "../reset"
 
   let {
@@ -89,11 +88,4 @@
       {$t("settings.options.runSetup")}
     </button>
   </Row>
-</Section>
-
-<Section
-  title={$t("settings.groups.backup.title")}
-  description={$t("settings.groups.backup.description")}
->
-  <ImportExport />
 </Section>

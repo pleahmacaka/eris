@@ -9,7 +9,8 @@
 </script>
 
 <section
-  class="rounded-box border border-base-content/10 bg-base-100/60 shadow-sm backdrop-blur-md"
+  data-group={title}
+  class="scroll-mt-16 rounded-box border border-base-content/10 bg-base-100/60 shadow-sm backdrop-blur-md"
 >
   <header class="px-4 pt-3 pb-1">
     <h3 class="text-sm font-semibold">{title}</h3>

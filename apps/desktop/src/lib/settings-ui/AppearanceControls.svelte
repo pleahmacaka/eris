@@ -9,11 +9,14 @@
   } from "@eris/settings"
   import { allPresets, CUSTOM, sameAppearance } from "./presets"
   import { reset as resetField } from "./reset"
-  import { Row, Segmented } from "@eris/ui"
+  import { Row, Section, Segmented } from "@eris/ui"
   import { toast } from "@eris/ui"
   import { t } from "svelte-i18n"
 
-  let { profile = $bindable() }: { profile: Profile } = $props()
+  let {
+    profile = $bindable(),
+    part = "theme",
+  }: { profile: Profile; part?: "theme" | "dock" } = $props()
 
   type NumberKey =
     | "accentSpread"
@@ -40,14 +43,20 @@
   const percent = (v: number) => `${Math.round(v * 100)}%`
   const times = (v: number) => `${v.toFixed(2)}x`
 
-  const sliders: Slider[] = [
+  const colorSliders: Slider[] = [
     { key: "accentSpread", row: "colorSpread", min: 0, max: 120, step: 1, format: v => `${v}°` },
     { key: "vividness", row: "vividness", min: 0, max: 0.25, step: 0.01, format: v => percent(v / 0.25) },
+  ]
+
+  const surfaceSliders: Slider[] = [
+    { key: "surfaceOpacity", row: "windowOpacity", min: 0.6, max: 1, step: 0.02, format: percent },
+    { key: "blur", row: "blur", min: 0, max: 2, step: 0.05, format: times },
     { key: "texture", row: "texture", min: 0, max: 1, step: 0.05, format: percent },
     { key: "radius", row: "cornerRadius", min: 0, max: 2, step: 0.05, format: times },
-    { key: "blur", row: "blur", min: 0, max: 2, step: 0.05, format: times },
+  ]
+
+  const typeSliders: Slider[] = [
     { key: "fontScale", row: "fontSize", min: 0.85, max: 1.25, step: 0.05, format: percent },
-    { key: "surfaceOpacity", row: "windowOpacity", min: 0.6, max: 1, step: 0.02, format: percent },
   ]
 
   const dockSliders: Slider[] = [
@@ -130,78 +139,7 @@
   }
 </script>
 
-<Row
-  label={$t("settings.rows.mode")}
-  hint={$t("settings.hints.mode")}
-  onreset={resetRow("mode")}
->
-  <Segmented
-    label={$t("settings.rows.mode")}
-    bind:value={profile.appearance.mode}
-    onchange={markCustom}
-    options={[
-      { value: "dark", label: $t("settings.options.dark"), icon: "lucide:moon" },
-      { value: "light", label: $t("settings.options.light"), icon: "lucide:sun" },
-      { value: "system", label: $t("settings.options.system"), icon: "lucide:monitor" },
-    ]}
-  />
-</Row>
-
-<Row
-  label={$t("settings.rows.background")}
-  hint={$t("settings.hints.background")}
-  onreset={resetRow("background")}
->
-  <Segmented
-    label={$t("settings.rows.background")}
-    bind:value={profile.appearance.background}
-    onchange={markCustom}
-    options={[
-      { value: "aura", label: $t("settings.options.aura") },
-      { value: "glass", label: $t("settings.options.glass") },
-      { value: "solid", label: $t("settings.options.solid") },
-    ]}
-  />
-</Row>
-
-<Row
-  label={$t("settings.rows.followAccent")}
-  hint={$t("settings.hints.followAccent")}
-  onreset={resetRow("useSystemAccent")}
->
-  <input
-    type="checkbox"
-    class="toggle toggle-primary"
-    aria-label={$t("settings.rows.followAccent")}
-    bind:checked={profile.appearance.useSystemAccent}
-    onchange={markCustom}
-  />
-</Row>
-
-<Row
-  label={$t("settings.rows.accentHue")}
-  hint={profile.appearance.useSystemAccent
-    ? $t("settings.appearance.followingAccent")
-    : $t("settings.appearance.baseColor")}
-  value="{profile.appearance.accentHue}°"
-  stacked
-  onreset={resetRow("accentHue")}
->
-  <input
-    type="range"
-    class="hue w-full"
-    min="0"
-    max="360"
-    step="1"
-    aria-label={$t("settings.rows.accentHue")}
-    style="--hue: {profile.appearance.accentHue}"
-    disabled={profile.appearance.useSystemAccent}
-    bind:value={profile.appearance.accentHue}
-    oninput={markCustom}
-  />
-</Row>
-
-{#each sliders as s (s.key)}
+{#snippet slider(s: Slider)}
   <Row
     label={$t(`settings.rows.${s.row}`)}
     hint={$t(`settings.hints.${s.row}`)}
@@ -220,115 +158,183 @@
       oninput={markCustom}
     />
   </Row>
-{/each}
+{/snippet}
 
-<div class="flex flex-col px-4 pt-4 pb-1">
-  <span class="text-sm font-semibold">{$t("settings.groups.dockLook.title")}</span>
-
-  <span class="text-xs text-base-content/60">{$t("settings.groups.dockLook.description")}</span>
-</div>
-
-<Row
-  label={$t("settings.rows.dockBackground")}
-  hint={$t("settings.hints.dockBackground")}
-  onreset={resetRow("dockBackground")}
->
-  <Segmented
+{#if part === "dock"}
+  <Row
     label={$t("settings.rows.dockBackground")}
-    bind:value={profile.appearance.dockBackground}
-    onchange={markCustom}
-    options={[
-      { value: "inherit", label: $t("settings.options.inherit") },
-      { value: "aura", label: $t("settings.options.aura") },
-      { value: "glass", label: $t("settings.options.glass") },
-      { value: "solid", label: $t("settings.options.solid") },
-    ]}
-  />
-</Row>
-
-{#each dockSliders as s (s.key)}
-  <Row
-    label={$t(`settings.rows.${s.row}`)}
-    hint={$t(`settings.hints.${s.row}`)}
-    value={s.format(profile.appearance[s.key])}
-    stacked
-    onreset={resetRow(s.key)}
+    hint={$t("settings.hints.dockBackground")}
+    onreset={resetRow("dockBackground")}
   >
-    <input
-      type="range"
-      class="range range-primary range-xs w-full"
-      min={s.min}
-      max={s.max}
-      step={s.step}
-      aria-label={$t(`settings.rows.${s.row}`)}
-      bind:value={profile.appearance[s.key]}
-      oninput={markCustom}
+    <Segmented
+      label={$t("settings.rows.dockBackground")}
+      bind:value={profile.appearance.dockBackground}
+      onchange={markCustom}
+      options={[
+        { value: "inherit", label: $t("settings.options.inherit") },
+        { value: "aura", label: $t("settings.options.aura") },
+        { value: "glass", label: $t("settings.options.glass") },
+        { value: "solid", label: $t("settings.options.solid") },
+      ]}
     />
   </Row>
-{/each}
 
-<Row
-  label={$t("settings.rows.dockBorder")}
-  hint={$t("settings.hints.dockBorder")}
-  onreset={resetRow("dockBorder")}
->
-  <input
-    type="checkbox"
-    class="toggle toggle-primary"
-    aria-label={$t("settings.rows.dockBorder")}
-    bind:checked={profile.appearance.dockBorder}
-    onchange={markCustom}
-  />
-</Row>
+  {#each dockSliders as s (s.key)}
+    {@render slider(s)}
+  {/each}
 
-<Row
-  label={$t("settings.rows.density")}
-  hint={$t("settings.hints.density")}
-  onreset={resetRow("density")}
->
-  <Segmented
-    label={$t("settings.rows.density")}
-    bind:value={profile.appearance.density}
-    onchange={markCustom}
-    options={[
-      { value: "cozy", label: $t("settings.options.cozy") },
-      { value: "compact", label: $t("settings.options.compact") },
-    ]}
-  />
-</Row>
-
-<Row
-  label={$t("settings.rows.motion")}
-  hint={$t("settings.hints.motion")}
-  onreset={resetRow("motion")}
->
-  <input
-    type="checkbox"
-    class="toggle toggle-primary"
-    aria-label={$t("settings.rows.motion")}
-    bind:checked={profile.appearance.motion}
-    onchange={markCustom}
-  />
-</Row>
-
-<div class="flex flex-wrap items-center justify-end gap-2 px-4 py-3">
-  <button
-    type="button"
-    class="btn btn-ghost btn-sm"
-    disabled={!basePreset || profile.presetId === basePreset.id}
-    onclick={reset}
+  <Row
+    label={$t("settings.rows.dockBorder")}
+    hint={$t("settings.hints.dockBorder")}
+    onreset={resetRow("dockBorder")}
   >
-    <Icon icon="lucide:rotate-ccw" class="size-4" />
-    {$t("settings.appearance.resetTo", {
-      values: { name: basePreset?.name ?? $t("settings.appearance.preset") },
-    })}
-  </button>
+    <input
+      type="checkbox"
+      class="toggle toggle-primary"
+      aria-label={$t("settings.rows.dockBorder")}
+      bind:checked={profile.appearance.dockBorder}
+      onchange={markCustom}
+    />
+  </Row>
+{:else}
+  <Section title={$t("settings.groups.color")}>
+    <Row
+      label={$t("settings.rows.mode")}
+      hint={$t("settings.hints.mode")}
+      onreset={resetRow("mode")}
+    >
+      <Segmented
+        label={$t("settings.rows.mode")}
+        bind:value={profile.appearance.mode}
+        onchange={markCustom}
+        options={[
+          { value: "dark", label: $t("settings.options.dark"), icon: "lucide:moon" },
+          { value: "light", label: $t("settings.options.light"), icon: "lucide:sun" },
+          { value: "system", label: $t("settings.options.system"), icon: "lucide:monitor" },
+        ]}
+      />
+    </Row>
 
-  <button type="button" class="btn btn-primary btn-sm" onclick={openSave}>
-    <Icon icon="lucide:bookmark-plus" class="size-4" />
-    {$t("settings.appearance.saveAsPreset")}
-  </button>
-</div>
+    <Row
+      label={$t("settings.rows.followAccent")}
+      hint={$t("settings.hints.followAccent")}
+      onreset={resetRow("useSystemAccent")}
+    >
+      <input
+        type="checkbox"
+        class="toggle toggle-primary"
+        aria-label={$t("settings.rows.followAccent")}
+        bind:checked={profile.appearance.useSystemAccent}
+        onchange={markCustom}
+      />
+    </Row>
+
+    <Row
+      label={$t("settings.rows.accentHue")}
+      hint={profile.appearance.useSystemAccent
+        ? $t("settings.appearance.followingAccent")
+        : $t("settings.appearance.baseColor")}
+      value="{profile.appearance.accentHue}°"
+      stacked
+      onreset={resetRow("accentHue")}
+    >
+      <input
+        type="range"
+        class="hue w-full"
+        min="0"
+        max="360"
+        step="1"
+        aria-label={$t("settings.rows.accentHue")}
+        style="--hue: {profile.appearance.accentHue}"
+        disabled={profile.appearance.useSystemAccent}
+        bind:value={profile.appearance.accentHue}
+        oninput={markCustom}
+      />
+    </Row>
+
+    {#each colorSliders as s (s.key)}
+      {@render slider(s)}
+    {/each}
+  </Section>
+
+  <Section title={$t("settings.groups.surface")}>
+    <Row
+      label={$t("settings.rows.background")}
+      hint={$t("settings.hints.background")}
+      onreset={resetRow("background")}
+    >
+      <Segmented
+        label={$t("settings.rows.background")}
+        bind:value={profile.appearance.background}
+        onchange={markCustom}
+        options={[
+          { value: "aura", label: $t("settings.options.aura") },
+          { value: "glass", label: $t("settings.options.glass") },
+          { value: "solid", label: $t("settings.options.solid") },
+        ]}
+      />
+    </Row>
+
+    {#each surfaceSliders as s (s.key)}
+      {@render slider(s)}
+    {/each}
+  </Section>
+
+  <Section title={$t("settings.groups.typeMotion")}>
+    {#each typeSliders as s (s.key)}
+      {@render slider(s)}
+    {/each}
+
+    <Row
+      label={$t("settings.rows.density")}
+      hint={$t("settings.hints.density")}
+      onreset={resetRow("density")}
+    >
+      <Segmented
+        label={$t("settings.rows.density")}
+        bind:value={profile.appearance.density}
+        onchange={markCustom}
+        options={[
+          { value: "cozy", label: $t("settings.options.cozy") },
+          { value: "compact", label: $t("settings.options.compact") },
+        ]}
+      />
+    </Row>
+
+    <Row
+      label={$t("settings.rows.motion")}
+      hint={$t("settings.hints.motion")}
+      onreset={resetRow("motion")}
+    >
+      <input
+        type="checkbox"
+        class="toggle toggle-primary"
+        aria-label={$t("settings.rows.motion")}
+        bind:checked={profile.appearance.motion}
+        onchange={markCustom}
+      />
+    </Row>
+  </Section>
+
+  <div class="flex flex-wrap items-center justify-end gap-2">
+    <button
+      type="button"
+      class="btn btn-ghost btn-sm"
+      disabled={!basePreset || profile.presetId === basePreset.id}
+      onclick={reset}
+    >
+      <Icon icon="lucide:rotate-ccw" class="size-4" />
+      {$t("settings.appearance.resetTo", {
+        values: { name: basePreset?.name ?? $t("settings.appearance.preset") },
+      })}
+    </button>
+
+    <button type="button" class="btn btn-primary btn-sm" onclick={openSave}>
+      <Icon icon="lucide:bookmark-plus" class="size-4" />
+      {$t("settings.appearance.saveAsPreset")}
+    </button>
+  </div>
+{/if}
 
 <dialog bind:this={dialog} class="modal">
   <form

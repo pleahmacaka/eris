@@ -207,7 +207,7 @@
   }
 </script>
 
-<Section title={$t("settings.groups.featureGate")}>
+<Section title={$t("settings.groups.syncGeneral")}>
   <Row label={$t("settings.rows.enableSync")} hint={$t("settings.hints.enableSync")}>
     <input
       type="checkbox"

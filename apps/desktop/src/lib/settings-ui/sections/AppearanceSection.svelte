@@ -17,9 +17,4 @@
   </div>
 </Section>
 
-<Section
-  title={$t("settings.groups.fineTune.title")}
-  description={$t("settings.groups.fineTune.description")}
->
-  <AppearanceControls bind:profile />
-</Section>
+<AppearanceControls bind:profile part="theme" />

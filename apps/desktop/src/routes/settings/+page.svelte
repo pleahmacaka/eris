@@ -2,7 +2,7 @@
   import * as native from "$lib/native"
   import Icon from "@iconify/svelte"
   import { emit } from "@tauri-apps/api/event"
-  import { tick } from "svelte"
+  import { tick, untrack } from "svelte"
   import { saveProfileSynced } from "$lib/data"
   import { ensureDevice } from "$lib/device"
   import {
@@ -22,15 +22,17 @@
     saveDevice,
   } from "@eris/settings"
   import {
-    Advanced,
+    AboutSection,
     AppearanceSection,
     CalendarSection,
+    DataSection,
     DockSection,
     ExperimentalSection,
     GeneralSection,
     LauncherSection,
     SettingsNav,
     SyncPanel,
+    TraySection,
     stableJson,
     type SearchEntry,
     type SectionId,
@@ -49,6 +51,48 @@
   let scroller = $state<HTMLElement>()
   let deviceJson = ""
   let profileJson = ""
+  let groups = $state<string[]>([])
+  let activeGroup = $state<string | null>(null)
+
+  const groupElements = () => [
+    ...(scroller?.querySelectorAll<HTMLElement>("section[data-group]") ?? []),
+  ]
+
+  const collectGroups = () => {
+    const next = groupElements().map(el => el.dataset.group ?? "")
+
+    if (next.join("\n") !== groups.join("\n")) {
+      groups = next
+    }
+
+    if (!activeGroup || !next.includes(activeGroup)) {
+      activeGroup = next[0] ?? null
+    }
+  }
+
+  const spyGroup = () => {
+    if (!scroller) {
+      return
+    }
+
+    const line = scroller.getBoundingClientRect().top + scroller.clientHeight / 3
+    const atBottom =
+      scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2
+    const passed = groupElements().filter(
+      el => el.getBoundingClientRect().top <= line,
+    )
+
+    activeGroup = atBottom
+      ? (groups.at(-1) ?? null)
+      : (passed.at(-1)?.dataset.group ?? groups[0] ?? null)
+  }
+
+  const jumpGroup = (group: string) => {
+    activeGroup = group
+    scroller
+      ?.querySelector<HTMLElement>(`section[data-group="${CSS.escape(group)}"]`)
+      ?.scrollIntoView({ block: "start", behavior: "smooth" })
+  }
 
   const jump = async (entry: SearchEntry) => {
     section = entry.section
@@ -210,7 +254,22 @@
   })
 
   $effect(() => {
-    emit("dock-peek", section === "dock").catch(() => undefined)
+    if (!scroller) {
+      return
+    }
+
+    const observer = new MutationObserver(collectGroups)
+
+    observer.observe(scroller, { childList: true, subtree: true })
+    untrack(collectGroups)
+
+    return () => observer.disconnect()
+  })
+
+  $effect(() => {
+    emit("dock-peek", section === "dock" || section === "tray").catch(
+      () => undefined,
+    )
 
     return () => {
       emit("dock-peek", false).catch(() => undefined)
@@ -268,9 +327,13 @@
   <div class="flex min-h-0 grow">
     <SettingsNav bind:section bind:query onjump={jump} />
 
-    <div bind:this={scroller} class="min-h-0 grow overflow-y-auto px-5 pb-6">
+    <div
+      bind:this={scroller}
+      class="min-h-0 grow overflow-y-auto px-5 pb-6"
+      onscroll={spyGroup}
+    >
       {#if ready}
-        <div class="mb-4">
+        <div class="mb-3">
           <h2 class="text-xl font-semibold tracking-tight">
             {$t(`settings.sections.${section}.label`)}
           </h2>
@@ -278,11 +341,36 @@
           <p class="text-sm text-base-content/60">{$t(`settings.sections.${section}.blurb`)}</p>
         </div>
 
+        {#if groups.length > 1}
+          <nav
+            aria-label={$t("settings.tocAria")}
+            class="sticky top-0 z-10 -mx-5 mb-3 flex flex-wrap gap-1.5 border-b border-base-content/10 bg-base-100/90 px-5 py-2 backdrop-blur-md"
+          >
+            {#each groups as group (group)}
+              {@const active = activeGroup === group}
+
+              <button
+                type="button"
+                class={[
+                  "btn btn-xs rounded-full font-medium",
+                  active ? "btn-primary" : "btn-ghost bg-base-content/5",
+                ]}
+                aria-current={active ? "true" : undefined}
+                onclick={() => jumpGroup(group)}
+              >
+                {group}
+              </button>
+            {/each}
+          </nav>
+        {/if}
+
         <div class="flex flex-col gap-4">
           {#if section === "general"}
             <GeneralSection bind:device onreset={resetOnboarding} />
           {:else if section === "dock"}
-            <DockSection bind:device />
+            <DockSection bind:device bind:profile />
+          {:else if section === "tray"}
+            <TraySection bind:device />
           {:else if section === "launcher"}
             <LauncherSection bind:profile bind:device />
           {:else if section === "appearance"}
@@ -291,8 +379,10 @@
             <CalendarSection bind:profile bind:device />
           {:else if section === "sync"}
             <SyncPanel bind:device />
-          {:else if section === "advanced"}
-            <Advanced bind:device bind:profile />
+          {:else if section === "data"}
+            <DataSection bind:device bind:profile />
+          {:else if section === "about"}
+            <AboutSection />
           {:else if section === "experimental"}
             <ExperimentalSection bind:device />
           {/if}
