@@ -20,7 +20,6 @@
   import { announceUpdate } from "$lib/updates"
   import { t } from "svelte-i18n"
 
-  const HIDE_DELAY = 1_200
   const HIDE_SLIDE = 120
   const VISIBILITY_POLL = 2_000
   const REOPEN_GUARD = 400
@@ -305,7 +304,7 @@
       slide = setTimeout(() => {
         layout.collapsed = true
       }, HIDE_SLIDE)
-    }, HIDE_DELAY)
+    }, device.dockHideDelay)
 
     return () => {
       clearTimeout(timer)
