@@ -1,7 +1,7 @@
 use std::sync::atomic::Ordering;
 
 use tauri::{AppHandle, DeviceEventFilter, Manager, WindowEvent};
-use tauri_plugin_autostart::MacosLauncher;
+use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
 use tauri_plugin_store::StoreExt;
 
 use crate::features::{release_shell, start_dock, stored_features, DOCK_ON, LAUNCHER_ON};
@@ -65,6 +65,17 @@ fn onboarded(app: &AppHandle) -> bool {
         .and_then(|store| store.get("device"))
         .and_then(|device| device.get("onboarded")?.as_bool())
         .unwrap_or(false)
+}
+
+// the installer swaps the exe on rename but leaves the Run key and statusLine on the old path
+fn follow_exe(app: &AppHandle) {
+    usage::repoint_usage_bridge();
+
+    let launch = app.autolaunch();
+
+    if launch.is_enabled().unwrap_or(false) {
+        let _ = launch.enable();
+    }
 }
 
 fn open(app: &AppHandle) {
@@ -131,6 +142,10 @@ pub fn run() {
             }
 
             let handle = app.handle().clone();
+
+            if !cfg!(debug_assertions) {
+                follow_exe(&handle);
+            }
 
             // windows skips a low level keyboard hook whose process registered for raw input
             handle.set_device_event_filter(DeviceEventFilter::Always);
