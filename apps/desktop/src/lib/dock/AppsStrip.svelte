@@ -63,8 +63,9 @@
     tabindex="-1"
     aria-label={$t("dock.apps")}
     class="flex min-w-0 items-center gap-0.5"
+    onpointerenter={() => (layout.magnet.target = 1)}
     onpointermove={e => (layout.pointerX = e.clientX)}
-    onpointerleave={() => (layout.pointerX = null)}
+    onpointerleave={() => (layout.magnet.target = 0)}
   >
     {#each list as group, index (group.key)}
       <div animate:flip={{ duration: 120 }} class="flex">
@@ -77,6 +78,7 @@
           alignEnd={offset + index >= layout.shown.length / 2}
           hiddenHere={layout.hidden.has(group.path)}
           pointerX={layout.pointerX}
+          strength={layout.magnet.current}
           dragging={layout.dragPath === group.path}
           dropBefore={layout.dropPath === group.path && layout.dropBefore}
           dropAfter={layout.dropPath === group.path && !layout.dropBefore}

@@ -5,6 +5,8 @@ import {
   updateDevice,
 } from "@eris/settings"
 import { emit } from "@tauri-apps/api/event"
+import { cubicOut } from "svelte/easing"
+import { Tween } from "svelte/motion"
 import { SvelteMap } from "svelte/reactivity"
 import { newId } from "$lib/data"
 import * as native from "$lib/native"
@@ -37,6 +39,12 @@ export class DockLayout {
   claims = new SvelteMap<string, MenuBox>()
 
   pointerX = $state<number | null>(null)
+
+  magnet = new Tween(0, {
+    duration: () =>
+      document.documentElement.dataset.motion === "false" ? 0 : 140,
+    easing: cubicOut,
+  })
 
   inside = $state(false)
 

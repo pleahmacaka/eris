@@ -30,6 +30,7 @@
     alignEnd: boolean
     hiddenHere?: boolean
     pointerX?: number | null
+    strength?: number
     dragging?: boolean
     dropBefore?: boolean
     dropAfter?: boolean
@@ -50,6 +51,7 @@
     alignEnd,
     hiddenHere = false,
     pointerX = null,
+    strength = 0,
     dragging = false,
     dropBefore = false,
     dropAfter = false,
@@ -113,14 +115,14 @@
   )
 
   const magnify = $derived.by(() => {
-    if (!mac || pointerX === null || !root) {
+    if (!mac || pointerX === null || !root || strength === 0) {
       return 1
     }
 
     const box = root.getBoundingClientRect()
     const distance = Math.abs(box.left + box.width / 2 - pointerX)
 
-    return 1 + MAGNIFY_BOOST * Math.exp(-((distance / MAGNIFY_SPREAD) ** 2))
+    return 1 + MAGNIFY_BOOST * strength * Math.exp(-((distance / MAGNIFY_SPREAD) ** 2))
   })
 
   const launch = () => native.launchApp(group.path).catch(() => undefined)
@@ -261,7 +263,7 @@
     class={[
       "relative origin-bottom will-change-transform active:scale-90",
       mac
-        ? "group flex items-center justify-center rounded-field outline-none transition-transform duration-75 focus-visible:ring-2 focus-visible:ring-primary/50"
+        ? "group flex items-center justify-center rounded-field outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
         : "btn btn-ghost btn-square transition-transform duration-100",
       !mac && active && "bg-base-content/10",
     ]}
