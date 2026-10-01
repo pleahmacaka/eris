@@ -22,7 +22,7 @@
     allPresets,
     SyncPanel,
   } from "$lib/settings-ui"
-  import { Row, Section, Segmented, Toasts, toast } from "@eris/ui"
+  import { Logo, Row, Section, Segmented, Toasts, toast } from "@eris/ui"
   import { applyAppearance } from "$lib/theme"
 
   const steps = [
@@ -273,11 +273,7 @@
             <div
               class="flex h-full flex-col items-center justify-center gap-8 text-center"
             >
-              <div
-                class="flex size-16 items-center justify-center rounded-box bg-primary/15 text-primary"
-              >
-                <Icon icon="lucide:sparkles" class="size-8" />
-              </div>
+              <Logo class="size-16" />
 
               <div>
                 <h2 class="text-3xl font-semibold tracking-tight">

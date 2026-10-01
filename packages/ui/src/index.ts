@@ -7,6 +7,7 @@ export {
   openContextMenu,
 } from "./context.svelte"
 export { default as GlobalContextMenu } from "./GlobalContextMenu.svelte"
+export { default as Logo } from "./Logo.svelte"
 export { isAction, type MenuAction, type MenuItem } from "./menu"
 export { default as Row, type RowTag } from "./Row.svelte"
 export { default as Section } from "./Section.svelte"
