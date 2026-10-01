@@ -2,6 +2,7 @@
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
   import {
+    type NavGroup,
     type NavSection,
     type SearchEntry,
     type SectionId,
@@ -22,8 +23,14 @@
   const found = $derived(searchRows(query, $t))
   const visible = $derived(searchSections(query, $t))
 
-  const primary = $derived(visible.filter(s => !s.feature))
-  const featured = $derived(visible.filter(s => s.feature))
+  const GROUPS: NavGroup[] = ["base", "features", "system"]
+
+  const grouped = $derived(
+    GROUPS.map(group => ({
+      group,
+      items: visible.filter(s => s.group === group),
+    })).filter(g => g.items.length > 0),
+  )
 </script>
 
 <nav class="w-44 shrink-0 px-3 pb-4" aria-label={$t("settings.sectionsAria")}>
@@ -82,25 +89,19 @@
     </li>
   {/snippet}
 
-  <ul class="menu w-full gap-0.5 p-0">
-    {#each primary as s (s.id)}
-      {@render item(s)}
-    {/each}
-  </ul>
-
-  {#if featured.length}
-    <p
-      class="px-3 pt-3 pb-1 text-xs font-semibold tracking-wide text-base-content/50"
-    >
-      {$t("settings.groups.features.title")}
-    </p>
+  {#each grouped as g (g.group)}
+    {#if g.group !== "base"}
+      <p class="px-3 pt-3 pb-1 text-xs font-semibold text-base-content/50">
+        {$t(`settings.nav.${g.group}`)}
+      </p>
+    {/if}
 
     <ul class="menu w-full gap-0.5 p-0">
-      {#each featured as s (s.id)}
+      {#each g.items as s (s.id)}
         {@render item(s)}
       {/each}
     </ul>
-  {/if}
+  {/each}
 
   {#if !visible.length}
     <p class="px-2 py-1 text-xs text-base-content/50">{$t("common.noMatches")}</p>

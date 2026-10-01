@@ -111,6 +111,19 @@
   </Row>
 
   <Row
+    label={$t("settings.rows.showKeymap")}
+    hint={$t("settings.hints.showKeymap")}
+    onreset={resetDevice("showKeymap")}
+  >
+    <input
+      type="checkbox"
+      class="toggle toggle-primary"
+      aria-label={$t("settings.rows.showKeymap")}
+      bind:checked={device.showKeymap}
+    />
+  </Row>
+
+  <Row
     label={$t("settings.rows.openWindows")}
     hint={$t("settings.hints.openWindows")}
     onreset={resetLauncher("showWindows")}

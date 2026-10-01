@@ -4,7 +4,7 @@
     defaultDevice,
     isLastEntryPoint,
   } from "@eris/settings"
-  import { Row, Section } from "@eris/ui"
+  import { Row } from "@eris/ui"
   import { t } from "svelte-i18n"
   import { reset } from "./reset"
 
@@ -24,12 +24,19 @@
 
   const row = $derived(ROW[feature])
 
+  const on = $derived(device.features[feature])
+
   const locked = $derived(isLastEntryPoint(device.features, feature))
 
   const resetRow = reset(() => device.features, defaultDevice.features)
 </script>
 
-<Section title={$t("settings.groups.featureGate")}>
+<div
+  class={[
+    "rounded-box border transition-colors duration-100",
+    on ? "border-primary/30 bg-primary/10" : "border-base-content/10 bg-base-100/60",
+  ]}
+>
   <Row
     label={$t(`settings.rows.${row}`)}
     hint={$t(`settings.hints.${row}`)}
@@ -44,4 +51,4 @@
       bind:checked={device.features[feature]}
     />
   </Row>
-</Section>
+</div>
