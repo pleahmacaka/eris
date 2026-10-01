@@ -1,7 +1,6 @@
 <script lang="ts">
-  import Icon from "@iconify/svelte"
   import { getVersion } from "@tauri-apps/api/app"
-  import { Section } from "@eris/ui"
+  import { Logo, Section } from "@eris/ui"
   import { t } from "svelte-i18n"
   import Updater from "../Updater.svelte"
 
@@ -16,11 +15,7 @@
 
 <Section title="Eris">
   <div data-row={$t("settings.rows.version")} class="flex items-center gap-4 px-4 py-4">
-    <div
-      class="flex size-12 items-center justify-center rounded-box bg-primary/15 text-primary"
-    >
-      <Icon icon="lucide:sparkles" class="size-6" />
-    </div>
+    <Logo class="size-12 shrink-0" />
 
     <div class="flex flex-col">
       <div class="flex items-center gap-2">
