@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.3.2](https://github.com/pleahmacaka/eris/compare/0.3.1...0.3.2) (2026-10-01)
+
+
+### Features
+
+* add the eris logo and app icons ([83a8ce3](https://github.com/pleahmacaka/eris/commit/83a8ce31d89f3e45adae28e6020a497dff9e74a5))
+* **dock:** make the auto-hide delay configurable ([3fcce41](https://github.com/pleahmacaka/eris/commit/3fcce4127b3ca72f5801216ac659752e71faffb2))
+* **settings:** regroup settings into dock, tray, data and about ([921f8cd](https://github.com/pleahmacaka/eris/commit/921f8cdf3f8113b90b701119f900831fa87f2383))
+
+
+### Bug Fixes
+
+* **dock:** keep the dock up while hovering a window preview ([3e3fcbf](https://github.com/pleahmacaka/eris/commit/3e3fcbf37faee179e953fde6c89a98d6e58b358a))
+* **dock:** smooth the hover magnification ([7346c43](https://github.com/pleahmacaka/eris/commit/7346c43db8d2828135a407fad3910bbace228ad5))
+* **tray:** keep overflow open for tray menus, close on outside click ([5790a1d](https://github.com/pleahmacaka/eris/commit/5790a1dfdd5b0ceff42e4a2828710058d010d132))
+
 ## [0.3.1](https://github.com/pleahmacaka/eris/compare/0.3.0...0.3.1) (2026-09-29)
 
 
