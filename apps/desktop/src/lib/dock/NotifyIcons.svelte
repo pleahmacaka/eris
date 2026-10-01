@@ -219,7 +219,6 @@
 
     if (!e.shiftKey) {
       click(icon.id, "right")
-      closeStash()
 
       return
     }

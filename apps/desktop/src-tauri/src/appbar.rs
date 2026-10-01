@@ -515,7 +515,7 @@ mod win {
     }
 
     pub fn extend(window: &WebviewWindow, px: f64, rect: Option<[f64; 4]>) -> tauri::Result<()> {
-        let (frame, reach, hole) = {
+        let (frame, reach, hole, had_hole, menus_open) = {
             let mut bars = BARS.lock().unwrap();
             let Some(bar) = bars.get_mut(window.label()) else {
                 return Ok(());
@@ -524,15 +524,26 @@ mod win {
                 return Ok(());
             };
 
+            let had_hole = bar.hole.is_some();
+
             bar.reach = (px.max(0.0) * frame.scale).round() as i32;
             bar.hole = rect.map(|rect| rect.map(|value| (value * frame.scale).round() as i32));
 
-            (frame, bar.reach, bar.hole)
+            let (reach, hole) = (bar.reach, bar.hole);
+            let menus_open = bars.values().any(|bar| bar.hole.is_some());
+
+            (frame, reach, hole, had_hole, menus_open)
         };
 
         let hwnd = window.hwnd()?;
 
         shape(hwnd, &frame, reach, hole);
+        crate::outside::watch(window.app_handle(), menus_open);
+
+        // restacking on every reshape buries a tray app's context menu opened over the dock
+        if hole.is_some() == had_hole {
+            return Ok(());
+        }
 
         // a desktop-pinned dock sits at the bottom and later topmost windows cover it, so lift while a menu is open
         if hole.is_some() {
