@@ -32,8 +32,6 @@ export class DockLayout {
 
   collapsed = $state(false)
 
-  hiding = $state(false)
-
   dockHidden = $state(false)
 
   claims = new SvelteMap<string, MenuBox>()
@@ -87,7 +85,10 @@ export class DockLayout {
   chrome = $derived(
     (this.mac ? 34 : 24) +
       (this.launcherShown ? 36 : 0) +
-      (this.launcherShown && this.device.dockSeparators ? 25 : 0),
+      (this.launcherShown && this.device.dockSeparators ? 25 : 0) +
+      (this.device.dockIslands
+        ? 16 + (this.device.dockIslandGap - 4) * this.device.dockWidgets.length
+        : 0),
   )
 
   spacerWidth = $derived(

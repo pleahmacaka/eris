@@ -1,7 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
-  import { ContextMenu } from "@eris/ui"
+  import { ContextMenu, Logo } from "@eris/ui"
   import type { MenuItem } from "@eris/ui"
   import { EditSpot, startEdit } from "$lib/edit"
   import * as native from "$lib/native"
@@ -29,6 +29,10 @@
 
   let barMenu = $state(false)
   let barMenuX = $state(0)
+
+  const islands = $derived(device.dockIslands)
+
+  const pillSize = $derived(islands ? device.dockHeight - 8 : device.dockHeight)
 
   const barClaim = $derived(layout.claimFor("bar"))
   const launcherSpot = $derived(layout.claimFor("spot-launcher"))
@@ -94,6 +98,14 @@
   }
 </script>
 
+{#snippet mark(size: string)}
+  {#if device.dockIcon}
+    <img src={device.dockIcon} alt="" draggable="false" class={[size, "object-contain"]} />
+  {:else}
+    <Logo class={size} />
+  {/if}
+{/snippet}
+
 {#snippet launcherButton()}
   <EditSpot id="launcher" label={$t("edit.spots.launcher")} placement={layout.spotPlacement} onmenu={launcherSpot}>
     {#snippet options()}
@@ -106,7 +118,7 @@
       aria-label={$t("dock.openLauncher")}
       onclick={() => native.toggleWindow("main")}
     >
-      <Icon icon="lucide:sparkles" class="size-4 text-primary" />
+      {@render mark("size-4")}
     </button>
   </EditSpot>
 {/snippet}
@@ -137,20 +149,35 @@
 
 <div
   class={[
-    "flex h-full select-none flex-col",
+    "relative flex h-full select-none flex-col",
     device.dockEdge === "top" ? "justify-start" : "justify-end",
   ]}
 >
+  <div
+    aria-hidden="true"
+    class={[
+      "dock-pill pointer-events-none absolute left-1/2 z-20 grid -translate-x-1/2 place-items-center",
+      islands && "island-fill rounded-full",
+      device.dockEdge === "top" ? (islands ? "top-1" : "top-0") : islands ? "bottom-1" : "bottom-0",
+    ]}
+    style:width="{pillSize}px"
+    style:height="{pillSize}px"
+  >
+    {@render mark("size-1/2")}
+  </div>
+
   {#if layout.collapsed || layout.dockHidden}
     <div class="h-full w-full" aria-hidden="true"></div>
   {:else}
     <nav
       class={[
-        "dock-nav flex shrink-0 items-center gap-1 border-base-content/10",
-        layout.mac ? "rounded-[var(--shell-radius)] border px-3" : "px-2",
-        !layout.mac && (device.dockEdge === "top" ? "border-b" : "border-t"),
+        "dock-nav flex shrink-0 items-center border-base-content/10",
+        islands ? "islands" : "gap-1",
+        layout.mac ? "rounded-[var(--shell-radius)] px-3" : "px-2",
+        !islands && (layout.mac ? "border" : device.dockEdge === "top" ? "border-b" : "border-t"),
       ]}
       style:height="{device.dockHeight}px"
+      style:gap={islands ? `${device.dockIslandGap}px` : undefined}
       aria-label={$t("dock.dockAria")}
       bind:offsetWidth={layout.navWidth}
       oncontextmenu={openBarMenu}
@@ -170,7 +197,7 @@
             {/snippet}
 
             <div class={["flex items-center", layout.centered && "flex-1"]}>
-              <div class="flex items-center" bind:clientWidth={layout.leadWidth}>
+              <div class={["flex items-center", islands && "dock-island"]} bind:clientWidth={layout.leadWidth}>
                 {#if !device.topBar}
                   <LeadWidgets {layout} />
                 {/if}
@@ -191,20 +218,22 @@
 
             <div
               class={[
-                "flex min-w-0 items-center gap-0.5",
+                "flex min-w-0 items-center",
                 !layout.centered && "flex-1",
                 device.dockAlign === "center" ? "justify-center" : "justify-start",
               ]}
             >
-              {#if device.showLauncherButton && device.features.launcher}
-                {@render launcherButton()}
+              <div class={["flex min-w-0 items-center gap-0.5", islands && "dock-island"]}>
+                {#if device.showLauncherButton && device.features.launcher}
+                  {@render launcherButton()}
 
-                {#if device.dockSeparators}
-                  <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
+                  {#if device.dockSeparators}
+                    <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
+                  {/if}
                 {/if}
-              {/if}
 
-              <AppsStrip {layout} list={layout.shown} offset={0} tail={true} />
+                <AppsStrip {layout} list={layout.shown} offset={0} tail={true} />
+              </div>
             </div>
           </EditSpot>
         {:else if widget.kind === "tray"}
@@ -221,9 +250,9 @@
             {/snippet}
 
             <div class={["flex items-center justify-end", layout.centered && "flex-1"]}>
-              <div class="flex items-center" bind:clientWidth={layout.trailWidth}>
+              <div class={["flex items-center", islands && "dock-island"]} bind:clientWidth={layout.trailWidth}>
                 {#if !device.topBar}
-                  {#if device.dockSeparators}
+                  {#if device.dockSeparators && !islands}
                     <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
                   {/if}
 
@@ -280,11 +309,13 @@
     box-shadow: none;
   }
 
-  :global(:root[data-background="solid"]) nav {
+  :global(:root[data-background="solid"]) nav:not(.islands) {
     background: var(--color-base-100);
   }
 
-  nav {
+  nav:not(.islands),
+  .dock-island,
+  .island-fill {
     background-image: linear-gradient(
       oklch(62% calc(var(--vividness) + 0.08) var(--accent-hue) / var(--dock-tint, 0)),
       oklch(62% calc(var(--vividness) + 0.08) var(--accent-hue) / var(--dock-tint, 0))
@@ -293,5 +324,29 @@
 
   :global(:root[data-dock-border="false"]) nav {
     border-color: transparent;
+  }
+
+  .dock-island {
+    height: calc(var(--dock-height) - 0.5rem);
+    padding-inline: 0.5rem;
+    border-radius: 9999px;
+  }
+
+  .dock-island:empty {
+    display: none;
+  }
+
+  .dock-island :global([data-media] > [role="group"]) {
+    border-color: transparent;
+  }
+
+  .dock-island,
+  .island-fill {
+    background-color: var(--card-bg);
+    box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--color-base-content) 10%, transparent);
+  }
+
+  :global(:root[data-dock-border="false"]) :is(.dock-island, .island-fill) {
+    box-shadow: none;
   }
 </style>

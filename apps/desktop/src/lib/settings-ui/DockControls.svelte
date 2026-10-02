@@ -10,10 +10,13 @@
   import Icon from "@iconify/svelte"
   import DockPreview from "./DockPreview.svelte"
   import { reset } from "./reset"
-  import { Row, Segmented } from "@eris/ui"
+  import { Logo, Row, Segmented, toast } from "@eris/ui"
   import { t } from "svelte-i18n"
 
   type Part = "style" | "size" | "behavior" | "arrange"
+
+  const ICON_LIMIT = 512 * 1024
+  const ICON_SIDE = 128
 
   let {
     device = $bindable(),
@@ -64,6 +67,54 @@
   $effect(() => {
     loadMonitors()
   })
+
+  // stored as a small PNG because the device record is re-serialized and broadcast on every settings change
+  const shrinkIcon = async (file: File) => {
+    const url = URL.createObjectURL(file)
+
+    try {
+      const image = new Image()
+
+      image.src = url
+      await image.decode()
+
+      const width = image.naturalWidth || ICON_SIDE
+      const height = image.naturalHeight || ICON_SIDE
+      const scale = ICON_SIDE / Math.max(width, height)
+      const canvas = document.createElement("canvas")
+
+      canvas.width = Math.round(width * scale)
+      canvas.height = Math.round(height * scale)
+      canvas.getContext("2d")?.drawImage(image, 0, 0, canvas.width, canvas.height)
+
+      return canvas.toDataURL("image/png")
+    } finally {
+      URL.revokeObjectURL(url)
+    }
+  }
+
+  const pickIcon = async (e: Event & { currentTarget: HTMLInputElement }) => {
+    const input = e.currentTarget
+    const file = input.files?.[0]
+
+    input.value = ""
+
+    if (!file) {
+      return
+    }
+
+    if (file.size > ICON_LIMIT) {
+      toast($t("settings.toasts.iconTooLarge"), "error")
+
+      return
+    }
+
+    try {
+      device.dockIcon = await shrinkIcon(file)
+    } catch {
+      toast($t("settings.toasts.iconFailed"), "error")
+    }
+  }
 
   const describe = (m: MonitorInfo) =>
     `${m.name} (${m.primary ? `${$t("settings.dock.primary")}, ` : ""}${m.width}×${m.height})`
@@ -194,6 +245,66 @@
     >
       <Segmented label={$t("settings.rows.alignment")} bind:value={device.dockAlign} options={alignments} />
     </Row>
+
+    <Row
+      label={$t("settings.rows.dockIslands")}
+      hint={$t("settings.hints.dockIslands")}
+      onreset={resetRow("dockIslands")}
+    >
+      <input
+        type="checkbox"
+        class="toggle toggle-primary"
+        aria-label={$t("settings.rows.dockIslands")}
+        bind:checked={device.dockIslands}
+      />
+    </Row>
+
+    {#if device.dockIslands}
+      <Row
+        label={$t("settings.rows.islandGap")}
+        hint={$t("settings.hints.islandGap")}
+        value="{device.dockIslandGap} px"
+        stacked
+        onreset={resetRow("dockIslandGap")}
+      >
+        <input
+          type="range"
+          class="range range-primary range-xs w-full"
+          min="0"
+          max="48"
+          step="2"
+          aria-label={$t("settings.rows.islandGap")}
+          bind:value={device.dockIslandGap}
+        />
+      </Row>
+    {/if}
+
+    <Row
+      label={$t("settings.rows.dockIcon")}
+      hint={$t("settings.hints.dockIcon")}
+      onreset={resetRow("dockIcon")}
+    >
+      <div class="flex items-center gap-3">
+        <span class="grid size-8 place-items-center rounded-field bg-base-content/5">
+          {#if device.dockIcon}
+            <img src={device.dockIcon} alt="" class="size-5 object-contain" />
+          {:else}
+            <Logo class="size-5" />
+          {/if}
+        </span>
+
+        <label class="btn btn-ghost btn-xs">
+          {$t("settings.dock.chooseImage")}
+
+          <input
+            type="file"
+            class="hidden"
+            accept="image/png,image/svg+xml,image/webp,image/jpeg,image/x-icon"
+            onchange={pickIcon}
+          />
+        </label>
+      </div>
+    </Row>
   {/if}
 {/if}
 
@@ -315,6 +426,58 @@
         bind:checked={device.dockHideAnimation}
       />
     </Row>
+
+    <Row
+      label={$t("settings.rows.hideGather")}
+      hint={$t("settings.hints.hideGather")}
+      onreset={resetRow("dockHideGather")}
+    >
+      <input
+        type="checkbox"
+        class="toggle toggle-primary"
+        aria-label={$t("settings.rows.hideGather")}
+        disabled={!device.dockHideAnimation}
+        bind:checked={device.dockHideGather}
+      />
+    </Row>
+
+    {#if device.dockHideAnimation && device.dockHideGather}
+      <Row
+        label={$t("settings.rows.gatherHideMs")}
+        hint={$t("settings.hints.gatherHideMs")}
+        value="{device.dockGatherHideMs} ms"
+        stacked
+        onreset={resetRow("dockGatherHideMs")}
+      >
+        <input
+          type="range"
+          class="range range-primary range-xs w-full"
+          min="200"
+          max="1200"
+          step="20"
+          aria-label={$t("settings.rows.gatherHideMs")}
+          bind:value={device.dockGatherHideMs}
+        />
+      </Row>
+
+      <Row
+        label={$t("settings.rows.gatherShowMs")}
+        hint={$t("settings.hints.gatherShowMs")}
+        value="{device.dockGatherShowMs} ms"
+        stacked
+        onreset={resetRow("dockGatherShowMs")}
+      >
+        <input
+          type="range"
+          class="range range-primary range-xs w-full"
+          min="120"
+          max="1200"
+          step="20"
+          aria-label={$t("settings.rows.gatherShowMs")}
+          bind:value={device.dockGatherShowMs}
+        />
+      </Row>
+    {/if}
   {/if}
 
   {#if mac}
