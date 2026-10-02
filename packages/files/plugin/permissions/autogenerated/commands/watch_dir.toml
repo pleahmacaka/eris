@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-watch-dir"
+description = "Enables the watch_dir command without any pre-configured scope."
+commands.allow = ["watch_dir"]
+
+[[permission]]
+identifier = "deny-watch-dir"
+description = "Denies the watch_dir command without any pre-configured scope."
+commands.deny = ["watch_dir"]

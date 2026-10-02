@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-paste-items"
+description = "Enables the paste_items command without any pre-configured scope."
+commands.allow = ["paste_items"]
+
+[[permission]]
+identifier = "deny-paste-items"
+description = "Denies the paste_items command without any pre-configured scope."
+commands.deny = ["paste_items"]

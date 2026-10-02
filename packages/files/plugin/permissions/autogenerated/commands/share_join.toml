@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-share-join"
+description = "Enables the share_join command without any pre-configured scope."
+commands.allow = ["share_join"]
+
+[[permission]]
+identifier = "deny-share-join"
+description = "Denies the share_join command without any pre-configured scope."
+commands.deny = ["share_join"]

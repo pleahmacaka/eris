@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-allow-preview"
+description = "Enables the allow_preview command without any pre-configured scope."
+commands.allow = ["allow_preview"]
+
+[[permission]]
+identifier = "deny-allow-preview"
+description = "Denies the allow_preview command without any pre-configured scope."
+commands.deny = ["allow_preview"]

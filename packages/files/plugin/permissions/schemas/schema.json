@@ -1,0 +1,1170 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PermissionFile",
+  "description": "Permission file that can define a default permission, a set of permissions or a list of inlined permissions.",
+  "type": "object",
+  "properties": {
+    "default": {
+      "description": "The default permission set for the plugin",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/DefaultPermission"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "set": {
+      "description": "A list of permissions sets defined",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/PermissionSet"
+      }
+    },
+    "permission": {
+      "description": "A list of inlined permissions",
+      "default": [],
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Permission"
+      }
+    }
+  },
+  "definitions": {
+    "DefaultPermission": {
+      "description": "The default permission set of the plugin.\n\nWorks similarly to a permission with the \"default\" identifier.",
+      "type": "object",
+      "required": [
+        "permissions"
+      ],
+      "properties": {
+        "version": {
+          "description": "The version of the permission.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 1.0
+        },
+        "description": {
+          "description": "Human-readable description of what the permission does. Tauri convention is to use `<h4>` headings in markdown content for Tauri documentation generation purposes.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "permissions": {
+          "description": "All permissions this set contains.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "PermissionSet": {
+      "description": "A set of direct permissions grouped together under a new name.",
+      "type": "object",
+      "required": [
+        "description",
+        "identifier",
+        "permissions"
+      ],
+      "properties": {
+        "identifier": {
+          "description": "A unique identifier for the permission.",
+          "type": "string"
+        },
+        "description": {
+          "description": "Human-readable description of what the permission does.",
+          "type": "string"
+        },
+        "permissions": {
+          "description": "All permissions this set contains.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PermissionKind"
+          }
+        }
+      }
+    },
+    "Permission": {
+      "description": "Descriptions of explicit privileges of commands.\n\nIt can enable commands to be accessible in the frontend of the application.\n\nIf the scope is defined it can be used to fine grain control the access of individual or multiple commands.",
+      "type": "object",
+      "required": [
+        "identifier"
+      ],
+      "properties": {
+        "version": {
+          "description": "The version of the permission.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 1.0
+        },
+        "identifier": {
+          "description": "A unique identifier for the permission.",
+          "type": "string"
+        },
+        "description": {
+          "description": "Human-readable description of what the permission does. Tauri internal convention is to use `<h4>` headings in markdown content for Tauri documentation generation purposes.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "commands": {
+          "description": "Allowed or denied commands when using this permission.",
+          "default": {
+            "allow": [],
+            "deny": []
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/Commands"
+            }
+          ]
+        },
+        "scope": {
+          "description": "Allowed or denied scoped when using this permission.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Scopes"
+            }
+          ]
+        },
+        "platforms": {
+          "description": "Target platforms this permission applies. By default all platforms are affected by this permission.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/Target"
+          }
+        }
+      }
+    },
+    "Commands": {
+      "description": "Allowed and denied commands inside a permission.\n\nIf two commands clash inside of `allow` and `deny`, it should be denied by default.",
+      "type": "object",
+      "properties": {
+        "allow": {
+          "description": "Allowed command.",
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "deny": {
+          "description": "Denied command, which takes priority.",
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "Scopes": {
+      "description": "An argument for fine grained behavior control of Tauri commands.\n\nIt can be of any serde serializable type and is used to allow or prevent certain actions inside a Tauri command. The configured scope is passed to the command and will be enforced by the command implementation.\n\n## Example\n\n```json { \"allow\": [{ \"path\": \"$HOME/**\" }], \"deny\": [{ \"path\": \"$HOME/secret.txt\" }] } ```",
+      "type": "object",
+      "properties": {
+        "allow": {
+          "description": "Data that defines what is allowed by the scope.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/Value"
+          }
+        },
+        "deny": {
+          "description": "Data that defines what is denied by the scope. This should be prioritized by validation logic.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/Value"
+          }
+        }
+      }
+    },
+    "Value": {
+      "description": "All supported ACL values.",
+      "anyOf": [
+        {
+          "description": "Represents a null JSON value.",
+          "type": "null"
+        },
+        {
+          "description": "Represents a [`bool`].",
+          "type": "boolean"
+        },
+        {
+          "description": "Represents a valid ACL [`Number`].",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Number"
+            }
+          ]
+        },
+        {
+          "description": "Represents a [`String`].",
+          "type": "string"
+        },
+        {
+          "description": "Represents a list of other [`Value`]s.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Value"
+          }
+        },
+        {
+          "description": "Represents a map of [`String`] keys to [`Value`]s.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Value"
+          }
+        }
+      ]
+    },
+    "Number": {
+      "description": "A valid ACL number.",
+      "anyOf": [
+        {
+          "description": "Represents an [`i64`].",
+          "type": "integer",
+          "format": "int64"
+        },
+        {
+          "description": "Represents a [`f64`].",
+          "type": "number",
+          "format": "double"
+        }
+      ]
+    },
+    "Target": {
+      "description": "Platform target.",
+      "oneOf": [
+        {
+          "description": "MacOS.",
+          "type": "string",
+          "enum": [
+            "macOS"
+          ]
+        },
+        {
+          "description": "Windows.",
+          "type": "string",
+          "enum": [
+            "windows"
+          ]
+        },
+        {
+          "description": "Linux.",
+          "type": "string",
+          "enum": [
+            "linux"
+          ]
+        },
+        {
+          "description": "Android.",
+          "type": "string",
+          "enum": [
+            "android"
+          ]
+        },
+        {
+          "description": "iOS.",
+          "type": "string",
+          "enum": [
+            "iOS"
+          ]
+        }
+      ]
+    },
+    "PermissionKind": {
+      "type": "string",
+      "oneOf": [
+        {
+          "description": "Enables the add_network_location command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-add-network-location",
+          "markdownDescription": "Enables the add_network_location command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the add_network_location command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-add-network-location",
+          "markdownDescription": "Denies the add_network_location command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the allow_preview command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-allow-preview",
+          "markdownDescription": "Enables the allow_preview command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the allow_preview command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-allow-preview",
+          "markdownDescription": "Denies the allow_preview command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the audio_waveform command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-audio-waveform",
+          "markdownDescription": "Enables the audio_waveform command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the audio_waveform command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-audio-waveform",
+          "markdownDescription": "Denies the audio_waveform command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the cancel_search command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-cancel-search",
+          "markdownDescription": "Enables the cancel_search command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the cancel_search command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-cancel-search",
+          "markdownDescription": "Denies the cancel_search command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the clear_transcribe_key command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-clear-transcribe-key",
+          "markdownDescription": "Enables the clear_transcribe_key command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the clear_transcribe_key command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-clear-transcribe-key",
+          "markdownDescription": "Denies the clear_transcribe_key command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the clipboard_has_files command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-clipboard-has-files",
+          "markdownDescription": "Enables the clipboard_has_files command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the clipboard_has_files command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-clipboard-has-files",
+          "markdownDescription": "Denies the clipboard_has_files command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the default_app_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-default-app-status",
+          "markdownDescription": "Enables the default_app_status command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the default_app_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-default-app-status",
+          "markdownDescription": "Denies the default_app_status command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the delete_items command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-delete-items",
+          "markdownDescription": "Enables the delete_items command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the delete_items command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-delete-items",
+          "markdownDescription": "Denies the delete_items command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the disconnect_drive command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-disconnect-drive",
+          "markdownDescription": "Enables the disconnect_drive command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the disconnect_drive command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-disconnect-drive",
+          "markdownDescription": "Denies the disconnect_drive command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the disconnect_network_drive command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-disconnect-network-drive",
+          "markdownDescription": "Enables the disconnect_network_drive command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the disconnect_network_drive command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-disconnect-network-drive",
+          "markdownDescription": "Denies the disconnect_network_drive command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the drives command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-drives",
+          "markdownDescription": "Enables the drives command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the drives command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-drives",
+          "markdownDescription": "Denies the drives command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the empty_recycle_bin command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-empty-recycle-bin",
+          "markdownDescription": "Enables the empty_recycle_bin command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the empty_recycle_bin command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-empty-recycle-bin",
+          "markdownDescription": "Denies the empty_recycle_bin command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the explorer_settings command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-explorer-settings",
+          "markdownDescription": "Enables the explorer_settings command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the explorer_settings command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-explorer-settings",
+          "markdownDescription": "Denies the explorer_settings command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the invoke_verb command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-invoke-verb",
+          "markdownDescription": "Enables the invoke_verb command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the invoke_verb command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-invoke-verb",
+          "markdownDescription": "Denies the invoke_verb command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the known_folders command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-known-folders",
+          "markdownDescription": "Enables the known_folders command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the known_folders command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-known-folders",
+          "markdownDescription": "Denies the known_folders command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the list_dir command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-dir",
+          "markdownDescription": "Enables the list_dir command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_dir command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-dir",
+          "markdownDescription": "Denies the list_dir command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the list_shell command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-shell",
+          "markdownDescription": "Enables the list_shell command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_shell command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-shell",
+          "markdownDescription": "Denies the list_shell command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the map_network_drive command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-map-network-drive",
+          "markdownDescription": "Enables the map_network_drive command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the map_network_drive command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-map-network-drive",
+          "markdownDescription": "Denies the map_network_drive command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the model_files command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-model-files",
+          "markdownDescription": "Enables the model_files command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the model_files command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-model-files",
+          "markdownDescription": "Denies the model_files command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the native_menu command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-native-menu",
+          "markdownDescription": "Enables the native_menu command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the native_menu command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-native-menu",
+          "markdownDescription": "Denies the native_menu command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the network_places command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-network-places",
+          "markdownDescription": "Enables the network_places command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the network_places command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-network-places",
+          "markdownDescription": "Denies the network_places command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the new_folder command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-new-folder",
+          "markdownDescription": "Enables the new_folder command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the new_folder command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-new-folder",
+          "markdownDescription": "Denies the new_folder command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the new_window command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-new-window",
+          "markdownDescription": "Enables the new_window command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the new_window command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-new-window",
+          "markdownDescription": "Denies the new_window command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the open_default_apps command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-open-default-apps",
+          "markdownDescription": "Enables the open_default_apps command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the open_default_apps command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-open-default-apps",
+          "markdownDescription": "Denies the open_default_apps command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the open_item command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-open-item",
+          "markdownDescription": "Enables the open_item command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the open_item command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-open-item",
+          "markdownDescription": "Denies the open_item command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the open_viewer command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-open-viewer",
+          "markdownDescription": "Enables the open_viewer command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the open_viewer command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-open-viewer",
+          "markdownDescription": "Denies the open_viewer command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the open_with command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-open-with",
+          "markdownDescription": "Enables the open_with command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the open_with command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-open-with",
+          "markdownDescription": "Denies the open_with command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the paste_items command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-paste-items",
+          "markdownDescription": "Enables the paste_items command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the paste_items command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-paste-items",
+          "markdownDescription": "Denies the paste_items command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the preview_text command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-preview-text",
+          "markdownDescription": "Enables the preview_text command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the preview_text command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-preview-text",
+          "markdownDescription": "Denies the preview_text command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the read_transcript command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-read-transcript",
+          "markdownDescription": "Enables the read_transcript command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the read_transcript command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-read-transcript",
+          "markdownDescription": "Denies the read_transcript command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the reconnect_drive command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-reconnect-drive",
+          "markdownDescription": "Enables the reconnect_drive command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the reconnect_drive command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-reconnect-drive",
+          "markdownDescription": "Denies the reconnect_drive command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the rename_item command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-rename-item",
+          "markdownDescription": "Enables the rename_item command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the rename_item command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-rename-item",
+          "markdownDescription": "Denies the rename_item command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the run_address command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-run-address",
+          "markdownDescription": "Enables the run_address command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the run_address command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-run-address",
+          "markdownDescription": "Denies the run_address command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the save_transcribe_key command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-save-transcribe-key",
+          "markdownDescription": "Enables the save_transcribe_key command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the save_transcribe_key command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-save-transcribe-key",
+          "markdownDescription": "Denies the save_transcribe_key command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the search_dir command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-search-dir",
+          "markdownDescription": "Enables the search_dir command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the search_dir command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-search-dir",
+          "markdownDescription": "Denies the search_dir command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_clipboard command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-clipboard",
+          "markdownDescription": "Enables the set_clipboard command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_clipboard command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-clipboard",
+          "markdownDescription": "Denies the set_clipboard command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_default_app command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-default-app",
+          "markdownDescription": "Enables the set_default_app command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_default_app command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-default-app",
+          "markdownDescription": "Denies the set_default_app command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_cancel command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-cancel",
+          "markdownDescription": "Enables the share_cancel command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_cancel command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-cancel",
+          "markdownDescription": "Denies the share_cancel command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_create command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-create",
+          "markdownDescription": "Enables the share_create command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_create command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-create",
+          "markdownDescription": "Denies the share_create command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_dismiss command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-dismiss",
+          "markdownDescription": "Enables the share_dismiss command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_dismiss command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-dismiss",
+          "markdownDescription": "Denies the share_dismiss command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_dismiss_pair command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-dismiss-pair",
+          "markdownDescription": "Enables the share_dismiss_pair command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_dismiss_pair command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-dismiss-pair",
+          "markdownDescription": "Denies the share_dismiss_pair command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_download command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-download",
+          "markdownDescription": "Enables the share_download command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_download command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-download",
+          "markdownDescription": "Denies the share_download command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_fetch command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-fetch",
+          "markdownDescription": "Enables the share_fetch command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_fetch command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-fetch",
+          "markdownDescription": "Denies the share_fetch command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_files command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-files",
+          "markdownDescription": "Enables the share_files command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_files command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-files",
+          "markdownDescription": "Denies the share_files command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_invite command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-invite",
+          "markdownDescription": "Enables the share_invite command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_invite command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-invite",
+          "markdownDescription": "Denies the share_invite command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_join command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-join",
+          "markdownDescription": "Enables the share_join command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_join command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-join",
+          "markdownDescription": "Denies the share_join command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_offer command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-offer",
+          "markdownDescription": "Enables the share_offer command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_offer command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-offer",
+          "markdownDescription": "Denies the share_offer command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_open command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-open",
+          "markdownDescription": "Enables the share_open command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_open command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-open",
+          "markdownDescription": "Denies the share_open command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_qr command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-qr",
+          "markdownDescription": "Enables the share_qr command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_qr command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-qr",
+          "markdownDescription": "Denies the share_qr command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_remove_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-remove-device",
+          "markdownDescription": "Enables the share_remove_device command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_remove_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-remove-device",
+          "markdownDescription": "Denies the share_remove_device command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_rename_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-rename-device",
+          "markdownDescription": "Enables the share_rename_device command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_rename_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-rename-device",
+          "markdownDescription": "Denies the share_rename_device command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_rename_self command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-rename-self",
+          "markdownDescription": "Enables the share_rename_self command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_rename_self command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-rename-self",
+          "markdownDescription": "Denies the share_rename_self command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_revoke command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-revoke",
+          "markdownDescription": "Enables the share_revoke command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_revoke command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-revoke",
+          "markdownDescription": "Denies the share_revoke command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_send command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-send",
+          "markdownDescription": "Enables the share_send command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_send command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-send",
+          "markdownDescription": "Denies the share_send command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_set_expiry command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-set-expiry",
+          "markdownDescription": "Enables the share_set_expiry command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_set_expiry command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-set-expiry",
+          "markdownDescription": "Denies the share_set_expiry command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_set_public command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-set-public",
+          "markdownDescription": "Enables the share_set_public command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_set_public command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-set-public",
+          "markdownDescription": "Denies the share_set_public command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_state command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-state",
+          "markdownDescription": "Enables the share_state command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_state command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-state",
+          "markdownDescription": "Denies the share_state command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_take_attention command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-take-attention",
+          "markdownDescription": "Enables the share_take_attention command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_take_attention command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-take-attention",
+          "markdownDescription": "Denies the share_take_attention command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the show_properties command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-show-properties",
+          "markdownDescription": "Enables the show_properties command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the show_properties command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-show-properties",
+          "markdownDescription": "Denies the show_properties command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the start_drag command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-start-drag",
+          "markdownDescription": "Enables the start_drag command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the start_drag command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-start-drag",
+          "markdownDescription": "Denies the start_drag command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the sync_accept command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-sync-accept",
+          "markdownDescription": "Enables the sync_accept command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the sync_accept command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-sync-accept",
+          "markdownDescription": "Denies the sync_accept command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the sync_check command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-sync-check",
+          "markdownDescription": "Enables the sync_check command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the sync_check command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-sync-check",
+          "markdownDescription": "Denies the sync_check command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the sync_create command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-sync-create",
+          "markdownDescription": "Enables the sync_create command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the sync_create command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-sync-create",
+          "markdownDescription": "Denies the sync_create command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the sync_decline command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-sync-decline",
+          "markdownDescription": "Enables the sync_decline command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the sync_decline command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-sync-decline",
+          "markdownDescription": "Denies the sync_decline command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the sync_now command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-sync-now",
+          "markdownDescription": "Enables the sync_now command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the sync_now command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-sync-now",
+          "markdownDescription": "Denies the sync_now command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the sync_pause command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-sync-pause",
+          "markdownDescription": "Enables the sync_pause command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the sync_pause command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-sync-pause",
+          "markdownDescription": "Denies the sync_pause command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the sync_remove command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-sync-remove",
+          "markdownDescription": "Enables the sync_remove command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the sync_remove command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-sync-remove",
+          "markdownDescription": "Denies the sync_remove command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the take_intent command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-take-intent",
+          "markdownDescription": "Enables the take_intent command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the take_intent command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-take-intent",
+          "markdownDescription": "Denies the take_intent command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the transcribe command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-transcribe",
+          "markdownDescription": "Enables the transcribe command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the transcribe command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-transcribe",
+          "markdownDescription": "Denies the transcribe command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the transcribe_key_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-transcribe-key-status",
+          "markdownDescription": "Enables the transcribe_key_status command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the transcribe_key_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-transcribe-key-status",
+          "markdownDescription": "Denies the transcribe_key_status command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the transfer_items command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-transfer-items",
+          "markdownDescription": "Enables the transfer_items command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the transfer_items command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-transfer-items",
+          "markdownDescription": "Denies the transfer_items command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the watch_dir command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-watch-dir",
+          "markdownDescription": "Enables the watch_dir command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the watch_dir command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-watch-dir",
+          "markdownDescription": "Denies the watch_dir command without any pre-configured scope."
+        },
+        {
+          "description": "Browse, preview, share and manage files.\n#### This default permission set includes:\n\n- `allow-list-dir`\n- `allow-list-shell`\n- `allow-search-dir`\n- `allow-cancel-search`\n- `allow-known-folders`\n- `allow-drives`\n- `allow-explorer-settings`\n- `allow-open-item`\n- `allow-open-with`\n- `allow-show-properties`\n- `allow-empty-recycle-bin`\n- `allow-start-drag`\n- `allow-native-menu`\n- `allow-invoke-verb`\n- `allow-transfer-items`\n- `allow-delete-items`\n- `allow-rename-item`\n- `allow-new-folder`\n- `allow-set-clipboard`\n- `allow-paste-items`\n- `allow-clipboard-has-files`\n- `allow-allow-preview`\n- `allow-preview-text`\n- `allow-model-files`\n- `allow-open-viewer`\n- `allow-audio-waveform`\n- `allow-transcribe`\n- `allow-read-transcript`\n- `allow-transcribe-key-status`\n- `allow-save-transcribe-key`\n- `allow-clear-transcribe-key`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-default-app-status`\n- `allow-set-default-app`\n- `allow-open-default-apps`\n- `allow-watch-dir`\n- `allow-network-places`\n- `allow-reconnect-drive`\n- `allow-disconnect-drive`\n- `allow-map-network-drive`\n- `allow-disconnect-network-drive`\n- `allow-add-network-location`\n- `allow-run-address`\n- `allow-share-state`\n- `allow-share-take-attention`\n- `allow-share-rename-self`\n- `allow-share-invite`\n- `allow-share-join`\n- `allow-share-dismiss-pair`\n- `allow-share-rename-device`\n- `allow-share-remove-device`\n- `allow-share-create`\n- `allow-share-set-public`\n- `allow-share-offer`\n- `allow-share-revoke`\n- `allow-share-open`\n- `allow-share-fetch`\n- `allow-share-download`\n- `allow-share-cancel`\n- `allow-share-dismiss`\n- `allow-share-qr`\n- `allow-share-set-expiry`\n- `allow-sync-check`\n- `allow-sync-create`\n- `allow-sync-accept`\n- `allow-sync-decline`\n- `allow-sync-pause`\n- `allow-sync-now`\n- `allow-sync-remove`\n- `allow-share-files`",
+          "type": "string",
+          "const": "default",
+          "markdownDescription": "Browse, preview, share and manage files.\n#### This default permission set includes:\n\n- `allow-list-dir`\n- `allow-list-shell`\n- `allow-search-dir`\n- `allow-cancel-search`\n- `allow-known-folders`\n- `allow-drives`\n- `allow-explorer-settings`\n- `allow-open-item`\n- `allow-open-with`\n- `allow-show-properties`\n- `allow-empty-recycle-bin`\n- `allow-start-drag`\n- `allow-native-menu`\n- `allow-invoke-verb`\n- `allow-transfer-items`\n- `allow-delete-items`\n- `allow-rename-item`\n- `allow-new-folder`\n- `allow-set-clipboard`\n- `allow-paste-items`\n- `allow-clipboard-has-files`\n- `allow-allow-preview`\n- `allow-preview-text`\n- `allow-model-files`\n- `allow-open-viewer`\n- `allow-audio-waveform`\n- `allow-transcribe`\n- `allow-read-transcript`\n- `allow-transcribe-key-status`\n- `allow-save-transcribe-key`\n- `allow-clear-transcribe-key`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-default-app-status`\n- `allow-set-default-app`\n- `allow-open-default-apps`\n- `allow-watch-dir`\n- `allow-network-places`\n- `allow-reconnect-drive`\n- `allow-disconnect-drive`\n- `allow-map-network-drive`\n- `allow-disconnect-network-drive`\n- `allow-add-network-location`\n- `allow-run-address`\n- `allow-share-state`\n- `allow-share-take-attention`\n- `allow-share-rename-self`\n- `allow-share-invite`\n- `allow-share-join`\n- `allow-share-dismiss-pair`\n- `allow-share-rename-device`\n- `allow-share-remove-device`\n- `allow-share-create`\n- `allow-share-set-public`\n- `allow-share-offer`\n- `allow-share-revoke`\n- `allow-share-open`\n- `allow-share-fetch`\n- `allow-share-download`\n- `allow-share-cancel`\n- `allow-share-dismiss`\n- `allow-share-qr`\n- `allow-share-set-expiry`\n- `allow-sync-check`\n- `allow-sync-create`\n- `allow-sync-accept`\n- `allow-sync-decline`\n- `allow-sync-pause`\n- `allow-sync-now`\n- `allow-sync-remove`\n- `allow-share-files`"
+        }
+      ]
+    }
+  }
+}

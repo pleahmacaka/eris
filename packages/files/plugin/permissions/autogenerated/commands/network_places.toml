@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-network-places"
+description = "Enables the network_places command without any pre-configured scope."
+commands.allow = ["network_places"]
+
+[[permission]]
+identifier = "deny-network-places"
+description = "Denies the network_places command without any pre-configured scope."
+commands.deny = ["network_places"]

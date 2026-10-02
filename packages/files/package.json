@@ -1,0 +1,38 @@
+{
+  "name": "@eris/files",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "svelte": "./src/index.ts",
+  "exports": {
+    ".": {
+      "svelte": "./src/index.ts",
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "check": "svelte-check --tsconfig ./tsconfig.json"
+  },
+  "dependencies": {
+    "@eris/i18n": "workspace:*",
+    "@eris/model-viewer": "workspace:*",
+    "@eris/settings": "workspace:*",
+    "@eris/terminal": "workspace:*",
+    "@eris/ui": "workspace:*",
+    "@iconify/svelte": "^5.2.2",
+    "@tauri-apps/api": "^2.12.1",
+    "@tauri-apps/plugin-barcode-scanner": "^2.5.1",
+    "@tauri-apps/plugin-clipboard-manager": "^2.4.1",
+    "@tauri-apps/plugin-dialog": "^2.7.3",
+    "svelte-i18n": "^4.0.1"
+  },
+  "devDependencies": {
+    "svelte-check": "^4.7.6",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16"
+  },
+  "peerDependencies": {
+    "svelte": "^5.57.1"
+  }
+}

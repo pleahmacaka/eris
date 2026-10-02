@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-share-set-expiry"
+description = "Enables the share_set_expiry command without any pre-configured scope."
+commands.allow = ["share_set_expiry"]
+
+[[permission]]
+identifier = "deny-share-set-expiry"
+description = "Denies the share_set_expiry command without any pre-configured scope."
+commands.deny = ["share_set_expiry"]

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-known-folders"
+description = "Enables the known_folders command without any pre-configured scope."
+commands.allow = ["known_folders"]
+
+[[permission]]
+identifier = "deny-known-folders"
+description = "Denies the known_folders command without any pre-configured scope."
+commands.deny = ["known_folders"]

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-share-offer"
+description = "Enables the share_offer command without any pre-configured scope."
+commands.allow = ["share_offer"]
+
+[[permission]]
+identifier = "deny-share-offer"
+description = "Denies the share_offer command without any pre-configured scope."
+commands.deny = ["share_offer"]

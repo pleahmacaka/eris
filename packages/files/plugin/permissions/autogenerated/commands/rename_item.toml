@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-rename-item"
+description = "Enables the rename_item command without any pre-configured scope."
+commands.allow = ["rename_item"]
+
+[[permission]]
+identifier = "deny-rename-item"
+description = "Denies the rename_item command without any pre-configured scope."
+commands.deny = ["rename_item"]

@@ -1,0 +1,11 @@
+@import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
+@import "tailwindcss";
+@source "../../../../packages/ui/src";
+@source "../../../../packages/model-viewer/src";
+@source "../../../../packages/files/src";
+@source "../../../../packages/terminal/src";
+@plugin "daisyui" {
+  themes: false;
+}
+
+@import "@eris/ui/theme.css";

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-run-address"
+description = "Enables the run_address command without any pre-configured scope."
+commands.allow = ["run_address"]
+
+[[permission]]
+identifier = "deny-run-address"
+description = "Denies the run_address command without any pre-configured scope."
+commands.deny = ["run_address"]

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-map-network-drive"
+description = "Enables the map_network_drive command without any pre-configured scope."
+commands.allow = ["map_network_drive"]
+
+[[permission]]
+identifier = "deny-map-network-drive"
+description = "Denies the map_network_drive command without any pre-configured scope."
+commands.deny = ["map_network_drive"]
