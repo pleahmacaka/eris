@@ -124,7 +124,9 @@
       "clock": "Clock",
       "media": "Media",
       "claude": "Claude usage",
-      "syncGeneral": "General"
+      "syncGeneral": "General",
+      "erisFiles": "Eris Files",
+      "eventTags": "Event tags"
     },
     "rows": {
       "deviceName": "Device name",
@@ -229,7 +231,22 @@
       "showSyncStatus": "Sync status dot",
       "dockGrowth": "Auto-widen",
       "studio": "Studio",
-      "hideDelay": "Hide delay"
+      "hideDelay": "Hide delay",
+      "erisFiles": "Eris Files",
+      "filesDefault": "Default file manager",
+      "filesDefaultApps": "Windows default apps",
+      "eventTags": "Event tags",
+      "tagName": "Tag name",
+      "hideWhileSharing": "Hide while sharing",
+      "deleteTag": "Delete tag",
+      "addTag": "Add tag",
+      "followEris": "Follow Eris style",
+      "hideGather": "Gather into logo",
+      "dockIslands": "Widget islands",
+      "islandGap": "Island spacing",
+      "dockIcon": "Dock icon",
+      "gatherHideMs": "Hide duration",
+      "gatherShowMs": "Show duration"
     },
     "hints": {
       "deviceName": "The name other synced devices see",
@@ -258,6 +275,7 @@
       "texture": "Grain over the background",
       "cornerRadius": "Corner rounding of windows and buttons",
       "blur": "Blur strength of translucent backgrounds",
+      "blurGlass": "Windows sets the glass blur. This adjusts blur inside the window only",
       "fontSize": "Size of all text",
       "windowOpacity": "Opacity of every Eris window",
       "dockOpacity": "How opaque the dock is",
@@ -310,7 +328,7 @@
       "showDesktopButton": "Show a show-desktop strip at the dock's right end",
       "showTaskView": "Show a button that opens Windows Task View",
       "showInputLanguage": "Show the active window's input language when more than one layout is installed",
-      "hideAnimation": "Slide the dock toward the edge when it hides",
+      "hideAnimation": "Animate the dock when it hides and comes back. Off hides it instantly.",
       "topBar": "Move the clock, tray, and widgets to a separate bar at the top of the screen",
       "panelPosition": "Where the calendar and notification panels open",
       "holidayRegion": "Country used for public holidays; System follows Windows",
@@ -324,7 +342,20 @@
       "dockGrowth": "With many windows the dock widens up to this much and gathers the rest under the ⋯ menu; 0% keeps the width fixed",
       "studio": "Preview every window with your settings in a sandbox, then apply the result to Eris",
       "hideDelay": "How long the dock waits after the cursor leaves before it hides",
-      "trayNeedsDock": "Turn on the dock to use these settings"
+      "trayNeedsDock": "Turn on the dock to use these settings",
+      "erisFiles": "The file explorer that replaces Windows File Explorer",
+      "filesDefault": "Open folders, file locations and Win+E in Eris Files",
+      "filesDefaultApps": "Choose the app for 3D models in Windows Settings.",
+      "filesMissing": "Eris Files is not installed",
+      "eventTags": "When screen sharing is detected, events with a hidden tag are hidden.",
+      "followEris": "Uses the look set in Eris.",
+      "erisMissing": "Eris is not installed.",
+      "hideGather": "Gathers the dock into a round logo at the center before it leaves. Off slides it to the edge.",
+      "dockIslands": "Splits the dock into separate rounded islands.",
+      "islandGap": "Space between the dock islands.",
+      "dockIcon": "Image for the launcher button and the hide logo.",
+      "gatherHideMs": "How long the dock takes to gather into the logo and leave.",
+      "gatherShowMs": "How long the dock takes to unfold from the logo."
     },
     "options": {
       "win": "Win key",
@@ -371,7 +402,9 @@
       "iconCacheFailed": "Icon cache not cleared: {error}",
       "appearanceReset": "Appearance reset",
       "settingsReset": "Settings reset",
-      "bridgeFailed": "Could not change the Claude bridge: {error}"
+      "bridgeFailed": "Could not change the Claude bridge: {error}",
+      "iconTooLarge": "Choose an image under 512 KB",
+      "iconFailed": "Couldn't load the image"
     },
     "about": {
       "tagline": "Launcher, dock, and calendar for Windows 11",
@@ -433,7 +466,7 @@
         "forest": "Mossy greens with grain",
         "ocean": "Deep teal currents",
         "user": "Saved from your settings",
-        "arix": "Flat near-black with sharp edges"
+        "arix": "Flat near-black with soft corners"
       },
       "followingAccent": "Following the Windows accent",
       "baseColor": "Base color for the whole theme",
@@ -491,7 +524,8 @@
       "alignStart": "Left",
       "alignCenter": "Center",
       "alignEnd": "Right",
-      "openEditMode": "Open"
+      "openEditMode": "Open",
+      "chooseImage": "Choose image"
     },
     "sync": {
       "devices": {
@@ -907,7 +941,24 @@
       "noNotes": "No notes",
       "openInNote": "Open in Note",
       "previewMissing": "No preview",
-      "timeFromTitle": "Starts at {time}"
+      "timeFromTitle": "Starts at {time}",
+      "tags": "Tags",
+      "newTag": "New tag",
+      "addEnd": "Add end time",
+      "removeEnd": "Remove end time",
+      "parent": "Parent event",
+      "children": "Sub-events",
+      "addChild": "Add sub-event",
+      "parentLocked": "An event with sub-events cannot have a parent.",
+      "date": "Date",
+      "shift": "On weekends or holidays",
+      "shiftShort": "Holidays",
+      "shifts": {
+        "none": "Keep the date",
+        "next": "Move to the next weekday",
+        "previous": "Move to the previous weekday"
+      },
+      "movedFrom": "Moved from {date}"
     },
     "ics": {
       "options": "Calendar options",
@@ -979,7 +1030,24 @@
     "header": {
       "today": "Today {date}"
     },
-    "holiday": "Holiday"
+    "holiday": "Holiday",
+    "tags": {
+      "todo": "To-do",
+      "personal": "Personal",
+      "work": "Work"
+    },
+    "sharing": "Screen sharing",
+    "sharingHint": "Events with hidden tags are hidden while sharing.",
+    "privateReminder": "Event reminder",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "scope": {
+      "edit": "Edit repeating event",
+      "delete": "Delete repeating event",
+      "one": "This event",
+      "following": "This and following events",
+      "all": "All events"
+    }
   },
   "files": {
     "forward": "Forward",

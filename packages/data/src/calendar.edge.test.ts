@@ -1,12 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test"
-import { tr } from "@eris/i18n"
-import {
-  eventsOn,
-  formatRange,
-  parseDay,
-  parseQuickEvent,
-  upcoming,
-} from "./calendar"
+import { eventsOn, parseDay, upcoming } from "./calendar"
 import type { CalendarEvent } from "./types"
 
 const now = new Date(2026, 8, 2, 10, 0)
@@ -70,7 +63,7 @@ describe("recurring all-day events across DST (America/New_York)", () => {
     const [hit] = on(list, "2026-11-01")
 
     expect(hit.end).toBe("2026-11-01")
-    expect(formatRange(hit)).toBe(tr("panel.allDay"))
+    expect(hit.start).toBe("2026-11-01")
   })
 
   test("weekly timed event keeps its wall-clock slot across DST", () => {
@@ -126,14 +119,5 @@ describe("parseDay validates its fields", () => {
 
   test("does not turn a US-style date into a year-1917 due date", () => {
     expect(parseDay("10-20-2026", now)).toBeNull()
-  })
-})
-
-describe("time range crossing midnight", () => {
-  test("22:00-02:00 ends at two the next morning", () => {
-    expect(parseQuickEvent("Party 22:00-02:00", now)).toMatchObject({
-      start: "2026-09-02T22:00",
-      end: "2026-09-03T02:00",
-    })
   })
 })

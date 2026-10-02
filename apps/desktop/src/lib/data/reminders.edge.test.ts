@@ -1,6 +1,6 @@
 import { afterAll, expect, mock, setSystemTime, test } from "bun:test"
 import type { CalendarEvent } from "@eris/data"
-import type { Profile } from "@eris/settings"
+import { defaultProfile } from "@eris/settings"
 
 const sent: string[] = []
 
@@ -16,8 +16,10 @@ setSystemTime(new Date(2026, 8, 2, 10, 0, 5))
 
 const { scheduleReminders } = await import("./reminders")
 
-const profileWith = (reminderMinutes: number) =>
-  ({ calendar: { reminderMinutes } }) as unknown as Profile
+const calendarWith = (reminderMinutes: number) => ({
+  ...defaultProfile.calendar,
+  reminderMinutes,
+})
 
 const event = (over: Partial<CalendarEvent>): CalendarEvent => ({
   id: "e",
@@ -43,7 +45,8 @@ test("settings default 'None' (0) still notifies at event start", async () => {
 
   const stop = scheduleReminders(
     [event({ id: "a", title: "a", start: "2026-09-02T10:01" })],
-    profileWith(0),
+    calendarWith(0),
+    false,
   )
 
   await settle()
@@ -57,7 +60,8 @@ test("editor 'None' (null) still notifies with the profile default", async () =>
 
   const stop = scheduleReminders(
     [event({ id: "b", title: "b", start: "2026-09-02T10:12" })],
-    profileWith(10),
+    calendarWith(10),
+    false,
   )
 
   await settle()
@@ -84,7 +88,8 @@ test("explicit minutes fire, zero fires at the start", async () => {
         reminderMinutes: 0,
       }),
     ],
-    profileWith(0),
+    calendarWith(0),
+    false,
   )
 
   await settle()

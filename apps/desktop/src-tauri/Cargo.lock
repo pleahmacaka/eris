@@ -1590,6 +1590,7 @@ dependencies = [
  "diesel",
  "image",
  "iroh",
+ "is-screen-sharing",
  "libsqlite3-sys",
  "log",
  "roxmltree",
@@ -2880,6 +2881,13 @@ dependencies = [
  "url",
  "webpki-roots",
  "ws_stream_wasm",
+]
+
+[[package]]
+name = "is-screen-sharing"
+version = "0.1.0"
+dependencies = [
+ "windows 0.61.3",
 ]
 
 [[package]]

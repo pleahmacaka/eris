@@ -10,7 +10,6 @@ use crate::{appbar, desktop};
 const BLUR_TOGGLE_GUARD: Duration = Duration::from_millis(250);
 const SHOW_SETTLE: Duration = Duration::from_millis(400);
 const FADE_OUT: Duration = Duration::from_millis(140);
-const LAZY: [&str; 5] = ["settings", "files", "onboarding", "edit", "studio"];
 
 static BLUR_HIDDEN_AT: Mutex<Option<Instant>> = Mutex::new(None);
 static FADES: LazyLock<Mutex<HashMap<String, u64>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -23,16 +22,15 @@ static ANCHORS: LazyLock<Mutex<HashMap<String, [i32; 4]>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 
 pub fn set_anchor(label: &str, caller: &WebviewWindow, rect: Option<[f64; 4]>) {
-    let screen = rect.and_then(|[left, top, right, bottom]| {
+    let screen = rect.and_then(|rect| {
         let origin = caller.inner_position().ok()?;
-        let scale = caller.scale_factor().ok()?;
-        let at = |value: f64, base: i32| base + (value * scale).round() as i32;
+        let [left, top, right, bottom] = region::physical(rect, caller.scale_factor().ok()?);
 
         Some([
-            at(left, origin.x),
-            at(top, origin.y),
-            at(right, origin.x),
-            at(bottom, origin.y),
+            origin.x + left,
+            origin.y + top,
+            origin.x + right,
+            origin.y + bottom,
         ])
     });
 
@@ -62,6 +60,61 @@ pub fn open_with_intent(app: AppHandle, label: String, intent: String) {
 #[tauri::command]
 pub fn take_intent(label: String) -> Option<String> {
     PENDING_INTENT.lock().unwrap().remove(&label)
+}
+
+#[tauri::command]
+pub fn set_window_region(
+    window: WebviewWindow,
+    rects: Option<Vec<[f64; 4]>>,
+) -> Result<(), String> {
+    let scale = window.scale_factor().map_err(|e| e.to_string())?;
+    let hwnd = window.hwnd().map_err(|e| e.to_string())?;
+    let physical = rects.map(|rects| {
+        rects
+            .into_iter()
+            .map(|rect| region::physical(rect, scale))
+            .collect::<Vec<_>>()
+    });
+
+    region::set(hwnd, physical.as_deref(), true);
+
+    Ok(())
+}
+
+pub(crate) mod region {
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::Graphics::Gdi::{
+        CombineRgn, CreateRectRgn, DeleteObject, SetWindowRgn, RGN_OR,
+    };
+
+    pub fn physical(rect: [f64; 4], scale: f64) -> [i32; 4] {
+        rect.map(|value| (value * scale).round() as i32)
+    }
+
+    pub fn set(hwnd: HWND, rects: Option<&[[i32; 4]]>, redraw: bool) {
+        unsafe {
+            let Some(rects) = rects else {
+                SetWindowRgn(hwnd, None, redraw);
+
+                return;
+            };
+
+            let region = CreateRectRgn(0, 0, 0, 0);
+
+            for [left, top, right, bottom] in rects {
+                let part = CreateRectRgn(*left, *top, *right, *bottom);
+
+                CombineRgn(Some(region), Some(region), Some(part), RGN_OR);
+
+                let _ = DeleteObject(part.into());
+            }
+
+            // the window owns the region only once SetWindowRgn succeeds
+            if SetWindowRgn(hwnd, Some(region), redraw) == 0 {
+                let _ = DeleteObject(region.into());
+            }
+        }
+    }
 }
 
 #[tauri::command]
@@ -177,7 +230,7 @@ fn conceal(window: &WebviewWindow) {
         }
 
         let _ = app.run_on_main_thread(move || {
-            if LAZY.contains(&label.as_str()) {
+            if lazy(window.app_handle(), &label) {
                 let _ = window.destroy();
             } else {
                 let _ = window.hide();
@@ -189,22 +242,25 @@ fn conceal(window: &WebviewWindow) {
     });
 }
 
+fn lazy_config(app: &AppHandle, label: &str) -> Option<tauri::utils::config::WindowConfig> {
+    app.config()
+        .app
+        .windows
+        .iter()
+        .find(|window| window.label == label && !window.create)
+        .cloned()
+}
+
+fn lazy(app: &AppHandle, label: &str) -> bool {
+    lazy_config(app, label).is_some()
+}
+
 pub(crate) fn window_for(app: &AppHandle, label: &str) -> Option<WebviewWindow> {
     if let Some(window) = app.get_webview_window(label) {
         return Some(window);
     }
 
-    if !LAZY.contains(&label) {
-        return None;
-    }
-
-    let config = app
-        .config()
-        .app
-        .windows
-        .iter()
-        .find(|window| window.label == label)?
-        .clone();
+    let config = lazy_config(app, label)?;
 
     tauri::WebviewWindowBuilder::from_config(app, &config)
         .ok()?
@@ -262,9 +318,7 @@ fn show_now(app: &AppHandle, label: &str) {
     };
 
     let _ = match label {
-        "main" | "settings" | "onboarding" | "files" | "studio" => {
-            center_on_cursor_monitor(&window)
-        }
+        "main" | "settings" | "onboarding" | "studio" => center_on_cursor_monitor(&window),
         "panel" => dock_panel(app, &window),
         "notices" => match anchor_of(label) {
             Some(anchor) => anchor_panel(&window, anchor),

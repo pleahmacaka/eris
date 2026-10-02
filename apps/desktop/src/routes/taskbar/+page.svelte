@@ -37,6 +37,7 @@
   let pageHidden = $state(false)
   let peeking = $state(false)
   let hiddenAt = 0
+  let sharing = $state(false)
 
   const eventLive = live(events)
 
@@ -106,6 +107,9 @@
       }),
       onProfile(p => {
         profile = p
+      }),
+      native.watchScreenShare(value => {
+        sharing = value
       }),
       native.onWindowShown("panel", refreshVisibility),
       native.onWindowShown("main", refreshVisibility),
@@ -324,10 +328,22 @@
     }
   })
 
+  const watchShare = $derived(
+    device.features.calendar &&
+      profile.calendar.tags.some(tag => tag.hideWhileSharing),
+  )
+
+  $effect(() => {
+    native.setShareWatch(watchShare).catch(() => undefined)
+  })
+
+  const calendar = $derived(JSON.stringify(profile.calendar))
+
   $effect(() =>
     scheduleReminders(
       device.features.calendar ? $state.snapshot(eventLive.items) : [],
-      $state.snapshot(profile),
+      JSON.parse(calendar),
+      sharing,
     ),
   )
 </script>

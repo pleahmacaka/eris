@@ -2,36 +2,12 @@
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
   import { currentLocale } from "@eris/i18n"
-  import { dateKey, splitCitations } from "$lib/data"
-  import type { CalendarEvent } from "$lib/data"
+  import { eventSpan, eventTime, longDay } from "$lib/calendar"
+  import { type CalendarEvent, dateKey, splitCitations } from "$lib/data"
   import { colorMeta, toColor } from "./colors"
-  import { eventSpan, eventTime, longDay } from "./format"
+  import type { Panel } from "./panel.svelte"
 
-  const {
-    weeks,
-    month,
-    today,
-    selected,
-    rangeEnd = null,
-    eventsOnDay,
-    holidayFor,
-    pick,
-    selectRange,
-    openEvent,
-    weekNumbers = false,
-  }: {
-    weeks: Date[][]
-    month: number
-    today: Date
-    selected: Date
-    rangeEnd?: Date | null
-    eventsOnDay: (day: Date) => CalendarEvent[]
-    holidayFor: (day: Date) => string[]
-    pick: (day: Date) => void
-    selectRange: (start: Date, end: Date) => void
-    openEvent: (event: CalendarEvent) => void
-    weekNumbers?: boolean
-  } = $props()
+  const { panel }: { panel: Panel } = $props()
 
   const CHIPS = 3
   const PREVIEW_DELAY = 350
@@ -57,7 +33,7 @@
 
   const dragged = $derived(ordered(anchor, reach))
 
-  const range = $derived(dragged ?? ordered(rangeEnd && selected, rangeEnd))
+  const range = $derived(dragged ?? panel.range)
 
   const inRange = (day: Date) =>
     range !== null && day >= range[0] && day <= range[1]
@@ -79,7 +55,7 @@
 
   const endDrag = () => {
     if (dragged && dateKey(dragged[0]) !== dateKey(dragged[1])) {
-      selectRange(dragged[0], dragged[1])
+      panel.startRange(dragged[0], dragged[1])
     }
 
     anchor = null
@@ -119,24 +95,17 @@
       .filter(line => line.trim() !== "")
       .slice(0, NOTE_LINES)
 
+  const weekNumbers = $derived(panel.profile.calendar.showWeekNumbers)
+
   const weekdays = $derived(
-    weeks[0].map(d => ({
-      label: d.toLocaleDateString(currentLocale(), { weekday: "short" }),
-      day: d.getDay(),
-    })),
+    panel.weeks[0].map(d =>
+      d.toLocaleDateString(currentLocale(), { weekday: "short" }),
+    ),
   )
 
   const columns = $derived(
     weekNumbers ? "2rem repeat(7, minmax(0, 1fr))" : undefined,
   )
-
-  const dayTone = (day: number, holiday: boolean, rest: string) => {
-    if (holiday || day === 0) {
-      return "text-error"
-    }
-
-    return day === 6 ? "text-info" : rest
-  }
 
   const isoWeek = (day: Date) => {
     const at = new Date(
@@ -155,26 +124,18 @@
 
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault()
-      pick(day)
+      panel.pick(day)
     }
   }
 </script>
 
-<div
-  class="grid grid-cols-7 border-b border-base-300"
-  style:grid-template-columns={columns}
->
+<div class="grid grid-cols-7 gap-1" style:grid-template-columns={columns}>
   {#if weekNumbers}
     <div></div>
   {/if}
-  {#each weekdays as weekday (weekday.label)}
-    <div
-      class={[
-        "px-1 py-1.5 text-3xs font-medium",
-        dayTone(weekday.day, false, "text-base-content/60"),
-      ]}
-    >
-      <span class="inline-flex min-w-5 justify-center">{weekday.label}</span>
+  {#each weekdays as weekday (weekday)}
+    <div class="px-1 py-1.5 text-3xs font-medium text-base-content/45">
+      <span class="inline-flex min-w-5 justify-center">{weekday}</span>
     </div>
   {/each}
 </div>
@@ -182,17 +143,12 @@
 <svelte:window onpointerup={endDrag} onblur={endDrag} />
 
 <div
-  class="grid min-h-0 flex-1 grid-cols-7 grid-rows-6 select-none"
+  class="grid min-h-0 flex-1 grid-cols-7 grid-rows-6 gap-1 select-none"
   style:grid-template-columns={columns}
 >
-  {#each weeks as week, row (dateKey(week[0]))}
+  {#each panel.weeks as week (dateKey(week[0]))}
     {#if weekNumbers}
-      <div
-        class={[
-          "flex justify-center border-base-300/70 bg-base-200/30 p-1",
-          row > 0 && "border-t",
-        ]}
-      >
+      <div class="flex justify-center p-1">
         <span
           class="flex h-5 items-center text-3xs tabular-nums text-base-content/50"
         >
@@ -200,12 +156,12 @@
         </span>
       </div>
     {/if}
-    {#each week as day, column (dateKey(day))}
-      {@const outside = day.getMonth() !== month}
-      {@const dayEvents = eventsOnDay(day)}
-      {@const holidays = holidayFor(day)}
-      {@const isToday = dateKey(day) === dateKey(today)}
-      {@const isSelected = dateKey(day) === dateKey(selected)}
+    {#each week as day (dateKey(day))}
+      {@const outside = day.getMonth() !== panel.month}
+      {@const dayEvents = panel.eventsOn(day)}
+      {@const holidays = panel.holidayFor(day)}
+      {@const isToday = dateKey(day) === dateKey(panel.today)}
+      {@const isSelected = dateKey(day) === dateKey(panel.selected)}
       {@const shown = dayEvents.length > CHIPS ? CHIPS - 1 : CHIPS}
       <div
         role="button"
@@ -214,21 +170,17 @@
         aria-current={isToday ? "date" : undefined}
         aria-pressed={isSelected}
         class={[
-          "flex min-h-0 cursor-pointer flex-col gap-0.5 overflow-hidden p-1",
-          "border-base-300/70 text-left transition-colors duration-120",
+          "flex min-h-0 cursor-pointer flex-col gap-0.5 overflow-hidden rounded-xl p-1",
+          "text-left transition-colors duration-120",
           "focus-visible:outline-2 focus-visible:-outline-offset-2",
           "focus-visible:outline-primary",
-          row > 0 && "border-t",
-          (column > 0 || weekNumbers) && "border-l",
-          outside && "*:opacity-50",
-          outside && !isSelected && "bg-base-200/40",
-          holidays.length > 0 && !isSelected && "bg-error/5",
+          outside && "*:opacity-40",
           inRange(day) && "bg-primary/15",
           isSelected
-            ? "bg-primary/10 ring-1 ring-primary/50 ring-inset"
+            ? "bg-base-content/8"
             : !inRange(day) && "hover:bg-base-content/5",
         ]}
-        onclick={() => pick(day)}
+        onclick={() => panel.pick(day)}
         onkeydown={e => onKey(e, day)}
         onpointerdown={e => startDrag(e, day)}
         onpointerenter={() => extendDrag(day)}
@@ -236,14 +188,11 @@
         <div class="flex min-w-0 items-center gap-1">
           <span
             class={[
-              "grid size-5 shrink-0 place-items-center rounded-full",
+              "grid size-6 shrink-0 place-items-center rounded-lg",
               "text-xs tabular-nums",
               isToday
                 ? "bg-primary font-semibold text-primary-content"
-                : [
-                    "font-medium",
-                    dayTone(day.getDay(), holidays.length > 0, ""),
-                  ],
+                : ["font-medium", holidays.length > 0 && "text-error"],
             ]}
           >
             {day.getDate()}
@@ -281,7 +230,7 @@
             onclick={e => {
               e.stopPropagation()
               hidePreview()
-              openEvent(event)
+              panel.show(event)
             }}
           >
             {#if !event.allDay}

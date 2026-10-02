@@ -1,16 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { tr } from "@eris/i18n"
-import {
-  dateKey,
-  eventsOn,
-  formatRange,
-  monthGrid,
-  parseQuickEvent,
-  upcoming,
-} from "./calendar"
+import { dateKey, eventsOn, monthGrid, upcoming } from "./calendar"
 import type { CalendarEvent } from "./types"
-
-const now = new Date(2026, 8, 2, 10, 0)
 
 const event = (over: Partial<CalendarEvent> = {}): CalendarEvent => ({
   id: "e",
@@ -161,80 +151,5 @@ describe("upcoming", () => {
       "once@2026-09-03T08:00",
       "daily@2026-09-03T09:00",
     ])
-  })
-})
-
-describe("parseQuickEvent", () => {
-  test("title only becomes all-day today", () => {
-    expect(parseQuickEvent("Lunch", now)).toEqual({
-      title: "Lunch",
-      allDay: true,
-      start: "2026-09-02",
-      end: "2026-09-02",
-    })
-  })
-
-  test("day plus time defaults to one hour", () => {
-    expect(parseQuickEvent("Dentist tomorrow 3pm", now)).toEqual({
-      title: "Dentist",
-      allDay: false,
-      start: "2026-09-03T15:00",
-      end: "2026-09-03T16:00",
-    })
-  })
-
-  test("weekday with range", () => {
-    expect(parseQuickEvent("Standup mon 9:30-10", now)).toEqual({
-      title: "Standup",
-      allDay: false,
-      start: "2026-09-07T09:30",
-      end: "2026-09-07T10:00",
-    })
-  })
-
-  test("meridiem on the end applies to the start", () => {
-    expect(parseQuickEvent("Review 1-2pm", now)).toMatchObject({
-      start: "2026-09-02T13:00",
-      end: "2026-09-02T14:00",
-    })
-    expect(parseQuickEvent("Review 11-1pm", now)).toMatchObject({
-      start: "2026-09-02T11:00",
-      end: "2026-09-02T13:00",
-    })
-  })
-
-  test("end before start rolls to the afternoon", () => {
-    expect(parseQuickEvent("Lunch 11-1", now)).toMatchObject({
-      start: "2026-09-02T11:00",
-      end: "2026-09-02T13:00",
-    })
-  })
-
-  test("explicit date and 24h time", () => {
-    expect(parseQuickEvent("Flight 2026-12-24 06:45", now)).toMatchObject({
-      title: "Flight",
-      start: "2026-12-24T06:45",
-      end: "2026-12-24T07:45",
-    })
-  })
-
-  test("hyphenated words stay in the title", () => {
-    expect(parseQuickEvent("Check-in follow-up", now).title).toBe(
-      "Check-in follow-up",
-    )
-  })
-})
-
-describe("formatRange", () => {
-  test("all day", () => {
-    expect(
-      formatRange(
-        event({ allDay: true, start: "2026-09-02", end: "2026-09-02" }),
-      ),
-    ).toBe(tr("panel.allDay"))
-  })
-
-  test("same day times", () => {
-    expect(formatRange(event())).toMatch(/^9:00\sAM – 10:00\sAM$/)
   })
 })

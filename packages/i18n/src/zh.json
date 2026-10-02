@@ -124,7 +124,9 @@
       "clock": "时钟",
       "media": "媒体",
       "claude": "Claude 用量",
-      "syncGeneral": "基本"
+      "syncGeneral": "基本",
+      "erisFiles": "Eris Files",
+      "eventTags": "日程标签"
     },
     "rows": {
       "deviceName": "设备名称",
@@ -229,7 +231,22 @@
       "showSyncStatus": "同步状态点",
       "dockGrowth": "自动加宽",
       "studio": "Studio",
-      "hideDelay": "隐藏延迟"
+      "hideDelay": "隐藏延迟",
+      "erisFiles": "Eris Files",
+      "filesDefault": "默认文件管理器",
+      "filesDefaultApps": "Windows 默认应用",
+      "eventTags": "日程标签",
+      "tagName": "标签名称",
+      "hideWhileSharing": "共享时隐藏",
+      "deleteTag": "删除标签",
+      "addTag": "添加标签",
+      "followEris": "使用 Eris 样式",
+      "hideGather": "收拢为标志",
+      "dockIslands": "小组件岛",
+      "islandGap": "岛间距",
+      "dockIcon": "程序坞图标",
+      "gatherHideMs": "隐藏动画时长",
+      "gatherShowMs": "显示动画时长"
     },
     "hints": {
       "deviceName": "其他已同步设备上显示的名称",
@@ -258,6 +275,7 @@
       "texture": "在背景上添加颗粒质感",
       "cornerRadius": "调整窗口和按钮的圆角",
       "blur": "调整半透明背景的模糊强度",
+      "blurGlass": "玻璃模糊由 Windows 应用，此项仅调整窗口内元素的模糊",
       "fontSize": "调整所有文字的大小",
       "windowOpacity": "调整所有 Eris 窗口的不透明度",
       "dockOpacity": "调整程序坞的不透明度",
@@ -310,7 +328,7 @@
       "showDesktopButton": "在程序坞右端显示“显示桌面”按钮",
       "showTaskView": "显示打开 Windows 任务视图的按钮",
       "showInputLanguage": "安装两个以上键盘布局时显示活动窗口的输入语言",
-      "hideAnimation": "隐藏时将程序坞滑向边缘",
+      "hideAnimation": "隐藏和重新显示程序坞时使用动画。关闭后立即隐藏。",
       "topBar": "将时钟、托盘和小组件移到屏幕顶部的独立栏",
       "panelPosition": "日历和通知面板打开的位置",
       "holidayRegion": "显示节假日的国家/地区。系统跟随 Windows",
@@ -324,7 +342,20 @@
       "dockGrowth": "窗口较多时最多加宽到此比例并将其余应用收进 ⋯ 菜单，0% 时宽度固定",
       "studio": "在沙盒中用你的设置预览所有窗口，并将结果应用到 Eris",
       "hideDelay": "光标离开程序坞后到隐藏前的等待时间",
-      "trayNeedsDock": "开启程序坞后可用"
+      "trayNeedsDock": "开启程序坞后可用",
+      "erisFiles": "替代 Windows 文件资源管理器的文件管理器",
+      "filesDefault": "使用 Eris Files 打开文件夹、文件位置和 Win+E",
+      "filesDefaultApps": "请在 Windows 设置中选择打开 3D 模型的应用。",
+      "filesMissing": "未安装 Eris Files",
+      "eventTags": "检测到屏幕共享时，隐藏带隐藏标签的日程。",
+      "followEris": "跟随 Eris 的外观设置。",
+      "erisMissing": "未安装 Eris。",
+      "hideGather": "先将程序坞收拢为中间的圆形标志再移出。关闭后直接滑向边缘。",
+      "dockIslands": "将程序坞的各部分拆分为独立的圆角岛。",
+      "islandGap": "程序坞各岛之间的距离。",
+      "dockIcon": "用于启动器按钮和隐藏标志的图像。",
+      "gatherHideMs": "程序坞收拢为标志并移出所需的时间。",
+      "gatherShowMs": "程序坞从标志重新展开所需的时间。"
     },
     "options": {
       "win": "Win 键",
@@ -371,7 +402,9 @@
       "iconCacheFailed": "无法清除图标缓存：{error}",
       "appearanceReset": "已重置外观",
       "settingsReset": "已重置设置",
-      "bridgeFailed": "无法更改 Claude 桥接：{error}"
+      "bridgeFailed": "无法更改 Claude 桥接：{error}",
+      "iconTooLarge": "请选择 512 KB 以下的图像",
+      "iconFailed": "无法载入图像"
     },
     "about": {
       "tagline": "适用于 Windows 11 的启动器、程序坞与日历",
@@ -433,7 +466,7 @@
         "forest": "带颗粒感的苔藓绿",
         "ocean": "深邃的蓝绿色洋流",
         "user": "保存自你的设置",
-        "arix": "锐利边角的平面近黑色"
+        "arix": "圆润边角的平面近黑色"
       },
       "followingAccent": "正在跟随 Windows 主题色",
       "baseColor": "整个主题的基础色",
@@ -491,7 +524,8 @@
       "alignStart": "左",
       "alignCenter": "居中",
       "alignEnd": "右",
-      "openEditMode": "打开"
+      "openEditMode": "打开",
+      "chooseImage": "选择图像"
     },
     "sync": {
       "devices": {
@@ -907,7 +941,24 @@
       "noNotes": "无备注",
       "openInNote": "在 Note 中打开",
       "previewMissing": "无预览",
-      "timeFromTitle": "{time} 开始"
+      "timeFromTitle": "{time} 开始",
+      "tags": "标签",
+      "newTag": "新标签",
+      "addEnd": "添加结束时间",
+      "removeEnd": "删除结束时间",
+      "parent": "上级日程",
+      "children": "子日程",
+      "addChild": "添加子日程",
+      "parentLocked": "有子日程的日程不能设置上级日程。",
+      "date": "日期",
+      "shift": "遇到周末或节假日时",
+      "shiftShort": "节假日调整",
+      "shifts": {
+        "none": "保持不变",
+        "next": "移到下一个工作日",
+        "previous": "移到上一个工作日"
+      },
+      "movedFrom": "从{date}移来"
     },
     "ics": {
       "options": "日历选项",
@@ -979,7 +1030,24 @@
     "header": {
       "today": "今天 {date}"
     },
-    "holiday": "节假日"
+    "holiday": "节假日",
+    "tags": {
+      "todo": "待办",
+      "personal": "个人",
+      "work": "工作"
+    },
+    "sharing": "正在共享屏幕",
+    "sharingHint": "共享屏幕时不显示带隐藏标签的日程。",
+    "privateReminder": "日程提醒",
+    "expand": "展开",
+    "collapse": "收起",
+    "scope": {
+      "edit": "编辑重复日程",
+      "delete": "删除重复日程",
+      "one": "仅此日程",
+      "following": "此日程及以后",
+      "all": "所有日程"
+    }
   },
   "files": {
     "forward": "前进",

@@ -4,6 +4,7 @@ import {
   loadProfile,
   type Profile,
   saveProfile,
+  updateProfile,
 } from "@eris/settings"
 import {
   isPoisoned,
@@ -33,7 +34,7 @@ export type Collection<T extends LocalItem> = {
   all(): Promise<T[]>
   get(id: string): Promise<T | undefined>
   put(item: T): Promise<T>
-  putMany(items: T[]): Promise<void>
+  apply(change: { put: T[]; remove: string[] }): Promise<void>
   remove(id: string): Promise<void>
   subscribe(handler: (items: T[]) => void): () => void
 }
@@ -115,6 +116,19 @@ const collection = <T extends LocalItem>(
     return stamped
   }
 
+  const bury = async (db: Store, id: string, device?: string) => {
+    const stamp = await stampFor(db, name, id, device)
+
+    await db.delete(itemKey(name, id))
+    await db.set(tombstoneKey(name, id), {
+      collection: name,
+      id,
+      ...stamp,
+      deleted: true,
+      data: null,
+    } satisfies SyncRecord)
+  }
+
   return {
     name,
     all,
@@ -131,12 +145,16 @@ const collection = <T extends LocalItem>(
       return stamped
     },
 
-    putMany: async items => {
+    apply: async change => {
       const db = await store()
       const device = await ownDeviceId()
 
-      for (const item of items) {
+      for (const item of change.put) {
         await write(db, item, device)
+      }
+
+      for (const id of change.remove) {
+        await bury(db, id, device)
       }
 
       await db.save()
@@ -145,16 +163,8 @@ const collection = <T extends LocalItem>(
 
     remove: async id => {
       const db = await store()
-      const stamp = await stampFor(db, name, id)
 
-      await db.delete(itemKey(name, id))
-      await db.set(tombstoneKey(name, id), {
-        collection: name,
-        id,
-        ...stamp,
-        deleted: true,
-        data: null,
-      } satisfies SyncRecord)
+      await bury(db, id)
       await db.save()
       await notify(name)
     },
@@ -202,15 +212,25 @@ export const notes = collection<Note>("notes")
 
 export const newId = () => crypto.randomUUID()
 
-export const saveProfileSynced = async (profile: Profile) => {
-  await saveProfile(profile)
-
+const stampProfile = async () => {
   const db = await store()
   const stamp = await stampFor(db, "profile", "profile")
 
   await db.set(itemKey("profile", "profile"), { id: "profile", ...stamp })
   await db.save()
   await notify("profile")
+}
+
+export const saveProfileSynced = async (profile: Profile) => {
+  await saveProfile(profile)
+  await stampProfile()
+}
+
+export const updateProfileSynced = async (
+  change: (profile: Profile) => Profile,
+) => {
+  await updateProfile(change)
+  await stampProfile()
 }
 
 export const localRecords = async (

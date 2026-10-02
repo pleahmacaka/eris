@@ -1,6 +1,5 @@
+import { type CalendarEvent, dateKey, openEnded, parseLocal } from "@eris/data"
 import { currentLocale } from "@eris/i18n"
-import type { CalendarEvent } from "$lib/data"
-import { dateKey, parseLocal } from "$lib/data"
 
 export const clock = (value: string) =>
   parseLocal(value).toLocaleTimeString(currentLocale(), {
@@ -19,6 +18,14 @@ export const shortDay = (day: Date) =>
     weekday: "short",
   })
 
+export const longDay = (day: Date) =>
+  day.toLocaleDateString(currentLocale(), {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "long",
+  })
+
 export const eventSpan = (event: CalendarEvent, allDayLabel: string) => {
   const start = parseLocal(event.start)
   const end = parseLocal(event.end)
@@ -28,17 +35,13 @@ export const eventSpan = (event: CalendarEvent, allDayLabel: string) => {
     return sameDay ? allDayLabel : `${shortDay(start)} – ${shortDay(end)}`
   }
 
+  if (openEnded(event)) {
+    return clock(event.start)
+  }
+
   if (sameDay) {
     return `${clock(event.start)} – ${clock(event.end)}`
   }
 
   return `${shortDay(start)} ${clock(event.start)} – ${shortDay(end)} ${clock(event.end)}`
 }
-
-export const longDay = (day: Date) =>
-  day.toLocaleDateString(currentLocale(), {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "long",
-  })

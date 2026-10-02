@@ -36,6 +36,10 @@ export const previewShow = (windows: number[], center: number) =>
 
 export const previewHide = () => invoke<void>("preview_hide")
 
+export const setWindowRegion = (
+  rects: [number, number, number, number][] | null,
+) => invoke<void>("set_window_region", { rects })
+
 export const showWindow = (label: WindowLabel) =>
   invoke<void>("show_window", { label })
 

@@ -16,13 +16,20 @@ export type Todo = {
   updatedAt: number
 }
 
-export type Recurrence =
-  | "none"
-  | "daily"
-  | "weekdays"
-  | "weekly"
-  | "monthly"
-  | "yearly"
+export const RECURRENCES = [
+  "none",
+  "daily",
+  "weekdays",
+  "weekly",
+  "monthly",
+  "yearly",
+] as const
+
+export type Recurrence = (typeof RECURRENCES)[number]
+
+export const SHIFTS = ["next", "previous"] as const
+
+export type Shift = (typeof SHIFTS)[number]
 
 export type CalendarEvent = {
   id: string
@@ -34,8 +41,20 @@ export type CalendarEvent = {
   color: string | null
   reminderMinutes: number | null
   recurrence: Recurrence
+  tags?: string[]
+  parentId?: string | null
+  exdates?: string[]
+  until?: string | null
+  shift?: Shift
+  seriesId?: string | null
+  originalDate?: string | null
   createdAt: number
   updatedAt: number
+}
+
+export type Occurrence = CalendarEvent & {
+  seriesDate?: string
+  shiftedFrom?: string
 }
 
 export type Preset = {

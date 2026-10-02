@@ -6,10 +6,10 @@
     type Todo,
     dueLabel,
     isOverdue,
-    newId,
-    parseQuickAdd,
+    quickTodo,
     sortTodos,
     todos,
+    toggled,
   } from "$lib/data"
 
   const {
@@ -36,30 +36,12 @@
     priority === 3 ? "text-error" : priority === 2 ? "text-warning" : "text-info"
 
   const add = async () => {
-    const parsed = parseQuickAdd(draft)
-    const title = parsed.title?.trim()
+    const todo = quickTodo(draft)
 
-    if (!title) {
-      return
+    if (todo) {
+      draft = ""
+      await todos.put(todo)
     }
-
-    const now = Date.now()
-
-    draft = ""
-
-    await todos.put({
-      id: newId(),
-      title,
-      notes: "",
-      done: false,
-      doneAt: null,
-      priority: parsed.priority ?? 0,
-      due: parsed.due ?? null,
-      tags: parsed.tags ?? [],
-      order: now,
-      createdAt: now,
-      updatedAt: now,
-    })
   }
 
   let renaming: Promise<unknown> = Promise.resolve()
@@ -68,15 +50,7 @@
   const toggle = async (todo: Todo) => {
     await renaming
 
-    const current = (await todos.get(todo.id)) ?? todo
-    const done = !current.done
-
-    await todos.put({
-      ...current,
-      done,
-      doneAt: done ? Date.now() : null,
-      updatedAt: Date.now(),
-    })
+    await todos.put(toggled((await todos.get(todo.id)) ?? todo))
   }
 
   const startEdit = (todo: Todo) => {
@@ -182,21 +156,26 @@
               />
 
               {#if editingId === todo.id}
-                <input
-                  class="input input-xs min-w-0 flex-1"
+                <textarea
+                  class={[
+                    "textarea textarea-xs min-h-0 min-w-0 flex-1 resize-none",
+                    "text-sm [field-sizing:content]",
+                  ]}
+                  rows="1"
                   aria-label={$t("panel.todo.titleAria")}
                   bind:value={editDraft}
                   {@attach node => node.focus()}
                   onblur={() => commitEdit(todo)}
                   onkeydown={e => {
                     if (e.key === "Enter") {
+                      e.preventDefault()
                       commitEdit(todo)
                     } else if (e.key === "Escape") {
                       e.stopPropagation()
                       editingId = null
                     }
                   }}
-                />
+                ></textarea>
               {:else}
                 <button
                   type="button"
@@ -210,7 +189,7 @@
                 >
                   <span
                     class={[
-                      "block truncate text-sm font-medium",
+                      "block text-sm font-medium break-words whitespace-pre-wrap",
                       "transition-opacity duration-120",
                       todo.done && "line-through opacity-55",
                     ]}

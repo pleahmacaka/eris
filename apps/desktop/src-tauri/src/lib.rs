@@ -29,6 +29,7 @@ mod p2p;
 mod pins;
 mod preview;
 mod quick;
+mod share;
 mod shortcuts;
 mod spectrum;
 mod system;
@@ -154,6 +155,7 @@ pub fn run() {
             winkey::install(handle.clone());
             clipboard::watch(handle.clone());
             desktop::watch(handle.clone());
+            share::watch(handle.clone());
             usage::watch(handle.clone());
             p2p::start(&handle);
 

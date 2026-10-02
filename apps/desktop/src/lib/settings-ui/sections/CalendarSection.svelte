@@ -6,8 +6,9 @@
   } from "@eris/settings"
   import { Row, Section, Segmented } from "@eris/ui"
   import { currentLocale } from "@eris/i18n"
-  import { regions } from "$lib/panel"
+  import { regions } from "$lib/calendar"
   import { t } from "svelte-i18n"
+  import EventTagsControls from "../EventTagsControls.svelte"
   import FeatureGate from "../FeatureGate.svelte"
   import { reset } from "../reset"
 
@@ -106,6 +107,15 @@
         {/each}
       </select>
     </Row>
+  </Section>
+
+  <Section
+    title={$t("settings.groups.eventTags")}
+    description={$t("settings.hints.eventTags")}
+  >
+    <div class="flex flex-col gap-2 px-4 py-3">
+      <EventTagsControls bind:tags={profile.calendar.tags} />
+    </div>
   </Section>
 
   <Section title={$t("settings.groups.todo")}>

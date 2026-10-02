@@ -1,11 +1,17 @@
-import type { CalendarEvent } from "@eris/data"
-import { formatRange, parseLocal, upcoming } from "@eris/data"
+import {
+  type CalendarEvent,
+  type HolidayCheck,
+  parseLocal,
+  upcoming,
+} from "@eris/data"
+import { tr } from "@eris/i18n"
 import type { Profile } from "@eris/settings"
 import {
   isPermissionGranted,
   requestPermission,
   sendNotification,
 } from "@tauri-apps/plugin-notification"
+import { eventSpan, hiddenWhileSharing, holidayCheck } from "$lib/calendar"
 
 const TICK = 30_000
 const CATCH_UP = 5 * 60_000
@@ -27,12 +33,17 @@ const remindAt = (e: CalendarEvent) =>
     ? null
     : parseLocal(e.start).getTime() - e.reminderMinutes * 60_000
 
-const check = async (events: CalendarEvent[]) => {
+const check = async (
+  events: CalendarEvent[],
+  hidden: (e: CalendarEvent) => boolean,
+  isHoliday: HolidayCheck,
+) => {
   const now = Date.now()
   const since = Math.max(lastTick, now - CATCH_UP)
   lastTick = now
 
-  const due = upcoming(events, new Date(since), LOOKAHEAD_DAYS).filter(e => {
+  const window = upcoming(events, new Date(since), LOOKAHEAD_DAYS, isHoliday)
+  const due = window.filter(e => {
     const at = remindAt(e)
 
     return (
@@ -46,17 +57,26 @@ const check = async (events: CalendarEvent[]) => {
 
   for (const e of due) {
     fired.add(`${e.id}@${e.start}`)
-    sendNotification({ title: e.title, body: formatRange(e) })
+    sendNotification(
+      hidden(e)
+        ? { title: tr("panel.privateReminder") }
+        : { title: e.title, body: eventSpan(e, tr("panel.allDay")) },
+    )
   }
 }
 
 export const scheduleReminders = (
   events: CalendarEvent[],
-  _profile: Profile,
+  calendar: Profile["calendar"],
+  sharing: boolean,
 ) => {
-  check(events)
+  const hidden = sharing ? hiddenWhileSharing(calendar.tags) : () => false
+  const isHoliday = holidayCheck(calendar)
+  const run = () => check(events, hidden, isHoliday)
 
-  const timer = setInterval(() => check(events), TICK)
+  run()
+
+  const timer = setInterval(run, TICK)
 
   return () => clearInterval(timer)
 }

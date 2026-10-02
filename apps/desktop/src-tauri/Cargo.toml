@@ -46,3 +46,4 @@ diesel = { version = "2.3.13", default-features = false, features = ["sqlite"] }
 iroh = "1.2.0"
 tokio = { version = "1.53.1", features = ["sync", "time"] }
 data-encoding = "2.11.1"
+is-screen-sharing = { version = "0.1.0", path = "../../../packages/is-screen-sharing/core" }

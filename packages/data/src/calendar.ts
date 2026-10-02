@@ -1,7 +1,14 @@
-import { currentLocale, tr } from "@eris/i18n"
-import type { CalendarEvent, Recurrence } from "./types"
+import type { CalendarEvent, Occurrence, Recurrence } from "./types"
+
+export type HolidayCheck = (day: Date) => boolean
+
+export type Scope = "one" | "following" | "all"
+
+export type SeriesChange = { put: CalendarEvent[]; remove: string[] }
 
 const DAY = 86_400_000
+const SHIFT_LIMIT = 14
+const SHIFTABLE: Recurrence[] = ["weekly", "monthly", "yearly"]
 const DAY_NAMES = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
 const FULL_DAY_NAMES = [
   "sunday",
@@ -36,6 +43,11 @@ export const parseLocal = (value: string) => {
   return new Date(value)
 }
 
+export const isDayKey = (value: unknown): value is string =>
+  typeof value === "string" &&
+  value.length === 10 &&
+  dateKey(parseLocal(value)) === value
+
 export const startOfDay = (d: Date) =>
   new Date(d.getFullYear(), d.getMonth(), d.getDate())
 
@@ -45,6 +57,22 @@ export const addDays = (d: Date, n: number) => {
 
   return next
 }
+
+export const dayDelta = (from: string, to: string) =>
+  Math.round(
+    (startOfDay(parseLocal(to)).getTime() -
+      startOfDay(parseLocal(from)).getTime()) /
+      DAY,
+  )
+
+export const atMinutes = (day: Date, minutes: number) =>
+  new Date(
+    day.getFullYear(),
+    day.getMonth(),
+    day.getDate(),
+    Math.floor(minutes / 60),
+    minutes % 60,
+  )
 
 const shiftMonths = (origin: Date, months: number) => {
   const next = new Date(
@@ -81,10 +109,10 @@ const monthsBetween = (origin: Date, target: Date) =>
 const firstStep = (
   recurrence: Recurrence,
   origin: Date,
-  duration: number,
+  lookback: number,
   from: Date,
 ) => {
-  const target = new Date(from.getTime() - duration)
+  const target = new Date(from.getTime() - lookback)
   const gap = target.getTime() - origin.getTime()
 
   if (gap <= 0) {
@@ -107,6 +135,35 @@ const firstStep = (
 
 const isWeekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6
 
+const restDay = (d: Date, isHoliday?: HolidayCheck) =>
+  isWeekend(d) || (isHoliday?.(d) ?? false)
+
+const moveOff = (d: Date, step: 1 | -1, isHoliday?: HolidayCheck) => {
+  let moved = d
+
+  for (let i = 0; i < SHIFT_LIMIT && restDay(moved, isHoliday); i++) {
+    moved = addDays(moved, step)
+  }
+
+  return moved
+}
+
+export const shiftable = (recurrence: Recurrence) =>
+  SHIFTABLE.includes(recurrence)
+
+const shiftStep = (event: CalendarEvent) =>
+  !shiftable(event.recurrence)
+    ? 0
+    : event.shift === "next"
+      ? 1
+      : event.shift === "previous"
+        ? -1
+        : 0
+
+export const openEnded = (event: CalendarEvent) =>
+  !event.allDay &&
+  parseLocal(event.end).getTime() === parseLocal(event.start).getTime()
+
 const span = (event: CalendarEvent) => {
   const start = parseLocal(event.start)
   const rawEnd = parseLocal(event.end)
@@ -119,11 +176,17 @@ const span = (event: CalendarEvent) => {
   return { start, end }
 }
 
+export const endOf = (event: CalendarEvent) =>
+  openEnded(event) ? null : span(event).end
+
+const inWindow = (start: Date, end: Date, from: Date, to: Date) =>
+  start < to && (end > from || start >= from)
+
 const occurrenceOf = (
   event: CalendarEvent,
   start: Date,
   end: Date,
-): CalendarEvent => ({
+): Occurrence => ({
   ...event,
   start: event.allDay ? dateKey(start) : dateTimeKey(start),
   end: event.allDay ? dateKey(addDays(end, -1)) : dateTimeKey(end),
@@ -133,7 +196,8 @@ export const occurrences = (
   event: CalendarEvent,
   from: Date,
   to: Date,
-): CalendarEvent[] => {
+  isHoliday?: HolidayCheck,
+): Occurrence[] => {
   const origin = span(event)
   const duration = origin.end.getTime() - origin.start.getTime()
 
@@ -142,39 +206,84 @@ export const occurrences = (
   }
 
   if (event.recurrence === "none") {
-    return origin.start < to && origin.end > from ? [event] : []
+    return inWindow(origin.start, origin.end, from, to) ? [event] : []
   }
 
-  const found: CalendarEvent[] = []
+  const found: Occurrence[] = []
   const days = Math.round(duration / DAY)
+  const excluded = new Set(event.exdates ?? [])
+  const step = shiftStep(event)
+  const horizon = step < 0 ? addDays(to, SHIFT_LIMIT) : to
+  const lookback = duration + (step > 0 ? SHIFT_LIMIT * DAY : 0)
 
   for (
-    let n = firstStep(event.recurrence, origin.start, duration, from);
+    let n = firstStep(event.recurrence, origin.start, lookback, from);
     ;
     n++
   ) {
-    const start = shiftStart(event.recurrence, origin.start, n)
+    const raw = shiftStart(event.recurrence, origin.start, n)
+    const key = dateKey(raw)
 
-    if (start >= to) {
+    if (raw >= horizon || (event.until && key > event.until)) {
       break
     }
 
+    if (
+      excluded.has(key) ||
+      (event.recurrence === "weekdays" && isWeekend(raw))
+    ) {
+      continue
+    }
+
+    const moved =
+      step !== 0 && restDay(raw, isHoliday)
+        ? moveOff(raw, step > 0 ? 1 : -1, isHoliday)
+        : raw
+    const neighbor = startOfDay(
+      shiftStart(event.recurrence, origin.start, n + step),
+    )
+
+    // a long holiday run must not push one occurrence onto its neighbor's day
+    if (
+      moved !== raw &&
+      (step > 0 ? moved >= neighbor : moved < addDays(neighbor, 1))
+    ) {
+      continue
+    }
+
     const end = event.allDay
-      ? addDays(start, days)
-      : new Date(start.getTime() + duration)
+      ? addDays(moved, days)
+      : new Date(moved.getTime() + duration)
 
-    if (end <= from) {
+    if (!inWindow(moved, end, from, to)) {
       continue
     }
 
-    if (event.recurrence === "weekdays" && isWeekend(start)) {
-      continue
-    }
-
-    found.push(occurrenceOf(event, start, end))
+    found.push({
+      ...occurrenceOf(event, moved, end),
+      seriesDate: key,
+      ...(moved === raw ? {} : { shiftedFrom: key }),
+    })
   }
 
   return found
+}
+
+export const occurrenceAt = (
+  event: CalendarEvent,
+  seriesDate: string,
+  isHoliday?: HolidayCheck,
+) => {
+  const day = parseLocal(seriesDate)
+
+  return (
+    occurrences(
+      event,
+      addDays(day, -SHIFT_LIMIT),
+      addDays(day, SHIFT_LIMIT + 1),
+      isHoliday,
+    ).find(occurrence => occurrence.seriesDate === seriesDate) ?? null
+  )
 }
 
 const byStart = (a: CalendarEvent, b: CalendarEvent) =>
@@ -195,41 +304,200 @@ export const monthGrid = (
   )
 }
 
-export const eventsOn = (events: CalendarEvent[], date: Date) => {
-  const from = startOfDay(date)
-  const to = addDays(from, 1)
-
-  return events.flatMap(e => occurrences(e, from, to)).sort(byStart)
-}
-
-export const upcoming = (events: CalendarEvent[], from: Date, days: number) => {
+export const upcoming = (
+  events: CalendarEvent[],
+  from: Date,
+  days: number,
+  isHoliday?: HolidayCheck,
+) => {
   const to = addDays(from, days)
 
-  return events.flatMap(e => occurrences(e, from, to)).sort(byStart)
+  return events.flatMap(e => occurrences(e, from, to, isHoliday)).sort(byStart)
 }
 
-const formatTime = (d: Date) =>
-  d.toLocaleTimeString(currentLocale(), { hour: "numeric", minute: "2-digit" })
+export const eventsOn = (
+  events: CalendarEvent[],
+  date: Date,
+  isHoliday?: HolidayCheck,
+) => upcoming(events, startOfDay(date), 1, isHoliday)
 
-const formatDay = (d: Date) =>
-  d.toLocaleDateString(currentLocale(), { month: "short", day: "numeric" })
+export const eventsByDay = (
+  events: CalendarEvent[],
+  from: Date,
+  days: number,
+  isHoliday?: HolidayCheck,
+) => {
+  const first = startOfDay(from)
+  const to = addDays(first, days)
+  const byDay = new Map<string, Occurrence[]>()
 
-export const formatRange = (event: CalendarEvent) => {
-  const start = parseLocal(event.start)
-  const end = parseLocal(event.end)
-  const sameDay = dateKey(start) === dateKey(end)
+  for (const occurrence of upcoming(events, first, days, isHoliday)) {
+    const { start, end } = span(occurrence)
 
-  if (event.allDay) {
-    return sameDay
-      ? tr("panel.allDay")
-      : `${formatDay(start)} – ${formatDay(end)}`
+    for (
+      let day = start < first ? first : startOfDay(start);
+      day < to && (end > day || start >= day);
+      day = addDays(day, 1)
+    ) {
+      const key = dateKey(day)
+
+      byDay.set(key, [...(byDay.get(key) ?? []), occurrence])
+    }
   }
 
-  if (sameDay) {
-    return `${formatTime(start)} – ${formatTime(end)}`
+  return byDay
+}
+
+const minutesOf = (d: Date) => d.getHours() * 60 + d.getMinutes()
+
+const placed = (draft: CalendarEvent, day: Date) => {
+  const draftStart = parseLocal(draft.start)
+  const length = parseLocal(draft.end).getTime() - draftStart.getTime()
+
+  if (draft.allDay) {
+    return {
+      start: dateKey(day),
+      end: dateKey(addDays(day, Math.round(length / DAY))),
+    }
   }
 
-  return `${formatDay(start)} ${formatTime(start)} – ${formatDay(end)} ${formatTime(end)}`
+  const start = atMinutes(day, minutesOf(draftStart))
+
+  return {
+    start: dateTimeKey(start),
+    end: dateTimeKey(new Date(start.getTime() + length)),
+  }
+}
+
+const childrenOf = (all: CalendarEvent[], seriesId: string) =>
+  all.filter(event => event.seriesId === seriesId)
+
+const firstDate = (series: CalendarEvent) => dateKey(parseLocal(series.start))
+
+const dayBefore = (key: string) => dateKey(addDays(parseLocal(key), -1))
+
+// ponytail: a plain day shift; a monthly series moved across a month-end clamp can leave a rekeyed exception unmatched
+const rekey = (key: string, days: number) =>
+  days === 0 ? key : dateKey(addDays(parseLocal(key), days))
+
+const cut = (
+  series: CalendarEvent,
+  seriesDate: string,
+  all: CalendarEvent[],
+) => ({
+  head: {
+    ...series,
+    until: dayBefore(seriesDate),
+    exdates: series.exdates?.filter(day => day < seriesDate),
+  },
+  later: childrenOf(all, series.id).filter(
+    event => (event.originalDate ?? "") >= seriesDate,
+  ),
+})
+
+export const removeFromSeries = (
+  series: CalendarEvent,
+  seriesDate: string,
+  scope: Scope,
+  all: CalendarEvent[],
+  stamp: number,
+): SeriesChange => {
+  if (
+    scope === "all" ||
+    (scope === "following" && seriesDate <= firstDate(series))
+  ) {
+    return {
+      put: [],
+      remove: [series.id, ...childrenOf(all, series.id).map(event => event.id)],
+    }
+  }
+
+  if (scope === "following") {
+    const { head, later } = cut(series, seriesDate, all)
+
+    return {
+      put: [{ ...head, updatedAt: stamp }],
+      remove: later.map(event => event.id),
+    }
+  }
+
+  return {
+    put: [
+      {
+        ...series,
+        exdates: [...new Set([...(series.exdates ?? []), seriesDate])],
+        updatedAt: stamp,
+      },
+    ],
+    remove: [],
+  }
+}
+
+export const editInSeries = (
+  series: CalendarEvent,
+  occurrence: Occurrence,
+  draft: CalendarEvent,
+  scope: Scope,
+  all: CalendarEvent[],
+  stamp: number,
+): SeriesChange => {
+  const seriesDate = occurrence.seriesDate ?? firstDate(series)
+  const shiftDays = dayDelta(occurrence.start, draft.start)
+
+  if (scope === "one") {
+    const { put } = removeFromSeries(series, seriesDate, "one", all, stamp)
+
+    return {
+      put: [
+        ...put,
+        {
+          ...draft,
+          id: crypto.randomUUID(),
+          recurrence: "none",
+          shift: undefined,
+          exdates: undefined,
+          until: undefined,
+          seriesId: series.id,
+          originalDate: seriesDate,
+          createdAt: stamp,
+          updatedAt: stamp,
+        },
+      ],
+      remove: [],
+    }
+  }
+
+  const following = scope === "following" && seriesDate > firstDate(series)
+  const from = following ? seriesDate : firstDate(series)
+  const { head, later } = following
+    ? cut(series, seriesDate, all)
+    : { head: null, later: childrenOf(all, series.id) }
+  const moved: CalendarEvent = {
+    ...draft,
+    ...placed(draft, addDays(parseLocal(from), shiftDays)),
+    id: following ? crypto.randomUUID() : series.id,
+    exdates: series.exdates
+      ?.filter(day => day >= from)
+      .map(day => rekey(day, shiftDays)),
+    until: series.until && rekey(series.until, shiftDays),
+    createdAt: following ? stamp : series.createdAt,
+    updatedAt: stamp,
+  }
+
+  return {
+    put: [
+      ...(head ? [{ ...head, updatedAt: stamp }] : []),
+      moved,
+      ...later.map(event => ({
+        ...event,
+        seriesId: moved.id,
+        originalDate:
+          event.originalDate && rekey(event.originalDate, shiftDays),
+        updatedAt: stamp,
+      })),
+    ],
+    remove: [],
+  }
 }
 
 export const parseDay = (token: string, now: Date): Date | null => {
@@ -253,13 +521,7 @@ export const parseDay = (token: string, now: Date): Date | null => {
     return addDays(today, ((weekday - today.getDay() + 6) % 7) + 1)
   }
 
-  if (word.length === 10 && word.split("-").length === 3) {
-    const parsed = parseLocal(word)
-
-    return dateKey(parsed) === word ? parsed : null
-  }
-
-  return null
+  return isDayKey(word) ? parseLocal(word) : null
 }
 
 export const parseTime = (token: string, allowBare = false): Time | null => {
@@ -295,7 +557,7 @@ export const parseTime = (token: string, allowBare = false): Time | null => {
   return { hours, minutes, meridiem }
 }
 
-const toMinutes = (time: Time) => {
+export const timeMinutes = (time: Time) => {
   const hours =
     time.meridiem === "pm" && time.hours < 12
       ? time.hours + 12
@@ -304,109 +566,4 @@ const toMinutes = (time: Time) => {
         : time.hours
 
   return hours * 60 + time.minutes
-}
-
-export const parseTimeRange = (token: string) => {
-  const [first, second, extra] = token.toLowerCase().split("-")
-
-  if (extra !== undefined || !first) {
-    return null
-  }
-
-  const start = parseTime(first, second !== undefined)
-
-  if (!start) {
-    return null
-  }
-
-  if (second === undefined) {
-    return { start, end: null }
-  }
-
-  const end = parseTime(second, true)
-
-  return end ? { start, end } : null
-}
-
-export const resolveRange = (start: Time, end: Time | null) => {
-  let startMinutes = toMinutes(start)
-
-  if (!end) {
-    return { start: startMinutes, end: startMinutes + 60 }
-  }
-
-  let endMinutes = toMinutes(end)
-
-  if (
-    !start.meridiem &&
-    end.meridiem === "pm" &&
-    startMinutes < 12 * 60 &&
-    startMinutes + 12 * 60 <= endMinutes
-  ) {
-    startMinutes += 12 * 60
-  }
-
-  if (!end.meridiem && endMinutes < startMinutes) {
-    endMinutes += 12 * 60
-  }
-
-  if (endMinutes < startMinutes) {
-    endMinutes = toMinutes(end) + 24 * 60
-  } else if (endMinutes === startMinutes) {
-    endMinutes = startMinutes + 60
-  }
-
-  return { start: startMinutes, end: endMinutes }
-}
-
-export const atMinutes = (day: Date, minutes: number) =>
-  new Date(
-    day.getFullYear(),
-    day.getMonth(),
-    day.getDate(),
-    Math.floor(minutes / 60),
-    minutes % 60,
-  )
-
-export const parseQuickEvent = (
-  text: string,
-  now = new Date(),
-): Partial<CalendarEvent> => {
-  const words: string[] = []
-  let day: Date | null = null
-  let range: { start: Time; end: Time | null } | null = null
-
-  for (const token of text.trim().split(" ").filter(Boolean)) {
-    const parsedDay = parseDay(token, now)
-
-    if (parsedDay) {
-      day = parsedDay
-      continue
-    }
-
-    const parsedRange = parseTimeRange(token)
-
-    if (parsedRange) {
-      range = parsedRange
-      continue
-    }
-
-    words.push(token)
-  }
-
-  const title = words.join(" ")
-  const base = day ?? startOfDay(now)
-
-  if (!range) {
-    return { title, allDay: true, start: dateKey(base), end: dateKey(base) }
-  }
-
-  const minutes = resolveRange(range.start, range.end)
-
-  return {
-    title,
-    allDay: false,
-    start: dateTimeKey(atMinutes(base, minutes.start)),
-    end: dateTimeKey(atMinutes(base, minutes.end)),
-  }
 }

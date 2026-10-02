@@ -2,25 +2,21 @@
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
   import { currentLocale } from "@eris/i18n"
-  import type { CalendarEvent } from "$lib/data"
+  import { clock, shortDay, tagLabel, tagsOf } from "$lib/calendar"
+  import { type CalendarEvent, openEnded, parseLocal } from "$lib/data"
   import { colorMeta, toColor } from "./colors"
-  import { clock } from "./format"
+  import type { Panel } from "./panel.svelte"
 
-  const {
-    day,
-    events,
-    holidays,
-    openEvent,
-    removeEvent,
-    startNew,
-  }: {
-    day: Date
-    events: CalendarEvent[]
-    holidays: string[]
-    openEvent: (event: CalendarEvent) => void
-    removeEvent: (event: CalendarEvent) => void
-    startNew: () => void
-  } = $props()
+  const { panel }: { panel: Panel } = $props()
+
+  const day = $derived(panel.selected)
+
+  const events = $derived(panel.dayEvents)
+
+  const holidays = $derived(panel.holidayFor(day))
+
+  const labelsOf = (event: CalendarEvent) =>
+    tagsOf(panel.profile.calendar.tags, event).map(tagLabel)
 
   const heading = $derived(
     day.toLocaleDateString(currentLocale(), { month: "long", day: "numeric" }),
@@ -84,6 +80,8 @@
       <ul class="flex flex-col gap-0.5">
         {#each events as event (event.id + event.start)}
           {@const meta = colorMeta[toColor(event.color)]}
+          {@const parent = panel.parentOf(event)?.title}
+          {@const labels = labelsOf(event)}
           <li class="group relative">
             <button
               type="button"
@@ -93,7 +91,7 @@
                 "transition-colors duration-120 hover:bg-base-content/5",
                 "focus-visible:ring-2 focus-visible:ring-primary/50",
               ]}
-              onclick={() => openEvent(event)}
+              onclick={() => panel.show(event)}
             >
               <span
                 class={[
@@ -105,17 +103,50 @@
                   {$t("panel.allDay")}
                 {:else}
                   <span class="font-medium">{clock(event.start)}</span>
-                  <span class="text-base-content/50">{clock(event.end)}</span>
+                  {#if !openEnded(event)}
+                    <span class="text-base-content/50">{clock(event.end)}</span>
+                  {/if}
                 {/if}
               </span>
 
               <span class={["mt-1.5 size-2 shrink-0 rounded-full", meta.chip]}
               ></span>
 
-              <span
-                class="line-clamp-2 min-w-0 flex-1 text-sm font-medium break-words"
-              >
-                {event.title}
+              <span class="flex min-w-0 flex-1 flex-col">
+                <span class="line-clamp-2 text-sm font-medium break-words">
+                  {event.title}
+                </span>
+
+                {#if event.shiftedFrom}
+                  <span class="mt-0.5 text-2xs text-warning">
+                    {$t("panel.event.movedFrom", {
+                      values: { date: shortDay(parseLocal(event.shiftedFrom)) },
+                    })}
+                  </span>
+                {/if}
+
+                {#if parent || labels.length > 0}
+                  <span
+                    class={[
+                      "mt-0.5 flex min-w-0 flex-wrap items-center gap-x-1.5",
+                      "text-2xs text-base-content/55",
+                    ]}
+                  >
+                    {#if parent}
+                      <span class="flex min-w-0 items-center gap-0.5">
+                        <Icon
+                          icon="lucide:corner-down-right"
+                          class="size-3 shrink-0"
+                        />
+                        <span class="truncate">{parent}</span>
+                      </span>
+                    {/if}
+
+                    {#each labels as label (label)}
+                      <span>#{label}</span>
+                    {/each}
+                  </span>
+                {/if}
               </span>
             </button>
 
@@ -128,7 +159,7 @@
                 "hover:text-error focus-visible:opacity-100",
               ]}
               aria-label={$t("common.delete")}
-              onclick={() => removeEvent(event)}
+              onclick={() => panel.remove(event)}
             >
               <Icon icon="lucide:trash-2" class="size-3.5" />
             </button>
@@ -139,7 +170,10 @@
   </div>
 
   <div class="flex flex-col border-t border-base-300 p-2">
-    <button class="btn btn-sm btn-ghost justify-start" onclick={startNew}>
+    <button
+      class="btn btn-sm btn-ghost justify-start"
+      onclick={panel.startNew}
+    >
       <Icon icon="lucide:plus" class="size-3.5" />
       {$t("panel.day.add")}
     </button>
