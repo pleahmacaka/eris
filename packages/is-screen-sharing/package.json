@@ -1,0 +1,40 @@
+{
+  "name": "is-screen-sharing",
+  "version": "0.1.0",
+  "description": "Detect whether the screen is being shared on Windows",
+  "type": "commonjs",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "binding.js",
+    "binding.d.ts",
+    "*.node"
+  ],
+  "keywords": [
+    "screen sharing",
+    "screen share",
+    "zoom",
+    "meet",
+    "teams",
+    "privacy",
+    "windows"
+  ],
+  "engines": {
+    "node": ">=16"
+  },
+  "napi": {
+    "binaryName": "is-screen-sharing",
+    "targets": [
+      "x86_64-pc-windows-msvc",
+      "aarch64-pc-windows-msvc"
+    ]
+  },
+  "scripts": {
+    "build": "napi build --platform --release --js binding.js --dts binding.d.ts"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^3.10.6"
+  }
+}
