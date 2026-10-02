@@ -1,0 +1,110 @@
+@import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
+@import "tailwindcss";
+@source "../../../../packages/ui/src";
+@plugin "daisyui" {
+  themes: false;
+}
+
+@plugin "daisyui/theme" {
+  name: "eris";
+  default: true;
+  prefersdark: true;
+  color-scheme: "dark";
+  --color-base-100: oklch(15.4% 0.009 307.8);
+  --color-base-200: oklch(13.2% 0.009 305);
+  --color-base-300: oklch(11.1% 0.01 301.7);
+  --color-base-content: oklch(94% 0.006 308.4);
+  --color-primary: oklch(62.9% 0.172 302.6);
+  --color-primary-content: oklch(13% 0.03 302.6);
+  --color-secondary: oklch(75.5% 0.083 303.2);
+  --color-secondary-content: oklch(15% 0.02 303.2);
+  --color-accent: oklch(81% 0.135 86);
+  --color-accent-content: oklch(20% 0.04 86);
+  --color-neutral: oklch(20.5% 0.012 305);
+  --color-neutral-content: oklch(90% 0.006 308.4);
+  --color-info: oklch(74% 0.12 240);
+  --color-info-content: oklch(18% 0.04 240);
+  --color-success: oklch(74% 0.15 155);
+  --color-success-content: oklch(18% 0.05 155);
+  --color-warning: oklch(80% 0.15 75);
+  --color-warning-content: oklch(20% 0.05 75);
+  --color-error: oklch(66% 0.19 20);
+  --color-error-content: oklch(16% 0.05 20);
+  --radius-selector: 0.75rem;
+  --radius-field: 0.625rem;
+  --radius-box: 1.25rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 0.0625rem;
+  --depth: 0;
+  --noise: 0;
+}
+
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, sans-serif;
+  --font-mono: var(--font-sans);
+  --text-10xl: 11rem;
+  --text-10xl--line-height: 1;
+  --default-transition-duration: 140ms;
+  --animate-blink: blink 1s steps(1) infinite;
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+}
+
+@utility grid-lines {
+  --grid-line: color-mix(in oklch, var(--color-base-content) 5%, transparent);
+  background-image:
+    linear-gradient(to right, var(--grid-line) 0.0625rem, transparent 0.0625rem),
+    linear-gradient(to bottom, var(--grid-line) 0.0625rem, transparent 0.0625rem);
+  background-size: 4rem 4rem;
+  background-position: center;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
+
+@utility vignette {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 40%,
+    var(--color-base-300) 100%
+  );
+}
+
+@layer base {
+  html {
+    background-color: var(--color-base-100);
+    scroll-behavior: smooth;
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  :lang(ko) {
+    word-break: keep-all;
+  }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--color-primary-content);
+  }
+
+  :focus-visible {
+    outline: 0.125rem solid var(--color-primary);
+    outline-offset: 0.125rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    ::before,
+    ::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}
