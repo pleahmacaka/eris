@@ -142,7 +142,9 @@
 {#snippet slider(s: Slider)}
   <Row
     label={$t(`settings.rows.${s.row}`)}
-    hint={$t(`settings.hints.${s.row}`)}
+    hint={s.key === "blur" && profile.appearance.background === "glass"
+      ? $t("settings.hints.blurGlass")
+      : $t(`settings.hints.${s.row}`)}
     value={s.format(profile.appearance[s.key])}
     stacked
     onreset={resetRow(s.key)}

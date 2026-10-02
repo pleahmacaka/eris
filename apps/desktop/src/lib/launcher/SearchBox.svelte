@@ -99,7 +99,7 @@
 <EditSpot id="search" label={$t("edit.spots.search")} placement="down" align="start" options={searchOptions}>
 <label
   data-launcher
-  class="input input-lg flex h-14 w-full shrink-0 items-center gap-3 rounded-box border border-base-content/10 bg-base-100/60 px-4 shadow-lg outline-none backdrop-blur-xl transition-[border-color,box-shadow] duration-100 focus-within:border-primary/40 focus-within:outline-none focus-within:ring-2 focus-within:ring-primary/20"
+  class="input input-lg flex h-14 w-full shrink-0 items-center gap-3 eris-card px-4 outline-none transition-[border-color,box-shadow] duration-100 focus-within:border-primary/40 focus-within:outline-none focus-within:ring-2 focus-within:ring-primary/20"
 >
   <Icon icon="lucide:search" class="size-5 shrink-0 text-base-content/60" />
 
@@ -117,6 +117,14 @@
 
   {#if modeLabel}
     <span class="badge badge-soft badge-primary badge-sm shrink-0">{modeLabel}</span>
+  {/if}
+
+  {#if !launcher.query}
+    <kbd class="kbd kbd-sm shrink-0 text-base-content/60">
+      {launcher.device.launcherTrigger === "shortcut"
+        ? launcher.device.launcherShortcut
+        : "Win"}
+    </kbd>
   {/if}
 
   {#if launcher.query}

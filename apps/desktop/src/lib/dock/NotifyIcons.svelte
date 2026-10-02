@@ -389,7 +389,7 @@
         bind:this={stash}
         bind:offsetHeight={stashHeight}
         class={[
-          "absolute right-0 z-50 w-max rounded-box border border-base-content/10 bg-base-100/95 p-2 shadow-2xl backdrop-blur-xl",
+          "eris-card absolute right-0 z-50 w-max p-2",
           edge === "top" ? "top-full mt-2" : "bottom-full mb-2",
         ]}
         role="group"

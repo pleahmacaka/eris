@@ -153,7 +153,7 @@
           <div
             bind:this={popover}
             class={[
-              "absolute right-0 z-50 w-64 rounded-box border border-base-content/10 bg-base-100/90 p-3 shadow-xl backdrop-blur-xl",
+              "eris-card absolute right-0 z-50 w-64 p-3",
               edge === "top" ? "top-full mt-2" : "bottom-full mb-2",
             ]}
             role="dialog"

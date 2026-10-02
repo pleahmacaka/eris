@@ -43,7 +43,7 @@
 {#if launcher.menu}
   <ul
     data-menu
-    class="menu absolute z-50 rounded-box border border-base-content/10 bg-base-100/80 p-1 shadow-xl backdrop-blur-xl"
+    class="menu eris-card absolute z-50 p-1"
     style={launcher.menuStyle}
   >
     {#each launcher.menuItems as action, k (action.label)}

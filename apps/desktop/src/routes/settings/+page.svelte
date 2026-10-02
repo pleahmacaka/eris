@@ -38,7 +38,7 @@
     type SectionId,
     sections,
   } from "$lib/settings-ui"
-  import { Toasts } from "@eris/ui"
+  import { Logo, Toasts } from "@eris/ui"
   import { toast } from "@eris/ui"
   import { applyAppearance } from "$lib/theme"
   import { t } from "svelte-i18n"
@@ -303,11 +303,7 @@
     class="flex items-center gap-3 px-5 pt-4 pb-3"
   >
     <div class="pointer-events-none flex items-center gap-2">
-      <div
-        class="flex size-7 items-center justify-center rounded-field bg-primary/15 text-primary"
-      >
-        <Icon icon="lucide:settings-2" class="size-4" />
-      </div>
+      <Logo class="size-6" />
 
       <h1 class="text-base font-semibold">{$t("settings.title")}</h1>
     </div>

@@ -135,7 +135,7 @@
       <ul class="flex flex-col gap-1">
         {#each items as notice (notice.id)}
           <li
-            class="group flex items-start gap-2.5 rounded-field border border-base-content/10 bg-base-100/60 px-3 py-2.5 transition-colors hover:bg-base-content/5"
+            class="group eris-card flex items-start gap-2.5 px-3 py-2.5 transition-colors hover:border-base-content/25"
           >
             <button
               type="button"

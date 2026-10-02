@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { Logo } from "@eris/ui"
   import { t } from "svelte-i18n"
   import { appIcon } from "$lib/apps"
   import type { Launcher } from "./launcher.svelte"
@@ -77,12 +78,11 @@
     <div
       class="flex h-full flex-col items-center justify-center gap-2 text-base-content/50"
     >
-      <Icon
-        icon={route.text || route.mode !== "search"
-          ? "lucide:search-x"
-          : "lucide:sparkles"}
-        class="size-7 opacity-50"
-      />
+      {#if route.text || route.mode !== "search"}
+        <Icon icon="lucide:search-x" class="size-7 opacity-50" />
+      {:else}
+        <Logo class="size-7 opacity-50" />
+      {/if}
 
       <p class="text-sm">{emptyMessage}</p>
     </div>

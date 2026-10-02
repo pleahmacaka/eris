@@ -12,6 +12,8 @@
   import type { MenuItem } from "./menu"
   import ContextMenu from "./ContextMenu.svelte"
 
+  let { dense = false }: { dense?: boolean } = $props()
+
   const editable = (el: Element | null): HTMLInputElement | HTMLTextAreaElement | null => {
     if (el instanceof HTMLTextAreaElement) {
       return el
@@ -121,6 +123,7 @@
     x={contextMenu.request.x}
     y={contextMenu.request.y}
     placement={contextMenu.request.placement ?? "down"}
+    {dense}
     onclose={closeContextMenu}
   />
 {/if}
