@@ -1,5 +1,4 @@
-import type { Todo } from "@eris/data"
-import { dueLabel, parseQuickAdd } from "@eris/data"
+import { dueLabel, quickTodo } from "@eris/data"
 import { currentLocale, tr } from "@eris/i18n"
 import type { Result } from "@eris/launcher-core"
 import {
@@ -10,7 +9,7 @@ import {
   plainNumber,
 } from "@eris/launcher-core"
 import type { WebSearchEngine } from "@eris/settings"
-import { newId, todos } from "$lib/data"
+import { todos } from "$lib/data"
 import { toggleDockPin } from "../dock/dock.svelte"
 import {
   type AppEntry,
@@ -231,33 +230,13 @@ export const pendingTimerResult = (timer: Timer, now = Date.now()): Result => ({
 export const timerKindLabel = (kind: TimerKind) =>
   tr(kind === "alarm" ? "launcher.timer.alarm" : "launcher.timer.timer")
 
-const buildTodo = (parsed: Partial<Todo>, title: string): Todo => {
-  const now = Date.now()
-
-  return {
-    id: newId(),
-    title,
-    notes: "",
-    done: false,
-    doneAt: null,
-    priority: parsed.priority ?? 0,
-    due: parsed.due ?? null,
-    tags: parsed.tags ?? [],
-    order: now,
-    createdAt: now,
-    updatedAt: now,
-  }
-}
-
 export const todoResult = (text: string): Result | null => {
-  const parsed = parseQuickAdd(text)
-  const title = parsed.title?.trim()
+  const todo = quickTodo(text)
 
-  if (!title) {
+  if (!todo) {
     return null
   }
 
-  const todo = buildTodo(parsed, title)
   const chips = [
     ...(todo.due ? [dueLabel(todo)] : []),
     ...(todo.priority
@@ -269,7 +248,7 @@ export const todoResult = (text: string): Result | null => {
   return {
     id: "todo",
     kind: "todo",
-    title: tr("launcher.todo.add", { title }),
+    title: tr("launcher.todo.add", { title: todo.title }),
     subtitle: tr("launcher.todo.saves"),
     icon: "lucide:list-plus",
     chips,

@@ -124,7 +124,9 @@
       "clock": "시계",
       "media": "미디어",
       "claude": "Claude 사용량",
-      "syncGeneral": "기본"
+      "syncGeneral": "기본",
+      "erisFiles": "Eris Files",
+      "eventTags": "일정 태그"
     },
     "rows": {
       "deviceName": "장치 이름",
@@ -229,7 +231,22 @@
       "showSyncStatus": "동기화 상태 점",
       "dockGrowth": "자동 너비 확장",
       "studio": "Studio",
-      "hideDelay": "숨김 지연"
+      "hideDelay": "숨김 지연",
+      "erisFiles": "Eris Files",
+      "filesDefault": "기본 파일 관리자",
+      "filesDefaultApps": "Windows 기본 앱",
+      "eventTags": "일정 태그",
+      "tagName": "태그 이름",
+      "hideWhileSharing": "공유 중 숨김",
+      "deleteTag": "태그 삭제",
+      "addTag": "태그 추가",
+      "followEris": "Eris 스타일 사용",
+      "hideGather": "로고로 모으기",
+      "dockIslands": "위젯 아일랜드",
+      "islandGap": "아일랜드 간격",
+      "dockIcon": "독 아이콘",
+      "gatherHideMs": "숨김 애니메이션 시간",
+      "gatherShowMs": "표시 애니메이션 시간"
     },
     "hints": {
       "deviceName": "동기화한 다른 장치에 표시되는 이름입니다.",
@@ -258,6 +275,7 @@
       "texture": "배경 위에 입자 질감을 입힙니다.",
       "cornerRadius": "창과 버튼의 모서리 둥글기를 조절합니다.",
       "blur": "반투명 배경의 흐림 강도를 조절합니다.",
+      "blurGlass": "글래스 흐림은 Windows가 적용합니다. 창 내부 요소의 흐림만 조절합니다.",
       "fontSize": "모든 글자 크기를 조절합니다.",
       "windowOpacity": "모든 Eris 창의 불투명도를 조절합니다.",
       "dockOpacity": "독의 불투명도를 조절합니다.",
@@ -310,7 +328,7 @@
       "showDesktopButton": "독 오른쪽 끝에 바탕 화면 보기 버튼을 표시합니다.",
       "showTaskView": "Windows 작업 보기를 여는 버튼을 표시합니다.",
       "showInputLanguage": "키보드 레이아웃이 두 개 이상이면 활성 창의 입력 언어를 표시합니다.",
-      "hideAnimation": "독을 숨길 때 가장자리로 밀려 나가는 효과를 사용합니다.",
+      "hideAnimation": "독을 숨기거나 다시 표시할 때 움직임을 사용합니다. 끄면 바로 숨깁니다.",
       "topBar": "시계, 트레이, 위젯을 화면 위쪽의 별도 표시줄로 이동합니다.",
       "panelPosition": "캘린더와 알림 패널이 열리는 위치입니다.",
       "holidayRegion": "공휴일을 표시할 국가입니다.",
@@ -324,7 +342,20 @@
       "dockGrowth": "창이 많으면 이 비율까지 넓힌 뒤 나머지 앱을 ⋯ 메뉴로 모으며, 0%이면 너비를 고정합니다.",
       "studio": "내 설정으로 모든 창을 샌드박스에서 미리 보고, 다듬은 결과를 Eris에 적용합니다.",
       "hideDelay": "커서가 독을 벗어난 뒤 독을 숨기기까지 기다리는 시간입니다.",
-      "trayNeedsDock": "독을 켜면 사용할 수 있습니다."
+      "trayNeedsDock": "독을 켜면 사용할 수 있습니다.",
+      "erisFiles": "Windows 탐색기를 대체하는 파일 탐색기입니다.",
+      "filesDefault": "폴더 열기, 파일 위치 열기, Win+E를 Eris Files로 엽니다.",
+      "filesDefaultApps": "3D 모델을 여는 앱은 Windows 설정에서 지정하세요.",
+      "filesMissing": "Eris Files가 설치되어 있지 않습니다.",
+      "eventTags": "화면 공유가 감지되면 숨김 태그가 지정된 일정을 숨깁니다.",
+      "followEris": "Eris의 모양 설정을 따릅니다.",
+      "erisMissing": "Eris가 설치되어 있지 않습니다.",
+      "hideGather": "독을 가운데 둥근 로고로 모은 뒤 내보냅니다. 끄면 가장자리로 밀어 숨깁니다.",
+      "dockIslands": "독의 각 영역을 둥근 아일랜드로 나누어 표시합니다.",
+      "islandGap": "독 아일랜드 사이의 거리입니다.",
+      "dockIcon": "런처 버튼과 숨김 로고에 사용할 이미지입니다.",
+      "gatherHideMs": "독이 로고로 모여 사라지는 데 걸리는 시간입니다.",
+      "gatherShowMs": "독이 로고에서 다시 펼쳐지는 데 걸리는 시간입니다."
     },
     "options": {
       "win": "Win 키",
@@ -371,7 +402,9 @@
       "iconCacheFailed": "아이콘 캐시를 비우지 못했습니다: {error}",
       "appearanceReset": "모양을 초기화했습니다",
       "settingsReset": "설정을 초기화했습니다",
-      "bridgeFailed": "Claude 연결을 변경하지 못했습니다: {error}"
+      "bridgeFailed": "Claude 연결을 변경하지 못했습니다: {error}",
+      "iconTooLarge": "512KB 이하 이미지를 선택하세요",
+      "iconFailed": "이미지를 불러오지 못했습니다"
     },
     "about": {
       "tagline": "Windows 11용 런처, 독, 캘린더",
@@ -433,7 +466,7 @@
         "forest": "입자 질감의 이끼 초록",
         "ocean": "깊은 청록 해류",
         "user": "내 설정에서 저장됨",
-        "arix": "각진 모서리의 평평한 검정"
+        "arix": "부드러운 모서리의 평평한 검정"
       },
       "followingAccent": "Windows 강조색을 따르는 중",
       "baseColor": "테마 전체의 기본 색",
@@ -491,7 +524,8 @@
       "alignStart": "왼쪽",
       "alignCenter": "가운데",
       "alignEnd": "오른쪽",
-      "openEditMode": "열기"
+      "openEditMode": "열기",
+      "chooseImage": "이미지 선택"
     },
     "sync": {
       "devices": {
@@ -907,7 +941,24 @@
       "noNotes": "메모 없음",
       "openInNote": "Note에서 열기",
       "previewMissing": "미리보기 없음",
-      "timeFromTitle": "{time} 시작"
+      "timeFromTitle": "{time} 시작",
+      "tags": "태그",
+      "newTag": "새 태그",
+      "addEnd": "종료 시간 추가",
+      "removeEnd": "종료 시간 삭제",
+      "parent": "상위 일정",
+      "children": "하위 일정",
+      "addChild": "하위 일정 추가",
+      "parentLocked": "하위 일정이 있는 일정에는 상위 일정을 지정할 수 없습니다.",
+      "date": "날짜",
+      "shift": "주말이나 공휴일이면",
+      "shiftShort": "휴일 조정",
+      "shifts": {
+        "none": "그대로",
+        "next": "다음 평일로 이동",
+        "previous": "이전 평일로 이동"
+      },
+      "movedFrom": "{date}에서 이동"
     },
     "ics": {
       "options": "캘린더 옵션",
@@ -979,7 +1030,24 @@
     "header": {
       "today": "오늘 {date}"
     },
-    "holiday": "공휴일"
+    "holiday": "공휴일",
+    "tags": {
+      "todo": "할 일",
+      "personal": "개인",
+      "work": "업무"
+    },
+    "sharing": "화면 공유 중",
+    "sharingHint": "숨김 태그가 지정된 일정은 화면 공유 중에 표시하지 않습니다.",
+    "privateReminder": "일정 알림",
+    "expand": "크게 보기",
+    "collapse": "작게 보기",
+    "scope": {
+      "edit": "반복 일정 수정",
+      "delete": "반복 일정 삭제",
+      "one": "이 일정만",
+      "following": "이 일정 및 이후 일정",
+      "all": "모든 일정"
+    }
   },
   "files": {
     "forward": "앞으로",

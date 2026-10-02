@@ -107,10 +107,13 @@ test("ties resolve against the record's origin, not this device", async () => {
   expect((await todos.get("m1"))?.title).toBe("from c")
 })
 
-test("putMany stores every item on one broadcast", async () => {
+test("apply stores every change on one broadcast", async () => {
   const before = emits
 
-  await todos.putMany([todo({ id: "b1" }), todo({ id: "b2" })])
+  await todos.apply({
+    put: [todo({ id: "b1" }), todo({ id: "b2" })],
+    remove: [],
+  })
 
   expect(emits - before).toBe(1)
   expect((await todos.get("b1"))?.title).toBe("t")

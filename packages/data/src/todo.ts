@@ -8,9 +8,9 @@ import {
   parseDay,
   parseLocal,
   parseTime,
-  resolveRange,
   startOfDay,
   type Time,
+  timeMinutes,
 } from "./calendar"
 import type { Priority, Todo } from "./types"
 
@@ -67,13 +67,45 @@ export const parseQuickAdd = (
 
   if (time) {
     const base = day ?? startOfDay(now)
-    result.due = dateTimeKey(atMinutes(base, resolveRange(time, null).start))
+    result.due = dateTimeKey(atMinutes(base, timeMinutes(time)))
   } else if (day) {
     result.due = dateKey(day)
   }
 
   return result
 }
+
+export const quickTodo = (text: string, now = new Date()): Todo | null => {
+  const parsed = parseQuickAdd(text, now)
+  const title = parsed.title?.trim()
+
+  if (!title) {
+    return null
+  }
+
+  const stamp = now.getTime()
+
+  return {
+    id: crypto.randomUUID(),
+    title,
+    notes: "",
+    done: false,
+    doneAt: null,
+    priority: parsed.priority ?? 0,
+    due: parsed.due ?? null,
+    tags: parsed.tags ?? [],
+    order: stamp,
+    createdAt: stamp,
+    updatedAt: stamp,
+  }
+}
+
+export const toggled = (todo: Todo, now = Date.now()): Todo => ({
+  ...todo,
+  done: !todo.done,
+  doneAt: todo.done ? null : now,
+  updatedAt: now,
+})
 
 const dueAt = (todo: Todo) =>
   todo.due ? parseLocal(todo.due).getTime() : NO_DUE

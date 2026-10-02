@@ -1,19 +1,17 @@
 import { DOCK_ALIGNS, DOCK_STYLES, TERMINAL_APPS } from "@eris/settings"
 import { parseLocal } from "./calendar"
-import type { CalendarEvent, Note, Preset, Todo } from "./types"
+import {
+  type CalendarEvent,
+  type Note,
+  type Preset,
+  RECURRENCES,
+  SHIFTS,
+  type Todo,
+} from "./types"
 
 type Fields = Record<string, unknown>
 
 const PRIORITIES: unknown[] = [0, 1, 2, 3]
-
-const RECURRENCES: unknown[] = [
-  "none",
-  "daily",
-  "weekdays",
-  "weekly",
-  "monthly",
-  "yearly",
-]
 
 const CHOICES: Partial<Record<string, unknown[]>> = {
   dockStyle: DOCK_STYLES,
@@ -33,6 +31,12 @@ const isBoolean = (value: unknown) => typeof value === "boolean"
 
 const isDate = (value: unknown) =>
   typeof value === "string" && !Number.isNaN(parseLocal(value).getTime())
+
+const optionalText = (value: unknown) =>
+  value === undefined || value === null || isString(value)
+
+const isOneOf = (list: readonly unknown[], value: unknown) =>
+  list.includes(value)
 
 const isStamped = (value: Fields) =>
   isString(value.id) && isNumber(value.createdAt) && isNumber(value.updatedAt)
@@ -60,7 +64,16 @@ export const isCalendarEvent = (value: unknown): value is CalendarEvent =>
   isBoolean(value.allDay) &&
   (value.color === null || isString(value.color)) &&
   (value.reminderMinutes === null || isNumber(value.reminderMinutes)) &&
-  RECURRENCES.includes(value.recurrence)
+  isOneOf(RECURRENCES, value.recurrence) &&
+  (value.tags === undefined ||
+    (Array.isArray(value.tags) && value.tags.every(isString))) &&
+  optionalText(value.parentId) &&
+  (value.exdates === undefined ||
+    (Array.isArray(value.exdates) && value.exdates.every(isString))) &&
+  optionalText(value.until) &&
+  (value.shift === undefined || isOneOf(SHIFTS, value.shift)) &&
+  optionalText(value.seriesId) &&
+  optionalText(value.originalDate)
 
 export const isNote = (value: unknown): value is Note =>
   isRecord(value) &&

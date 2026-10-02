@@ -3,7 +3,7 @@ use tauri::Wry;
 
 use crate::{
     appbar, apps, audio, clipboard, desktop, edit, features, files, icons, media, meters, monitors,
-    note, notices, notify, p2p, pins, preview, quick, shortcuts, spectrum, system, usage,
+    note, notices, notify, p2p, pins, preview, quick, share, shortcuts, spectrum, system, usage,
     windowing, winkey,
 };
 
@@ -28,6 +28,8 @@ pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
         preview::preview_show,
         preview::preview_hide,
         system::system_accent,
+        share::screen_sharing,
+        share::set_share_watch,
         system::system_info,
         system::power_action,
         system::empty_recycle_bin,
@@ -71,6 +73,7 @@ pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
         windowing::toggle_window,
         windowing::open_with_intent,
         windowing::take_intent,
+        windowing::set_window_region,
         features::set_features,
         features::suspend_shell,
         features::resume_shell,

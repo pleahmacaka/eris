@@ -124,7 +124,9 @@
       "clock": "時計",
       "media": "メディア",
       "claude": "Claude 使用量",
-      "syncGeneral": "基本"
+      "syncGeneral": "基本",
+      "erisFiles": "Eris Files",
+      "eventTags": "予定のタグ"
     },
     "rows": {
       "deviceName": "デバイス名",
@@ -229,7 +231,22 @@
       "showSyncStatus": "同期状態のドット",
       "dockGrowth": "幅の自動拡張",
       "studio": "Studio",
-      "hideDelay": "非表示までの待ち時間"
+      "hideDelay": "非表示までの待ち時間",
+      "erisFiles": "Eris Files",
+      "filesDefault": "既定のファイルマネージャー",
+      "filesDefaultApps": "Windows の既定のアプリ",
+      "eventTags": "予定のタグ",
+      "tagName": "タグ名",
+      "hideWhileSharing": "共有中は非表示",
+      "deleteTag": "タグを削除",
+      "addTag": "タグを追加",
+      "followEris": "Eris のスタイルを使用",
+      "hideGather": "ロゴにまとめる",
+      "dockIslands": "ウィジェットアイランド",
+      "islandGap": "アイランドの間隔",
+      "dockIcon": "ドックアイコン",
+      "gatherHideMs": "非表示アニメーションの長さ",
+      "gatherShowMs": "表示アニメーションの長さ"
     },
     "hints": {
       "deviceName": "同期した他のデバイスに表示される名前です",
@@ -258,6 +275,7 @@
       "texture": "背景に粒子の質感を加えます",
       "cornerRadius": "ウィンドウとボタンの角の丸みを調整します",
       "blur": "半透明の背景のぼかしの強さを調整します",
+      "blurGlass": "グラスのぼかしは Windows が適用します。ウィンドウ内の要素のぼかしのみ調整します",
       "fontSize": "すべての文字のサイズを調整します",
       "windowOpacity": "すべての Eris ウィンドウの不透明度を調整します",
       "dockOpacity": "ドックの不透明度を調整します",
@@ -310,7 +328,7 @@
       "showDesktopButton": "ドックの右端にデスクトップ表示ボタンを表示します",
       "showTaskView": "Windows のタスクビューを開くボタンを表示します",
       "showInputLanguage": "キーボードレイアウトが 2 つ以上あるとき、アクティブウィンドウの入力言語を表示します",
-      "hideAnimation": "ドックが隠れるとき端へスライドさせます",
+      "hideAnimation": "ドックの非表示と再表示にアニメーションを使います。オフにするとすぐに隠れます。",
       "topBar": "時計、トレイ、ウィジェットを画面上部の別のバーに移します",
       "panelPosition": "カレンダーと通知パネルが開く位置です",
       "holidayRegion": "祝日を表示する国です。システムは Windows に従います",
@@ -324,7 +342,20 @@
       "dockGrowth": "ウィンドウが多いとこの割合まで広げて残りのアプリを ⋯ メニューにまとめ、0% では幅を固定します",
       "studio": "自分の設定ですべてのウィンドウをサンドボックスでプレビューし、結果を Eris に適用します",
       "hideDelay": "カーソルがドックを離れてから隠れるまでの時間です",
-      "trayNeedsDock": "ドックをオンにすると使用できます"
+      "trayNeedsDock": "ドックをオンにすると使用できます",
+      "erisFiles": "Windows エクスプローラーに代わるファイルエクスプローラーです",
+      "filesDefault": "フォルダー、ファイルの場所、Win+E を Eris Files で開きます",
+      "filesDefaultApps": "3D モデルを開くアプリは Windows の設定で選択してください。",
+      "filesMissing": "Eris Files がインストールされていません",
+      "eventTags": "画面共有を検出すると、非表示タグの予定を隠します。",
+      "followEris": "Eris の外観設定に従います。",
+      "erisMissing": "Eris がインストールされていません。",
+      "hideGather": "ドックを中央の丸いロゴにまとめてから送り出します。オフにすると端へスライドします。",
+      "dockIslands": "ドックの各部分を丸いアイランドに分けて表示します。",
+      "islandGap": "ドックのアイランド同士の距離です。",
+      "dockIcon": "ランチャーボタンと非表示時のロゴに使う画像です。",
+      "gatherHideMs": "ドックがロゴにまとまって消えるまでの時間です。",
+      "gatherShowMs": "ドックがロゴから再び広がるまでの時間です。"
     },
     "options": {
       "win": "Win キー",
@@ -371,7 +402,9 @@
       "iconCacheFailed": "アイコンキャッシュをクリアできませんでした: {error}",
       "appearanceReset": "外観をリセットしました。",
       "settingsReset": "設定をリセットしました。",
-      "bridgeFailed": "Claude ブリッジを変更できませんでした: {error}"
+      "bridgeFailed": "Claude ブリッジを変更できませんでした: {error}",
+      "iconTooLarge": "512KB 以下の画像を選択してください",
+      "iconFailed": "画像を読み込めませんでした"
     },
     "about": {
       "tagline": "Windows 11 のためのランチャー、ドック、カレンダー",
@@ -433,7 +466,7 @@
         "forest": "粒子感のある苔の緑",
         "ocean": "深いティールの潮流",
         "user": "設定から保存",
-        "arix": "角のあるフラットなブラック"
+        "arix": "角の丸いフラットなブラック"
       },
       "followingAccent": "Windows のアクセントに追従中",
       "baseColor": "テーマ全体のベースカラー",
@@ -491,7 +524,8 @@
       "alignStart": "左",
       "alignCenter": "中央",
       "alignEnd": "右",
-      "openEditMode": "開く"
+      "openEditMode": "開く",
+      "chooseImage": "画像を選択"
     },
     "sync": {
       "devices": {
@@ -907,7 +941,24 @@
       "noNotes": "メモなし",
       "openInNote": "Note で開く",
       "previewMissing": "プレビューなし",
-      "timeFromTitle": "{time} 開始"
+      "timeFromTitle": "{time} 開始",
+      "tags": "タグ",
+      "newTag": "新しいタグ",
+      "addEnd": "終了時刻を追加",
+      "removeEnd": "終了時刻を削除",
+      "parent": "親の予定",
+      "children": "サブ予定",
+      "addChild": "サブ予定を追加",
+      "parentLocked": "サブ予定がある予定には親の予定を設定できません。",
+      "date": "日付",
+      "shift": "週末や祝日の場合",
+      "shiftShort": "休日の調整",
+      "shifts": {
+        "none": "そのまま",
+        "next": "次の平日に移動",
+        "previous": "前の平日に移動"
+      },
+      "movedFrom": "{date}から移動"
     },
     "ics": {
       "options": "カレンダーのオプション",
@@ -979,7 +1030,24 @@
     "header": {
       "today": "今日 {date}"
     },
-    "holiday": "祝日"
+    "holiday": "祝日",
+    "tags": {
+      "todo": "ToDo",
+      "personal": "個人",
+      "work": "仕事"
+    },
+    "sharing": "画面共有中",
+    "sharingHint": "非表示タグの予定は画面共有中に表示しません。",
+    "privateReminder": "予定の通知",
+    "expand": "大きく表示",
+    "collapse": "小さく表示",
+    "scope": {
+      "edit": "繰り返し予定の編集",
+      "delete": "繰り返し予定の削除",
+      "one": "この予定のみ",
+      "following": "この予定以降",
+      "all": "すべての予定"
+    }
   },
   "files": {
     "forward": "進む",
