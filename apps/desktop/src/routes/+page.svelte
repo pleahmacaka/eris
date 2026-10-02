@@ -15,6 +15,7 @@
     SearchBox,
     subscribeTimers,
   } from "$lib/launcher"
+  import { onAppsChanged } from "$lib/native/apps"
   import { onWindowShown } from "$lib/native/windows"
 
   const launcher = new Launcher()
@@ -39,6 +40,7 @@
         launcher.refresh()
         launcher.input?.focus()
       }),
+      onAppsChanged(() => launcher.refreshApps()),
       listen<string>("launcher-query", e => {
         launcher.setQuery(e.payload)
         launcher.input?.focus()
@@ -80,7 +82,7 @@
 
   <div
     data-launcher
-    class="flex min-h-0 grow flex-col overflow-hidden rounded-box border border-base-content/10 bg-base-100/60 shadow-lg backdrop-blur-xl"
+    class="eris-card flex min-h-0 grow flex-col overflow-hidden"
   >
     <ResultList {launcher} />
 

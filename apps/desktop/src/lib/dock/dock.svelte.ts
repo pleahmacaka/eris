@@ -1,5 +1,11 @@
 import { updateDevice } from "@eris/settings"
-import { type AppEntry, appIcon, listApps, pinnedApps } from "$lib/native/apps"
+import {
+  type AppEntry,
+  appIcon,
+  listApps,
+  onAppsChanged,
+  pinnedApps,
+} from "$lib/native/apps"
 import {
   listWindows,
   onWindowsChanged,
@@ -165,21 +171,30 @@ export const startDock = () => {
       })
       .catch(() => undefined)
 
+  const refreshApps = () =>
+    listApps()
+      .then(list => {
+        dock.apps = list
+      })
+      .catch(() => undefined)
+
   refreshPins()
-  listApps()
-    .then(list => {
-      dock.apps = list
-    })
-    .catch(() => undefined)
+  refreshApps()
   refresh()
 
   const timer = setInterval(refresh, WINDOWS_POLL)
   const pinTimer = setInterval(refreshPins, PIN_POLL)
-  const stop = onWindowsChanged(() => void refresh())
+  const stops = [
+    onWindowsChanged(() => void refresh()),
+    onAppsChanged(() => void refreshApps()),
+  ]
 
   return () => {
     clearInterval(timer)
     clearInterval(pinTimer)
-    stop.then(off => off()).catch(() => undefined)
+
+    for (const stop of stops) {
+      stop.then(off => off()).catch(() => undefined)
+    }
   }
 }

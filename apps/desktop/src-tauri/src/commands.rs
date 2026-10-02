@@ -2,8 +2,8 @@ use tauri::ipc::Invoke;
 use tauri::Wry;
 
 use crate::{
-    appbar, apps, audio, clipboard, desktop, edit, features, files, icons, media, meters, monitors,
-    note, notices, notify, p2p, pins, preview, quick, share, shortcuts, spectrum, system, usage,
+    appbar, apps, audio, clipboard, desktop, edit, features, icons, media, meters, monitors, note,
+    notices, notify, p2p, pins, preview, quick, share, shortcuts, spectrum, system, usage,
     windowing, winkey,
 };
 
@@ -13,13 +13,6 @@ pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
         apps::pinned_apps,
         apps::launch_app,
         apps::open_location,
-        files::list_dir,
-        files::file_places,
-        files::search_dir,
-        files::create_folder,
-        files::rename_entry,
-        files::delete_entries,
-        files::transfer_entries,
         icons::app_icon,
         desktop::list_windows,
         desktop::activate_window,

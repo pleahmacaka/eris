@@ -25,6 +25,7 @@
   const groups = $derived(shortcuts($t, device))
 
   const TERMINAL_NAMES: Record<Exclude<TerminalApp, "auto" | "cmd">, string> = {
+    eris: "Eris Terminal",
     wt: "Windows Terminal",
     pwsh: "PowerShell 7",
     powershell: "Windows PowerShell",
@@ -41,7 +42,7 @@
   })
 
   const terminalChoices = $derived([
-    ...new Set<TerminalApp>(["auto", ...terminals, device.terminal]),
+    ...new Set<TerminalApp>(["auto", "eris", ...terminals, device.terminal]),
   ])
 
   const terminalName = (app: TerminalApp) =>

@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core"
+import { listen } from "@tauri-apps/api/event"
 
 export type AppKind = "shortcut" | "store" | "exe"
 
@@ -11,6 +12,8 @@ export type AppEntry = {
 }
 
 export const listApps = () => invoke<AppEntry[]>("list_apps")
+
+export const onAppsChanged = (run: () => void) => listen("apps-changed", run)
 
 export const pinnedApps = () => invoke<AppEntry[]>("pinned_apps")
 

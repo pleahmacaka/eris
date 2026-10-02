@@ -4,6 +4,7 @@
   import { LANGUAGES } from "@eris/i18n"
   import { Row, Section, toast } from "@eris/ui"
   import { t } from "svelte-i18n"
+  import ErisFilesControls from "../ErisFilesControls.svelte"
   import { reset } from "../reset"
 
   let {
@@ -88,4 +89,8 @@
       {$t("settings.options.runSetup")}
     </button>
   </Row>
+</Section>
+
+<Section title={$t("settings.groups.erisFiles")}>
+  <ErisFilesControls />
 </Section>

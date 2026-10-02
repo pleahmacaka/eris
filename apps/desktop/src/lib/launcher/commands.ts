@@ -1,11 +1,13 @@
 import { tr } from "@eris/i18n"
 import type { Result } from "@eris/launcher-core"
 import { loadDevice, type TerminalApp } from "@eris/settings"
+import { newWindow as newTerminalWindow } from "@eris/terminal/windows"
 import { emit } from "@tauri-apps/api/event"
 import { exit } from "@tauri-apps/plugin-process"
 import {
   editMode,
   emptyRecycleBin,
+  openErisFiles,
   openUrl,
   openWithIntent,
   type PowerAction,
@@ -34,8 +36,10 @@ const command = (
   score: 0,
 })
 
-const TERMINAL_COMMANDS: Record<TerminalApp, string> = {
-  auto: 'wt || start "" cmd',
+const TERMINAL_COMMANDS: Record<
+  Exclude<TerminalApp, "auto" | "eris">,
+  string
+> = {
   wt: "wt",
   pwsh: "pwsh",
   powershell: "powershell",
@@ -45,7 +49,13 @@ const TERMINAL_COMMANDS: Record<TerminalApp, string> = {
 const openTerminal = async () => {
   const { terminal } = await loadDevice()
 
-  await runCommand(TERMINAL_COMMANDS[terminal] ?? TERMINAL_COMMANDS.auto)
+  if (terminal === "auto" || terminal === "eris") {
+    await newTerminalWindow()
+
+    return
+  }
+
+  await runCommand(TERMINAL_COMMANDS[terminal])
 }
 
 const power = (id: PowerAction, icon: string, keywords: string[] = []) =>
@@ -125,7 +135,7 @@ export const systemCommands = (): Result[] => [
     tr("launcher.commands.erisFiles"),
     tr("launcher.subtitles.eris"),
     "lucide:folder-open",
-    () => showWindow("files"),
+    () => openErisFiles(),
     ["explorer", "files"],
   ),
   command(

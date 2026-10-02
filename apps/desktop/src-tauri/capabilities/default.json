@@ -10,7 +10,6 @@
     "notices",
     "onboarding",
     "preview",
-    "files",
     "edit",
     "topbar",
     "studio"
@@ -20,6 +19,8 @@
     "core:event:default",
     "core:window:default",
     "core:window:allow-hide",
+    "core:window:allow-set-effects",
+    "core:window:allow-set-shadow",
     "core:window:allow-show",
     "core:window:allow-set-focus",
     "core:window:allow-start-dragging",
@@ -53,6 +54,11 @@
           "url": "https://*:*"
         }
       ]
-    }
+    },
+    "eris-terminal:allow-new-window",
+    "eris-files:allow-new-window",
+    "eris-files:allow-default-app-status",
+    "eris-files:allow-set-default-app",
+    "eris-files:allow-open-default-apps"
   ]
 }

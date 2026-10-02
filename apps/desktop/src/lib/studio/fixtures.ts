@@ -3,9 +3,6 @@ import type {
   AudioDevice,
   ClaudeUsage,
   ClipEntry,
-  FileEntry,
-  FileListing,
-  FilePlace,
   InputLanguage,
   MediaStatus,
   Meters,
@@ -146,71 +143,6 @@ const clips: ClipEntry[] = [
   },
 ]
 
-const places: FilePlace[] = [
-  {
-    name: "Desktop",
-    path: "C:\\Users\\studio\\Desktop",
-    kind: "folder",
-    free: 0,
-    total: 0,
-  },
-  {
-    name: "Documents",
-    path: "C:\\Users\\studio\\Documents",
-    kind: "folder",
-    free: 0,
-    total: 0,
-  },
-  {
-    name: "Downloads",
-    path: "C:\\Users\\studio\\Downloads",
-    kind: "folder",
-    free: 0,
-    total: 0,
-  },
-  {
-    name: "Local Disk (C:)",
-    path: "C:\\",
-    kind: "drive",
-    free: 212_000_000_000,
-    total: 512_000_000_000,
-  },
-]
-
-const trimSlash = (path: string) =>
-  path.endsWith("\\") ? path.slice(0, -1) : path
-
-const entry = (
-  parent: string,
-  name: string,
-  directory: boolean,
-  size = 0,
-): FileEntry => ({
-  name,
-  path: `${trimSlash(parent)}\\${name}`,
-  directory,
-  size,
-  modified: ago(name.length * 40),
-  hidden: false,
-})
-
-const listing = (path: string): FileListing => {
-  const trimmed = trimSlash(path)
-  const cut = trimmed.lastIndexOf("\\")
-
-  return {
-    path,
-    parent: cut > 2 ? trimmed.slice(0, cut) : null,
-    entries: [
-      entry(path, "Projects", true),
-      entry(path, "Screenshots", true),
-      entry(path, "notes.md", false, 4_096),
-      entry(path, "invoice-2026-09.pdf", false, 182_000),
-      entry(path, "wallpaper.png", false, 3_400_000),
-    ],
-  }
-}
-
 const systemInfo: SystemInfo = {
   battery: { percent: 76, charging: false },
   volume: { level: 0.42, muted: false },
@@ -286,9 +218,6 @@ export const fixtures: Record<string, (args: Args) => unknown> = {
   clipboard_history: () => clips,
   clipboard_has_files: () => false,
   clipboard_read_files: () => null,
-  file_places: () => places,
-  list_dir: a => listing(String(a.path)),
-  search_dir: () => [],
   create_folder: a => `${a.path}\\${a.name}`,
   rename_entry: a => {
     const path = String(a.path)
@@ -297,6 +226,14 @@ export const fixtures: Record<string, (args: Args) => unknown> = {
   },
   claude_usage: () => usage(),
   usage_bridge_installed: () => true,
+  "plugin:eris-files|default_app_status": () => ({
+    supported: true,
+    enabled: false,
+  }),
+  screen_sharing: () => false,
+  set_share_watch: () => undefined,
+  usage_watch: () => undefined,
+  set_window_region: () => undefined,
   p2p_status: () => p2p,
   p2p_invite: () => "STUDIO.CODE",
   p2p_sync: () => 0,
@@ -363,6 +300,8 @@ export const silent = new Set([
   "run_command",
   "open_data_folder",
   "install_usage_bridge",
+  "plugin:eris-files|new_window",
+  "plugin:eris-files|open_default_apps",
   "p2p_join",
   "p2p_leave",
   "p2p_publish",

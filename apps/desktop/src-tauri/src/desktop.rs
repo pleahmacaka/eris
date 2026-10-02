@@ -1,5 +1,5 @@
 use serde::Serialize;
-use tauri::WebviewWindow;
+use tauri::{AppHandle, Manager, WebviewWindow};
 
 #[derive(Serialize)]
 pub struct WindowEntry {
@@ -11,8 +11,23 @@ pub struct WindowEntry {
 }
 
 #[tauri::command(async)]
-pub fn list_windows() -> Vec<WindowEntry> {
-    win::list()
+pub fn list_windows(app: AppHandle) -> Vec<WindowEntry> {
+    win::list(&shell_windows(&app))
+}
+
+fn shell_windows(app: &AppHandle) -> Vec<isize> {
+    let config = &app.config().app.windows;
+
+    app.webview_windows()
+        .into_iter()
+        .filter(|(label, _)| {
+            config
+                .iter()
+                .any(|window| &window.label == label && window.skip_taskbar)
+        })
+        .filter_map(|(_, window)| window.hwnd().ok())
+        .map(|hwnd| hwnd.0 as isize)
+        .collect()
 }
 
 #[tauri::command(async)]
@@ -30,21 +45,16 @@ pub fn minimize_window(hwnd: isize) {
     win::minimize(hwnd);
 }
 
-#[cfg(target_os = "windows")]
 pub fn force_foreground(window: &WebviewWindow) {
     if let Ok(hwnd) = window.hwnd() {
         win::force_foreground(hwnd.0 as isize);
     }
 }
 
-#[cfg(not(target_os = "windows"))]
-pub fn force_foreground(_window: &WebviewWindow) {}
-
 pub fn watch(app: tauri::AppHandle) {
     win::watch(app);
 }
 
-#[cfg(target_os = "windows")]
 mod win {
     use std::sync::{Mutex, OnceLock};
     use std::time::{Duration, Instant};
@@ -166,12 +176,14 @@ mod win {
         BOOL(1)
     }
 
-    pub fn list() -> Vec<WindowEntry> {
+    pub fn list(shell: &[isize]) -> Vec<WindowEntry> {
         let mut entries: Vec<WindowEntry> = Vec::new();
 
         unsafe {
             let _ = EnumWindows(Some(collect), LPARAM(&mut entries as *mut _ as isize));
         }
+
+        entries.retain(|entry| !shell.contains(&entry.hwnd));
 
         entries
     }
@@ -339,26 +351,11 @@ mod win {
     }
 }
 
-#[cfg(not(target_os = "windows"))]
-mod win {
-    use super::WindowEntry;
-
-    pub fn list() -> Vec<WindowEntry> {
-        Vec::new()
-    }
-
-    pub fn activate(_hwnd: isize) {}
-
-    pub fn close(_hwnd: isize) {}
-
-    pub fn watch(_app: tauri::AppHandle) {}
-}
-
-#[cfg(all(test, target_os = "windows"))]
+#[cfg(test)]
 mod tests {
     #[test]
     fn lists_visible_windows() {
-        let windows = super::list_windows();
+        let windows = super::win::list(&[]);
 
         assert!(!windows.is_empty(), "no top-level windows found");
         assert!(windows.iter().all(|entry| !entry.title.is_empty()));

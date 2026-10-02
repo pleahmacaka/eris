@@ -1,47 +1,16 @@
 import { invoke } from "@tauri-apps/api/core"
 
-export type FileEntry = {
-  name: string
-  path: string
-  directory: boolean
-  size: number
-  modified: number
-  hidden: boolean
-}
+export type FilesDefault = { supported: boolean; enabled: boolean }
 
-export type FilePlace = {
-  name: string
-  path: string
-  kind: "folder" | "drive"
-  free: number
-  total: number
-}
+export const filesDefault = (enable?: boolean) =>
+  enable === undefined
+    ? invoke<FilesDefault>("plugin:eris-files|default_app_status")
+    : invoke<FilesDefault>("plugin:eris-files|set_default_app", {
+        enabled: enable,
+      })
 
-export type FileListing = {
-  path: string
-  parent: string | null
-  entries: FileEntry[]
-}
+export const openErisFiles = (path: string | null = null) =>
+  invoke<void>("plugin:eris-files|new_window", { path })
 
-export const listDir = (path: string) =>
-  invoke<FileListing>("list_dir", { path })
-
-export const filePlaces = () => invoke<FilePlace[]>("file_places")
-
-export const searchDir = (root: string, query: string) =>
-  invoke<FileEntry[]>("search_dir", { root, query })
-
-export const createFolder = (path: string, name: string) =>
-  invoke<string>("create_folder", { path, name })
-
-export const renameEntry = (path: string, name: string) =>
-  invoke<string>("rename_entry", { path, name })
-
-export const deleteEntries = (paths: string[], permanent = false) =>
-  invoke<void>("delete_entries", { paths, permanent })
-
-export const transferEntries = (
-  paths: string[],
-  target: string,
-  cut: boolean,
-) => invoke<void>("transfer_entries", { paths, target, cut })
+export const openFilesDefaults = () =>
+  invoke<void>("plugin:eris-files|open_default_apps")
