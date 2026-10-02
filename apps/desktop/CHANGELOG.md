@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.3](https://github.com/pleahmacaka/eris/compare/0.3.2...0.3.3) (2026-10-02)
+
+
+### Features
+
+* **calendar:** add tags, sub-events, series edits and a compact view ([d051360](https://github.com/pleahmacaka/eris/commit/d051360512c1fbcd64f1ae5e1cf1f3f7cca7b2b2))
+* **dock:** add the gather animation, custom icon and islands ([fa90b1e](https://github.com/pleahmacaka/eris/commit/fa90b1e78a43538dff7caf102d3b2c96d0a78154))
+* run files and terminal inside eris ([aecd00c](https://github.com/pleahmacaka/eris/commit/aecd00c44c5dd295315e85103d2d803f8c0a2975))
+* **ui:** share the eris theme and card design across apps ([58f3abb](https://github.com/pleahmacaka/eris/commit/58f3abb0994b8034b96dc7836d7f2c32c9c62cdf))
+
 ## [0.3.2](https://github.com/pleahmacaka/eris/compare/0.3.1...0.3.2) (2026-10-01)
 
 
