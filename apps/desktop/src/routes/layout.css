@@ -26,13 +26,17 @@
       opacity 100ms ease-out;
   }
 
-  :root[data-surface="dock"][data-dock-hiding] .siri-shell {
-    transform: translateY(calc(var(--dock-height) + 20px));
-    opacity: 0;
+  :root[data-surface="dock"] {
+    --dock-drop: calc(var(--dock-height) + 1.25rem);
   }
 
-  :root[data-surface="dock"][data-dock-hiding][data-edge="top"] .siri-shell {
-    transform: translateY(calc(-1 * (var(--dock-height) + 20px)));
+  :root[data-surface="dock"][data-edge="top"] {
+    --dock-drop: calc(-1 * (var(--dock-height) + 1.25rem));
+  }
+
+  :root[data-surface="dock"][data-dock-hiding="slide"] .siri-shell {
+    transform: translateY(var(--dock-drop));
+    opacity: 0;
   }
 
   :root[data-surface="dock"] .siri-aura {
@@ -90,3 +94,111 @@
   }
 }
 
+@layer components {
+  :root[data-surface="dock"] {
+    --band-top: calc(100% - var(--dock-height));
+    --band-bottom: 0rem;
+    --band-radius: 0rem;
+    --gather-side: calc(50% - var(--dock-height) / 2);
+  }
+
+  :root[data-surface="dock"][data-edge="top"] {
+    --band-top: 0rem;
+    --band-bottom: calc(100% - var(--dock-height));
+  }
+
+  :root[data-surface="dock"][data-dock="mac"] {
+    --band-radius: var(--shell-radius);
+  }
+
+  :root[data-surface="dock"][data-dock-islands="true"] {
+    --band-top: calc(100% - var(--dock-height) + 0.25rem);
+    --band-bottom: 0.25rem;
+    --band-radius: calc(var(--dock-height) / 2);
+    --gather-side: calc(50% - var(--dock-height) / 2 + 0.25rem);
+  }
+
+  :root[data-surface="dock"][data-dock-islands="true"][data-edge="top"] {
+    --band-top: 0.25rem;
+    --band-bottom: calc(100% - var(--dock-height) + 0.25rem);
+  }
+
+  @keyframes dock-gather {
+    0% {
+      clip-path: inset(var(--band-top) 0 var(--band-bottom) 0 round var(--band-radius));
+      transform: none;
+      opacity: var(--dock-opacity, 1);
+    }
+
+    45%,
+    62% {
+      clip-path: inset(
+        var(--band-top) var(--gather-side) var(--band-bottom) var(--gather-side)
+          round calc(var(--dock-height) / 2)
+      );
+      transform: none;
+      opacity: var(--dock-opacity, 1);
+      animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.4);
+    }
+
+    100% {
+      clip-path: inset(
+        var(--band-top) var(--gather-side) var(--band-bottom) var(--gather-side)
+          round calc(var(--dock-height) / 2)
+      );
+      transform: translateY(var(--dock-drop));
+      opacity: 0;
+    }
+  }
+
+  @keyframes dock-gather-content {
+    0% {
+      opacity: 1;
+    }
+
+    25%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes dock-gather-pill {
+    0%,
+    20% {
+      opacity: 0;
+      scale: 0.6;
+    }
+
+    45%,
+    100% {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+
+  .dock-pill {
+    opacity: 0;
+  }
+
+  :root[data-surface="dock"][data-dock-hiding="gather"] .siri-shell {
+    animation: dock-gather var(--gather-ms) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  :root[data-dock-hiding="gather"]:not([data-dock-islands="true"]) .dock-nav > *,
+  :root[data-dock-hiding="gather"][data-dock-islands="true"] .dock-island > * {
+    animation: dock-gather-content var(--gather-ms) ease-out forwards;
+  }
+
+  :root[data-dock-hiding="gather"] .dock-pill {
+    animation: dock-gather-pill var(--gather-ms) ease-out forwards;
+  }
+
+  :root[data-surface="dock"][data-dock-islands="true"] .siri-aura {
+    display: none;
+  }
+
+  :root[data-surface="dock"][data-dock-islands="true"] .siri-shell {
+    background: transparent;
+    box-shadow: none;
+  }
+}

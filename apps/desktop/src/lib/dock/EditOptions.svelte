@@ -156,9 +156,14 @@
   {@render toggleRow("showRunningApps", $t("settings.rows.showRunningApps"))}
 
   {@render toggleRow("dockSeparators", $t("settings.rows.dockSeparators"))}
+  {@render toggleRow("dockIslands", $t("settings.rows.dockIslands"))}
   {@render toggleRow("dockAutoHide", $t("settings.rows.autoHide"))}
   {#if device.dockAutoHide}
     {@render toggleRow("dockHideAnimation", $t("settings.rows.hideAnimation"))}
+
+    {#if device.dockHideAnimation}
+      {@render toggleRow("dockHideGather", $t("settings.rows.hideGather"))}
+    {/if}
   {/if}
   {@render toggleRow("hideSystemTaskbar", $t("settings.rows.hideTaskbar"))}
   {@render toggleRow("topBar", $t("settings.rows.topBar"))}

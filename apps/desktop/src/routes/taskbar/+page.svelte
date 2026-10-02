@@ -1,7 +1,7 @@
 <script lang="ts">
   import { listen } from "@tauri-apps/api/event"
   import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart"
-  import { untrack } from "svelte"
+  import { tick, untrack } from "svelte"
   import { getCurrentWindow, Window } from "@tauri-apps/api/window"
   import { live, scheduleReminders, events } from "$lib/data"
   import { ensureDevice } from "$lib/device"
@@ -21,6 +21,7 @@
   import { t } from "svelte-i18n"
 
   const HIDE_SLIDE = 120
+  const RESYNC = 50
   const VISIBILITY_POLL = 2_000
   const REOPEN_GUARD = 400
 
@@ -42,6 +43,8 @@
   const eventLive = live(events)
 
   const device = $derived(layout.device)
+
+  const gather = $derived(device.dockHideGather && profile.appearance.motion)
 
   const hotkey = $derived(
     `${device.launcherTrigger}|${device.launcherShortcut}`,
@@ -100,7 +103,6 @@
     loadProfile().then(p => {
       profile = p
     })
-
     const stops = [
       onDevice(d => {
         layout.device = d
@@ -264,68 +266,135 @@
     )
   })
 
-  $effect(() => {
-    if (!ready || layout.dockHidden) {
-      return
-    }
-
-    if (
-      !device.dockAutoHide ||
+  const stay = $derived(
+    !device.dockAutoHide ||
       layout.desktop ||
       hovered ||
       edgeHover ||
       held ||
       peeking ||
       previewHover.over ||
-      layout.menuBox !== null
-    ) {
-      layout.collapsed = false
+      layout.menuBox !== null,
+  )
 
-      if (layout.hiding) {
-        const frames = requestAnimationFrame(() =>
-          requestAnimationFrame(() => {
-            layout.hiding = false
-          }),
-        )
+  const root = document.documentElement
 
-        return () => cancelAnimationFrame(frames)
+  let motionRun = 0
+
+  const frame = () => new Promise(resolve => requestAnimationFrame(resolve))
+
+  const gatherAnimations = () =>
+    document
+      .getAnimations()
+      .filter(
+        (a): a is CSSAnimation =>
+          a instanceof CSSAnimation && a.animationName.startsWith("dock-gather"),
+      )
+
+  // updatePlaybackRate keeps compositor-run opacity in sync; assigning playbackRate shows the base style until the next commit
+  const steer = async (rate: number) => {
+    const list = gatherAnimations()
+    const shell = list.find(a => a.animationName === "dock-gather")
+
+    if (!shell) {
+      return
+    }
+
+    const time = Number(shell.currentTime ?? 0)
+    const end = Number(shell.effect?.getComputedTiming().endTime ?? 0)
+
+    for (const a of list) {
+      if (Math.abs(Number(a.currentTime ?? 0) - time) > RESYNC) {
+        a.currentTime = time
       }
+
+      a.updatePlaybackRate(rate)
+    }
+
+    if (rate > 0 ? time >= end : time <= 0) {
+      return
+    }
+
+    for (const a of list) {
+      a.play()
+    }
+
+    await shell.finished.catch(() => undefined)
+  }
+
+  const conceal = async () => {
+    const run = ++motionRun
+
+    layout.closeMenus()
+
+    if (!device.dockHideAnimation) {
+      layout.collapsed = true
 
       return
     }
 
-    let slide: ReturnType<typeof setTimeout> | undefined
-    const timer = setTimeout(() => {
-      layout.closeMenus()
+    root.dataset.dockHiding = gather ? "gather" : "slide"
 
-      if (!device.dockHideAnimation) {
-        layout.collapsed = true
-
-        return
-      }
-
-      layout.hiding = true
-      slide = setTimeout(() => {
-        layout.collapsed = true
-      }, HIDE_SLIDE)
-    }, device.dockHideDelay)
-
-    return () => {
-      clearTimeout(timer)
-      clearTimeout(slide)
+    if (gather) {
+      await steer(1)
+    } else {
+      await new Promise(resolve => setTimeout(resolve, HIDE_SLIDE))
     }
+
+    if (run === motionRun) {
+      layout.collapsed = true
+    }
+  }
+
+  const reveal = async () => {
+    const run = ++motionRun
+    const style = root.dataset.dockHiding
+    const regrow = layout.collapsed
+
+    layout.collapsed = false
+
+    if (!style) {
+      return
+    }
+
+    if (regrow) {
+      await tick()
+      await frame()
+      await frame()
+    }
+
+    if (style === "gather" && run === motionRun) {
+      await steer(-device.dockGatherHideMs / device.dockGatherShowMs)
+    }
+
+    if (run === motionRun) {
+      delete root.dataset.dockHiding
+    }
+  }
+
+  $effect(() => {
+    if (!ready || layout.dockHidden) {
+      return
+    }
+
+    if (stay) {
+      untrack(reveal)
+
+      return
+    }
+
+    const timer = setTimeout(conceal, device.dockHideDelay)
+
+    return () => clearTimeout(timer)
+  })
+
+  $effect(() => {
+    root.style.setProperty("--gather-ms", `${device.dockGatherHideMs}ms`)
+    root.dataset.dockIslands = String(device.dockIslands)
   })
 
   $effect(() => {
     dockAwake.visible = !layout.dockHidden && !pageHidden
-  })
-
-  $effect(() => {
-    if (layout.hiding) {
-      document.documentElement.dataset.dockHiding = "true"
-    } else {
-      delete document.documentElement.dataset.dockHiding
-    }
   })
 
   const watchShare = $derived(
