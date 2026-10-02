@@ -24,7 +24,7 @@
     updateDevice,
     withProfileDefaults,
   } from "@eris/settings"
-  import { Confirm, Segmented } from "@eris/ui"
+  import { Confirm, Logo, Segmented } from "@eris/ui"
 
   type Bar = {
     edge: "top" | "bottom"
@@ -318,7 +318,7 @@
 
 <div class="flex min-h-0 grow flex-col bg-base-200">
   <header class="flex items-center gap-2 border-b border-base-content/10 px-3 py-2">
-    <Icon icon="lucide:app-window" class="size-4 text-primary" />
+    <Logo class="size-4" />
 
     <h1 class="text-sm font-semibold">Studio</h1>
 

@@ -257,7 +257,7 @@
         bind:this={popover}
         bind:clientWidth={cardWidth}
         class={[
-          "absolute left-0 isolate z-50 w-80 overflow-hidden rounded-box border border-base-content/10 bg-base-100/90 p-3 shadow-xl backdrop-blur-xl",
+          "eris-card absolute left-0 z-50 w-80 overflow-hidden p-3",
           edge === "top" ? "top-full mt-2" : "bottom-full mb-2",
         ]}
         role="dialog"

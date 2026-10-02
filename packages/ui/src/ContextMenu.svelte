@@ -13,6 +13,7 @@
     align?: "start" | "end"
     bottom?: number
     width?: number
+    dense?: boolean
     label?: string
     onclose?: () => void
     onsize?: (rect: DOMRect) => void
@@ -27,6 +28,7 @@
     align = "start",
     bottom,
     width = 224,
+    dense = false,
     label,
     onclose,
     onsize,
@@ -169,7 +171,8 @@
     role="menu"
     aria-label={label ?? $t("menu.label")}
     class={[
-      "menu z-50 gap-0.5 rounded-box border border-base-content/10 bg-base-100/95 p-2 shadow-2xl backdrop-blur-xl",
+      "menu eris-card z-50",
+      dense ? "w-max max-w-96 min-w-36 gap-0 p-1" : "gap-0.5 p-2",
       floating
         ? "fixed"
         : placement === "up"
@@ -177,20 +180,24 @@
           : "absolute top-full mt-2",
       !floating && (align === "end" ? "right-0" : "left-0"),
     ]}
-    style:width="{width}px"
+    style:width={dense ? undefined : `${width}px`}
     style:left={floating ? `${left}px` : undefined}
     style:top={floating ? `${top}px` : undefined}
   >
     {#each items as item, index (index)}
       {#if item === "separator"}
-        <li class="mx-1 my-1.5 border-t border-base-content/10" role="separator"></li>
+        <li
+          class={["mx-1 border-t border-base-content/10", dense ? "my-1" : "my-1.5"]}
+          role="separator"
+        ></li>
       {:else}
         <li role="none" class={[item.disabled && "menu-disabled"]}>
           <button
             role="menuitem"
             type="button"
             class={[
-              "min-h-9 gap-2.5 rounded-field px-3 py-2 text-sm",
+              "rounded-field text-sm",
+              dense ? "min-h-7 gap-2 px-2.5 py-1" : "min-h-9 gap-2.5 px-3 py-2",
               index === cursor && !item.disabled && "menu-active",
             ]}
             disabled={item.disabled}
@@ -199,13 +206,21 @@
             onclick={() => run(item)}
           >
             {#if item.icon}
-              <Icon icon={item.icon} class="size-4 shrink-0 text-base-content/60" />
+              <Icon
+                icon={item.icon}
+                class={[dense ? "size-3.5" : "size-4", "shrink-0 text-base-content/60"]}
+              />
             {/if}
 
             <span class="truncate">{item.label}</span>
 
             {#if item.hint}
-              <span class="ml-auto shrink-0 text-xs text-base-content/40">
+              <span
+                class={[
+                  "ml-auto shrink-0 text-xs text-base-content/40",
+                  dense && "pl-6",
+                ]}
+              >
                 {item.hint}
               </span>
             {/if}

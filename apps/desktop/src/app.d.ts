@@ -1,5 +1,10 @@
 declare global {
-  namespace App {}
+  namespace App {
+    interface PageData {
+      framed?: boolean
+      denseMenu?: boolean
+    }
+  }
 
   interface Window {
     __TAURI_INTERNALS__?: {

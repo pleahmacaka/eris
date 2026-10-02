@@ -39,7 +39,7 @@
 
 <dialog bind:this={dialog} class="modal" onclose={() => (open = false)}>
   <div
-    class="modal-box max-w-sm border border-base-content/10 bg-base-100/90 backdrop-blur-xl"
+    class="modal-box eris-card max-w-sm"
   >
     <h3 class="text-base font-semibold">{title}</h3>
 

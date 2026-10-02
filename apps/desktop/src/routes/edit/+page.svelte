@@ -40,7 +40,7 @@
 >
   <div
     role="presentation"
-    class="absolute top-20 flex w-max max-w-full items-center gap-4 rounded-box border border-base-content/10 bg-base-100/95 px-5 py-3 shadow-2xl backdrop-blur-xl"
+    class="eris-card absolute top-20 flex w-max max-w-full items-center gap-4 px-5 py-3"
     style:left="{home.left + home.width / 2}px"
     style:translate="-50% 0"
     onclick={e => e.stopPropagation()}

@@ -35,6 +35,7 @@ export type DockWidget = {
 export type WebSearchEngine = "google" | "duckduckgo" | "bing" | "naver"
 export type TerminalApp = "auto" | "wt" | "pwsh" | "powershell" | "cmd"
 export type TodoSort = "manual" | "due" | "priority"
+export type EventTag = { id: string; name: string; hideWhileSharing: boolean }
 export type TraySlot =
   | "taskview"
   | "claude"
@@ -70,7 +71,13 @@ export type DeviceSettings = {
   dockIconSize: number
   dockAutoHide: boolean
   dockHideAnimation: boolean
+  dockHideGather: boolean
   dockHideDelay: number
+  dockGatherHideMs: number
+  dockGatherShowMs: number
+  dockIcon: string | null
+  dockIslands: boolean
+  dockIslandGap: number
   dockDesktop: boolean
   topBar: boolean
   panelPosition: "left" | "center" | "right"
@@ -158,6 +165,7 @@ export type Profile = {
     showWeekNumbers: boolean
     reminderMinutes: number
     region: string
+    tags: EventTag[]
   }
   todo: {
     showCompleted: boolean
@@ -173,7 +181,7 @@ export const defaultAppearance: Appearance = {
   accentSpread: 0,
   vividness: 0.07,
   texture: 0,
-  radius: 0,
+  radius: 0.65,
   blur: 1,
   fontScale: 1,
   surfaceOpacity: 1,
@@ -186,6 +194,132 @@ export const defaultAppearance: Appearance = {
   density: "cozy",
   motion: true,
 }
+
+const classic: Appearance = {
+  ...defaultAppearance,
+  mode: "system",
+  background: "aura",
+  useSystemAccent: true,
+  accentHue: 215,
+  accentSpread: 14,
+  vividness: 0.06,
+  texture: 0.3,
+  radius: 1,
+}
+
+const tinted = (look: Partial<Appearance>): Appearance => ({
+  ...classic,
+  useSystemAccent: false,
+  ...look,
+})
+
+export const presetAppearances: Record<string, Appearance> = {
+  arix: defaultAppearance,
+  aurora: classic,
+  glass: {
+    ...classic,
+    mode: "light",
+    background: "glass",
+    accentHue: 225,
+    accentSpread: 24,
+    vividness: 0.05,
+    texture: 0.12,
+    radius: 1.2,
+    blur: 1.4,
+  },
+  mica: {
+    ...classic,
+    mode: "system",
+    background: "solid",
+    accentHue: 206,
+    accentSpread: 0,
+    vividness: 0.04,
+    texture: 0.2,
+    radius: 0.6,
+    blur: 0.6,
+  },
+  nord: tinted({
+    background: "solid",
+    accentHue: 230,
+    accentSpread: 30,
+    vividness: 0.05,
+    texture: 0.1,
+    radius: 0.5,
+    blur: 0.8,
+  }),
+  catppuccin: tinted({
+    accentHue: 305,
+    accentSpread: 40,
+    vividness: 0.09,
+    texture: 0.15,
+    radius: 1.4,
+    blur: 1.1,
+  }),
+  dracula: tinted({
+    accentHue: 290,
+    accentSpread: 50,
+    vividness: 0.14,
+    texture: 0.25,
+    radius: 0.8,
+  }),
+  solarized: tinted({
+    mode: "light",
+    background: "solid",
+    accentHue: 80,
+    accentSpread: 20,
+    vividness: 0.1,
+    texture: 0.35,
+    radius: 0.5,
+    blur: 0.6,
+  }),
+  mono: tinted({
+    background: "solid",
+    accentHue: 0,
+    accentSpread: 0,
+    vividness: 0,
+    texture: 0.4,
+    radius: 0.25,
+    blur: 0.5,
+    density: "compact",
+  }),
+  neon: tinted({
+    accentHue: 325,
+    accentSpread: 90,
+    vividness: 0.2,
+    texture: 0.15,
+    radius: 1.6,
+    blur: 1.3,
+  }),
+  sunset: tinted({
+    accentHue: 35,
+    accentSpread: 45,
+    vividness: 0.14,
+    texture: 0.3,
+    radius: 1.2,
+    blur: 1.1,
+  }),
+  forest: tinted({
+    accentHue: 150,
+    accentSpread: 30,
+    vividness: 0.09,
+    texture: 0.4,
+    radius: 0.9,
+    blur: 0.9,
+  }),
+  ocean: tinted({
+    accentHue: 200,
+    accentSpread: 40,
+    vividness: 0.11,
+    texture: 0.2,
+    radius: 1.1,
+    blur: 1.2,
+  }),
+}
+
+const dockLook = (appearance?: Partial<Appearance>) =>
+  Object.fromEntries(
+    Object.entries(appearance ?? {}).filter(([key]) => key.startsWith("dock")),
+  )
 
 export const defaultProfile: Profile = {
   presetId: "arix",
@@ -203,6 +337,11 @@ export const defaultProfile: Profile = {
     showWeekNumbers: false,
     reminderMinutes: 10,
     region: "system",
+    tags: [
+      { id: "todo", name: "", hideWhileSharing: false },
+      { id: "personal", name: "", hideWhileSharing: false },
+      { id: "work", name: "", hideWhileSharing: false },
+    ],
   },
   todo: {
     showCompleted: false,
@@ -236,7 +375,13 @@ export const defaultDevice: DeviceSettings = {
   dockIconSize: 24,
   dockAutoHide: false,
   dockHideAnimation: true,
+  dockHideGather: true,
   dockHideDelay: 1080,
+  dockGatherHideMs: 440,
+  dockGatherShowMs: 260,
+  dockIcon: null,
+  dockIslands: false,
+  dockIslandGap: 8,
   dockDesktop: false,
   topBar: false,
   panelPosition: "right",
@@ -425,7 +570,14 @@ export const withProfileDefaults = (
 ): Profile => ({
   ...defaultProfile,
   ...saved,
-  appearance: { ...defaultAppearance, ...saved?.appearance },
+  // an untouched built-in preset tracks its current values, so preset updates reach existing profiles
+  appearance:
+    saved?.presetId && presetAppearances[saved.presetId]
+      ? {
+          ...presetAppearances[saved.presetId],
+          ...dockLook(saved.appearance),
+        }
+      : { ...defaultAppearance, ...saved?.appearance },
   launcher: { ...defaultProfile.launcher, ...saved?.launcher },
   calendar: { ...defaultProfile.calendar, ...saved?.calendar },
   todo: { ...defaultProfile.todo, ...saved?.todo },
@@ -446,8 +598,37 @@ export const saveProfile = async (value: Profile) => {
   await emit(PROFILE_EVENT, profile)
 }
 
+export const updateProfile = (change: (profile: Profile) => Profile) => {
+  const next = writing.then(async () => {
+    const profile = change(await loadProfile())
+
+    await saveProfile(profile)
+
+    return profile
+  })
+
+  writing = next.then(
+    () => undefined,
+    () => undefined,
+  )
+
+  return next
+}
+
 export const onProfile = (handler: (value: Profile) => void) =>
   listen<Profile>(PROFILE_EVENT, event => handler(event.payload))
+
+export type ErisStyle = { linked: boolean; profile: Partial<Profile> | null }
+
+export type ThemePrefs = { followEris: boolean; mode: ThemeMode }
+
+export const standaloneAppearance = (
+  style: ErisStyle,
+  prefs: ThemePrefs,
+): Appearance =>
+  style.linked && prefs.followEris
+    ? withProfileDefaults(style.profile).appearance
+    : { ...defaultAppearance, mode: prefs.mode }
 
 export const systemAccentHue = async () => {
   const hex = await invoke<string | null>("system_accent")
@@ -474,4 +655,84 @@ const hueFromHex = (hex: string) => {
         : (red - green) / span + 4
 
   return Math.round(hue * 60)
+}
+
+const darkScheme = () => window.matchMedia("(prefers-color-scheme: dark)")
+
+export const resolveMode = (mode: ThemeMode): "dark" | "light" => {
+  if (mode !== "system") {
+    return mode
+  }
+
+  return darkScheme().matches ? "dark" : "light"
+}
+
+let nativeGlass: boolean | null = null
+
+const syncNativeGlass = async (on: boolean, restingShadow: boolean) => {
+  if (nativeGlass === on) {
+    return
+  }
+
+  nativeGlass = on
+
+  const { Effect, getCurrentWindow } = await import("@tauri-apps/api/window")
+  const current = getCurrentWindow()
+
+  if (on) {
+    await current.setShadow(true)
+    await current.setEffects({ effects: [Effect.Acrylic] })
+
+    return
+  }
+
+  await current.clearEffects()
+  await current.setShadow(restingShadow)
+}
+
+export const applyAppearance = async (
+  a: Appearance,
+  { restingShadow = false }: { restingShadow?: boolean } = {},
+) => {
+  const root = document.documentElement
+  const dock = root.dataset.surface === "dock"
+  const systemHue = a.useSystemAccent
+    ? await systemAccentHue().catch(() => null)
+    : null
+  const mode = resolveMode(a.mode)
+
+  root.dataset.theme = mode === "light" ? "eris-light" : "eris"
+  root.dataset.mode = mode
+  root.dataset.background =
+    dock && a.dockBackground !== "inherit" ? a.dockBackground : a.background
+  root.dataset.density = a.density
+  root.dataset.motion = String(a.motion)
+  root.dataset.dockBorder = String(a.dockBorder)
+
+  const vars = {
+    "--accent-hue": systemHue ?? a.accentHue,
+    "--accent-spread": a.accentSpread,
+    "--vividness": a.vividness,
+    "--texture": a.texture,
+    "--radius-scale": a.radius * (dock ? a.dockRadius : 1),
+    "--blur-scale": a.blur * (dock ? a.dockBlur : 1),
+    "--dock-tint": a.dockTint,
+    "--font-scale": a.fontScale,
+    "--surface-opacity": a.surfaceOpacity,
+    "--dock-opacity": a.dockOpacity,
+  }
+
+  for (const [name, value] of Object.entries(vars)) {
+    root.style.setProperty(name, String(value))
+  }
+
+  if (root.dataset.surface === "window") {
+    const glass = a.background === "glass"
+
+    root.dataset.frame = glass || restingShadow ? "native" : "css"
+
+    await syncNativeGlass(glass, restingShadow).catch(() => {
+      nativeGlass = null
+    })
+  }
 }

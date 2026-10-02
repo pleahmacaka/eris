@@ -13,6 +13,7 @@
   } from "@eris/settings"
   import { applyAppearance } from "$lib/theme"
   import { fadeShell } from "$lib/motion"
+  import { page } from "$app/state"
   import { getCurrentWindow } from "@tauri-apps/api/window"
   import { Aura, GlobalContextMenu } from "@eris/ui"
   import {
@@ -26,7 +27,15 @@
 
   addCollection(lucideSubset)
 
-  const windowLabel = getCurrentWindow().label as WindowLabel
+  const appWindow = getCurrentWindow()
+  const windowLabel = appWindow.label as WindowLabel
+  const framed = page.data.framed === true
+
+  $effect(() => {
+    if (framed) {
+      appWindow.show().then(() => appWindow.setFocus())
+    }
+  })
 
   $effect(() => {
     let current: Appearance = defaultAppearance
@@ -34,12 +43,12 @@
 
     const apply = (appearance: Appearance) => {
       current = appearance
-      applyAppearance(current)
+      applyAppearance(current, { restingShadow: framed })
     }
 
     const onScheme = () => {
       if (current.mode === "system") {
-        applyAppearance(current)
+        applyAppearance(current, { restingShadow: framed })
       }
     }
 
@@ -75,4 +84,4 @@
   {@render children()}
 </div>
 
-<GlobalContextMenu />
+<GlobalContextMenu dense={page.data.denseMenu === true} />
