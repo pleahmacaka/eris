@@ -1,5 +1,4 @@
 import { invoke } from "@tauri-apps/api/core"
-import { listen } from "@tauri-apps/api/event"
 
 export type UsageWindow = {
   used: number
@@ -21,6 +20,3 @@ export const usageBridgeInstalled = () =>
 
 export const installUsageBridge = (enable: boolean) =>
   invoke<void>("install_usage_bridge", { enable })
-
-export const onClaudeUsage = (handler: () => void) =>
-  listen("claude-usage", () => handler())

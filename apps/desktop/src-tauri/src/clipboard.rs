@@ -1,10 +1,13 @@
 use std::path::PathBuf;
+use std::sync::atomic::Ordering;
 use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_clipboard_manager::ClipboardExt;
+
+use crate::features::LAUNCHER_ON;
 
 const LIMIT: usize = 200;
 const MAX_TEXT: usize = 100_000;
@@ -119,7 +122,7 @@ pub fn watch(app: AppHandle) {
 
             last = current;
 
-            if win::excluded() {
+            if !LAUNCHER_ON.load(Ordering::Relaxed) || win::excluded() {
                 continue;
             }
 
@@ -218,7 +221,6 @@ pub fn clipboard_has_files() -> bool {
     win::has_files()
 }
 
-#[cfg(target_os = "windows")]
 mod win {
     use windows::core::w;
     use windows::Win32::Foundation::{HANDLE, HGLOBAL, POINT};
@@ -400,36 +402,5 @@ mod win {
 
     pub fn has_files() -> bool {
         unsafe { IsClipboardFormatAvailable(CF_HDROP).is_ok() }
-    }
-}
-
-#[cfg(not(target_os = "windows"))]
-mod win {
-    use super::ClipboardFiles;
-
-    pub fn sequence() -> u32 {
-        0
-    }
-
-    pub fn excluded() -> bool {
-        false
-    }
-
-    pub fn foreign_foreground() -> bool {
-        true
-    }
-
-    pub fn paste() {}
-
-    pub fn write_files(_paths: &[String], _cut: bool) -> Result<(), String> {
-        Err("file clipboard is not supported on this platform".into())
-    }
-
-    pub fn read_files() -> Option<ClipboardFiles> {
-        None
-    }
-
-    pub fn has_files() -> bool {
-        false
     }
 }

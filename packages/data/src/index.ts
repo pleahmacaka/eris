@@ -1,7 +1,6 @@
 export * from "./calendar"
 export * from "./citations"
 export * from "./guards"
-export * from "./ics"
 export * from "./notes"
 export * from "./timeparse"
 export * from "./todo"

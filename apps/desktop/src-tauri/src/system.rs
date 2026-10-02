@@ -96,7 +96,6 @@ pub fn open_data_folder(app: tauri::AppHandle) -> Result<(), String> {
     apps::shell_execute("open", &dir.to_string_lossy(), None, true)
 }
 
-#[cfg(target_os = "windows")]
 mod win {
     use std::os::windows::process::CommandExt;
 
@@ -200,7 +199,7 @@ mod win {
 
         std::thread::spawn(move || {
             if !unsafe { SetSuspendState(hibernate, false, false) } {
-                crate::trace("suspend failed");
+                log::warn!("suspend failed");
             }
         });
 
@@ -230,38 +229,5 @@ mod win {
             Err(error) if error.code() != E_UNEXPECTED => Err(error.to_string()),
             _ => Ok(()),
         }
-    }
-}
-
-#[cfg(not(target_os = "windows"))]
-mod win {
-    use super::Battery;
-
-    pub fn accent() -> Option<String> {
-        None
-    }
-
-    pub fn battery() -> Option<Battery> {
-        None
-    }
-
-    pub fn lock() -> Result<(), String> {
-        Err("unsupported platform".into())
-    }
-
-    pub fn suspend(_hibernate: bool) -> Result<(), String> {
-        Err("unsupported platform".into())
-    }
-
-    pub fn run_hidden(program: &str, args: &[&str]) -> Result<(), String> {
-        std::process::Command::new(program)
-            .args(args)
-            .spawn()
-            .map(drop)
-            .map_err(|e| e.to_string())
-    }
-
-    pub fn empty_recycle_bin() -> Result<(), String> {
-        Err("unsupported platform".into())
     }
 }

@@ -50,7 +50,6 @@ fn kind(connected: bool, wireless: bool) -> &'static str {
     }
 }
 
-#[cfg(target_os = "windows")]
 mod win {
     use std::sync::Mutex;
     use std::thread::sleep;
@@ -203,23 +202,6 @@ mod win {
 
     fn ticks(time: FILETIME) -> u64 {
         (time.dwHighDateTime as u64) << 32 | time.dwLowDateTime as u64
-    }
-}
-
-#[cfg(not(target_os = "windows"))]
-mod win {
-    use super::NetworkInfo;
-
-    pub fn memory() -> Option<(u64, u64)> {
-        None
-    }
-
-    pub fn cpu() -> f32 {
-        0.0
-    }
-
-    pub fn network() -> Option<NetworkInfo> {
-        None
     }
 }
 

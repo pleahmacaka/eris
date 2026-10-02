@@ -57,7 +57,6 @@ pub fn note_preview(path: String) -> Result<String, String> {
     Ok(String::from_utf8_lossy(&bytes).into_owned())
 }
 
-#[cfg(target_os = "windows")]
 mod win {
     use windows::core::HSTRING;
     use windows::Win32::System::Registry::{
@@ -83,13 +82,6 @@ mod win {
         let _ = unsafe { RegCloseKey(key) };
 
         true
-    }
-}
-
-#[cfg(not(target_os = "windows"))]
-mod win {
-    pub fn scheme_registered(_scheme: &str) -> bool {
-        false
     }
 }
 

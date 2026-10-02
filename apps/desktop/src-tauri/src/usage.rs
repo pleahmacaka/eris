@@ -202,7 +202,6 @@ pub fn bridge(chain: Option<String>) {
         .arg(&chain)
         .stdin(std::process::Stdio::piped());
 
-    #[cfg(target_os = "windows")]
     {
         use std::os::windows::process::CommandExt;
 
@@ -225,12 +224,6 @@ pub fn bridge(chain: Option<String>) {
     let _ = child.wait();
 }
 
-#[cfg(not(target_os = "windows"))]
-fn shell() -> (PathBuf, &'static str) {
-    (PathBuf::from("sh"), "-c")
-}
-
-#[cfg(target_os = "windows")]
 fn shell() -> (PathBuf, &'static str) {
     match bash() {
         Some(bash) => (bash, "-c"),
@@ -238,7 +231,6 @@ fn shell() -> (PathBuf, &'static str) {
     }
 }
 
-#[cfg(target_os = "windows")]
 fn bash() -> Option<PathBuf> {
     let dir = |key: &str| std::env::var_os(key).map(PathBuf::from);
 
@@ -261,7 +253,6 @@ fn bash() -> Option<PathBuf> {
     })
 }
 
-#[cfg(target_os = "windows")]
 fn wsl_launcher(path: &std::path::Path) -> bool {
     path.to_string_lossy()
         .to_lowercase()
@@ -377,40 +368,6 @@ pub fn claude_usage(path: Option<String>) -> Option<ClaudeUsage> {
     })
 }
 
-// the bridge writes from a separate process, so push updates instead of waiting on the poll
-pub fn watch(app: tauri::AppHandle) {
-    use tauri::Emitter;
-
-    std::thread::spawn(move || {
-        let mut stamps: Vec<u64> = Vec::new();
-
-        loop {
-            std::thread::sleep(std::time::Duration::from_secs(2));
-
-            let files = candidates(None);
-
-            if stamps.len() != files.len() {
-                stamps = vec![0; files.len()];
-            }
-
-            for (index, file) in files.iter().enumerate() {
-                let stamp = std::fs::metadata(file)
-                    .and_then(|meta| meta.modified())
-                    .ok()
-                    .and_then(|at| at.duration_since(std::time::UNIX_EPOCH).ok())
-                    .map(|span| span.as_millis() as u64)
-                    .unwrap_or(0);
-
-                if stamp != stamps[index] {
-                    stamps[index] = stamp;
-
-                    let _ = app.emit("claude-usage", ());
-                }
-            }
-        }
-    });
-}
-
 #[cfg(test)]
 mod tests {
     use super::parse;
@@ -469,7 +426,6 @@ mod tests {
         assert!(parse(r#"{ "hello": 1 }"#, "test".into()).is_none());
     }
 
-    #[cfg(target_os = "windows")]
     #[test]
     fn the_wsl_launcher_is_not_mistaken_for_a_shell() {
         use std::path::Path;

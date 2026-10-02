@@ -23,7 +23,6 @@ pub fn preview_hide(app: AppHandle) {
     win::hide(&app);
 }
 
-#[cfg(target_os = "windows")]
 mod win {
     use std::sync::Mutex;
 
@@ -239,13 +238,4 @@ mod win {
 
         crate::windowing::webview_visible(app, "preview", false);
     }
-}
-
-#[cfg(not(target_os = "windows"))]
-mod win {
-    use tauri::AppHandle;
-
-    pub fn show(_app: &AppHandle, _windows: &[isize], _center: f64) {}
-
-    pub fn hide(_app: &AppHandle) {}
 }

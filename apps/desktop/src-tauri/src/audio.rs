@@ -37,7 +37,6 @@ pub fn set_audio_device(id: String) -> Result<(), String> {
     win::set_default(&id)
 }
 
-#[cfg(target_os = "windows")]
 pub(crate) mod win {
     use windows::core::{interface, IUnknown, IUnknown_Vtbl, BOOL, GUID, HRESULT, PCWSTR};
     use windows::Win32::Devices::FunctionDiscovery::PKEY_Device_FriendlyName;
@@ -226,32 +225,7 @@ pub(crate) mod win {
     }
 }
 
-#[cfg(not(target_os = "windows"))]
-mod win {
-    use super::{AudioDevice, Volume};
-
-    pub fn volume() -> Option<Volume> {
-        None
-    }
-
-    pub fn devices() -> Vec<AudioDevice> {
-        Vec::new()
-    }
-
-    pub fn set_default(_id: &str) -> Result<(), String> {
-        Err("unsupported platform".into())
-    }
-
-    pub fn set_level(_level: f32) -> Result<(), String> {
-        Err("unsupported platform".into())
-    }
-
-    pub fn toggle_mute() -> Result<(), String> {
-        Err("unsupported platform".into())
-    }
-}
-
-#[cfg(all(test, target_os = "windows"))]
+#[cfg(test)]
 mod tests {
     #[test]
     fn the_default_endpoint_can_be_reassigned_to_itself() {

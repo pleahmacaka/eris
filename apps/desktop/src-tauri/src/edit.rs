@@ -58,7 +58,6 @@ fn lift_features(app: &AppHandle, up: bool) {
     }
 }
 
-#[cfg(target_os = "windows")]
 mod win {
     use windows::Win32::UI::WindowsAndMessaging::{
         GetSystemMetrics, SM_CXVIRTUALSCREEN, SM_CYVIRTUALSCREEN, SM_XVIRTUALSCREEN,
@@ -74,12 +73,5 @@ mod win {
                 GetSystemMetrics(SM_CYVIRTUALSCREEN),
             ]
         }
-    }
-}
-
-#[cfg(not(target_os = "windows"))]
-mod win {
-    pub fn virtual_screen() -> [i32; 4] {
-        [0, 0, 1920, 1080]
     }
 }

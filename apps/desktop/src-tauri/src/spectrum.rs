@@ -72,7 +72,6 @@ pub fn bands_from(samples: &[f32], rate: f32, previous: &mut [f32; BANDS]) -> [f
     next
 }
 
-#[cfg(target_os = "windows")]
 mod win {
     use std::sync::atomic::{AtomicU64, Ordering};
     use std::sync::Mutex;
@@ -144,7 +143,7 @@ mod win {
                 Ok(()) => failing = false,
                 Err(error) => {
                     if !failing {
-                        crate::trace(&format!("spectrum capture lost its device: {error}"));
+                        log::warn!("spectrum capture lost its device: {error}");
                     }
 
                     failing = true;
@@ -283,15 +282,6 @@ mod win {
             Ok(())
         }
     }
-}
-
-#[cfg(not(target_os = "windows"))]
-mod win {
-    use tauri::AppHandle;
-
-    pub fn start(_app: AppHandle) {}
-
-    pub fn stop() {}
 }
 
 #[cfg(test)]

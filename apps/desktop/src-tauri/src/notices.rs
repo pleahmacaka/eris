@@ -143,7 +143,6 @@ fn parse_toast(xml: &str) -> (String, String, Option<String>) {
     (title, body, launch)
 }
 
-#[cfg(target_os = "windows")]
 mod win {
     use std::sync::{Mutex, PoisonError};
 
@@ -241,15 +240,6 @@ mod win {
         }
 
         Ok(notices)
-    }
-}
-
-#[cfg(not(target_os = "windows"))]
-mod win {
-    use super::Notice;
-
-    pub fn read() -> Result<Vec<Notice>, String> {
-        Ok(Vec::new())
     }
 }
 

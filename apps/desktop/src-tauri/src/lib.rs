@@ -37,25 +37,6 @@ mod usage;
 mod windowing;
 mod winkey;
 
-pub fn trace(message: &str) {
-    use std::io::Write;
-
-    let path = std::env::temp_dir().join("eris-hook.log");
-
-    let stamp = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|since| since.as_millis())
-        .unwrap_or_default();
-
-    if let Ok(mut file) = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(path)
-    {
-        let _ = writeln!(file, "{stamp} {message}");
-    }
-}
-
 const QUIET_LOGS: [&str; 6] = [
     "iroh",
     "iroh_quinn",
@@ -210,7 +191,6 @@ pub fn run() {
             winkey::install(handle.clone());
             clipboard::watch(handle.clone());
             desktop::watch(handle.clone());
-            usage::watch(handle.clone());
             apps::watch(handle.clone());
             share::watch(handle.clone());
             p2p::start(&handle);

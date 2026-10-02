@@ -122,22 +122,8 @@ pub fn set_win_key_capture(enabled: bool) {
     release();
 }
 
-#[cfg(target_os = "windows")]
 pub use win::{chord, install, release, tap};
 
-#[cfg(not(target_os = "windows"))]
-pub fn install(_app: tauri::AppHandle) {}
-
-#[cfg(not(target_os = "windows"))]
-pub fn chord<T>(_keys: &[T]) {}
-
-#[cfg(not(target_os = "windows"))]
-pub fn tap<T>(_key: T) {}
-
-#[cfg(not(target_os = "windows"))]
-pub fn release() {}
-
-#[cfg(target_os = "windows")]
 mod win {
     use std::sync::atomic::{AtomicU16, Ordering};
     use std::sync::mpsc::{sync_channel, SyncSender};
@@ -276,7 +262,7 @@ mod win {
             }
         }
 
-        crate::trace("injected win key is still down after release");
+        log::warn!("injected win key is still down after release");
     }
 
     // hook callbacks must return within LowLevelHooksTimeout, so only hand off here
@@ -385,13 +371,13 @@ mod win {
             let hook = match SetWindowsHookExW(WH_KEYBOARD_LL, Some(keyboard_hook), None, 0) {
                 Ok(handle) => handle,
                 Err(error) => {
-                    crate::trace(&format!("keyboard hook failed: {error}"));
+                    log::warn!("keyboard hook failed: {error}");
 
                     return;
                 }
             };
 
-            crate::trace("hook installed");
+            log::info!("hook installed");
 
             let mut message = MSG::default();
 
