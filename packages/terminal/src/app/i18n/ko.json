@@ -1,0 +1,27 @@
+{
+  "terminal": {
+    "tabs": {
+      "new": "새 탭",
+      "close": "탭 닫기",
+      "list": "탭",
+      "shells": "셸"
+    },
+    "window": {
+      "minimize": "최소화",
+      "maximize": "최대화",
+      "restore": "이전 크기",
+      "close": "닫기",
+      "new": "새 창"
+    },
+    "settings": {
+      "title": "설정",
+      "general": "터미널",
+      "shell": "기본 셸",
+      "font": "글꼴",
+      "fontHint": "글꼴 이름을 입력하세요.",
+      "fontSize": "글꼴 크기",
+      "theme": "테마",
+      "version": "버전"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+[package]
+name = "tauri-plugin-eris-terminal"
+version = "0.1.0"
+description = "Pseudo console sessions for Eris family apps"
+edition = "2021"
+rust-version = "1.91"
+links = "tauri-plugin-eris-terminal"
+
+[dependencies]
+eris-window-kit = { version = "0.1.0", path = "../../window-kit" }
+portable-pty = "0.9.0"
+serde = { version = "1.0.229", features = ["derive"] }
+tauri = "2.11"
+
+[build-dependencies]
+tauri-plugin = { version = "2", features = ["build"] }
+
+[target."cfg(windows)".dependencies]
+winreg = "0.55"

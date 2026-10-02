@@ -1,0 +1,27 @@
+{
+  "terminal": {
+    "tabs": {
+      "new": "New tab",
+      "close": "Close tab",
+      "list": "Tabs",
+      "shells": "Shells"
+    },
+    "window": {
+      "minimize": "Minimize",
+      "maximize": "Maximize",
+      "restore": "Restore",
+      "close": "Close",
+      "new": "New window"
+    },
+    "settings": {
+      "title": "Settings",
+      "general": "Terminal",
+      "shell": "Default shell",
+      "font": "Font",
+      "fontHint": "Enter a font family name.",
+      "fontSize": "Font size",
+      "theme": "Theme",
+      "version": "Version"
+    }
+  }
+}

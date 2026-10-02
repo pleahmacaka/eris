@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-shells"
+description = "Enables the shells command without any pre-configured scope."
+commands.allow = ["shells"]
+
+[[permission]]
+identifier = "deny-shells"
+description = "Denies the shells command without any pre-configured scope."
+commands.deny = ["shells"]

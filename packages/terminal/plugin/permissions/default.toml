@@ -1,0 +1,11 @@
+[default]
+description = "Run shells in pseudo consoles and stream their output."
+permissions = [
+  "allow-spawn",
+  "allow-write",
+  "allow-resize",
+  "allow-kill",
+  "allow-shells",
+  "allow-take-intent",
+  "allow-new-window",
+]
