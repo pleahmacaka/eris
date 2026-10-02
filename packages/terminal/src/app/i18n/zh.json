@@ -1,0 +1,27 @@
+{
+  "terminal": {
+    "tabs": {
+      "new": "新建标签页",
+      "close": "关闭标签页",
+      "list": "标签页",
+      "shells": "Shell"
+    },
+    "window": {
+      "minimize": "最小化",
+      "maximize": "最大化",
+      "restore": "还原",
+      "close": "关闭",
+      "new": "新建窗口"
+    },
+    "settings": {
+      "title": "设置",
+      "general": "终端",
+      "shell": "默认 Shell",
+      "font": "字体",
+      "fontHint": "请输入字体名称。",
+      "fontSize": "字号",
+      "theme": "主题",
+      "version": "版本"
+    }
+  }
+}

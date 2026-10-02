@@ -1,0 +1,8 @@
+export { registerTerminalMessages } from "./app/i18n"
+export { type Prefs, prefs } from "./app/prefs.svelte"
+export { default as TerminalApp } from "./app/TerminalApp.svelte"
+export { newWindow as newTerminalWindow } from "./app/windows"
+export { type Pty, type PtyOptions, type Shell, shells, spawn } from "./pty"
+export { DEFAULT_FONT, fontStack } from "./ready"
+export { default as Terminal } from "./Terminal.svelte"
+export { terminalTheme } from "./theme"

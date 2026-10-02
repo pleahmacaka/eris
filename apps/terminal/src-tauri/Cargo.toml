@@ -1,0 +1,22 @@
+[package]
+name = "eris-terminal"
+version = "0.1.0"
+description = "Eris Terminal"
+edition = "2021"
+rust-version = "1.91"
+
+[lib]
+name = "terminal_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[dependencies]
+eris-style = { version = "0.1.0", path = "../../../packages/eris-style" }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+tauri = { version = "2.12.1", features = [] }
+tauri-plugin-clipboard-manager = "2.4.1"
+tauri-plugin-eris-terminal = { version = "0.1.0", path = "../../../packages/terminal/plugin" }
+tauri-plugin-single-instance = "2.5.2"
+
+[build-dependencies]
+tauri-build = { version = "2.7.1", features = [] }

@@ -1,0 +1,27 @@
+{
+  "terminal": {
+    "tabs": {
+      "new": "新しいタブ",
+      "close": "タブを閉じる",
+      "list": "タブ",
+      "shells": "シェル"
+    },
+    "window": {
+      "minimize": "最小化",
+      "maximize": "最大化",
+      "restore": "元のサイズに戻す",
+      "close": "閉じる",
+      "new": "新しいウィンドウ"
+    },
+    "settings": {
+      "title": "設定",
+      "general": "ターミナル",
+      "shell": "既定のシェル",
+      "font": "フォント",
+      "fontHint": "フォント名を入力してください。",
+      "fontSize": "フォントサイズ",
+      "theme": "テーマ",
+      "version": "バージョン"
+    }
+  }
+}
