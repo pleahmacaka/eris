@@ -1,0 +1,4 @@
+target
+*.node
+binding.js
+binding.d.ts

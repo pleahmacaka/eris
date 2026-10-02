@@ -1,0 +1,16 @@
+[package]
+name = "is-screen-sharing-node"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+is-screen-sharing = { version = "0.1.0", path = "core" }
+napi = { version = "3", default-features = false, features = ["napi4"] }
+napi-derive = "3"
+
+[build-dependencies]
+napi-build = "2"
