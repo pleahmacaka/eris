@@ -17,21 +17,34 @@ jobs:
       contents: write
       pull-requests: write
     outputs:
-      tag: ${{ github.event.inputs.tag || steps.release.outputs['apps/desktop--tag_name'] }}
-      build: ${{ github.event_name == 'workflow_dispatch' || steps.release.outputs['apps/desktop--release_created'] == 'true' }}
+      tag: ${{ steps.target.outputs.tag }}
+      id: ${{ steps.target.outputs.id }}
     steps:
       - uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4.4.1
         id: release
         if: github.event_name == 'push'
 
+      - id: target
+        if: github.event_name == 'workflow_dispatch' || steps.release.outputs['apps/desktop--release_created'] == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.inputs.tag || steps.release.outputs['apps/desktop--tag_name'] }}
+        run: |
+          id=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases" --jq '.[] | select(.tag_name == env.TAG) | .id')
+          test -n "$id"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
   build:
     needs: version
-    if: needs.version.outputs.build == 'true'
+    if: needs.version.outputs.id != ''
     runs-on: windows-latest
     permissions:
       contents: write
-    env:
-      TAG: ${{ needs.version.outputs.tag }}
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [desktop, files, terminal]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -40,24 +53,30 @@ jobs:
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
 
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: bun-cache
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+
       - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
         with:
           toolchain: stable
 
       - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
-          workspaces: './apps/desktop/src-tauri -> target'
+          key: ${{ matrix.app }}
+          workspaces: './apps/${{ matrix.app }}/src-tauri -> target'
+          cache-on-failure: true
 
       - run: bun install --frozen-lockfile
 
-      - id: release
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          id=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases" --jq '.[] | select(.tag_name == env.TAG) | .id')
-          test -n "$id"
-          echo "id=$id" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        if: matrix.app == 'desktop' && steps.bun-cache.outputs.cache-hit != 'true'
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ steps.bun-cache.outputs.cache-primary-key }}
 
       - uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # action-v1.0.0
         env:
@@ -65,12 +84,17 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          projectPath: apps/desktop
-          releaseId: ${{ steps.release.outputs.id }}
-          uploadUpdaterJson: true
+          projectPath: apps/${{ matrix.app }}
+          releaseId: ${{ needs.version.outputs.id }}
+          uploadUpdaterJson: ${{ matrix.app == 'desktop' }}
 
-      - shell: bash
-        env:
+  publish:
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_ID: ${{ steps.release.outputs.id }}
-        run: gh api --silent -X PATCH "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" -F draft=false
+          RELEASE_ID: ${{ needs.version.outputs.id }}
+        run: gh api --silent -X PATCH "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" -F draft=false -f make_latest=true
