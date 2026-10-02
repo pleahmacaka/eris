@@ -2,7 +2,7 @@ import type { IconifyJSON } from "@iconify-json/lucide"
 
 export const lucideSubset: IconifyJSON = {
   prefix: "lucide",
-  lastModified: 1788178201,
+  lastModified: 1790785452,
   width: 24,
   height: 24,
   icons: {
@@ -457,7 +457,7 @@ export const lucideSubset: IconifyJSON = {
       body: '<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></g>',
     },
     "table-2": {
-      body: '<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/>',
+      body: '<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M3 9h18M9 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/></g>',
     },
     terminal: {
       body: '<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19h8M4 17l6-6l-6-6"/>',
@@ -469,9 +469,6 @@ export const lucideSubset: IconifyJSON = {
       body: '<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M10 2h4m-2 12l3-3"/><circle cx="12" cy="14" r="8"/></g>',
     },
     trash: {
-      body: '<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
-    },
-    "trash-2": {
       body: '<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11v6m4-6v6m5-11v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
     },
     "triangle-alert": {
@@ -529,6 +526,9 @@ export const lucideSubset: IconifyJSON = {
   aliases: {
     "alert-circle": {
       parent: "circle-alert",
+    },
+    "trash-2": {
+      parent: "trash",
     },
   },
 }

@@ -4,7 +4,6 @@ pub fn watch(app: &AppHandle, on: bool) {
     win::watch(app, on);
 }
 
-#[cfg(target_os = "windows")]
 mod win {
     use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
     use std::sync::mpsc::{sync_channel, SyncSender};
@@ -113,11 +112,4 @@ mod win {
 
         unsafe { CallNextHookEx(None, code, wparam, lparam) }
     }
-}
-
-#[cfg(not(target_os = "windows"))]
-mod win {
-    use tauri::AppHandle;
-
-    pub fn watch(_app: &AppHandle, _on: bool) {}
 }

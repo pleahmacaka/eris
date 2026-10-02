@@ -3,11 +3,7 @@
   import { t } from "svelte-i18n"
   import { claudeIcon } from "./claudeIcon"
   import { http } from "$lib/http"
-  import {
-    type ClaudeUsage,
-    claudeUsage,
-    onClaudeUsage,
-  } from "$lib/native/usage"
+  import { type ClaudeUsage, claudeUsage } from "$lib/native"
 
   type Props = {
     source?: string
@@ -17,7 +13,8 @@
 
   let { source = "", compact = false, stacked = false }: Props = $props()
 
-  const POLL = 60_000
+  const REMOTE_POLL = 60_000
+  const LOCAL_POLL = 2_000
 
   let usage = $state<ClaudeUsage | null>(null)
   let seq = 0
@@ -42,13 +39,9 @@
   $effect(() => {
     refresh()
 
-    const timer = setInterval(refresh, POLL)
-    const stop = onClaudeUsage(() => void refresh())
+    const timer = setInterval(refresh, remote ? REMOTE_POLL : LOCAL_POLL)
 
-    return () => {
-      clearInterval(timer)
-      stop.then(off => off()).catch(() => undefined)
-    }
+    return () => clearInterval(timer)
   })
 
   const percent = (value: number) => Math.max(0, Math.min(100, Math.round(value)))

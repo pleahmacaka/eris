@@ -167,7 +167,6 @@ pub fn read_favorites() -> Option<Vec<u8>> {
     win::read("Favorites")
 }
 
-#[cfg(target_os = "windows")]
 mod win {
     use windows::core::{w, HSTRING, PCWSTR};
     use windows::Win32::System::Registry::{
@@ -247,21 +246,6 @@ mod win {
             .unwrap_or_default();
 
         super::shortcut_names(&paths)
-    }
-}
-
-#[cfg(not(target_os = "windows"))]
-mod win {
-    pub fn read(_name: &str) -> Option<Vec<u8>> {
-        None
-    }
-
-    pub fn write(_name: &str, _data: &[u8]) -> Result<(), String> {
-        Err("taskbar pins exist only on Windows".into())
-    }
-
-    pub fn pinned_names() -> Vec<String> {
-        Vec::new()
     }
 }
 

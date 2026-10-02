@@ -92,7 +92,6 @@ pub fn clear_icon_cache(app: AppHandle) -> Result<(), String> {
     std::fs::remove_dir_all(icons).map_err(|e| e.to_string())
 }
 
-#[cfg(target_os = "windows")]
 mod win {
     use windows::core::HSTRING;
     use windows::Win32::Foundation::SIZE;
@@ -259,18 +258,7 @@ mod win {
     }
 }
 
-#[cfg(not(target_os = "windows"))]
-mod win {
-    pub fn pixels(_path: &str) -> Option<(u32, u32, Vec<u8>)> {
-        None
-    }
-
-    pub fn icon_pixels(_handle: isize) -> Option<(u32, u32, Vec<u8>)> {
-        None
-    }
-}
-
-#[cfg(all(test, target_os = "windows"))]
+#[cfg(test)]
 mod tests {
     #[test]
     fn renders_an_icon_from_a_start_menu_shortcut() {

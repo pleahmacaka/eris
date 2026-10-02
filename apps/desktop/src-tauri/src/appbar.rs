@@ -64,12 +64,10 @@ pub fn dock_screen() -> Option<[i32; 4]> {
     *SCREEN.lock().unwrap()
 }
 
-#[cfg(target_os = "windows")]
 pub fn dock_frame() -> Option<[i32; 4]> {
     win::base_frame("taskbar")
 }
 
-#[cfg(target_os = "windows")]
 pub fn bar_frame(label: &str) -> Option<[i32; 4]> {
     win::base_frame(label)
 }
@@ -268,17 +266,14 @@ pub fn topbar_on(app: &AppHandle) -> bool {
     })
 }
 
-#[cfg(target_os = "windows")]
 pub fn lift(hwnd: windows::Win32::Foundation::HWND, up: bool) {
     win::lift(hwnd, up);
 }
 
-#[cfg(target_os = "windows")]
 pub fn shell_tray() -> Option<isize> {
     win::tray_window().map(|hwnd| hwnd.0 as isize)
 }
 
-#[cfg(target_os = "windows")]
 mod win {
     use std::collections::{HashMap, HashSet};
     use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
@@ -291,9 +286,6 @@ mod win {
     use tauri_plugin_store::StoreExt;
     use windows::core::w;
     use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, RECT, WPARAM};
-    use windows::Win32::Graphics::Gdi::{
-        CombineRgn, CreateRectRgn, DeleteObject, SetWindowRgn, RGN_OR,
-    };
     use windows::Win32::System::Threading::GetCurrentProcessId;
     use windows::Win32::UI::Shell::{
         DefSubclassProc, SHAppBarMessage, SetWindowSubclass, ABE_BOTTOM, ABE_TOP, ABM_GETSTATE,
@@ -527,7 +519,7 @@ mod win {
             let had_hole = bar.hole.is_some();
 
             bar.reach = (px.max(0.0) * frame.scale).round() as i32;
-            bar.hole = rect.map(|rect| rect.map(|value| (value * frame.scale).round() as i32));
+            bar.hole = rect.map(|rect| crate::windowing::region::physical(rect, frame.scale));
 
             let (reach, hole) = (bar.reach, bar.hole);
             let menus_open = bars.values().any(|bar| bar.hole.is_some());
@@ -566,30 +558,25 @@ mod win {
             (room - reach, room + frame.height)
         };
 
-        unsafe {
-            let region = CreateRectRgn(0, top, frame.width, bottom);
+        let mut rects = vec![[0, top, frame.width, bottom]];
 
-            if let Some([left, top, right, bottom]) = hole {
-                // stretch the menu box to the band so the pointer can cross the gap
-                let (menu_top, menu_bottom) = if frame.top_edge {
-                    (top.min(frame.height), bottom)
-                } else {
-                    (top, bottom.max(room))
-                };
-                let menu = CreateRectRgn(
-                    left - HOLE_PAD,
-                    menu_top - HOLE_PAD,
-                    right + HOLE_PAD,
-                    menu_bottom + HOLE_PAD,
-                );
+        if let Some([left, top, right, bottom]) = hole {
+            // stretch the menu box to the band so the pointer can cross the gap
+            let (menu_top, menu_bottom) = if frame.top_edge {
+                (top.min(frame.height), bottom)
+            } else {
+                (top, bottom.max(room))
+            };
 
-                CombineRgn(Some(region), Some(region), Some(menu), RGN_OR);
-
-                let _ = DeleteObject(menu.into());
-            }
-
-            let _ = SetWindowRgn(hwnd, Some(region), false);
+            rects.push([
+                left - HOLE_PAD,
+                menu_top - HOLE_PAD,
+                right + HOLE_PAD,
+                menu_bottom + HOLE_PAD,
+            ]);
         }
+
+        crate::windowing::region::set(hwnd, Some(&rects), false);
     }
 
     pub fn raise(window: &WebviewWindow) {
@@ -928,35 +915,7 @@ mod win {
     }
 }
 
-#[cfg(not(target_os = "windows"))]
-mod win {
-    use tauri::{Monitor, WebviewWindow};
-
-    use super::TaskbarLayout;
-
-    pub fn place(
-        _window: &WebviewWindow,
-        _layout: &TaskbarLayout,
-        _monitor: &Monitor,
-        _force: bool,
-    ) -> tauri::Result<()> {
-        Ok(())
-    }
-
-    pub fn raise(_window: &WebviewWindow) {}
-
-    pub fn watch_shell(_window: &WebviewWindow) {}
-
-    pub fn extend(_window: &WebviewWindow, _px: f64, _rect: Option<[f64; 4]>) -> tauri::Result<()> {
-        Ok(())
-    }
-
-    pub fn release(_window: &WebviewWindow) {}
-
-    pub fn keep_system_taskbar_hidden(_hidden: bool) {}
-}
-
-#[cfg(all(test, target_os = "windows"))]
+#[cfg(test)]
 mod tests {
     use windows::Win32::Foundation::RECT;
 

@@ -60,7 +60,6 @@ fn language_label(locale: &str, iso3: &str) -> String {
     }
 }
 
-#[cfg(target_os = "windows")]
 mod win {
     use std::sync::atomic::{AtomicIsize, Ordering};
 
@@ -345,48 +344,6 @@ mod win {
             )
         }
         .map_err(text)
-    }
-}
-
-#[cfg(not(target_os = "windows"))]
-mod win {
-    use super::{InputLanguage, RadioInfo};
-
-    pub enum Chord {
-        Notifications,
-        QuickSettings,
-    }
-
-    pub fn radios() -> Result<Vec<RadioInfo>, String> {
-        Ok(Vec::new())
-    }
-
-    pub fn set_radio(_kind: &str, _on: bool) -> Result<(), String> {
-        Err("unsupported platform".into())
-    }
-
-    pub fn bluetooth_devices() -> Result<Vec<String>, String> {
-        Ok(Vec::new())
-    }
-
-    pub fn open_or_chord(_uri: &str, _chord: Chord) -> Result<(), String> {
-        Err("unsupported platform".into())
-    }
-
-    pub fn task_view() -> Result<(), String> {
-        Err("unsupported platform".into())
-    }
-
-    pub fn toggle_desktop() -> Result<(), String> {
-        Err("unsupported platform".into())
-    }
-
-    pub fn input_language() -> Option<InputLanguage> {
-        None
-    }
-
-    pub fn cycle_input_language() -> Result<(), String> {
-        Err("unsupported platform".into())
     }
 }
 

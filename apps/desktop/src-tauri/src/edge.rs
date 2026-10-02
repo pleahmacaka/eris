@@ -4,7 +4,6 @@ pub fn watch(app: AppHandle) {
     win::watch(app);
 }
 
-#[cfg(target_os = "windows")]
 mod win {
     use std::sync::atomic::Ordering;
     use std::time::{Duration, Instant};
@@ -332,14 +331,7 @@ mod win {
     }
 }
 
-#[cfg(not(target_os = "windows"))]
-mod win {
-    use tauri::AppHandle;
-
-    pub fn watch(_app: AppHandle) {}
-}
-
-#[cfg(all(test, target_os = "windows"))]
+#[cfg(test)]
 mod tests {
     use windows::Win32::Foundation::{POINT, RECT};
 

@@ -38,7 +38,6 @@ pub fn beside_host<T>(call: impl FnOnce() -> T) -> T {
     win::beside_host(call)
 }
 
-#[cfg(target_os = "windows")]
 mod win {
     use std::collections::{HashMap, HashSet};
     use std::sync::{Mutex, OnceLock};
@@ -875,7 +874,7 @@ mod win {
             };
 
             if RegisterClassExW(&descriptor) == 0 {
-                crate::trace("tray host class rejected");
+                log::warn!("tray host class rejected");
                 drop(ready);
 
                 return;
@@ -897,7 +896,7 @@ mod win {
             );
 
             let Ok(host) = host else {
-                crate::trace("tray host window rejected");
+                log::warn!("tray host window rejected");
                 drop(ready);
 
                 return;
@@ -917,7 +916,7 @@ mod win {
 
             announce();
 
-            crate::trace("tray host listening");
+            log::info!("tray host listening");
 
             let mut message = MSG::default();
 
@@ -948,29 +947,4 @@ mod win {
             assert_eq!(std::mem::size_of::<TrayMessage>(), 964);
         }
     }
-}
-
-#[cfg(not(target_os = "windows"))]
-mod win {
-    use tauri::AppHandle;
-
-    use super::TrayIcon;
-
-    pub fn icons() -> Vec<TrayIcon> {
-        Vec::new()
-    }
-
-    pub fn click(_id: &str, _button: &str) {}
-
-    pub fn promote(_id: &str, _promoted: bool) -> Result<(), String> {
-        Ok(())
-    }
-
-    pub fn host(_app: Option<AppHandle>) {}
-
-    pub fn beside_host<T>(call: impl FnOnce() -> T) -> T {
-        call()
-    }
-
-    pub fn release() {}
 }

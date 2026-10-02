@@ -63,7 +63,6 @@ fn app_name(id: &str) -> String {
     name.to_string()
 }
 
-#[cfg(target_os = "windows")]
 mod win {
     use std::thread::sleep;
     use std::time::{Duration, Instant};
@@ -147,19 +146,6 @@ mod win {
 
     fn text(value: windows::core::Result<windows::core::HSTRING>) -> String {
         value.map(|value| value.to_string()).unwrap_or_default()
-    }
-}
-
-#[cfg(not(target_os = "windows"))]
-mod win {
-    use super::MediaStatus;
-
-    pub fn status() -> Option<MediaStatus> {
-        None
-    }
-
-    pub fn command(_action: &str) -> Result<(), String> {
-        Err("unsupported platform".into())
     }
 }
 
