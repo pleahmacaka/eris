@@ -1,0 +1,11 @@
+[package]
+name = "eris-window-kit"
+version = "0.1.0"
+description = "Child window helpers shared by Eris family plugins"
+edition = "2021"
+rust-version = "1.91"
+publish = false
+
+[dependencies]
+tauri = "2.11"
+tauri-plugin-opener = "2.5"
