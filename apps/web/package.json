@@ -1,0 +1,32 @@
+{
+  "name": "eris-web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "prepare": "svelte-kit sync || echo ''",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "icons": "bun run ../desktop/scripts/icons.ts && biome check --write src/lib/icons.ts"
+  },
+  "dependencies": {
+    "@eris/ui": "workspace:*",
+    "@iconify/svelte": "^5.2.2",
+    "pretendard": "^1.3.9"
+  },
+  "devDependencies": {
+    "@iconify-json/lucide": "^1.2.128",
+    "@sveltejs/adapter-static": "^3.0.10",
+    "@sveltejs/kit": "^2.63.0",
+    "@sveltejs/vite-plugin-svelte": "^7.1.2",
+    "@tailwindcss/vite": "^4.3.0",
+    "daisyui": "^5.7.20",
+    "svelte": "^5.56.1",
+    "svelte-check": "^4.6.0",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16"
+  }
+}
