@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-search-dir"
+description = "Enables the search_dir command without any pre-configured scope."
+commands.allow = ["search_dir"]
+
+[[permission]]
+identifier = "deny-search-dir"
+description = "Denies the search_dir command without any pre-configured scope."
+commands.deny = ["search_dir"]

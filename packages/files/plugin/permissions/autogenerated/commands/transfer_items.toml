@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-transfer-items"
+description = "Enables the transfer_items command without any pre-configured scope."
+commands.allow = ["transfer_items"]
+
+[[permission]]
+identifier = "deny-transfer-items"
+description = "Denies the transfer_items command without any pre-configured scope."
+commands.deny = ["transfer_items"]

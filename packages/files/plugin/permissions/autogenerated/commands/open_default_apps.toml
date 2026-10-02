@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-open-default-apps"
+description = "Enables the open_default_apps command without any pre-configured scope."
+commands.allow = ["open_default_apps"]
+
+[[permission]]
+identifier = "deny-open-default-apps"
+description = "Denies the open_default_apps command without any pre-configured scope."
+commands.deny = ["open_default_apps"]

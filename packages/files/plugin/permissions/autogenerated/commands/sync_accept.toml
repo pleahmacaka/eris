@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-sync-accept"
+description = "Enables the sync_accept command without any pre-configured scope."
+commands.allow = ["sync_accept"]
+
+[[permission]]
+identifier = "deny-sync-accept"
+description = "Denies the sync_accept command without any pre-configured scope."
+commands.deny = ["sync_accept"]

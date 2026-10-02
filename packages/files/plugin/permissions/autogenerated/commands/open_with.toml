@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-open-with"
+description = "Enables the open_with command without any pre-configured scope."
+commands.allow = ["open_with"]
+
+[[permission]]
+identifier = "deny-open-with"
+description = "Denies the open_with command without any pre-configured scope."
+commands.deny = ["open_with"]

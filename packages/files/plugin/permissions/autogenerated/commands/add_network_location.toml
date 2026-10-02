@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-add-network-location"
+description = "Enables the add_network_location command without any pre-configured scope."
+commands.allow = ["add_network_location"]
+
+[[permission]]
+identifier = "deny-add-network-location"
+description = "Denies the add_network_location command without any pre-configured scope."
+commands.deny = ["add_network_location"]

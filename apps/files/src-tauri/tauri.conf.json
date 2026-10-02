@@ -1,0 +1,56 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Eris Files",
+  "mainBinaryName": "eris-files",
+  "version": "../package.json",
+  "identifier": "com.arixlab.eris.files",
+  "build": {
+    "frontendDist": "../build",
+    "devUrl": "http://localhost:1440",
+    "beforeDevCommand": "bun run dev",
+    "beforeBuildCommand": "bun run build",
+    "windows": {
+      "staticVCRuntime": true
+    }
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [],
+    "security": {
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": []
+      }
+    }
+  },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["eris-files"]
+      },
+      "mobile": [
+        {
+          "scheme": ["eris-files"],
+          "appLink": false
+        }
+      ]
+    }
+  },
+  "bundle": {
+    "publisher": "ArixLab",
+    "active": true,
+    "targets": ["nsis"],
+    "windows": {
+      "nsis": {
+        "installerHooks": "../../desktop/src-tauri/windows/hooks.nsh"
+      }
+    },
+    "icon": [
+      "../../desktop/src-tauri/icons/32x32.png",
+      "../../desktop/src-tauri/icons/128x128.png",
+      "../../desktop/src-tauri/icons/128x128@2x.png",
+      "../../desktop/src-tauri/icons/icon.ico"
+    ]
+  }
+}

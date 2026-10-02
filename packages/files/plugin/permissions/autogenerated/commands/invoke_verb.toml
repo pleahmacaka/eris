@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-invoke-verb"
+description = "Enables the invoke_verb command without any pre-configured scope."
+commands.allow = ["invoke_verb"]
+
+[[permission]]
+identifier = "deny-invoke-verb"
+description = "Denies the invoke_verb command without any pre-configured scope."
+commands.deny = ["invoke_verb"]

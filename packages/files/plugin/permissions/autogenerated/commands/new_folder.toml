@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-new-folder"
+description = "Enables the new_folder command without any pre-configured scope."
+commands.allow = ["new_folder"]
+
+[[permission]]
+identifier = "deny-new-folder"
+description = "Denies the new_folder command without any pre-configured scope."
+commands.deny = ["new_folder"]

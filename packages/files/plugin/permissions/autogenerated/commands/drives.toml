@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-drives"
+description = "Enables the drives command without any pre-configured scope."
+commands.allow = ["drives"]
+
+[[permission]]
+identifier = "deny-drives"
+description = "Denies the drives command without any pre-configured scope."
+commands.deny = ["drives"]

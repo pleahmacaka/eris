@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-native-menu"
+description = "Enables the native_menu command without any pre-configured scope."
+commands.allow = ["native_menu"]
+
+[[permission]]
+identifier = "deny-native-menu"
+description = "Denies the native_menu command without any pre-configured scope."
+commands.deny = ["native_menu"]

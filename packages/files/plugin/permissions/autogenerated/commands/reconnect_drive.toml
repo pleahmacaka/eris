@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-reconnect-drive"
+description = "Enables the reconnect_drive command without any pre-configured scope."
+commands.allow = ["reconnect_drive"]
+
+[[permission]]
+identifier = "deny-reconnect-drive"
+description = "Denies the reconnect_drive command without any pre-configured scope."
+commands.deny = ["reconnect_drive"]

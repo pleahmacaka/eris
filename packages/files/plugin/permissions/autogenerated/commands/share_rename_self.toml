@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-share-rename-self"
+description = "Enables the share_rename_self command without any pre-configured scope."
+commands.allow = ["share_rename_self"]
+
+[[permission]]
+identifier = "deny-share-rename-self"
+description = "Denies the share_rename_self command without any pre-configured scope."
+commands.deny = ["share_rename_self"]

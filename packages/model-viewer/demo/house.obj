@@ -1,0 +1,25 @@
+mtllib house.mtl
+
+o walls
+v -1 0 -1
+v 1 0 -1
+v 1 0 1
+v -1 0 1
+v -1 2 -1
+v 1 2 -1
+v 1 2 1
+v -1 2 1
+usemtl walls
+f 1 2 3 4
+f 4 3 7 8
+f 2 1 5 6
+f 3 2 6 7
+f 1 4 8 5
+
+o roof
+v 0 3 0
+usemtl roof
+f 8 7 9
+f 7 6 9
+f 6 5 9
+f 5 8 9

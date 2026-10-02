@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-show-properties"
+description = "Enables the show_properties command without any pre-configured scope."
+commands.allow = ["show_properties"]
+
+[[permission]]
+identifier = "deny-show-properties"
+description = "Denies the show_properties command without any pre-configured scope."
+commands.deny = ["show_properties"]
