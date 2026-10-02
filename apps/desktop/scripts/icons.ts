@@ -8,7 +8,7 @@ const OUT = "src/lib/icons.ts"
 const scanSources = async () => {
   const files: string[] = []
 
-  for (const root of ["src", "../../packages/ui/src"]) {
+  for (const root of ["src", "../../packages/ui/src", ...Bun.argv.slice(2)]) {
     for await (const entry of new Glob("**/*.{svelte,ts}").scan(root)) {
       const path = `${root}/${entry.replaceAll("\\", "/")}`
 

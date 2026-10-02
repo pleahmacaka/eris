@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "eris",
   "version": "../package.json",
-  "identifier": "com.eris.app",
+  "identifier": "com.arixlab.eris.windows",
   "build": {
     "frontendDist": "../build",
     "devUrl": "http://localhost:1430",
@@ -149,24 +149,6 @@
         "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-gpu-compositing"
       },
       {
-        "label": "files",
-        "url": "/files",
-        "title": "Eris Files",
-        "width": 1100,
-        "height": 700,
-        "minWidth": 720,
-        "minHeight": 460,
-        "resizable": true,
-        "transparent": true,
-        "decorations": false,
-        "shadow": false,
-        "skipTaskbar": false,
-        "center": true,
-        "visible": false,
-        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-gpu-compositing",
-        "create": false
-      },
-      {
         "label": "edit",
         "url": "/edit",
         "title": "Eris Edit",
@@ -201,11 +183,15 @@
       }
     ],
     "security": {
-      "csp": null
-    },
-    "macOSPrivateApi": true
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": []
+      }
+    }
   },
   "bundle": {
+    "publisher": "ArixLab",
     "active": true,
     "targets": "all",
     "icon": [
@@ -215,10 +201,12 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "android": {
-      "debugApplicationIdSuffix": ".debug"
-    },
-    "createUpdaterArtifacts": true
+    "createUpdaterArtifacts": true,
+    "windows": {
+      "nsis": {
+        "installerHooks": "windows/hooks.nsh"
+      }
+    }
   },
   "plugins": {
     "updater": {
@@ -228,6 +216,13 @@
       ],
       "windows": {
         "installMode": "passive"
+      }
+    },
+    "deep-link": {
+      "desktop": {
+        "schemes": [
+          "eris-files"
+        ]
       }
     }
   }

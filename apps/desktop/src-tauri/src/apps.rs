@@ -5,6 +5,7 @@ use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
 use serde::Serialize;
+use tauri::{AppHandle, Emitter};
 
 const TTL: Duration = Duration::from_secs(300);
 const EXPLORER_APP_ID: &str = "Microsoft.Windows.Explorer";
@@ -78,6 +79,18 @@ fn explorer_link(path: &str) -> bool {
     win::shortcut_app_id(path).is_some_and(|id| id == EXPLORER_APP_ID)
 }
 
+fn opens_explorer(path: &str) -> bool {
+    let is_explorer = |file: &str| {
+        Path::new(file)
+            .file_name()
+            .is_some_and(|name| name.eq_ignore_ascii_case("explorer.exe"))
+    };
+
+    is_explorer(path)
+        || explorer_link(path)
+        || shortcut_target(path).is_some_and(|target| is_explorer(&target))
+}
+
 fn shortcuts_in(root: PathBuf, depth: usize) -> Vec<AppEntry> {
     walkdir::WalkDir::new(root)
         .max_depth(depth)
@@ -132,6 +145,15 @@ fn refresh_in_background() {
 
         *CACHE.lock().unwrap() = Some((Instant::now(), apps));
         REFRESHING.store(false, Ordering::Relaxed);
+    });
+}
+
+pub fn watch(app: AppHandle) {
+    std::thread::spawn(move || {
+        win::watch_folders(&roots(), || {
+            *CACHE.lock().unwrap() = Some((Instant::now(), scan()));
+            let _ = app.emit("apps-changed", ());
+        });
     });
 }
 
@@ -191,15 +213,23 @@ fn file_name(path: &str) -> String {
 }
 
 #[tauri::command(async)]
-pub fn launch_app(path: String, admin: bool) -> Result<(), String> {
+pub fn launch_app(app: AppHandle, path: String, admin: bool) -> Result<(), String> {
+    if !admin && opens_explorer(&path) && crate::eris_files::open_instead(&app, None) {
+        return Ok(());
+    }
+
     let verb = if admin { "runas" } else { "open" };
 
     shell_execute(verb, &path, None, true)
 }
 
 #[tauri::command(async)]
-pub fn open_location(path: String) -> Result<(), String> {
+pub fn open_location(app: AppHandle, path: String) -> Result<(), String> {
     let target = shortcut_target(&path).unwrap_or(path);
+
+    if crate::eris_files::open_instead(&app, Some(target.clone())) {
+        return Ok(());
+    }
 
     shell_execute(
         "open",
@@ -222,10 +252,16 @@ pub fn shell_execute(
     win::shell_execute(verb, file, parameters, visible)
 }
 
-#[cfg(target_os = "windows")]
 mod win {
+    use std::path::PathBuf;
+
     use windows::core::{w, Interface, HSTRING, PCWSTR};
+    use windows::Win32::Foundation::{HANDLE, WAIT_EVENT, WAIT_OBJECT_0};
     use windows::Win32::Storage::EnhancedStorage::PKEY_AppUserModel_ID;
+    use windows::Win32::Storage::FileSystem::{
+        FindCloseChangeNotification, FindFirstChangeNotificationW, FindNextChangeNotification,
+        FILE_NOTIFY_CHANGE_DIR_NAME, FILE_NOTIFY_CHANGE_FILE_NAME,
+    };
     use windows::Win32::System::Com::StructuredStorage::{
         PropVariantClear, PropVariantToStringAlloc,
     };
@@ -233,6 +269,7 @@ mod win {
         CoCreateInstance, CoInitializeEx, CoTaskMemFree, IPersistFile, CLSCTX_INPROC_SERVER,
         COINIT_APARTMENTTHREADED, STGM_READ,
     };
+    use windows::Win32::System::Threading::{WaitForMultipleObjects, INFINITE};
     use windows::Win32::UI::Shell::PropertiesSystem::IPropertyStore;
     use windows::Win32::UI::Shell::{
         BHID_EnumItems, IEnumShellItems, IShellItem, IShellLinkW, SHCreateItemFromParsingName,
@@ -388,35 +425,58 @@ mod win {
 
         entries
     }
+
+    // installers write shortcuts in bursts, so rescan once the folders stay quiet
+    const SETTLE_MS: u32 = 1_500;
+
+    pub fn watch_folders(roots: &[(PathBuf, usize)], mut changed: impl FnMut()) {
+        let filter = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME;
+        let handles: Vec<HANDLE> = roots
+            .iter()
+            .filter_map(|(root, depth)| unsafe {
+                FindFirstChangeNotificationW(&HSTRING::from(root.as_os_str()), *depth > 1, filter)
+                    .ok()
+            })
+            .collect();
+
+        if handles.is_empty() {
+            return;
+        }
+
+        let wait = |timeout: u32| {
+            signaled(
+                unsafe { WaitForMultipleObjects(&handles, false, timeout) },
+                handles.len(),
+            )
+        };
+
+        'watch: while let Some(first) = wait(INFINITE) {
+            let mut pending = Some(first);
+
+            while let Some(index) = pending {
+                if unsafe { FindNextChangeNotification(handles[index]) }.is_err() {
+                    break 'watch;
+                }
+
+                pending = wait(SETTLE_MS);
+            }
+
+            changed();
+        }
+
+        for handle in handles {
+            let _ = unsafe { FindCloseChangeNotification(handle) };
+        }
+    }
+
+    fn signaled(result: WAIT_EVENT, count: usize) -> Option<usize> {
+        let index = result.0.wrapping_sub(WAIT_OBJECT_0.0) as usize;
+
+        (index < count).then_some(index)
+    }
 }
 
-#[cfg(not(target_os = "windows"))]
-mod win {
-    use super::AppEntry;
-
-    pub fn shell_execute(
-        _verb: &str,
-        file: &str,
-        _parameters: Option<&str>,
-        _visible: bool,
-    ) -> Result<(), String> {
-        Err(format!("unsupported platform for {file}"))
-    }
-
-    pub fn shortcut_target(_path: &str) -> Option<String> {
-        None
-    }
-
-    pub fn shortcut_app_id(_path: &str) -> Option<String> {
-        None
-    }
-
-    pub fn store_apps() -> Vec<AppEntry> {
-        Vec::new()
-    }
-}
-
-#[cfg(all(test, target_os = "windows"))]
+#[cfg(test)]
 mod tests {
     use super::*;
 

@@ -33,7 +33,7 @@ export type DockWidget = {
   size: number
 }
 export type WebSearchEngine = "google" | "duckduckgo" | "bing" | "naver"
-export type TerminalApp = "auto" | "wt" | "pwsh" | "powershell" | "cmd"
+export type TerminalApp = "auto" | "eris" | "wt" | "pwsh" | "powershell" | "cmd"
 export type TodoSort = "manual" | "due" | "priority"
 export type EventTag = { id: string; name: string; hideWhileSharing: boolean }
 export type TraySlot =
@@ -463,6 +463,7 @@ export const DOCK_ALIGNS: DockAlign[] = ["start", "center"]
 
 export const TERMINAL_APPS: TerminalApp[] = [
   "auto",
+  "eris",
   "wt",
   "pwsh",
   "powershell",

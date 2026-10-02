@@ -1,6 +1,7 @@
 export { default as AppearanceControls } from "./AppearanceControls.svelte"
 export { default as DockControls } from "./DockControls.svelte"
 export { default as DockPreview } from "./DockPreview.svelte"
+export { default as ErisFilesControls } from "./ErisFilesControls.svelte"
 export { default as FeatureControls } from "./FeatureControls.svelte"
 export { default as FeatureGate } from "./FeatureGate.svelte"
 export { default as HotkeyPicker } from "./HotkeyPicker.svelte"

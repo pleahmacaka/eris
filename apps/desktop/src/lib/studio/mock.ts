@@ -162,7 +162,7 @@ export const installMocks = (path: string) => {
 
     "plugin:app|version": () => pkg.version,
     "plugin:app|name": () => "eris",
-    "plugin:app|identifier": () => "com.eris.app",
+    "plugin:app|identifier": () => "com.arixlab.eris.windows",
     "plugin:autostart|is_enabled": () => false,
     "plugin:notification|is_permission_granted": () => true,
     "plugin:global-shortcut|is_registered": () => false,

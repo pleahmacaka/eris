@@ -4,7 +4,12 @@ import { Glob } from "bun"
 import { lucideSubset } from "./icons"
 
 const app = join(import.meta.dir, "..", "..")
-const roots = [join(app, "src"), join(app, "..", "..", "packages", "ui", "src")]
+const roots = [
+  join(app, "src"),
+  ...["ui", "terminal", "files", "model-viewer"].map(name =>
+    join(app, "..", "..", "packages", name, "src"),
+  ),
+]
 
 const usedNames = async () => {
   const names = new Set<string>()

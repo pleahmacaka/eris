@@ -15,8 +15,8 @@ mod commands;
 mod desktop;
 mod edge;
 mod edit;
+mod eris_files;
 mod features;
-mod files;
 mod icons;
 mod media;
 mod meters;
@@ -37,10 +37,6 @@ mod usage;
 mod windowing;
 mod winkey;
 
-pub fn usage_bridge(chain: Option<String>) {
-    usage::bridge(chain);
-}
-
 pub fn trace(message: &str) {
     use std::io::Write;
 
@@ -59,6 +55,15 @@ pub fn trace(message: &str) {
         let _ = writeln!(file, "{stamp} {message}");
     }
 }
+
+const QUIET_LOGS: [&str; 6] = [
+    "iroh",
+    "iroh_quinn",
+    "iroh_relay",
+    "netwatch",
+    "portmapper",
+    "tracing::span",
+];
 
 fn onboarded(app: &AppHandle) -> bool {
     app.store("settings.json")
@@ -98,11 +103,67 @@ fn open(app: &AppHandle) {
     }
 }
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
+// tauri keys the data folder by identifier, so carry the pre-rename folder over once
+fn adopt_previous_data() {
+    let Some(roaming) = std::env::var_os("APPDATA").map(std::path::PathBuf::from) else {
+        return;
+    };
+    let previous = roaming.join("com.eris.app");
+    let current = roaming.join("com.arixlab.eris.windows");
+
+    if current.exists() || !previous.is_dir() {
+        return;
+    }
+
+    let _ = std::fs::rename(previous, current);
+}
+
+fn logger() -> tauri::plugin::TauriPlugin<tauri::Wry> {
+    QUIET_LOGS
+        .iter()
+        .fold(
+            tauri_plugin_log::Builder::default().level(log::LevelFilter::Info),
+            |builder, target| builder.level_for(*target, log::LevelFilter::Warn),
+        )
+        .max_file_size(1_000_000)
+        .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepOne)
+        .build()
+}
+
 pub fn run() {
-    #[allow(unused_mut)]
-    let mut builder = tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, _, _| {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+
+    if let Some(code) = tauri_plugin_eris_files::default_app::cli(&eris_files::HOST, &args) {
+        std::process::exit(code);
+    }
+
+    if args.iter().any(|arg| arg == "--usage-bridge") {
+        let chain = args
+            .iter()
+            .skip_while(|arg| *arg != "--chain")
+            .nth(1)
+            .cloned();
+
+        return usage::bridge(chain);
+    }
+
+    // a second launch forwards to the running instance, which may only raise its window with this grant
+    let _ = unsafe {
+        windows::Win32::UI::WindowsAndMessaging::AllowSetForegroundWindow(
+            windows::Win32::UI::WindowsAndMessaging::ASFW_ANY,
+        )
+    };
+
+    adopt_previous_data();
+
+    let builder = tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
+            if tauri_plugin_eris_files::claims(&eris_files::HOST, &args) {
+                tauri_plugin_eris_files::forward(app, args, cwd);
+
+                return;
+            }
+
             let label = if !onboarded(app) {
                 "onboarding"
             } else if LAUNCHER_ON.load(Ordering::Relaxed) {
@@ -113,6 +174,7 @@ pub fn run() {
 
             windowing::show(app, label);
         }))
+        .plugin(logger())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_http::init())
@@ -123,25 +185,18 @@ pub fn run() {
         ))
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_eris_terminal::init("/terminal"))
+        .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_eris_files::init(eris_files::HOST))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(commands::handler());
 
     #[cfg(debug_assertions)]
-    {
-        builder = builder.plugin(tauri_plugin_mcp_bridge::init());
-    }
+    let builder = builder.plugin(tauri_plugin_mcp_bridge::init());
 
     builder
-        .setup(|app| {
-            if cfg!(debug_assertions) {
-                app.handle().plugin(
-                    tauri_plugin_log::Builder::default()
-                        .level(log::LevelFilter::Info)
-                        .build(),
-                )?;
-            }
-
+        .setup(move |app| {
             let handle = app.handle().clone();
 
             if !cfg!(debug_assertions) {
@@ -155,9 +210,16 @@ pub fn run() {
             winkey::install(handle.clone());
             clipboard::watch(handle.clone());
             desktop::watch(handle.clone());
-            share::watch(handle.clone());
             usage::watch(handle.clone());
+            apps::watch(handle.clone());
+            share::watch(handle.clone());
             p2p::start(&handle);
+
+            if tauri_plugin_eris_files::claims(&eris_files::HOST, &args) {
+                let cwd = std::env::current_dir().unwrap_or_default();
+
+                tauri_plugin_eris_files::start(&handle, args, &cwd);
+            }
 
             let features = stored_features(&handle);
 

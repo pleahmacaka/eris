@@ -17,7 +17,6 @@ export type WindowLabel =
   | "panel"
   | "notices"
   | "onboarding"
-  | "files"
   | "studio"
 
 export const listWindows = () => invoke<WindowEntry[]>("list_windows")

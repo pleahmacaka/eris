@@ -16,13 +16,14 @@
   } from "@eris/settings"
   import {
     DockControls,
+    ErisFilesControls,
     FeatureControls,
     HotkeyPicker,
     PresetGrid,
     allPresets,
     SyncPanel,
   } from "$lib/settings-ui"
-  import { Logo, Row, Section, Segmented, Toasts, toast } from "@eris/ui"
+  import { AsciiLogo, Logo, Row, Section, Segmented, Toasts, toast } from "@eris/ui"
   import { applyAppearance } from "$lib/theme"
 
   const steps = [
@@ -218,11 +219,7 @@
     class="flex items-center gap-4 px-6 pt-5 pb-3"
   >
     <div class="pointer-events-none flex items-center gap-2">
-      <div
-        class="flex size-7 items-center justify-center rounded-field bg-primary/15 text-primary"
-      >
-        <Icon icon="lucide:sparkles" class="size-4" />
-      </div>
+      <Logo class="size-6" />
 
       <span class="text-sm font-semibold">{$t("onboarding.title")}</span>
     </div>
@@ -273,7 +270,11 @@
             <div
               class="flex h-full flex-col items-center justify-center gap-8 text-center"
             >
-              <Logo class="size-16" />
+              <div class="flex flex-col items-center gap-3">
+                <AsciiLogo cols={36} class="w-48" />
+
+                <span class="text-xl font-black tracking-tighter uppercase">Eris</span>
+              </div>
 
               <div>
                 <h2 class="text-3xl font-semibold tracking-tight">
@@ -288,7 +289,7 @@
               <ul class="grid w-full max-w-2xl grid-cols-3 gap-3 text-left">
                 {#each features as f (f.id)}
                   <li
-                    class="flex flex-col gap-2 rounded-box border border-base-content/10 bg-base-100/60 p-4 backdrop-blur-md"
+                    class="eris-card flex flex-col gap-2 p-4"
                   >
                     <div
                       class="flex size-8 items-center justify-center rounded-field bg-primary/15 text-primary"
@@ -321,6 +322,12 @@
             <Section title={$t("settings.groups.features.title")}>
               <FeatureControls bind:device presets />
             </Section>
+
+            <div class="mt-4">
+              <Section title={$t("settings.groups.erisFiles")}>
+                <ErisFilesControls launch={false} />
+              </Section>
+            </div>
 
             <div class="mt-4">
               <Section title={$t("settings.groups.device")}>
@@ -468,7 +475,7 @@
               </Section>
 
               <div
-                class="flex items-start gap-3 rounded-box border border-base-content/10 bg-base-100/60 p-4 text-sm backdrop-blur-md"
+                class="eris-card flex items-start gap-3 p-4 text-sm"
               >
                 <Icon icon="lucide:info" class="mt-0.5 size-4 shrink-0 text-primary" />
 
@@ -510,7 +517,7 @@
               <ul class="grid w-full max-w-2xl grid-cols-3 gap-3 text-left">
                 {#each tips as tip (tip.id)}
                   <li
-                    class="flex flex-col gap-2 rounded-box border border-base-content/10 bg-base-100/60 p-4 backdrop-blur-md"
+                    class="eris-card flex flex-col gap-2 p-4"
                   >
                     <div
                       class="flex size-8 items-center justify-center rounded-field bg-primary/15 text-primary"
@@ -550,7 +557,7 @@
               </div>
 
               <ul
-                class="w-full max-w-md divide-y divide-base-content/10 rounded-box border border-base-content/10 bg-base-100/60 text-left backdrop-blur-md"
+                class="eris-card w-full max-w-md divide-y divide-base-content/10 text-left"
               >
                 {#each summary as s (s.label)}
                   <li class="flex items-center gap-3 px-4 py-3">
