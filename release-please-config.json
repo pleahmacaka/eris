@@ -10,7 +10,19 @@
   "force-tag-creation": true,
   "packages": {
     "apps/desktop": {
-      "component": "eris"
+      "component": "eris",
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "/apps/files/package.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "/apps/terminal/package.json",
+          "jsonpath": "$.version"
+        }
+      ]
     }
   }
 }
