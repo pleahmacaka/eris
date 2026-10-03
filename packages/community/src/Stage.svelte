@@ -35,16 +35,27 @@
     files: [centered("files", 1040, 600)],
     terminal: [centered("terminal", 960, 560)],
   }
+
+  const MAC_DOCK_WIDTH = 720
+
+  const MAC_DOCK: Frame = {
+    path: "taskbar",
+    width: MAC_DOCK_WIDTH,
+    height: DOCK_HEIGHT,
+    top: SCREEN.height - DOCK_HEIGHT - 12,
+    left: (SCREEN.width - MAC_DOCK_WIDTH) / 2,
+  }
 </script>
 
 <script lang="ts">
-  import type { Appearance } from "@eris/settings"
+  import type { Appearance, DeviceSettings } from "@eris/settings"
   import { onMount } from "svelte"
   import { previewUrl } from "./support"
 
   let {
     studio,
     appearance,
+    device,
     surface,
     title,
     unavailable,
@@ -52,6 +63,7 @@
   }: {
     studio?: string
     appearance: Partial<Appearance>
+    device?: Partial<DeviceSettings>
     surface: Surface
     title: string
     unavailable: string
@@ -66,6 +78,14 @@
   })
 
   const scale = $derived(width / SCREEN.width)
+
+  const frames = $derived(
+    device?.dockStyle === "mac"
+      ? FRAMES[surface].map(frame =>
+          frame.path === "taskbar" ? MAC_DOCK : frame,
+        )
+      : FRAMES[surface],
+  )
 </script>
 
 <div
@@ -80,8 +100,8 @@
       style:height="{SCREEN.height}px"
       style:transform="scale({scale})"
     >
-      {#each FRAMES[surface] as frame (frame.path)}
-        {@const src = previewUrl(studio, frame.path, appearance)}
+      {#each frames as frame (frame.path)}
+        {@const src = previewUrl(studio, frame.path, appearance, device)}
 
         {#key src}
           <iframe

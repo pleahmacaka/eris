@@ -65,11 +65,9 @@ let installed = false
 
 export const mocked = () => installed
 
-const seededAppearance = (): Store | null => {
+const fromQuery = (key: string): Store | null => {
   try {
-    return JSON.parse(
-      new URLSearchParams(location.search).get("appearance") ?? "null",
-    )
+    return JSON.parse(new URLSearchParams(location.search).get(key) ?? "null")
   } catch {
     return null
   }
@@ -92,6 +90,7 @@ const previewStores = (appearance: Store) => {
       path === SETTINGS
         ? {
             ...settings,
+            device: { ...(settings.device as Store), ...fromQuery("device") },
             profile: { ...profile, presetId: "community", appearance },
           }
         : settings
@@ -111,7 +110,7 @@ const previewStores = (appearance: Store) => {
 export const installMocks = (path: string) => {
   installed = true
 
-  const appearance = seededAppearance()
+  const appearance = fromQuery("appearance")
   const { read: readStore, write: writeStore } = appearance
     ? previewStores(appearance)
     : { read: readSharedStore, write: writeSharedStore }

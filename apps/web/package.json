@@ -14,6 +14,7 @@
   "dependencies": {
     "@eris/auth": "workspace:*",
     "@eris/community": "workspace:*",
+    "@eris/settings": "workspace:*",
     "@eris/ui": "workspace:*",
     "@iconify/svelte": "^5.2.2",
     "pretendard": "^1.3.9"

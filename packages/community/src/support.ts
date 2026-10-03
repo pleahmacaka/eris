@@ -1,4 +1,4 @@
-import type { Appearance } from "@eris/settings"
+import type { Appearance, DeviceSettings } from "@eris/settings"
 
 export type Tool = "eris" | "files" | "terminal"
 
@@ -90,10 +90,15 @@ export const previewUrl = (
   studio: string,
   path: string,
   appearance: Partial<Appearance>,
+  device?: Partial<DeviceSettings>,
 ) => {
   const url = new URL(path, new URL(studio, location.href))
 
   url.searchParams.set("appearance", JSON.stringify(appearance))
+
+  if (device) {
+    url.searchParams.set("device", JSON.stringify(device))
+  }
 
   return url.href
 }

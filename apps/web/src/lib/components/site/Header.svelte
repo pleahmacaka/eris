@@ -40,7 +40,9 @@
       </a>
     {/each}
 
-    <a class="link link-hover text-base-content/70" href="themes/">
+    <span class="h-4 w-px bg-base-content/20" aria-hidden="true"></span>
+
+    <a class="btn btn-sm btn-ghost" href="themes/">
       {t.themesLink}
     </a>
 

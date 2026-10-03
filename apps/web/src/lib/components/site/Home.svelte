@@ -5,7 +5,6 @@
   import Header from "./Header.svelte"
   import Hero from "./Hero.svelte"
   import Preview from "./Preview.svelte"
-  import Story from "./Story.svelte"
 
   let { lang }: { lang: Lang } = $props()
 
@@ -35,7 +34,6 @@
 
 <main id="content">
   <Hero {t} />
-  <Story {t} />
   <Preview {t} />
   <Cta {t} />
 </main>
