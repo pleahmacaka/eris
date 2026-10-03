@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.4](https://github.com/pleahmacaka/eris/compare/0.3.3...0.3.4) (2026-10-03)
+
+
+### Features
+
+* add archives, accounts and terminal splits ([6ee96b1](https://github.com/pleahmacaka/eris/commit/6ee96b1529100d528d0c17f5f7e2d1ebc13e5289))
+* **web:** add dock and screen pickers to the live preview ([53b31b3](https://github.com/pleahmacaka/eris/commit/53b31b381ee34ea4cec31daee5e025a3f0d1b26a))
+* **web:** add the theme gallery, editor and live preview ([f1f440c](https://github.com/pleahmacaka/eris/commit/f1f440c51c48f16619967e41be5ec9d07861ac23))
+
+
+### Reverts
+
+* point release and site links back at eris ([ab7d6c9](https://github.com/pleahmacaka/eris/commit/ab7d6c9f0300d0274676ee8bd62711622b5c4cf6))
+
 ## [0.3.3](https://github.com/pleahmacaka/eris/compare/0.3.2...0.3.3) (2026-10-02)
 
 
