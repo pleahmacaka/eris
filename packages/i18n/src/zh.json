@@ -598,7 +598,12 @@
       "features": "功能",
       "system": "系统"
     },
-    "tocAria": "分组"
+    "tocAria": "分组",
+    "themeLink": {
+      "title": "应用主题",
+      "body": "将外观切换为社区主题“{name}”。",
+      "apply": "应用"
+    }
   },
   "launcher": {
     "placeholder": "搜索应用、窗口和命令",

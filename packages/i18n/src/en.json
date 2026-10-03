@@ -598,7 +598,12 @@
       "features": "Features",
       "system": "System"
     },
-    "tocAria": "Groups"
+    "tocAria": "Groups",
+    "themeLink": {
+      "title": "Apply theme",
+      "body": "Switches your appearance to the community theme \"{name}\".",
+      "apply": "Apply"
+    }
   },
   "launcher": {
     "placeholder": "Search apps, windows and commands",

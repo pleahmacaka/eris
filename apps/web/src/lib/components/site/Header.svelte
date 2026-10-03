@@ -40,6 +40,10 @@
       </a>
     {/each}
 
+    <a class="link link-hover text-base-content/70" href="themes/">
+      {t.themesLink}
+    </a>
+
     <a class="btn btn-sm btn-ghost" href="login/">
       {account?.user ? t.account.signedIn : t.account.link}
     </a>

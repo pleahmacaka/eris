@@ -83,3 +83,8 @@ export type MonitorInfo = {
 }
 
 export const listMonitors = () => invoke<MonitorInfo[]>("list_monitors")
+
+export const takeThemeLink = () => invoke<string | null>("take_theme_link")
+
+export const onThemeLink = (handler: () => void) =>
+  listen("eris-theme-link", handler)

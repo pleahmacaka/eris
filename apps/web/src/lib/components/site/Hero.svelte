@@ -84,7 +84,7 @@
 
     <a
       class="flex items-center gap-2 transition hover:text-primary"
-      href="#features"
+      href="#preview"
     >
       {t.hero.next}
       <Icon icon="lucide:arrow-down" class="size-3.5" />

@@ -6,9 +6,11 @@
   import { saveProfileSynced } from "$lib/data"
   import { ensureDevice } from "$lib/device"
   import {
+    onThemeLink,
     onWindowHiding,
     onWindowShown,
     showWindow,
+    takeThemeLink,
   } from "$lib/native/windows"
   import { setLauncherShortcut, setWinKeyCapture } from "$lib/native/dock"
   import {
@@ -24,6 +26,7 @@
   import {
     AboutSection,
     AccountSection,
+    CUSTOM,
     AppearanceSection,
     CalendarSection,
     DataSection,
@@ -38,8 +41,9 @@
     type SearchEntry,
     type SectionId,
     sections,
+    themeFromLink,
   } from "$lib/settings-ui"
-  import { Logo, Toasts } from "@eris/ui"
+  import { Confirm, Logo, Toasts } from "@eris/ui"
   import { toast } from "@eris/ui"
   import { applyAppearance } from "$lib/theme"
   import { t } from "svelte-i18n"
@@ -54,6 +58,29 @@
   let profileJson = ""
   let groups = $state<string[]>([])
   let activeGroup = $state<string | null>(null)
+  let incoming = $state<ReturnType<typeof themeFromLink>>(null)
+  let confirming = $state(false)
+
+  const takeTheme = async () => {
+    const link = await takeThemeLink().catch(() => null)
+    const theme = link ? themeFromLink(link) : null
+
+    if (theme) {
+      incoming = theme
+      confirming = true
+    }
+  }
+
+  const applyTheme = () => {
+    if (!incoming) {
+      return
+    }
+
+    profile.appearance = { ...profile.appearance, ...incoming.appearance }
+    profile.presetId = CUSTOM
+    section = "appearance"
+    incoming = null
+  }
 
   const groupElements = () => [
     ...(scroller?.querySelectorAll<HTMLElement>("section[data-group]") ?? []),
@@ -185,9 +212,11 @@
         takeIntent()
       }),
       onWindowHiding("settings", flush),
+      onThemeLink(takeTheme),
     ]
 
     takeIntent()
+    takeTheme()
 
     return () => {
       for (const stop of stops) {
@@ -394,6 +423,14 @@
     </div>
   </div>
 </main>
+
+<Confirm
+  bind:open={confirming}
+  title={$t("settings.themeLink.title")}
+  body={$t("settings.themeLink.body", { values: { name: incoming?.name ?? "" } })}
+  action={$t("settings.themeLink.apply")}
+  onconfirm={applyTheme}
+/>
 
 <Toasts />
 

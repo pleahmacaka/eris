@@ -598,7 +598,12 @@
       "features": "機能",
       "system": "システム"
     },
-    "tocAria": "グループ"
+    "tocAria": "グループ",
+    "themeLink": {
+      "title": "テーマの適用",
+      "body": "外観をコミュニティテーマ「{name}」に切り替えます。",
+      "apply": "適用"
+    }
   },
   "launcher": {
     "placeholder": "アプリ、ウィンドウ、コマンドを検索",

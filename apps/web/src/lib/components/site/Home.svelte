@@ -1,11 +1,10 @@
 <script lang="ts">
   import { copy, type Lang } from "$lib/copy/languages"
   import Cta from "./Cta.svelte"
-  import Features from "./Features.svelte"
   import Footer from "./Footer.svelte"
   import Header from "./Header.svelte"
   import Hero from "./Hero.svelte"
-  import Specs from "./Specs.svelte"
+  import Preview from "./Preview.svelte"
   import Story from "./Story.svelte"
 
   let { lang }: { lang: Lang } = $props()
@@ -37,8 +36,7 @@
 <main id="content">
   <Hero {t} />
   <Story {t} />
-  <Features {t} />
-  <Specs {t} />
+  <Preview {t} />
   <Cta {t} />
 </main>
 

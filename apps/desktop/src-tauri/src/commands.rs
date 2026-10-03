@@ -3,8 +3,8 @@ use tauri::Wry;
 
 use crate::{
     appbar, apps, audio, clipboard, desktop, edit, features, icons, media, meters, monitors, note,
-    notices, notify, p2p, pins, preview, quick, share, shortcuts, spectrum, system, usage,
-    windowing, winkey,
+    notices, notify, p2p, pins, preview, quick, share, shortcuts, spectrum, system, theme_link,
+    usage, windowing, winkey,
 };
 
 pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
@@ -96,5 +96,6 @@ pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
         p2p::p2p_leave,
         p2p::p2p_publish,
         p2p::p2p_sync,
+        theme_link::take_theme_link,
     ]
 }

@@ -4,9 +4,9 @@ import pkg from "../../../package.json"
 import {
   type BusMessage,
   openBus,
-  readStore,
+  readStore as readSharedStore,
   setLocalDelivery,
-  writeStore,
+  writeStore as writeSharedStore,
 } from "./bus"
 import { fixtures, silent } from "./fixtures"
 import { labelFor, surfaces } from "./surfaces"
@@ -65,37 +65,59 @@ let installed = false
 
 export const mocked = () => installed
 
-const seedAppearance = () => {
-  const seeded = new URLSearchParams(location.search).get("appearance")
-
-  if (!seeded) {
-    return
-  }
-
+const seededAppearance = (): Store | null => {
   try {
-    const settings = readStore(SETTINGS)
-    const profile = (settings.profile ?? {}) as Store
-
-    writeStore(SETTINGS, {
-      ...settings,
-      profile: {
-        ...profile,
-        presetId: "community",
-        appearance: JSON.parse(seeded),
-      },
-    })
+    return JSON.parse(
+      new URLSearchParams(location.search).get("appearance") ?? "null",
+    )
   } catch {
-    return
+    return null
   }
+}
+
+// a gallery page holds many previews on one origin, so each keeps its stores in memory and stays off the bus
+const previewStores = (appearance: Store) => {
+  const memory = new Map<string, Store>()
+
+  const read = (path: string): Store => {
+    const kept = memory.get(path)
+
+    if (kept) {
+      return kept
+    }
+
+    const settings = readSharedStore(path)
+    const profile = (settings.profile ?? {}) as Store
+    const seeded =
+      path === SETTINGS
+        ? {
+            ...settings,
+            profile: { ...profile, presetId: "community", appearance },
+          }
+        : settings
+
+    memory.set(path, seeded)
+
+    return seeded
+  }
+
+  const write = (path: string, data: Store) => {
+    memory.set(path, data)
+  }
+
+  return { read, write }
 }
 
 export const installMocks = (path: string) => {
   installed = true
 
-  seedAppearance()
+  const appearance = seededAppearance()
+  const { read: readStore, write: writeStore } = appearance
+    ? previewStores(appearance)
+    : { read: readSharedStore, write: writeSharedStore }
 
   const label = labelFor(path)
-  const bus = openBus()
+  const bus = appearance ? null : openBus()
   const listeners = new Map<string, Set<number>>()
   const visible = new Set(["taskbar", label])
   const stores = new Map<string, number>()
@@ -116,7 +138,7 @@ export const installMocks = (path: string) => {
 
   const emit = (event: string, payload: unknown) => {
     deliver(event, payload)
-    bus.postMessage({ kind: "event", event, payload } satisfies BusMessage)
+    bus?.postMessage({ kind: "event", event, payload } satisfies BusMessage)
   }
 
   const show = (target: unknown) => emit("window-shown", String(target))
@@ -259,7 +281,7 @@ export const installMocks = (path: string) => {
       QUIET.some(prefix => cmd.startsWith(prefix))
 
     if (!cmd.startsWith("plugin:event|")) {
-      bus.postMessage({
+      bus?.postMessage({
         kind: "ipc",
         label,
         cmd,
@@ -275,9 +297,11 @@ export const installMocks = (path: string) => {
     return handler?.(args) ?? null
   })
 
-  bus.onmessage = (e: MessageEvent<BusMessage>) => {
-    if (e.data.kind === "event") {
-      deliver(e.data.event, e.data.payload)
+  if (bus) {
+    bus.onmessage = (e: MessageEvent<BusMessage>) => {
+      if (e.data.kind === "event") {
+        deliver(e.data.event, e.data.payload)
+      }
     }
   }
 

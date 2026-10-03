@@ -1,4 +1,5 @@
 import type { ClientInit } from "@sveltejs/kit"
+import { base } from "$app/paths"
 
 export const init: ClientInit = async () => {
   if (window.__TAURI_INTERNALS__ && window === window.top) {
@@ -7,5 +8,5 @@ export const init: ClientInit = async () => {
 
   const { installMocks } = await import("$lib/studio")
 
-  installMocks(location.pathname)
+  installMocks(location.pathname.slice(base.length) || "/")
 }

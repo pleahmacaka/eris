@@ -332,6 +332,7 @@ Decisions go here.`,
 
 export const silent = new Set([
   "activate_window",
+  "take_theme_link",
   "close_window",
   "minimize_window",
   "preview_show",
