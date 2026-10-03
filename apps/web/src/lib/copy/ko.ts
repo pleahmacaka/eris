@@ -4,7 +4,7 @@ export const ko: Copy = {
   meta: {
     title: "Eris: Windows 데스크톱 셸",
     description:
-      "Eris는 Windows 작업 표시줄을 독, 런처, 패널, Eris Files, Eris Terminal로 대체합니다. 가장 아름다운 이에게.",
+      "Eris는 Windows 작업 표시줄을 독, 런처, 패널, Eris Files, Eris Terminal로 대체합니다.",
   },
 
   skip: "본문으로 이동",
@@ -24,34 +24,24 @@ export const ko: Copy = {
 
   hero: {
     eyebrow: "Windows 데스크톱 셸",
-    tagline: "가장 아름다운 이에게.",
+    tagline: "작업 표시줄을 대체하는 독, 런처, 패널.",
     download: "Windows용 다운로드",
     source: "GitHub 저장소",
     maker: "ArixLab 프로젝트",
     next: "미리 보기",
   },
 
-  story: {
-    label: "이름",
-    title: "잔치에 던져진 황금 사과",
-    body: [
-      "불화의 여신 에리스는 신들의 결혼 잔치에 황금 사과 하나를 던졌습니다. 사과에는 한 줄이 새겨져 있었습니다. 가장 아름다운 이에게. 헤라와 아테나, 아프로디테가 모두 그 사과를 원했습니다.",
-      "이 셸은 에리스의 이름과 사과를 물려받았습니다. 가장 아름다운 데스크톱을 찾는 사람에게 건네는 셸입니다.",
-    ],
-    translation: "가장 아름다운 이에게",
-    orbitLabel: "왜행성",
-    orbitTitle: "가장자리에서",
-    orbitBody:
-      "에리스는 왜행성의 이름이기도 합니다. 태양계에서 가장 멀리 있는 것으로 알려진 천체 가운데 하나입니다. 이 셸도 같은 자리를 지킵니다. 화면 가장자리에 머물며, 작업을 가리지 않고 그 주위를 공전합니다.",
-  },
-
   preview: {
     title: "Eris 미리 보기",
     unavailable: "미리 보기를 불러올 수 없음",
+    surface: "화면",
+    surfaces: { desktop: "Eris", files: "Files", terminal: "Terminal" },
+    dock: "독 스타일",
+    docks: { windows: "Windows", mac: "Mac" },
   },
 
   cta: {
-    title: "이제 사과를 받을 차례입니다.",
+    title: "Eris 다운로드",
     body: "GitHub에서 최신 릴리스를 다운로드하세요.",
     download: "Windows용 다운로드",
   },

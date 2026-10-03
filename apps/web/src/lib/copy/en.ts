@@ -2,7 +2,7 @@ export const en = {
   meta: {
     title: "Eris: a desktop shell for Windows",
     description:
-      "Eris replaces the Windows taskbar with a dock, a launcher, a panel, Eris Files and Eris Terminal. To the fairest.",
+      "Eris replaces the Windows taskbar with a dock, a launcher, a panel, Eris Files and Eris Terminal.",
   },
 
   skip: "Skip to content",
@@ -22,34 +22,24 @@ export const en = {
 
   hero: {
     eyebrow: "A desktop shell for Windows",
-    tagline: "To the fairest.",
+    tagline: "A dock, launcher and panel that replace the taskbar.",
     download: "Download for Windows",
     source: "View on GitHub",
     maker: "By ArixLab",
     next: "Preview",
   },
 
-  story: {
-    label: "The name",
-    title: "A golden apple, thrown into the feast",
-    body: [
-      "Eris, goddess of discord, threw a golden apple among the gods at a wedding feast. One line was cut into the gold: to the fairest. Hera, Athena and Aphrodite all reached for it.",
-      "The shell takes her name and her apple. It goes to whoever chases the most beautiful desktop.",
-    ],
-    translation: "To the fairest",
-    orbitLabel: "The planet",
-    orbitTitle: "Living at the edge",
-    orbitBody:
-      "Eris is also a dwarf planet, one of the most distant known objects in the solar system. The shell keeps the same habit. It lives on the edges of your screen and circles your work without getting in its way.",
-  },
-
   preview: {
     title: "Eris preview",
     unavailable: "Preview unavailable",
+    surface: "Screen",
+    surfaces: { desktop: "Eris", files: "Files", terminal: "Terminal" },
+    dock: "Dock style",
+    docks: { windows: "Windows", mac: "Mac" },
   },
 
   cta: {
-    title: "The apple is yours.",
+    title: "Get Eris",
     body: "Download the latest release from GitHub.",
     download: "Download for Windows",
   },
