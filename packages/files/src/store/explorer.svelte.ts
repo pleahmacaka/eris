@@ -3,20 +3,22 @@ import { toast } from "@eris/ui"
 import { getCurrentWindow } from "@tauri-apps/api/window"
 import { writeText } from "@tauri-apps/plugin-clipboard-manager"
 import { kindOf } from "../filetypes"
-import { displayName, type Item } from "../items"
+import { displayName, type Item, packedEntry } from "../items"
 import {
   baseName,
   HOME,
   isVirtual,
   joinPath,
+  normalize,
   parentOf,
   RECYCLE_BIN,
   sameLocation,
   THIS_PC,
 } from "../locations"
 import * as native from "../native"
+import { isArchive } from "./archive.svelte"
 import { arrange } from "./arrange"
-import { placeName, places, refreshPlaces } from "./places.svelte"
+import { nameDrive, placeName, places, refreshPlaces } from "./places.svelte"
 import {
   type FolderType,
   type GroupKey,
@@ -24,6 +26,7 @@ import {
   type SortKey,
   type ViewMode,
 } from "./prefs.svelte"
+import { confirmAll, confirmPrivate } from "./privacy.svelte"
 import { Tab } from "./tab.svelte"
 
 const FOLDER_TYPES: Partial<Record<native.KnownId, FolderType>> = {
@@ -56,6 +59,10 @@ const sectionOf = (item: Item) => {
     return item.drive.kind === "network" ? "network" : "drives"
   }
 
+  if (places.linux.some(distro => distro.path === item.path)) {
+    return "linux"
+  }
+
   return places.known.some(known => known.path === item.path)
     ? "folders"
     : "network"
@@ -66,6 +73,8 @@ const folderTypeOf = (location: string): FolderType => {
 
   return (known && FOLDER_TYPES[known.id]) ?? "general"
 }
+
+const groupKeyOf = (location: string) => normalize(location).toLowerCase()
 
 export class Explorer {
   tabs = $state<Tab[]>([])
@@ -80,16 +89,28 @@ export class Explorer {
 
   arrangeable = $derived(!(this.tab.location === THIS_PC && !this.tab.results))
 
-  folder = $derived(prefs.folders[folderTypeOf(this.tab.location)])
+  own = $derived(prefs.folderViews[groupKeyOf(this.tab.location)])
+
+  folder = $derived(this.own ?? prefs.folders[folderTypeOf(this.tab.location)])
+
+  group: GroupKey = $derived(
+    this.own?.group ??
+      prefs.groups[groupKeyOf(this.tab.location)] ??
+      this.folder.group,
+  )
 
   view: ViewMode = $derived(this.arrangeable ? this.folder.view : "tiles")
 
   arranged = $derived(
-    arrange(this.tab.results ?? this.tab.items, this.folder, {
-      showHidden: prefs.showHidden,
-      locale: currentLocale(),
-      sectionOf: this.arrangeable ? null : sectionOf,
-    }),
+    arrange(
+      this.tab.results ?? this.tab.items,
+      { ...this.folder, group: this.group },
+      {
+        showHidden: prefs.showHidden,
+        locale: currentLocale(),
+        sectionOf: this.arrangeable ? null : sectionOf,
+      },
+    ),
   )
 
   visible = $derived(this.arranged.items)
@@ -149,14 +170,41 @@ export class Explorer {
     this.tab.open(location, { select })
   }
 
-  async open(item: Item) {
+  async open(item: Item): Promise<unknown> {
+    if (!(await confirmPrivate(item.path, this.tab.location))) {
+      return
+    }
+
     if (item.dir) {
       return this.go(item.path)
     }
 
-    const kind = isVirtual(item.path) ? null : kindOf(item.name)
+    if (item.packed) {
+      const extracted = await native
+        .extractEntry(item.packed, packedEntry(item))
+        .catch(failed)
 
-    if (kind === "model") {
+      return extracted
+        ? this.open({
+            ...item,
+            key: extracted,
+            path: extracted,
+            packed: undefined,
+          })
+        : undefined
+    }
+
+    if (!isVirtual(item.path) && isArchive(item.name)) {
+      return this.go(item.path)
+    }
+
+    const kind = isVirtual(item.path) ? null : kindOf(item.name)
+    const mujoco =
+      kind === "text" &&
+      item.name.toLowerCase().endsWith(".xml") &&
+      (await native.isMujoco(item.path).catch(() => false))
+
+    if (kind === "model" || mujoco) {
       return native.openViewer(item.path).catch(fail)
     }
 
@@ -168,6 +216,29 @@ export class Explorer {
 
     if (folder) {
       this.go(folder)
+    }
+  }
+
+  async bandizip(job: native.BandizipJob, paths: string[]) {
+    const tab = this.tab
+
+    toast(tr("explorer.bandizip.working"))
+
+    const made = await native.bandizipJob(job, paths).catch(failed)
+
+    if (!made) {
+      return
+    }
+
+    toast(tr("explorer.bandizip.done"), "success")
+    await tab.refresh()
+
+    const present = made.filter(path =>
+      tab.items.some(item => item.key === path),
+    )
+
+    if (present.length) {
+      tab.select(present)
     }
   }
 
@@ -267,8 +338,9 @@ export class Explorer {
 
   async drag() {
     const keys = this.selected.map(item => item.key)
+    const paths = this.selected.map(item => item.path)
 
-    if (keys.length) {
+    if (keys.length && (await confirmAll(paths, this.tab.location))) {
       await native.startDrag(keys).catch(fail)
       await this.tab.refresh()
     }
@@ -277,7 +349,7 @@ export class Explorer {
   rename() {
     const target = this.focused ?? this.selected[0]
 
-    if (target && this.filesystem) {
+    if (target && (this.filesystem || target.drive)) {
       this.tab.select([target.key])
       this.tab.renaming = target.key
     }
@@ -285,6 +357,14 @@ export class Explorer {
 
   async commitRename(item: Item, draft: string) {
     const tab = this.tab
+
+    if (item.drive) {
+      tab.renaming = null
+      nameDrive(item.drive, draft)
+
+      return tab.refresh()
+    }
+
     const shown = displayName(item, prefs.showExtensions)
     const hidden = item.name.slice(shown.length)
     const name = `${draft.trim()}${hidden}`
@@ -336,6 +416,12 @@ export class Explorer {
   }
 
   async more(keys: string[], extended = false) {
+    const paths = this.selected.map(item => item.path)
+
+    if (!(await confirmAll(paths, this.tab.location))) {
+      return
+    }
+
     const verb = await native
       .nativeMenu(keys, keys.length ? null : this.tab.location, extended)
       .catch(failed)
@@ -404,9 +490,29 @@ export class Explorer {
   }
 
   setGroup(group: GroupKey) {
-    if (this.arrangeable) {
-      this.folder.group = group
+    if (!this.arrangeable) {
+      return
     }
+
+    if (this.own) {
+      this.own.group = group
+    } else {
+      prefs.groups[groupKeyOf(this.tab.location)] = group
+    }
+  }
+
+  toggleFolderOnly() {
+    const key = groupKeyOf(this.tab.location)
+
+    if (this.own) {
+      delete prefs.folderViews[key]
+    } else if (this.arrangeable) {
+      prefs.folderViews[key] = { ...this.folder, group: this.group }
+    }
+  }
+
+  toggleDateGroups() {
+    this.setGroup(this.group === "modified" ? "none" : "modified")
   }
 
   async changePlaces(run: () => Promise<unknown>) {

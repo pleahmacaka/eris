@@ -221,6 +221,7 @@
     "deep-link": {
       "desktop": {
         "schemes": [
+          "eris",
           "eris-files"
         ]
       }

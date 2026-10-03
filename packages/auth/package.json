@@ -1,0 +1,33 @@
+{
+  "name": "@eris/auth",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "svelte": "./src/index.ts",
+  "exports": {
+    ".": {
+      "svelte": "./src/index.ts",
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./tauri": {
+      "svelte": "./src/tauri.ts",
+      "types": "./src/tauri.ts",
+      "default": "./src/tauri.ts"
+    }
+  },
+  "scripts": {
+    "check": "svelte-check --tsconfig ./tsconfig.json"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.117.2"
+  },
+  "peerDependencies": {
+    "@tauri-apps/api": "^2.11.1",
+    "svelte": "^5.56.1"
+  },
+  "devDependencies": {
+    "svelte-check": "^4.6.0",
+    "typescript": "^6.0.3"
+  }
+}

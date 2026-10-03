@@ -83,7 +83,11 @@ mod win {
                     continue;
                 }
 
-                if at_edge && !lifted {
+                if at_edge
+                    && !lifted
+                    && (foreground_covers(&screen) != Some(true)
+                        || crate::appbar::fullscreen_reveals(&app))
+                {
                     lifted = true;
                     left_band = None;
                     crate::appbar::lift(dock, true);
@@ -114,7 +118,7 @@ mod win {
                 continue;
             }
 
-            if at_edge && !revealed {
+            if at_edge && !revealed && crate::appbar::fullscreen_reveals(&app) {
                 revealed = true;
                 left_band = None;
                 set_visible(&app, dock, true);

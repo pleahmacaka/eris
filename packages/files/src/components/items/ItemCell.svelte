@@ -6,6 +6,7 @@
   import { HIDDEN } from "../../locations"
   import type { Explorer } from "../../store/explorer.svelte"
   import { openMenu } from "../../store/menus"
+  import { driveLabel } from "../../store/places.svelte"
   import { prefetchOnHover } from "../../store/prefetch"
   import { prefs, SORT_KEYS } from "../../store/prefs.svelte"
   import { cellText, kindText } from "./cells"
@@ -48,9 +49,11 @@
   {@const shown = displayName(item, prefs.showExtensions)}
 
   {#if tab.renaming === item.key}
+    {@const draft = item.drive ? driveLabel(item.drive, $t) : shown}
+
     <RenameField
-      value={shown}
-      stem={stemOf(shown)}
+      value={draft}
+      stem={stemOf(draft)}
       {multiline}
       oncommit={draft => explorer.commitRename(item, draft)}
       oncancel={() => (tab.renaming = null)}

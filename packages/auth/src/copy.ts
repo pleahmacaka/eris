@@ -1,0 +1,118 @@
+const en = {
+  email: "Email",
+  password: "Password",
+  signIn: "Sign in",
+  signUp: "Create account",
+  magicLink: "Email sign-in link",
+  github: "Continue with GitHub",
+  google: "Continue with Google",
+  divider: "or",
+  signedIn: "Signed in",
+  signOut: "Sign out",
+  loading: "Loading",
+  linkSent: "Open the sign-in link in your inbox.",
+  confirmSent: "Open the confirmation link in your inbox.",
+  browser: "Finish signing in in your browser.",
+  needEmail: "Enter your email.",
+  needPassword: "Enter your email and password.",
+  errors: {
+    invalid_credentials: "Wrong email or password",
+    email_not_confirmed: "Email not confirmed",
+    user_already_exists: "Email already registered",
+    weak_password: "Password too weak",
+    over_email_send_rate_limit: "Too many emails sent",
+    over_request_rate_limit: "Too many requests",
+    failed: "Sign-in failed",
+  },
+}
+
+export type Copy = typeof en
+
+const ko: Copy = {
+  email: "이메일",
+  password: "비밀번호",
+  signIn: "로그인",
+  signUp: "회원가입",
+  magicLink: "로그인 링크 받기",
+  github: "GitHub로 로그인",
+  google: "Google로 로그인",
+  divider: "또는",
+  signedIn: "로그인 계정",
+  signOut: "로그아웃",
+  loading: "불러오는 중",
+  linkSent: "메일함에서 로그인 링크를 여세요.",
+  confirmSent: "메일함에서 가입 확인 링크를 여세요.",
+  browser: "브라우저에서 로그인을 완료하세요.",
+  needEmail: "이메일을 입력하세요.",
+  needPassword: "이메일과 비밀번호를 입력하세요.",
+  errors: {
+    invalid_credentials: "이메일 또는 비밀번호 오류",
+    email_not_confirmed: "이메일 확인 필요",
+    user_already_exists: "이미 가입된 이메일",
+    weak_password: "비밀번호 보안 수준 부족",
+    over_email_send_rate_limit: "메일 발송 횟수 초과",
+    over_request_rate_limit: "요청 횟수 초과",
+    failed: "로그인 실패",
+  },
+}
+
+const ja: Copy = {
+  email: "メールアドレス",
+  password: "パスワード",
+  signIn: "ログイン",
+  signUp: "アカウント作成",
+  magicLink: "ログインリンクを受け取る",
+  github: "GitHub でログイン",
+  google: "Google でログイン",
+  divider: "または",
+  signedIn: "ログイン中のアカウント",
+  signOut: "ログアウト",
+  loading: "読み込み中",
+  linkSent: "受信トレイのログインリンクを開いてください。",
+  confirmSent: "受信トレイの確認リンクを開いてください。",
+  browser: "ブラウザーでログインを完了してください。",
+  needEmail: "メールアドレスを入力してください。",
+  needPassword: "メールアドレスとパスワードを入力してください。",
+  errors: {
+    invalid_credentials: "メールアドレスまたはパスワードの誤り",
+    email_not_confirmed: "メールアドレス未確認",
+    user_already_exists: "登録済みのメールアドレス",
+    weak_password: "パスワードの強度不足",
+    over_email_send_rate_limit: "メール送信回数の上限",
+    over_request_rate_limit: "リクエスト回数の上限",
+    failed: "ログイン失敗",
+  },
+}
+
+const zh: Copy = {
+  email: "电子邮件",
+  password: "密码",
+  signIn: "登录",
+  signUp: "注册",
+  magicLink: "获取登录链接",
+  github: "使用 GitHub 登录",
+  google: "使用 Google 登录",
+  divider: "或",
+  signedIn: "已登录账号",
+  signOut: "退出登录",
+  loading: "加载中",
+  linkSent: "请打开邮箱中的登录链接。",
+  confirmSent: "请打开邮箱中的确认链接。",
+  browser: "请在浏览器中完成登录。",
+  needEmail: "请输入电子邮件。",
+  needPassword: "请输入电子邮件和密码。",
+  errors: {
+    invalid_credentials: "电子邮件或密码错误",
+    email_not_confirmed: "电子邮件未验证",
+    user_already_exists: "电子邮件已注册",
+    weak_password: "密码强度不足",
+    over_email_send_rate_limit: "邮件发送次数超限",
+    over_request_rate_limit: "请求次数超限",
+    failed: "登录失败",
+  },
+}
+
+const COPY: Record<string, Copy> = { en, ko, ja, zh }
+
+export const copyFor = (lang: string | null | undefined) =>
+  COPY[(lang ?? "en").slice(0, 2)] ?? en

@@ -29,6 +29,7 @@
     "vite": "^8.0.16"
   },
   "dependencies": {
+    "@eris/auth": "workspace:*",
     "@eris/data": "workspace:*",
     "@eris/files": "workspace:*",
     "@eris/i18n": "workspace:*",

@@ -58,7 +58,7 @@
     bind:value={draft}
     rows="2"
     spellcheck="false"
-    class="textarea textarea-xs w-full resize-none text-center select-text"
+    class="textarea min-h-0 w-full resize-none px-1.5 py-1 text-center text-xs leading-snug select-text"
     onblur={() => finish(true)}
     {onkeydown}
     onpointerdown={e => e.stopPropagation()}
@@ -69,7 +69,7 @@
     {@attach attach}
     bind:value={draft}
     spellcheck="false"
-    class="input input-xs min-w-0 grow select-text"
+    class="input h-7 min-w-0 grow px-2 text-sm select-text"
     onblur={() => finish(true)}
     {onkeydown}
     onpointerdown={e => e.stopPropagation()}

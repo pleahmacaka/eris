@@ -9,6 +9,8 @@ use crate::launch;
 
 const TEXT_LIMIT: u64 = 256 * 1024;
 
+const SNIFF_LIMIT: u64 = 16 * 1024;
+
 #[derive(Serialize)]
 pub struct Model {
     obj: String,
@@ -80,7 +82,8 @@ pub fn model_files(app: AppHandle, path: String) -> Result<Model> {
     }
 
     if let Some(folder) = obj.parent() {
-        app.asset_protocol_scope().allow_directory(folder, false)?;
+        app.asset_protocol_scope()
+            .allow_directory(folder, is_mujoco_file(obj))?;
     }
 
     Ok(Model {
@@ -89,7 +92,71 @@ pub fn model_files(app: AppHandle, path: String) -> Result<Model> {
     })
 }
 
+fn root_element(head: &str) -> Option<&str> {
+    let mut rest = head.trim_start_matches('\u{feff}');
+
+    loop {
+        rest = rest.trim_start();
+
+        if let Some(after) = rest.strip_prefix("<?") {
+            rest = &after[after.find("?>")? + 2..];
+        } else if let Some(after) = rest.strip_prefix("<!--") {
+            rest = &after[after.find("-->")? + 3..];
+        } else if let Some(after) = rest.strip_prefix("<!") {
+            rest = &after[after.find('>')? + 1..];
+        } else {
+            break;
+        }
+    }
+
+    let name = rest.strip_prefix('<')?;
+    let end = name
+        .find(|c: char| c.is_whitespace() || c == '>' || c == '/')
+        .unwrap_or(name.len());
+
+    Some(&name[..end])
+}
+
+fn is_mujoco_file(path: &Path) -> bool {
+    let extension = path
+        .extension()
+        .map(|extension| extension.to_string_lossy().to_lowercase());
+
+    match extension.as_deref() {
+        Some("mjb") => true,
+        Some("xml") => {
+            let mut head = Vec::new();
+
+            std::fs::File::open(path)
+                .and_then(|file| file.take(SNIFF_LIMIT).read_to_end(&mut head))
+                .is_ok()
+                && root_element(&String::from_utf8_lossy(&head)) == Some("mujoco")
+        }
+        _ => false,
+    }
+}
+
+#[tauri::command(async)]
+pub fn is_mujoco(path: String) -> bool {
+    is_mujoco_file(Path::new(&path))
+}
+
 #[tauri::command(async)]
 pub fn open_viewer(app: AppHandle, path: String) -> Result<()> {
     launch::open_viewer(&app, path).map(|_| ())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::root_element;
+
+    #[test]
+    fn finds_the_root_past_the_prolog() {
+        let head = "\u{feff}<?xml version=\"1.0\"?>\n<!-- robot -->\n<!DOCTYPE x>\n<mujoco model=\"x2\">";
+
+        assert_eq!(root_element(head), Some("mujoco"));
+        assert_eq!(root_element("<mujoco/>"), Some("mujoco"));
+        assert_eq!(root_element("<project>"), Some("project"));
+        assert_eq!(root_element("<!-- unterminated"), None);
+    }
 }

@@ -15,6 +15,7 @@ use windows::Win32::Storage::FileSystem::{
     FILE_ATTRIBUTE_DIRECTORY, FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_REPARSE_POINT,
     FILE_FLAGS_AND_ATTRIBUTES, FIND_FIRST_EX_LARGE_FETCH, WIN32_FIND_DATAW,
 };
+use windows::Win32::System::SystemServices::{IO_REPARSE_TAG_MOUNT_POINT, IO_REPARSE_TAG_SYMLINK};
 use windows::Win32::UI::Shell::{
     BHID_EnumItems, IEnumShellItems, IShellItem, IShellItem2, SHGetFileInfoW, SHFILEINFOW,
     SHGFI_TYPENAME, SHGFI_USEFILEATTRIBUTES, SIGDN_DESKTOPABSOLUTEPARSING, SIGDN_NORMALDISPLAY,
@@ -32,6 +33,7 @@ pub struct Entry {
     size: u64,
     modified: u64,
     attrs: u32,
+    link: bool,
 }
 
 #[derive(Serialize)]
@@ -50,6 +52,7 @@ pub struct Hit {
     size: u64,
     modified: u64,
     attrs: u32,
+    link: bool,
     kind: String,
 }
 
@@ -142,6 +145,7 @@ fn scan(dir: &str, mut visit: impl FnMut(&WIN32_FIND_DATAW)) -> Result<()> {
 
 fn entry(data: &WIN32_FIND_DATAW) -> Entry {
     let dir = data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY.0 != 0;
+    let reparse = data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT.0 != 0;
 
     Entry {
         name: com::wide(&data.cFileName),
@@ -153,6 +157,8 @@ fn entry(data: &WIN32_FIND_DATAW) -> Entry {
         },
         modified: millis(data.ftLastWriteTime),
         attrs: data.dwFileAttributes,
+        link: reparse
+            && [IO_REPARSE_TAG_SYMLINK, IO_REPARSE_TAG_MOUNT_POINT].contains(&data.dwReserved0),
     }
 }
 
@@ -283,6 +289,7 @@ fn search(root: String, query: String, token: u32, batch: Channel<Vec<Hit>>) {
                     size: item.size,
                     modified: item.modified,
                     attrs: item.attrs,
+                    link: item.link,
                 });
             }
         });
@@ -300,6 +307,38 @@ fn search(root: String, query: String, token: u32, batch: Channel<Vec<Hit>>) {
     }
 
     live().lock().unwrap().remove(&token);
+}
+
+fn measure(roots: Vec<String>, token: u32) -> Option<u64> {
+    let mut queue = VecDeque::from(roots);
+    let mut total = 0;
+
+    while let Some(dir) = queue.pop_front() {
+        if !live().lock().unwrap().contains(&token) {
+            return None;
+        }
+
+        let _ = scan(&dir, |data| {
+            let item = entry(data);
+
+            if !item.dir {
+                total += item.size;
+            } else if item.attrs & FILE_ATTRIBUTE_REPARSE_POINT.0 == 0 {
+                queue.push_back(format!("{}\\{}", dir.trim_end_matches('\\'), item.name));
+            }
+        });
+    }
+
+    live().lock().unwrap().remove(&token);
+
+    Some(total)
+}
+
+#[tauri::command]
+pub async fn measure_dirs(paths: Vec<String>, token: u32) -> Result<Option<u64>> {
+    live().lock().unwrap().insert(token);
+
+    Ok(tauri::async_runtime::spawn_blocking(move || measure(paths, token)).await?)
 }
 
 #[tauri::command]

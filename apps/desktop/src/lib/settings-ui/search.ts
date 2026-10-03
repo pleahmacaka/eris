@@ -6,6 +6,7 @@ export type SectionId =
   | "launcher"
   | "calendar"
   | "sync"
+  | "account"
   | "data"
   | "about"
   | "experimental"
@@ -34,6 +35,7 @@ export const sections: NavSection[] = [
   { id: "launcher", icon: "lucide:search", group: "features" },
   { id: "calendar", icon: "lucide:calendar-check", group: "features" },
   { id: "sync", icon: "lucide:refresh-cw", group: "system" },
+  { id: "account", icon: "lucide:circle-user", group: "system" },
   { id: "data", icon: "lucide:database", group: "system" },
   { id: "about", icon: "lucide:info", group: "system" },
   { id: "experimental", icon: "lucide:flask-conical", group: "system" },
@@ -90,6 +92,7 @@ export const index: SearchEntry[] = [
   entry("dock", "hideGather", "gather logo pill shrink motion"),
   entry("dock", "gatherHideMs", "duration speed gather logo hide animation"),
   entry("dock", "gatherShowMs", "duration speed unfold reveal show animation"),
+  entry("dock", "fullscreenReveal", "fullscreen game borderless edge reveal"),
   entry("dock", "pinDesktop", "mac behind windows wallpaper layer"),
   entry("dock", "hideTaskbar", "system bar"),
   entry("dock", "showRunningApps", "open windows"),

@@ -21,7 +21,12 @@
       "fontHint": "Enter a font family name.",
       "fontSize": "Font size",
       "theme": "Theme",
-      "version": "Version"
+      "version": "Version",
+      "account": "Account"
+    },
+    "panes": {
+      "sync": "Input sync",
+      "resize": "Resize split"
     }
   }
 }

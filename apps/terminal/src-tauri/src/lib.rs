@@ -3,8 +3,12 @@ mod launch;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
-            launch::forward(app, &args, &cwd);
+            if !tauri_plugin_eris_auth::claims(&args) {
+                launch::forward(app, &args, &cwd);
+            }
         }))
+        .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_eris_auth::init("eris-terminal"))
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_eris_terminal::init("/"))
         .invoke_handler(tauri::generate_handler![

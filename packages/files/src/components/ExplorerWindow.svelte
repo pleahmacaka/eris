@@ -22,6 +22,7 @@
   import TerminalPanel from "./terminal/TerminalPanel.svelte"
   import CommandBar from "./toolbar/CommandBar.svelte"
   import NavBar from "./toolbar/NavBar.svelte"
+  import PrivacyPrompt from "./window/PrivacyPrompt.svelte"
   import TitleBar from "./window/TitleBar.svelte"
 
   let { explorer, theme }: { explorer: Explorer; theme?: Snippet } = $props()
@@ -259,5 +260,7 @@
 </div>
 
 <SettingsDialog bind:open={explorer.settingsOpen} {theme} />
+
+<PrivacyPrompt />
 
 <ShareHost {explorer} />

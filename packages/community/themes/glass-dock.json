@@ -1,0 +1,15 @@
+{
+  "id": "glass-dock",
+  "name": "Glass Dock",
+  "author": "Eris",
+  "description": "A frosted, rounded dock that keeps the rest of your theme, from the Glass preset.",
+  "swatch": ["#f3f5fb", "#6f97f5", "#dbe4ff"],
+  "appearance": {
+    "dockBackground": "glass",
+    "dockOpacity": 0.85,
+    "dockBlur": 1.6,
+    "dockRadius": 1.8,
+    "dockTint": 0.2,
+    "dockBorder": false
+  }
+}

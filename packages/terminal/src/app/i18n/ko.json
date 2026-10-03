@@ -21,7 +21,12 @@
       "fontHint": "글꼴 이름을 입력하세요.",
       "fontSize": "글꼴 크기",
       "theme": "테마",
-      "version": "버전"
+      "version": "버전",
+      "account": "계정"
+    },
+    "panes": {
+      "sync": "입력 동기화",
+      "resize": "분할 크기 조절"
     }
   }
 }

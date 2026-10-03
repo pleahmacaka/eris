@@ -54,7 +54,10 @@
       <div class="mt-1.5 flex flex-wrap gap-1">
         {#each holidays as name (name)}
           <span
-            class="badge badge-sm badge-soft badge-error max-w-full gap-1"
+            class={[
+              "badge badge-sm badge-soft max-w-full gap-1",
+              panel.isHoliday(day) ? "badge-error" : "badge-neutral",
+            ]}
             title={$t("panel.holiday")}
           >
             <Icon icon="lucide:flag" class="size-3 shrink-0" />

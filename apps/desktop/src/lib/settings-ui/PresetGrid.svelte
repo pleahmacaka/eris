@@ -42,7 +42,7 @@
       type="button"
       aria-pressed={active}
       class={[
-        "flex h-28 w-full flex-col gap-2 rounded-box border p-3 text-left outline-none transition duration-100 focus-visible:ring-2 focus-visible:ring-primary/50",
+        "flex w-full flex-col gap-2 rounded-box border p-3 text-left outline-none transition duration-100 focus-visible:ring-2 focus-visible:ring-primary/50",
         active
           ? "border-primary/60 bg-primary/10 ring-1 ring-primary/40"
           : "border-base-content/10 bg-base-100/40 hover:bg-base-content/5",

@@ -93,8 +93,29 @@ fn build(
         .open(&label, intent, builder)?;
 
     track(&window);
+    skip_open_animation(&window);
 
     Ok(window)
+}
+
+fn skip_open_animation(window: &WebviewWindow) {
+    use windows::Win32::Foundation::TRUE;
+    use windows::Win32::Graphics::Dwm::{DwmSetWindowAttribute, DWMWA_TRANSITIONS_FORCEDISABLED};
+
+    let hwnd = crate::com::hwnd(window);
+
+    if hwnd == 0 {
+        return;
+    }
+
+    unsafe {
+        let _ = DwmSetWindowAttribute(
+            crate::com::owner(hwnd),
+            DWMWA_TRANSITIONS_FORCEDISABLED,
+            &TRUE as *const _ as *const _,
+            std::mem::size_of_val(&TRUE) as u32,
+        );
+    }
 }
 
 pub fn open_window(app: &AppHandle, intent: Intent) -> Result<WebviewWindow> {

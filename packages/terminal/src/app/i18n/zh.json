@@ -21,7 +21,12 @@
       "fontHint": "请输入字体名称。",
       "fontSize": "字号",
       "theme": "主题",
-      "version": "版本"
+      "version": "版本",
+      "account": "账号"
+    },
+    "panes": {
+      "sync": "输入同步",
+      "resize": "调整分屏大小"
     }
   }
 }

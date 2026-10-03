@@ -1,10 +1,17 @@
 <script lang="ts">
   import type { Snippet } from "svelte"
   import { shells } from "../pty"
-  import Terminal from "../Terminal.svelte"
+  import { isSplit, neighbor } from "./layout"
+  import PaneArea from "./PaneArea.svelte"
   import { prefs, savePrefs } from "./prefs.svelte"
   import SettingsDialog from "./SettingsDialog.svelte"
-  import { closeTab, cycleTab, openTab, session } from "./tabs.svelte"
+  import {
+    closePane,
+    cycleTab,
+    openTab,
+    session,
+    splitPane,
+  } from "./tabs.svelte"
   import TitleBar from "./TitleBar.svelte"
   import { newWindow, takeIntent } from "./windows"
 
@@ -16,7 +23,42 @@
       "cmd",
   )
 
+  const ARROWS = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"] as const
+
+  const paneShortcut = (e: KeyboardEvent) => {
+    const tab = session.tabs[session.active]
+    const alt = e.altKey && !e.ctrlKey && !e.metaKey
+
+    if (!tab || !alt) {
+      return false
+    }
+
+    if (e.shiftKey && (e.code === "Equal" || e.code === "Minus")) {
+      splitPane(tab, e.code === "Equal" ? "right" : "bottom")
+
+      return true
+    }
+
+    const arrow = ARROWS.find(key => key === e.key)
+
+    if (e.shiftKey || !arrow || !isSplit(tab.root)) {
+      return false
+    }
+
+    const next = neighbor(tab.root, tab.focus, arrow)
+
+    if (next) {
+      tab.focus = next.id
+    }
+
+    return !!next
+  }
+
   const shortcut = (e: KeyboardEvent) => {
+    if (paneShortcut(e)) {
+      return true
+    }
+
     const ctrl = e.ctrlKey && !e.altKey && !e.metaKey
 
     if (ctrl && e.code === "Tab") {
@@ -38,7 +80,17 @@
     if (e.code === "KeyT") {
       openTab(fallback)
     } else if (e.code === "KeyW") {
-      closeTab(session.active)
+      const tab = session.tabs[session.active]
+
+      if (tab) {
+        closePane(tab.focus)
+      }
+    } else if (e.code === "KeyB") {
+      const tab = session.tabs[session.active]
+
+      if (tab) {
+        tab.sync = !tab.sync
+      }
     } else if (e.code === "KeyN") {
       newWindow()
     } else {
@@ -72,32 +124,7 @@
 <div class="flex h-full min-h-0 flex-col">
   <TitleBar {fallback} />
 
-  <main class="relative min-h-0 grow bg-base-100">
-    {#each session.tabs as tab, index (tab.id)}
-      <div
-        class={[
-          "absolute inset-0 py-1.5 pl-3 pr-1",
-          index !== session.active && "invisible",
-        ]}
-      >
-        <Terminal
-          shell={tab.shell}
-          cwd={tab.cwd}
-          fontFamily={prefs.fontFamily}
-          fontSize={prefs.fontSize}
-          active={index === session.active}
-          ontitle={title => (tab.title = title || tab.title)}
-          onexit={() => {
-            const index = session.tabs.indexOf(tab)
-
-            if (index >= 0) {
-              closeTab(index)
-            }
-          }}
-        />
-      </div>
-    {/each}
-  </main>
+  <PaneArea />
 </div>
 
 <SettingsDialog {fallback} {theme} />

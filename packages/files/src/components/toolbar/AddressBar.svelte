@@ -11,8 +11,10 @@
     THIS_PC,
   } from "../../locations"
   import { openItem, runAddress } from "../../native"
+  import { splitArchive } from "../../store/archive.svelte"
   import type { Explorer } from "../../store/explorer.svelte"
   import { prefetchOnHover } from "../../store/prefetch"
+  import { confirmPrivate } from "../../store/privacy.svelte"
   import {
     driveName,
     NAMED_PLACES,
@@ -145,6 +147,11 @@
 
     const cwd = isVirtual(tab.location) ? null : tab.location
     const found = await runAddress(text, cwd).catch(() => undefined)
+    const target = found?.select ?? text
+
+    if (splitArchive(target)) {
+      return explorer.go(target)
+    }
 
     if (found === undefined) {
       return toast($t("explorer.errors.missing"), "error")
@@ -155,6 +162,10 @@
     }
 
     if (found.file && found.select) {
+      if (!(await confirmPrivate(found.select))) {
+        return
+      }
+
       return openItem(found.select).catch(() =>
         toast($t("explorer.errors.missing"), "error"),
       )

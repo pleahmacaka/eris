@@ -17,6 +17,7 @@
     "core:window:allow-set-shadow",
     "clipboard-manager:allow-read-text",
     "clipboard-manager:allow-write-text",
-    "eris-terminal:default"
+    "eris-terminal:default",
+    "eris-auth:default"
   ]
 }

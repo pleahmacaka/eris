@@ -1,0 +1,10 @@
+[default]
+description = "Read and update the shared Eris account session."
+permissions = [
+  "allow-load",
+  "allow-store",
+  "allow-forget",
+  "allow-redirect",
+  "allow-take-callback",
+  "allow-open-authorize",
+]

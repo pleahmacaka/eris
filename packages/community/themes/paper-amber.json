@@ -1,0 +1,18 @@
+{
+  "id": "paper-amber",
+  "name": "Paper Amber",
+  "author": "Eris",
+  "description": "Warm paper with an amber accent, from the Solarized preset.",
+  "swatch": ["#fdf6e3", "#b58900", "#586e75"],
+  "appearance": {
+    "mode": "light",
+    "background": "solid",
+    "useSystemAccent": false,
+    "accentHue": 80,
+    "accentSpread": 20,
+    "vividness": 0.1,
+    "texture": 0.35,
+    "radius": 0.5,
+    "blur": 0.6
+  }
+}

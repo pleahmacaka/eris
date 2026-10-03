@@ -23,6 +23,8 @@ export type Command = {
 
 const selected = (x: Explorer) => x.selected.length > 0
 
+const editable = (x: Explorer) => selected(x) && x.tab.kind !== "archive"
+
 const viewCommand = (mode: ViewMode): Command => ({
   label: `explorer.views.${mode}`,
   icon: VIEW_ICONS[mode],
@@ -109,6 +111,7 @@ const BASE = {
     label: "explorer.commands.properties",
     icon: "lucide:info",
     globalKeys: ["Alt+Enter"],
+    enabled: x => x.tab.kind !== "archive",
     run: x => x.properties(),
   },
   open: {
@@ -122,35 +125,36 @@ const BASE = {
     label: "explorer.commands.rename",
     icon: "lucide:pencil",
     keys: ["F2"],
-    enabled: x => x.selected.length === 1 && x.filesystem,
+    enabled: x =>
+      x.selected.length === 1 && (x.filesystem || !!x.selected[0].drive),
     run: x => x.rename(),
   },
   delete: {
     label: "explorer.commands.delete",
     icon: "lucide:trash-2",
     keys: ["Delete"],
-    enabled: selected,
+    enabled: editable,
     run: x => x.remove(false),
   },
   deletePermanently: {
     label: "explorer.commands.deletePermanently",
     icon: "lucide:trash-2",
     keys: ["Shift+Delete"],
-    enabled: selected,
+    enabled: editable,
     run: x => x.remove(true),
   },
   cut: {
     label: "explorer.commands.cut",
     icon: "lucide:scissors",
     keys: ["Ctrl+X"],
-    enabled: selected,
+    enabled: editable,
     run: x => x.clip(true),
   },
   copy: {
     label: "explorer.commands.copy",
     icon: "lucide:copy",
     keys: ["Ctrl+C"],
-    enabled: selected,
+    enabled: editable,
     run: x => x.clip(false),
   },
   copyPath: {

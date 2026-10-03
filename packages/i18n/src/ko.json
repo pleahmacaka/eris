@@ -72,6 +72,10 @@
       "about": {
         "label": "정보",
         "blurb": "버전을 확인하고 업데이트를 설치합니다."
+      },
+      "account": {
+        "label": "계정",
+        "blurb": "한 번 로그인하면 모든 Eris 앱에서 같은 계정을 사용합니다."
       }
     },
     "groups": {
@@ -182,6 +186,7 @@
       "iconSize": "아이콘 크기",
       "pinDesktop": "창 뒤에 배치",
       "autoHide": "자동 숨김",
+      "fullscreenReveal": "전체 화면에서 표시",
       "showLauncherButton": "런처 버튼",
       "showRunningApps": "실행 중인 앱",
       "showTrayIcons": "트레이 아이콘",
@@ -290,6 +295,7 @@
       "alignment": "독 내부에서 앱을 정렬하는 위치입니다.",
       "pinDesktop": "창이 독을 가릴 수 있으며, 자동 숨김을 켜면 커서가 가장자리에 닿을 때 앞으로 나옵니다.",
       "autoHide": "독을 숨겨 두고 커서가 화면 가장자리에 닿으면 표시합니다.",
+      "fullscreenReveal": "전체 화면 창에서도 커서가 화면 가장자리에 닿으면 독을 표시합니다.",
       "showLauncherButton": "독에 런처 버튼을 표시하며, Win 키로도 런처를 열 수 있습니다.",
       "showRunningApps": "고정하지 않은 앱도 창이 열려 있으면 독에 표시합니다.",
       "showTrayIcons": "백그라운드 프로그램의 알림 영역 아이콘을 표시합니다.",
@@ -1120,10 +1126,7 @@
     },
     "dock": {
       "title": "독 구성",
-      "blurb": "크기와 구성 요소는 나중에 설정에서 조정하세요.",
-      "autoHide": "커서가 가장자리에 닿을 때까지 숨김",
-      "replaces": "Eris가 Windows 작업 표시줄을 대체합니다",
-      "taskbarStays": "Windows 작업 표시줄이 그대로 표시됩니다"
+      "blurb": "크기와 구성 요소는 나중에 설정에서 조정하세요."
     },
     "hotkeys": {
       "title": "Eris 열기",

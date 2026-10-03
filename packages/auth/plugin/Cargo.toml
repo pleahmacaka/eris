@@ -1,0 +1,15 @@
+[package]
+name = "tauri-plugin-eris-auth"
+version = "0.1.0"
+description = "Shared Eris account session for Eris family apps"
+edition = "2021"
+rust-version = "1.91"
+links = "tauri-plugin-eris-auth"
+
+[dependencies]
+tauri = "2.11"
+tauri-plugin-deep-link = "2"
+windows = { version = "0.62", features = ["Win32_Foundation", "Win32_Security_Cryptography", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging"] }
+
+[build-dependencies]
+tauri-plugin = { version = "2", features = ["build"] }

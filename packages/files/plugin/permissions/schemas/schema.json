@@ -331,6 +331,30 @@
           "markdownDescription": "Denies the audio_waveform command without any pre-configured scope."
         },
         {
+          "description": "Enables the bandizip_available command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-bandizip-available",
+          "markdownDescription": "Enables the bandizip_available command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the bandizip_available command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-bandizip-available",
+          "markdownDescription": "Denies the bandizip_available command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the bandizip_job command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-bandizip-job",
+          "markdownDescription": "Enables the bandizip_job command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the bandizip_job command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-bandizip-job",
+          "markdownDescription": "Denies the bandizip_job command without any pre-configured scope."
+        },
+        {
           "description": "Enables the cancel_search command without any pre-configured scope.",
           "type": "string",
           "const": "allow-cancel-search",
@@ -451,6 +475,18 @@
           "markdownDescription": "Denies the explorer_settings command without any pre-configured scope."
         },
         {
+          "description": "Enables the extract_entry command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-extract-entry",
+          "markdownDescription": "Enables the extract_entry command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the extract_entry command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-extract-entry",
+          "markdownDescription": "Denies the extract_entry command without any pre-configured scope."
+        },
+        {
           "description": "Enables the invoke_verb command without any pre-configured scope.",
           "type": "string",
           "const": "allow-invoke-verb",
@@ -463,6 +499,18 @@
           "markdownDescription": "Denies the invoke_verb command without any pre-configured scope."
         },
         {
+          "description": "Enables the is_mujoco command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-is-mujoco",
+          "markdownDescription": "Enables the is_mujoco command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the is_mujoco command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-is-mujoco",
+          "markdownDescription": "Denies the is_mujoco command without any pre-configured scope."
+        },
+        {
           "description": "Enables the known_folders command without any pre-configured scope.",
           "type": "string",
           "const": "allow-known-folders",
@@ -473,6 +521,18 @@
           "type": "string",
           "const": "deny-known-folders",
           "markdownDescription": "Denies the known_folders command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the list_archive command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-archive",
+          "markdownDescription": "Enables the list_archive command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_archive command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-archive",
+          "markdownDescription": "Denies the list_archive command without any pre-configured scope."
         },
         {
           "description": "Enables the list_dir command without any pre-configured scope.",
@@ -509,6 +569,18 @@
           "type": "string",
           "const": "deny-map-network-drive",
           "markdownDescription": "Denies the map_network_drive command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the measure_dirs command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-measure-dirs",
+          "markdownDescription": "Enables the measure_dirs command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the measure_dirs command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-measure-dirs",
+          "markdownDescription": "Denies the measure_dirs command without any pre-configured scope."
         },
         {
           "description": "Enables the model_files command without any pre-configured scope.",
@@ -701,6 +773,18 @@
           "type": "string",
           "const": "deny-save-transcribe-key",
           "markdownDescription": "Denies the save_transcribe_key command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the screen_sharing command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-screen-sharing",
+          "markdownDescription": "Enables the screen_sharing command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the screen_sharing command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-screen-sharing",
+          "markdownDescription": "Denies the screen_sharing command without any pre-configured scope."
         },
         {
           "description": "Enables the search_dir command without any pre-configured scope.",
@@ -1159,10 +1243,22 @@
           "markdownDescription": "Denies the watch_dir command without any pre-configured scope."
         },
         {
-          "description": "Browse, preview, share and manage files.\n#### This default permission set includes:\n\n- `allow-list-dir`\n- `allow-list-shell`\n- `allow-search-dir`\n- `allow-cancel-search`\n- `allow-known-folders`\n- `allow-drives`\n- `allow-explorer-settings`\n- `allow-open-item`\n- `allow-open-with`\n- `allow-show-properties`\n- `allow-empty-recycle-bin`\n- `allow-start-drag`\n- `allow-native-menu`\n- `allow-invoke-verb`\n- `allow-transfer-items`\n- `allow-delete-items`\n- `allow-rename-item`\n- `allow-new-folder`\n- `allow-set-clipboard`\n- `allow-paste-items`\n- `allow-clipboard-has-files`\n- `allow-allow-preview`\n- `allow-preview-text`\n- `allow-model-files`\n- `allow-open-viewer`\n- `allow-audio-waveform`\n- `allow-transcribe`\n- `allow-read-transcript`\n- `allow-transcribe-key-status`\n- `allow-save-transcribe-key`\n- `allow-clear-transcribe-key`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-default-app-status`\n- `allow-set-default-app`\n- `allow-open-default-apps`\n- `allow-watch-dir`\n- `allow-network-places`\n- `allow-reconnect-drive`\n- `allow-disconnect-drive`\n- `allow-map-network-drive`\n- `allow-disconnect-network-drive`\n- `allow-add-network-location`\n- `allow-run-address`\n- `allow-share-state`\n- `allow-share-take-attention`\n- `allow-share-rename-self`\n- `allow-share-invite`\n- `allow-share-join`\n- `allow-share-dismiss-pair`\n- `allow-share-rename-device`\n- `allow-share-remove-device`\n- `allow-share-create`\n- `allow-share-set-public`\n- `allow-share-offer`\n- `allow-share-revoke`\n- `allow-share-open`\n- `allow-share-fetch`\n- `allow-share-download`\n- `allow-share-cancel`\n- `allow-share-dismiss`\n- `allow-share-qr`\n- `allow-share-set-expiry`\n- `allow-sync-check`\n- `allow-sync-create`\n- `allow-sync-accept`\n- `allow-sync-decline`\n- `allow-sync-pause`\n- `allow-sync-now`\n- `allow-sync-remove`\n- `allow-share-files`",
+          "description": "Enables the wsl_distros command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-wsl-distros",
+          "markdownDescription": "Enables the wsl_distros command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the wsl_distros command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-wsl-distros",
+          "markdownDescription": "Denies the wsl_distros command without any pre-configured scope."
+        },
+        {
+          "description": "Browse, preview, share and manage files.\n#### This default permission set includes:\n\n- `allow-list-dir`\n- `allow-list-shell`\n- `allow-search-dir`\n- `allow-cancel-search`\n- `allow-measure-dirs`\n- `allow-list-archive`\n- `allow-extract-entry`\n- `allow-bandizip-available`\n- `allow-bandizip-job`\n- `allow-known-folders`\n- `allow-drives`\n- `allow-explorer-settings`\n- `allow-wsl-distros`\n- `allow-screen-sharing`\n- `allow-open-item`\n- `allow-open-with`\n- `allow-show-properties`\n- `allow-empty-recycle-bin`\n- `allow-start-drag`\n- `allow-native-menu`\n- `allow-invoke-verb`\n- `allow-transfer-items`\n- `allow-delete-items`\n- `allow-rename-item`\n- `allow-new-folder`\n- `allow-set-clipboard`\n- `allow-paste-items`\n- `allow-clipboard-has-files`\n- `allow-allow-preview`\n- `allow-preview-text`\n- `allow-model-files`\n- `allow-is-mujoco`\n- `allow-open-viewer`\n- `allow-audio-waveform`\n- `allow-transcribe`\n- `allow-read-transcript`\n- `allow-transcribe-key-status`\n- `allow-save-transcribe-key`\n- `allow-clear-transcribe-key`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-default-app-status`\n- `allow-set-default-app`\n- `allow-open-default-apps`\n- `allow-watch-dir`\n- `allow-network-places`\n- `allow-reconnect-drive`\n- `allow-disconnect-drive`\n- `allow-map-network-drive`\n- `allow-disconnect-network-drive`\n- `allow-add-network-location`\n- `allow-run-address`\n- `allow-share-state`\n- `allow-share-take-attention`\n- `allow-share-rename-self`\n- `allow-share-invite`\n- `allow-share-join`\n- `allow-share-dismiss-pair`\n- `allow-share-rename-device`\n- `allow-share-remove-device`\n- `allow-share-create`\n- `allow-share-set-public`\n- `allow-share-offer`\n- `allow-share-revoke`\n- `allow-share-open`\n- `allow-share-fetch`\n- `allow-share-download`\n- `allow-share-cancel`\n- `allow-share-dismiss`\n- `allow-share-qr`\n- `allow-share-set-expiry`\n- `allow-sync-check`\n- `allow-sync-create`\n- `allow-sync-accept`\n- `allow-sync-decline`\n- `allow-sync-pause`\n- `allow-sync-now`\n- `allow-sync-remove`\n- `allow-share-files`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Browse, preview, share and manage files.\n#### This default permission set includes:\n\n- `allow-list-dir`\n- `allow-list-shell`\n- `allow-search-dir`\n- `allow-cancel-search`\n- `allow-known-folders`\n- `allow-drives`\n- `allow-explorer-settings`\n- `allow-open-item`\n- `allow-open-with`\n- `allow-show-properties`\n- `allow-empty-recycle-bin`\n- `allow-start-drag`\n- `allow-native-menu`\n- `allow-invoke-verb`\n- `allow-transfer-items`\n- `allow-delete-items`\n- `allow-rename-item`\n- `allow-new-folder`\n- `allow-set-clipboard`\n- `allow-paste-items`\n- `allow-clipboard-has-files`\n- `allow-allow-preview`\n- `allow-preview-text`\n- `allow-model-files`\n- `allow-open-viewer`\n- `allow-audio-waveform`\n- `allow-transcribe`\n- `allow-read-transcript`\n- `allow-transcribe-key-status`\n- `allow-save-transcribe-key`\n- `allow-clear-transcribe-key`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-default-app-status`\n- `allow-set-default-app`\n- `allow-open-default-apps`\n- `allow-watch-dir`\n- `allow-network-places`\n- `allow-reconnect-drive`\n- `allow-disconnect-drive`\n- `allow-map-network-drive`\n- `allow-disconnect-network-drive`\n- `allow-add-network-location`\n- `allow-run-address`\n- `allow-share-state`\n- `allow-share-take-attention`\n- `allow-share-rename-self`\n- `allow-share-invite`\n- `allow-share-join`\n- `allow-share-dismiss-pair`\n- `allow-share-rename-device`\n- `allow-share-remove-device`\n- `allow-share-create`\n- `allow-share-set-public`\n- `allow-share-offer`\n- `allow-share-revoke`\n- `allow-share-open`\n- `allow-share-fetch`\n- `allow-share-download`\n- `allow-share-cancel`\n- `allow-share-dismiss`\n- `allow-share-qr`\n- `allow-share-set-expiry`\n- `allow-sync-check`\n- `allow-sync-create`\n- `allow-sync-accept`\n- `allow-sync-decline`\n- `allow-sync-pause`\n- `allow-sync-now`\n- `allow-sync-remove`\n- `allow-share-files`"
+          "markdownDescription": "Browse, preview, share and manage files.\n#### This default permission set includes:\n\n- `allow-list-dir`\n- `allow-list-shell`\n- `allow-search-dir`\n- `allow-cancel-search`\n- `allow-measure-dirs`\n- `allow-list-archive`\n- `allow-extract-entry`\n- `allow-bandizip-available`\n- `allow-bandizip-job`\n- `allow-known-folders`\n- `allow-drives`\n- `allow-explorer-settings`\n- `allow-wsl-distros`\n- `allow-screen-sharing`\n- `allow-open-item`\n- `allow-open-with`\n- `allow-show-properties`\n- `allow-empty-recycle-bin`\n- `allow-start-drag`\n- `allow-native-menu`\n- `allow-invoke-verb`\n- `allow-transfer-items`\n- `allow-delete-items`\n- `allow-rename-item`\n- `allow-new-folder`\n- `allow-set-clipboard`\n- `allow-paste-items`\n- `allow-clipboard-has-files`\n- `allow-allow-preview`\n- `allow-preview-text`\n- `allow-model-files`\n- `allow-is-mujoco`\n- `allow-open-viewer`\n- `allow-audio-waveform`\n- `allow-transcribe`\n- `allow-read-transcript`\n- `allow-transcribe-key-status`\n- `allow-save-transcribe-key`\n- `allow-clear-transcribe-key`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-default-app-status`\n- `allow-set-default-app`\n- `allow-open-default-apps`\n- `allow-watch-dir`\n- `allow-network-places`\n- `allow-reconnect-drive`\n- `allow-disconnect-drive`\n- `allow-map-network-drive`\n- `allow-disconnect-network-drive`\n- `allow-add-network-location`\n- `allow-run-address`\n- `allow-share-state`\n- `allow-share-take-attention`\n- `allow-share-rename-self`\n- `allow-share-invite`\n- `allow-share-join`\n- `allow-share-dismiss-pair`\n- `allow-share-rename-device`\n- `allow-share-remove-device`\n- `allow-share-create`\n- `allow-share-set-public`\n- `allow-share-offer`\n- `allow-share-revoke`\n- `allow-share-open`\n- `allow-share-fetch`\n- `allow-share-download`\n- `allow-share-cancel`\n- `allow-share-dismiss`\n- `allow-share-qr`\n- `allow-share-set-expiry`\n- `allow-sync-check`\n- `allow-sync-create`\n- `allow-sync-accept`\n- `allow-sync-decline`\n- `allow-sync-pause`\n- `allow-sync-now`\n- `allow-sync-remove`\n- `allow-share-files`"
         }
       ]
     }

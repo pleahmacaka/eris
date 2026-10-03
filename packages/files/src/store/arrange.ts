@@ -12,7 +12,7 @@ type Placement = {
   sectionOf: ((item: Item) => string) | null
 }
 
-const THIS_PC_SECTIONS = ["folders", "drives", "network"]
+const THIS_PC_SECTIONS = ["folders", "drives", "network", "linux"]
 
 const shown = (item: Item, showHidden: boolean) => {
   const hidden = (item.attrs & HIDDEN) !== 0

@@ -26,7 +26,7 @@
 
   const resetRow = reset(() => device, defaultDevice)
 
-  const shows = (p: Part) => (subset ? p === "style" || p === "behavior" : part === p)
+  const shows = (p: Part) => part === p
 
   const ALIGNMENTS: { value: DockAlign; icon: string }[] = [
     { value: "start", icon: "lucide:align-start-horizontal" },
@@ -144,9 +144,11 @@
       </button>
     </span>
 
-    <div class="mx-auto w-full max-w-sm">
-      <DockPreview {device} />
-    </div>
+    {#if !subset}
+      <div class="mx-auto w-full max-w-sm">
+        <DockPreview {device} />
+      </div>
+    {/if}
 
     <div class="grid grid-cols-2 gap-3" role="radiogroup" aria-label={$t("settings.dock.styleAria")}>
       {#each DOCK_STYLES as style (style)}
@@ -395,7 +397,7 @@
     />
   </Row>
 
-  {#if device.dockAutoHide}
+  {#if device.dockAutoHide && !subset}
     <Row
       label={$t("settings.rows.hideDelay")}
       hint={$t("settings.hints.hideDelay")}
@@ -478,6 +480,21 @@
         />
       </Row>
     {/if}
+  {/if}
+
+  {#if !subset}
+    <Row
+      label={$t("settings.rows.fullscreenReveal")}
+      hint={$t("settings.hints.fullscreenReveal")}
+      onreset={resetRow("dockFullscreenReveal")}
+    >
+      <input
+        type="checkbox"
+        class="toggle toggle-primary"
+        aria-label={$t("settings.rows.fullscreenReveal")}
+        bind:checked={device.dockFullscreenReveal}
+      />
+    </Row>
   {/if}
 
   {#if mac}

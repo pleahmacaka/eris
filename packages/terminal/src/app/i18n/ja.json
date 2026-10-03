@@ -21,7 +21,12 @@
       "fontHint": "フォント名を入力してください。",
       "fontSize": "フォントサイズ",
       "theme": "テーマ",
-      "version": "バージョン"
+      "version": "バージョン",
+      "account": "アカウント"
+    },
+    "panes": {
+      "sync": "入力の同期",
+      "resize": "分割サイズの調整"
     }
   }
 }

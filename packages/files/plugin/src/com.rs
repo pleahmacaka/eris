@@ -11,7 +11,7 @@ use windows::Win32::System::SystemServices::{SFGAO_FOLDER, SFGAO_STREAM};
 use windows::Win32::UI::Shell::Common::ITEMIDLIST;
 use windows::Win32::UI::Shell::{
     BHID_LinkTargetItem, ILGetSize, IShellItem, IShellItemArray, SHCreateItemFromIDList,
-    SHCreateShellItemArrayFromIDLists, SHGetIDListFromObject, SHParseDisplayName, SIGDN,
+    SHCreateShellItemArrayFromIDLists, SHGetIDListFromObject, SHParseDisplayName, SHSimpleIDListFromPath, SIGDN,
 };
 
 use crate::error::{Error, Result};
@@ -202,6 +202,17 @@ pub fn pidl(key: &str) -> Result<Pidl> {
 
 pub fn item(key: &str) -> Result<IShellItem> {
     pidl(key)?.item()
+}
+
+// a simple pidl resolves by name alone, so a file that only exists inside an archive still gets its type icon
+pub fn named_item(path: &str) -> Result<IShellItem> {
+    let raw = unsafe { SHSimpleIDListFromPath(&HSTRING::from(path)) };
+
+    if raw.is_null() {
+        return Err(Error::Missing);
+    }
+
+    Pidl(raw).item()
 }
 
 pub fn items(keys: &[String]) -> Result<IShellItemArray> {

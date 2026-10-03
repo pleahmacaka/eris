@@ -47,7 +47,24 @@
       "baseUrlHint": "OpenAI 호환 주소를 입력하세요.",
       "badUrl": "https 주소를 입력하세요.",
       "saveFailed": "키를 저장하지 못했습니다."
-    }
+    },
+    "volume": "음량",
+    "mute": "음소거",
+    "unmute": "음소거 해제",
+    "source": "전사 정보",
+    "details": "파일 정보",
+    "meta": {
+      "title": "제목",
+      "artist": "아티스트",
+      "album": "앨범",
+      "year": "연도",
+      "track": "트랙",
+      "genre": "장르",
+      "sampleRate": "샘플레이트",
+      "channels": "채널",
+      "bitrate": "비트레이트"
+    },
+    "channelCount": "{count, plural, =1 {모노} =2 {스테레오} other {#채널}}"
   },
   "explorer": {
     "places": {
@@ -62,6 +79,7 @@
       "videos": "동영상",
       "folder": "시스템 폴더",
       "networkLocation": "네트워크 위치",
+      "linuxDistro": "Linux 배포판",
       "shared": "공유"
     },
     "drive": {
@@ -103,6 +121,7 @@
       "copy": "복사",
       "paste": "붙여넣기",
       "rename": "이름 바꾸기",
+      "resetName": "기본 이름 복원",
       "delete": "삭제",
       "deletePermanently": "영구 삭제",
       "sort": "정렬",
@@ -128,7 +147,9 @@
       "disconnect": "연결 해제",
       "mapDrive": "네트워크 드라이브 연결",
       "unmapDrive": "네트워크 드라이브 연결 해제",
-      "addNetworkLocation": "네트워크 위치 추가"
+      "addNetworkLocation": "네트워크 위치 추가",
+      "markPrivate": "화면 공유 시 확인",
+      "unmarkPrivate": "화면 공유 시 확인 해제"
     },
     "sort": {
       "name": "이름",
@@ -146,7 +167,9 @@
       "details": "자세히",
       "tiles": "타일",
       "hidden": "숨긴 항목",
-      "extensions": "파일 확장명"
+      "extensions": "파일 확장명",
+      "dateGroups": "날짜별 그룹",
+      "folderOnly": "이 폴더에만 적용"
     },
     "columns": {
       "name": "이름",
@@ -159,7 +182,8 @@
       "items": "{count}개 항목",
       "selected": "{count}개 선택",
       "results": "결과 {count}개",
-      "searching": "검색 중"
+      "searching": "검색 중",
+      "measuring": "계산 중"
     },
     "states": {
       "empty": "빈 폴더",
@@ -173,13 +197,16 @@
     "errors": {
       "denied": "접근 권한 없음",
       "missing": "위치 없음",
-      "notReady": "장치 준비 안 됨"
+      "notReady": "장치 준비 안 됨",
+      "password": "암호가 설정된 압축 파일",
+      "unsupported": "지원하지 않는 형식"
     },
     "settings": {
       "title": "설정",
       "general": "파일",
       "showHidden": "숨긴 항목 표시",
       "showExtensions": "파일 확장명 표시",
+      "selectionInMore": "선택 명령을 더 보기 메뉴에 표시",
       "defaultApp": "기본 파일 관리자",
       "defaultAppLabel": "Eris Files로 폴더 열기",
       "defaultAppHint": "폴더와 Win+E에서 파일 탐색기 대체",
@@ -187,7 +214,8 @@
       "theme": "테마",
       "version": "버전",
       "windowsDefaults": "Windows 기본 앱",
-      "windowsDefaultsHint": "3D 모델을 여는 앱은 Windows 설정에서 지정하세요."
+      "windowsDefaultsHint": "3D 모델을 여는 앱은 Windows 설정에서 지정하세요.",
+      "account": "계정"
     },
     "sidebar": {
       "title": "사이드바",
@@ -201,6 +229,7 @@
         "folders": "라이브러리 폴더",
         "drives": "내 PC 드라이브",
         "network": "네트워크",
+        "linux": "Linux",
         "shared": "공유",
         "recycleBin": "휴지통"
       }
@@ -228,7 +257,24 @@
       "other": "기타",
       "folders": "폴더",
       "drives": "장치 및 드라이브",
-      "network": "네트워크 위치"
+      "network": "네트워크 위치",
+      "linux": "Linux"
+    },
+    "privacy": {
+      "title": "화면 공유 중",
+      "body": "{name} 항목이 공유 화면에 표시됩니다.",
+      "open": "열기"
+    },
+    "bandizip": {
+      "extractHere": "여기에 압축 풀기",
+      "extractAuto": "알아서 압축 풀기",
+      "extractNamed": "{name} 폴더에 압축 풀기",
+      "extractEach": "각각의 폴더에 압축 풀기",
+      "compressZip": "{name}.zip으로 압축",
+      "compress7z": "{name}.7z로 압축",
+      "compressEach": "각각 ZIP으로 압축",
+      "working": "압축 작업 중",
+      "done": "압축 작업 완료"
     }
   },
   "terminal": {

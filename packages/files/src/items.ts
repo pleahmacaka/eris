@@ -1,5 +1,6 @@
 import { extensionOf, joinPath } from "./locations"
 import {
+  type ArchiveListing,
   type Drive,
   type Hit,
   type IconMode,
@@ -7,6 +8,7 @@ import {
   type ShellEntry,
   shellImage,
 } from "./native"
+import { archives } from "./store/archive.svelte"
 
 export type Item = {
   key: string
@@ -16,13 +18,16 @@ export type Item = {
   size: number
   modified: number
   attrs: number
+  link: boolean
   kind: string
   parent: string | null
   drive: Drive | null
+  packed?: string
 }
 
 const blank = {
   attrs: 0,
+  link: false,
   parent: null,
   drive: null,
 }
@@ -50,6 +55,54 @@ export const fromHit = (hit: Hit): Item => {
 
 export const fromShell = (entry: ShellEntry): Item => ({ ...blank, ...entry })
 
+export const fromArchive = (
+  location: string,
+  archive: string,
+  inner: string,
+  listing: ArchiveListing,
+): Item[] => {
+  const prefix = inner ? `${inner.toLowerCase()}\\` : ""
+  const found = new Map<string, Item>()
+
+  for (const entry of listing.entries) {
+    if (!entry.path.toLowerCase().startsWith(prefix)) {
+      continue
+    }
+
+    const rest = entry.path.slice(prefix.length)
+    const cut = rest.indexOf("\\")
+    const own = cut < 0
+    const name = own ? rest : rest.slice(0, cut)
+    const key = name.toLowerCase()
+
+    if (!name || (found.has(key) && !own)) {
+      continue
+    }
+
+    const dir = !own || entry.dir
+    const path = joinPath(location, name)
+
+    found.set(key, {
+      ...blank,
+      key: path,
+      path,
+      name,
+      dir,
+      size: dir ? 0 : entry.size,
+      modified: own ? entry.modified : 0,
+      kind: dir
+        ? (listing.types["/"] ?? "")
+        : (listing.types[extensionOf(name)] ?? ""),
+      packed: archive,
+    })
+  }
+
+  return [...found.values()]
+}
+
+export const packedEntry = (item: Item) =>
+  item.packed ? item.path.slice(item.packed.length + 1) : ""
+
 export const fromFolder = (path: string, name: string, kind: string): Item => ({
   ...blank,
   key: path,
@@ -73,7 +126,10 @@ export const fromDrive = (drive: Drive, name: string, kind: string): Item => ({
   drive,
 })
 
-const ALWAYS_HIDDEN = new Set([".lnk", ".url"])
+const SHORTCUTS = new Set([".lnk", ".url"])
+
+export const isShortcut = (item: Item) =>
+  item.link || (!item.dir && SHORTCUTS.has(extensionOf(item.path)))
 
 export const displayName = (item: Item, showExtensions: boolean) => {
   if (item.dir || item.drive) {
@@ -82,7 +138,7 @@ export const displayName = (item: Item, showExtensions: boolean) => {
 
   const extension = extensionOf(item.name)
   const hide =
-    ALWAYS_HIDDEN.has(extension) ||
+    SHORTCUTS.has(extension) ||
     (!showExtensions && item.name.length > extension.length)
 
   return hide && extension
@@ -136,6 +192,12 @@ export const iconPixels = (rem: number) =>
 
 export const iconSource = (item: Item, pixels: number, thumbnail = false) => {
   const extension = extensionOf(item.name)
+
+  if (item.packed) {
+    return item.dir
+      ? shellImage("item", pixels, archives.folder)
+      : shellImage("icon", pixels, item.path)
+  }
   const mode: IconMode =
     item.key.startsWith("pidl:") || item.dir
       ? "item"

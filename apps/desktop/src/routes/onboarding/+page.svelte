@@ -268,10 +268,10 @@
         <div class="step flex h-full flex-col">
           {#if step === "welcome"}
             <div
-              class="flex h-full flex-col items-center justify-center gap-8 text-center"
+              class="flex h-full flex-col items-center justify-center gap-6 text-center"
             >
               <div class="flex flex-col items-center gap-3">
-                <AsciiLogo cols={36} class="w-48" />
+                <AsciiLogo cols={36} class="w-40" />
 
                 <span class="text-xl font-black tracking-tighter uppercase">Eris</span>
               </div>
@@ -319,30 +319,30 @@
               </p>
             </div>
 
-            <Section title={$t("settings.groups.features.title")}>
-              <FeatureControls bind:device presets />
-            </Section>
-
-            <div class="mt-4">
-              <Section title={$t("settings.groups.erisFiles")}>
-                <ErisFilesControls launch={false} />
+            <div class="grid grid-cols-2 items-start gap-4">
+              <Section title={$t("settings.groups.features.title")}>
+                <FeatureControls bind:device presets />
               </Section>
-            </div>
 
-            <div class="mt-4">
-              <Section title={$t("settings.groups.device")}>
-                <Row
-                  label={$t("settings.rows.autostart")}
-                  hint={$t("settings.hints.autostart")}
-                >
-                  <input
-                    type="checkbox"
-                    class="toggle toggle-primary"
-                    aria-label={$t("settings.rows.autostart")}
-                    bind:checked={device.autostart}
-                  />
-                </Row>
-              </Section>
+              <div class="flex flex-col gap-4">
+                <Section title={$t("settings.groups.erisFiles")}>
+                  <ErisFilesControls launch={false} />
+                </Section>
+
+                <Section title={$t("settings.groups.device")}>
+                  <Row
+                    label={$t("settings.rows.autostart")}
+                    hint={$t("settings.hints.autostart")}
+                  >
+                    <input
+                      type="checkbox"
+                      class="toggle toggle-primary"
+                      aria-label={$t("settings.rows.autostart")}
+                      bind:checked={device.autostart}
+                    />
+                  </Row>
+                </Section>
+              </div>
             </div>
           {:else if step === "style"}
             <div class="mb-4 flex items-end justify-between gap-4">
@@ -379,62 +379,14 @@
               </p>
             </div>
 
-            <div class="grid grid-cols-[1fr_16rem] items-start gap-5">
-              <Section title={$t("settings.groups.dock")}>
+            <div class="grid grid-cols-2 items-start gap-4">
+              <Section title={$t("settings.groups.dockStyle")}>
                 <DockControls bind:device subset />
               </Section>
 
-              <div class="flex flex-col gap-2">
-                <div
-                  class="relative aspect-[16/10] w-full overflow-hidden rounded-box border border-base-content/10 bg-linear-to-br from-primary/25 via-base-200 to-secondary/20"
-                >
-                  {#if !device.hideSystemTaskbar}
-                    <div
-                      class="absolute inset-x-0 bottom-0 h-[8%] bg-base-content/15"
-                    ></div>
-                  {/if}
-
-                  <div
-                    class={[
-                      "absolute flex items-center justify-center gap-[3%] border border-base-content/10 bg-base-100/85 shadow-lg backdrop-blur-md transition-all duration-100",
-                      device.dockStyle === "mac"
-                        ? "left-1/2 w-3/5 -translate-x-1/2 rounded-full"
-                        : "inset-x-0",
-                      device.dockEdge === "top"
-                        ? device.dockStyle === "mac"
-                          ? "top-[2%]"
-                          : "top-0"
-                        : device.hideSystemTaskbar
-                          ? device.dockStyle === "mac"
-                            ? "bottom-[2%]"
-                            : "bottom-0"
-                          : device.dockStyle === "mac"
-                            ? "bottom-[10%]"
-                            : "bottom-[8%]",
-                      device.dockAutoHide ? "h-[2%] opacity-60" : "h-[10%]",
-                    ]}
-                  >
-                    {#if !device.dockAutoHide}
-                      {#each [0, 1, 2, 3, 4] as dot (dot)}
-                        <span
-                          class={[
-                            "aspect-square w-[5%] bg-primary/70",
-                            device.dockStyle === "mac" ? "rounded-full" : "rounded-sm",
-                          ]}
-                        ></span>
-                      {/each}
-                    {/if}
-                  </div>
-                </div>
-
-                <p class="text-center text-xs text-base-content/60">
-                  {device.dockAutoHide
-                    ? $t("onboarding.dock.autoHide")
-                    : device.hideSystemTaskbar
-                      ? $t("onboarding.dock.replaces")
-                      : $t("onboarding.dock.taskbarStays")}
-                </p>
-              </div>
+              <Section title={$t("settings.groups.dockBehavior")}>
+                <DockControls bind:device part="behavior" subset />
+              </Section>
             </div>
           {:else if step === "hotkeys"}
             <div class="mb-4">
@@ -497,9 +449,7 @@
               </p>
             </div>
 
-            <div class="flex flex-col gap-4">
-              <SyncPanel bind:device compact />
-            </div>
+            <SyncPanel bind:device compact />
           {:else if step === "tips"}
             <div
               class="flex h-full flex-col items-center justify-center gap-8 text-center"

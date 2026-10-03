@@ -1,3 +1,4 @@
+import { tr } from "@eris/i18n"
 import {
   HOME,
   isDriveRoot,
@@ -15,14 +16,17 @@ import {
   type NetworkPlace,
   networkPlaces,
   type ShellEntry,
+  wslDistros,
 } from "../native"
+import { prefs } from "./prefs.svelte"
 
 export const places = $state<{
   known: Known[]
   drives: Drive[]
   pinned: ShellEntry[]
   network: NetworkPlace[]
-}>({ known: [], drives: [], pinned: [], network: [] })
+  linux: NetworkPlace[]
+}>({ known: [], drives: [], pinned: [], network: [], linux: [] })
 
 const shareName = (remote: string) => {
   const parts = remote.split("\\").filter(Boolean)
@@ -32,14 +36,32 @@ const shareName = (remote: string) => {
     : remote
 }
 
-export const driveName = (drive: Drive, translate: (key: string) => string) => {
+const systemLabel = (drive: Drive, translate: (key: string) => string) => {
   const kind = drive.kind === "fixed" ? "local" : drive.kind
-  const label =
+
+  return (
     (drive.remote && shareName(drive.remote)) ||
     drive.label ||
     translate(`explorer.drive.${kind}`)
+  )
+}
 
-  return `${label} (${drive.path.slice(0, 2)})`
+export const driveLabel = (drive: Drive, translate: (key: string) => string) =>
+  prefs.driveNames[drive.path] || systemLabel(drive, translate)
+
+export const driveName = (drive: Drive, translate: (key: string) => string) =>
+  `${driveLabel(drive, translate)} (${drive.path.slice(0, 2)})`
+
+export const nameDrive = (drive: Drive, name: string) => {
+  const alias = name.trim()
+  const others = Object.entries(prefs.driveNames).filter(
+    ([path]) => path !== drive.path,
+  )
+  const custom = alias && alias !== systemLabel(drive, tr)
+
+  prefs.driveNames = Object.fromEntries(
+    custom ? [...others, [drive.path, alias]] : others,
+  )
 }
 
 export const NAMED_PLACES: [string, string][] = [
@@ -86,6 +108,11 @@ export const refreshPlaces = async () => {
     networkPlaces()
       .then(found => {
         places.network = found
+      })
+      .catch(() => undefined),
+    wslDistros()
+      .then(found => {
+        places.linux = found
       })
       .catch(() => undefined),
   ])

@@ -320,7 +320,8 @@ pub fn serve(
 }
 
 fn render(key: &str, size: i32, flags: SIIGBF) -> Option<Vec<u8>> {
-    let factory: IShellItemImageFactory = com::item(key).ok().and_then(|item| {
+    let item = com::item(key).or_else(|_| com::named_item(key));
+    let factory: IShellItemImageFactory = item.ok().and_then(|item| {
         use windows::core::Interface;
 
         item.cast().ok()

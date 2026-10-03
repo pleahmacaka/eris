@@ -47,7 +47,24 @@
       "baseUrlHint": "OpenAI 互換のアドレスを入力してください。",
       "badUrl": "https のアドレスを入力してください。",
       "saveFailed": "キーを保存できませんでした。"
-    }
+    },
+    "volume": "音量",
+    "mute": "ミュート",
+    "unmute": "ミュート解除",
+    "source": "文字起こしの情報",
+    "details": "ファイル情報",
+    "meta": {
+      "title": "タイトル",
+      "artist": "アーティスト",
+      "album": "アルバム",
+      "year": "年",
+      "track": "トラック",
+      "genre": "ジャンル",
+      "sampleRate": "サンプルレート",
+      "channels": "チャンネル",
+      "bitrate": "ビットレート"
+    },
+    "channelCount": "{count, plural, =1 {モノラル} =2 {ステレオ} other {#チャンネル}}"
   },
   "explorer": {
     "places": {
@@ -62,6 +79,7 @@
       "videos": "ビデオ",
       "folder": "システム フォルダー",
       "networkLocation": "ネットワークの場所",
+      "linuxDistro": "Linux ディストリビューション",
       "shared": "共有"
     },
     "drive": {
@@ -103,6 +121,7 @@
       "copy": "コピー",
       "paste": "貼り付け",
       "rename": "名前の変更",
+      "resetName": "既定の名前に戻す",
       "delete": "削除",
       "deletePermanently": "完全に削除",
       "sort": "並べ替え",
@@ -128,7 +147,9 @@
       "disconnect": "切断",
       "mapDrive": "ネットワーク ドライブの割り当て",
       "unmapDrive": "ネットワーク ドライブの切断",
-      "addNetworkLocation": "ネットワークの場所の追加"
+      "addNetworkLocation": "ネットワークの場所の追加",
+      "markPrivate": "画面共有時に確認",
+      "unmarkPrivate": "画面共有時の確認を解除"
     },
     "sort": {
       "name": "名前",
@@ -146,7 +167,9 @@
       "details": "詳細",
       "tiles": "並べて表示",
       "hidden": "隠しファイル",
-      "extensions": "ファイル名拡張子"
+      "extensions": "ファイル名拡張子",
+      "dateGroups": "日付別グループ",
+      "folderOnly": "このフォルダーにのみ適用"
     },
     "columns": {
       "name": "名前",
@@ -159,7 +182,8 @@
       "items": "{count} 個の項目",
       "selected": "{count} 個の項目を選択",
       "results": "{count} 件の結果",
-      "searching": "検索中"
+      "searching": "検索中",
+      "measuring": "計算中"
     },
     "states": {
       "empty": "空のフォルダー",
@@ -173,13 +197,16 @@
     "errors": {
       "denied": "アクセス拒否",
       "missing": "場所が見つかりません",
-      "notReady": "デバイスの準備ができていません"
+      "notReady": "デバイスの準備ができていません",
+      "password": "パスワード付きの圧縮ファイル",
+      "unsupported": "未対応の形式"
     },
     "settings": {
       "title": "設定",
       "general": "ファイル",
       "showHidden": "隠しファイルを表示",
       "showExtensions": "ファイル名拡張子を表示",
+      "selectionInMore": "選択コマンドを「もっと見る」に表示",
       "defaultApp": "既定のファイル マネージャー",
       "defaultAppLabel": "Eris Files でフォルダーを開く",
       "defaultAppHint": "フォルダーと Win+E でエクスプローラーの代わりに使用",
@@ -187,7 +214,8 @@
       "theme": "テーマ",
       "version": "バージョン",
       "windowsDefaults": "Windows の既定のアプリ",
-      "windowsDefaultsHint": "3D モデルを開くアプリは Windows の設定で選択してください。"
+      "windowsDefaultsHint": "3D モデルを開くアプリは Windows の設定で選択してください。",
+      "account": "アカウント"
     },
     "sidebar": {
       "title": "サイドバー",
@@ -201,6 +229,7 @@
         "folders": "ライブラリ フォルダー",
         "drives": "PC のドライブ",
         "network": "ネットワーク",
+        "linux": "Linux",
         "shared": "共有",
         "recycleBin": "ごみ箱"
       }
@@ -228,7 +257,24 @@
       "other": "その他",
       "folders": "フォルダー",
       "drives": "デバイスとドライブ",
-      "network": "ネットワークの場所"
+      "network": "ネットワークの場所",
+      "linux": "Linux"
+    },
+    "privacy": {
+      "title": "画面共有中",
+      "body": "{name} が共有画面に表示されます。",
+      "open": "開く"
+    },
+    "bandizip": {
+      "extractHere": "ここに解凍",
+      "extractAuto": "自動で解凍",
+      "extractNamed": "{name} フォルダーに解凍",
+      "extractEach": "それぞれのフォルダーに解凍",
+      "compressZip": "{name}.zip に圧縮",
+      "compress7z": "{name}.7z に圧縮",
+      "compressEach": "それぞれ ZIP に圧縮",
+      "working": "圧縮処理中",
+      "done": "圧縮処理完了"
     }
   },
   "terminal": {

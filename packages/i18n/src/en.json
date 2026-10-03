@@ -72,6 +72,10 @@
       "about": {
         "label": "About",
         "blurb": "Version and updates"
+      },
+      "account": {
+        "label": "Account",
+        "blurb": "Sign in once to use the same Eris account in every Eris app."
       }
     },
     "groups": {
@@ -182,6 +186,7 @@
       "iconSize": "Icon size",
       "pinDesktop": "Behind windows",
       "autoHide": "Auto-hide",
+      "fullscreenReveal": "Show over fullscreen",
       "showLauncherButton": "Launcher button",
       "showRunningApps": "Running apps",
       "showTrayIcons": "Tray icons",
@@ -290,6 +295,7 @@
       "alignment": "Where apps line up inside the dock",
       "pinDesktop": "Windows can cover the dock; with auto-hide on it comes forward when the cursor reaches the edge",
       "autoHide": "Keep the dock hidden until the cursor reaches the screen edge",
+      "fullscreenReveal": "Bring the dock over fullscreen windows when the cursor reaches the screen edge",
       "showLauncherButton": "Show a launcher button on the dock; the Win key opens the launcher too",
       "showRunningApps": "Show apps with open windows even when they are not pinned",
       "showTrayIcons": "Show notification area icons from background programs",
@@ -1120,10 +1126,7 @@
     },
     "dock": {
       "title": "Shape the dock",
-      "blurb": "Fine-tune sizes and contents later in settings.",
-      "autoHide": "Hidden until the cursor touches the edge",
-      "replaces": "Eris replaces the Windows taskbar",
-      "taskbarStays": "The Windows taskbar stays visible"
+      "blurb": "Fine-tune sizes and contents later in settings."
     },
     "hotkeys": {
       "title": "Open Eris",

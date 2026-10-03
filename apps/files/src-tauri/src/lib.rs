@@ -12,6 +12,7 @@ pub fn run() {
             tauri_plugin_eris_files::forward(app, args, cwd);
         }))
         .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_eris_auth::init("eris-files"))
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_eris_terminal::init("/terminal"))

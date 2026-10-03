@@ -11,6 +11,7 @@ export type RawEntry = {
   size: number
   modified: number
   attrs: number
+  link: boolean
 }
 
 export type Listing = {
@@ -70,6 +71,27 @@ export type Model = { obj: string; mtl: string | null }
 
 export type IconMode = "icon" | "item" | "thumb"
 
+export type Packed = {
+  path: string
+  dir: boolean
+  size: number
+  modified: number
+}
+
+export type ArchiveListing = {
+  entries: Packed[]
+  types: Record<string, string>
+  folder: string
+}
+
+export type BandizipJob =
+  | "extractHere"
+  | "extractAuto"
+  | "extractNamed"
+  | "compressZip"
+  | "compress7z"
+  | "compressEach"
+
 export const call = <T>(command: string, args?: InvokeArgs) =>
   invoke<T>(`plugin:eris-files|${command}`, args)
 
@@ -99,12 +121,32 @@ export const searchDir = (
 export const cancelSearch = (token: number) =>
   call<void>("cancel_search", { token })
 
+export const measureDirs = (paths: string[], token: number) =>
+  call<number | null>("measure_dirs", { paths, token })
+
+export const randomToken = () => crypto.getRandomValues(new Uint32Array(1))[0]
+
 export const watchDir = (slot: string, path: string | null) =>
   call<void>("watch_dir", { slot, path })
 
 export const knownFolders = () => call<Known[]>("known_folders")
 
 export const drives = () => call<Drive[]>("drives")
+
+export const wslDistros = () => call<NetworkPlace[]>("wsl_distros")
+
+export const listArchive = (path: string) =>
+  call<ArchiveListing>("list_archive", { path })
+
+export const extractEntry = (archive: string, entry: string) =>
+  call<string>("extract_entry", { archive, entry })
+
+export const bandizipAvailable = () => call<boolean>("bandizip_available")
+
+export const bandizipJob = (job: BandizipJob, items: string[]) =>
+  call<string[]>("bandizip_job", { job, items })
+
+export const screenSharing = () => call<boolean>("screen_sharing")
 
 export const explorerSettings = () =>
   call<ExplorerSettings>("explorer_settings")
@@ -186,6 +228,8 @@ export const previewText = (path: string) =>
 export const modelFiles = (path: string) => call<Model>("model_files", { path })
 
 export const openViewer = (path: string) => call<void>("open_viewer", { path })
+
+export const isMujoco = (path: string) => call<boolean>("is_mujoco", { path })
 
 export const takeIntent = () => call<Intent>("take_intent")
 

@@ -133,8 +133,13 @@
   {#if weekNumbers}
     <div></div>
   {/if}
-  {#each weekdays as weekday (weekday)}
-    <div class="px-1 py-1.5 text-3xs font-medium text-base-content/45">
+  {#each weekdays as weekday, index (weekday)}
+    <div
+      class={[
+        "px-1 py-1.5 text-3xs font-medium",
+        panel.weekdayTone(panel.weeks[0][index]) ?? "text-base-content/45",
+      ]}
+    >
       <span class="inline-flex min-w-5 justify-center">{weekday}</span>
     </div>
   {/each}
@@ -192,7 +197,7 @@
               "text-xs tabular-nums",
               isToday
                 ? "bg-primary font-semibold text-primary-content"
-                : ["font-medium", holidays.length > 0 && "text-error"],
+                : ["font-medium", panel.dayTone(day)],
             ]}
           >
             {day.getDate()}
@@ -200,7 +205,10 @@
 
           {#if holidays.length > 0}
             <span
-              class="min-w-0 truncate text-3xs font-medium text-error"
+              class={[
+                "min-w-0 truncate text-3xs font-medium",
+                panel.isHoliday(day) ? "text-error" : "text-base-content/50",
+              ]}
               title={holidays.join(", ")}
             >
               {holidays.join(", ")}
