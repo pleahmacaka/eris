@@ -12,7 +12,7 @@ export default defineConfig({
           filename.includes("node_modules") ? undefined : true,
       },
 
-      adapter: adapter(),
+      adapter: adapter({ pages: "build", assets: "build" }),
     }),
   ],
 })
