@@ -9,24 +9,31 @@
   "draft": true,
   "force-tag-creation": true,
   "packages": {
-    "apps/desktop": {
+    ".": {
       "component": "eris",
+      "changelog-path": "apps/desktop/CHANGELOG.md",
+      "exclude-paths": [
+        "apps/web",
+        "apps/arixlab",
+        "packages/community",
+        "supabase"
+      ],
       "extra-files": [
         {
           "type": "json",
-          "path": "/apps/files/package.json",
+          "path": "apps/desktop/package.json",
           "jsonpath": "$.version"
         },
         {
           "type": "json",
-          "path": "/apps/terminal/package.json",
+          "path": "apps/files/package.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "apps/terminal/package.json",
           "jsonpath": "$.version"
         }
-      ],
-      "additional-paths": [
-        "apps/files",
-        "apps/terminal",
-        "packages"
       ]
     }
   }
