@@ -3,6 +3,8 @@ import { sveltekit } from "@sveltejs/kit/vite"
 import tailwindcss from "@tailwindcss/vite"
 import { defineConfig } from "vite"
 
+const studio = process.env.ERIS_STUDIO_OUT
+
 export default defineConfig({
   plugins: [
     tailwindcss(),
@@ -12,7 +14,13 @@ export default defineConfig({
           filename.includes("node_modules") ? undefined : true,
       },
 
-      adapter: adapter({ fallback: "index.html" }),
+      adapter: adapter({
+        pages: studio,
+        assets: studio,
+        fallback: "index.html",
+      }),
+
+      paths: { base: studio ? "/studio" : "" },
     }),
   ],
 

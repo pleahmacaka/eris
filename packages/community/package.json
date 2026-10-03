@@ -14,12 +14,18 @@
       "svelte": "./src/Gallery.svelte",
       "types": "./src/Gallery.svelte",
       "default": "./src/Gallery.svelte"
+    },
+    "./Stage.svelte": {
+      "svelte": "./src/Stage.svelte",
+      "types": "./src/Stage.svelte",
+      "default": "./src/Stage.svelte"
     }
   },
   "scripts": {
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
+    "@eris/auth": "workspace:*",
     "@eris/settings": "workspace:*"
   },
   "devDependencies": {

@@ -33,6 +33,7 @@ mod share;
 mod shortcuts;
 mod spectrum;
 mod system;
+mod theme_link;
 mod usage;
 mod windowing;
 mod winkey;
@@ -143,6 +144,12 @@ pub fn run() {
                 return;
             }
 
+            if let Some(link) = theme_link::link(&args) {
+                theme_link::accept(app, link);
+
+                return;
+            }
+
             if tauri_plugin_eris_files::claims(&eris_files::HOST, &args) {
                 tauri_plugin_eris_files::forward(app, args, cwd);
 
@@ -199,6 +206,10 @@ pub fn run() {
             apps::watch(handle.clone());
             share::watch(handle.clone());
             p2p::start(&handle);
+
+            if let Some(link) = theme_link::link(&args) {
+                theme_link::accept(&handle, link);
+            }
 
             if tauri_plugin_eris_files::claims(&eris_files::HOST, &args) {
                 let cwd = std::env::current_dir().unwrap_or_default();

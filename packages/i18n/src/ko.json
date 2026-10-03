@@ -598,7 +598,12 @@
       "features": "기능",
       "system": "시스템"
     },
-    "tocAria": "그룹 목차"
+    "tocAria": "그룹 목차",
+    "themeLink": {
+      "title": "테마 적용",
+      "body": "커뮤니티 테마 \"{name}\"의 모양 설정을 적용합니다.",
+      "apply": "적용"
+    }
   },
   "launcher": {
     "placeholder": "앱, 창, 명령 검색",
