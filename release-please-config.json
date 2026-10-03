@@ -22,6 +22,11 @@
           "path": "/apps/terminal/package.json",
           "jsonpath": "$.version"
         }
+      ],
+      "additional-paths": [
+        "apps/files",
+        "apps/terminal",
+        "packages"
       ]
     }
   }
