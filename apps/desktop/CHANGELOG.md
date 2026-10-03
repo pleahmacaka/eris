@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.5](https://github.com/pleahmacaka/eris/compare/0.3.4...0.3.5) (2026-10-03)
+
+
+### Bug Fixes
+
+* **terminal:** send alt shortcuts with an escape prefix ([b7f315d](https://github.com/pleahmacaka/eris/commit/b7f315d858d1abdb09c8e3d84c57e99a753815c2))
+
 ## [0.3.4](https://github.com/pleahmacaka/eris/compare/0.3.3...0.3.4) (2026-10-03)
 
 
