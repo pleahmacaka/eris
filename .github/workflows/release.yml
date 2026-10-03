@@ -25,10 +25,10 @@ jobs:
         if: github.event_name == 'push'
 
       - id: target
-        if: github.event_name == 'workflow_dispatch' || steps.release.outputs['apps/desktop--release_created'] == 'true'
+        if: github.event_name == 'workflow_dispatch' || steps.release.outputs.release_created == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.event.inputs.tag || steps.release.outputs['apps/desktop--tag_name'] }}
+          TAG: ${{ github.event.inputs.tag || steps.release.outputs.tag_name }}
         run: |
           id=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases" --jq '.[] | select(.tag_name == env.TAG) | .id')
           test -n "$id"
