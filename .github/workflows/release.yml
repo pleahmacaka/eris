@@ -99,13 +99,15 @@ jobs:
           ref: ${{ needs.version.outputs.tag }}
           persist-credentials: false
 
+      - run: choco install nsis --version=3.13.0 -y --no-progress
+
       - shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.version.outputs.tag }}
         run: |
           gh release download "$TAG" -R "$GITHUB_REPOSITORY" -D dist -p '*_x64-setup.exe'
-          makensis=$(command -v makensis || echo "/c/Program Files (x86)/NSIS/makensis.exe")
+          makensis="/c/Program Files (x86)/NSIS/makensis.exe"
           cd installer
           "$makensis" -DVERSION="$TAG" -DDIST="$(cygpath -w ../dist)" -DOUTFILE="$(cygpath -w "../Eris_${TAG}_x64-installer.exe")" eris-setup.nsi
           cd ..
