@@ -23,5 +23,6 @@
   },
   "patchedDependencies": {
     "ghostty-web@0.4.0": "patches/ghostty-web@0.4.0.patch"
-  }
+  },
+  "version": "0.3.5"
 }
