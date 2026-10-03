@@ -76,6 +76,13 @@
       return true
     }
 
+    // ghostty-web sends Alt+key as the bare key, so TUI shortcuts such as Alt+V never arrive
+    if (e.altKey && !e.ctrlKey && !e.metaKey && e.key.length === 1) {
+      term?.input(`\x1b${e.key}`, true)
+
+      return true
+    }
+
     return false
   }
 
