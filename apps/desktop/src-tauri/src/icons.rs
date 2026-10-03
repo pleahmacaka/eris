@@ -11,8 +11,10 @@ fn memory() -> &'static Mutex<HashMap<String, String>> {
     MEMORY.get_or_init(Default::default)
 }
 
+const CACHE_DIR: &str = "app-icons";
+
 fn cached_file(app: &AppHandle, key: &str) -> Option<PathBuf> {
-    let dir = app.path().app_cache_dir().ok()?.join("icons");
+    let dir = app.path().app_cache_dir().ok()?.join(CACHE_DIR);
 
     Some(dir.join(format!("{key}.png")))
 }
@@ -83,7 +85,7 @@ pub fn clear_icon_cache(app: AppHandle) -> Result<(), String> {
         return Ok(());
     };
 
-    let icons = dir.join("icons");
+    let icons = dir.join(CACHE_DIR);
 
     if !icons.is_dir() {
         return Ok(());
@@ -93,8 +95,9 @@ pub fn clear_icon_cache(app: AppHandle) -> Result<(), String> {
 }
 
 mod win {
-    use windows::core::HSTRING;
+    use windows::core::{HSTRING, PCWSTR};
     use windows::Win32::Foundation::SIZE;
+    use windows::Win32::Foundation::S_OK;
     use windows::Win32::Graphics::Gdi::{
         CreateCompatibleDC, CreateDIBSection, DeleteDC, DeleteObject, GetDC, GetDIBits, GetObjectW,
         ReleaseDC, SelectObject, BITMAP, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS,
@@ -102,9 +105,11 @@ mod win {
     };
     use windows::Win32::System::Com::{CoInitializeEx, COINIT_APARTMENTTHREADED};
     use windows::Win32::UI::Shell::{
-        IShellItemImageFactory, SHCreateItemFromParsingName, SIIGBF_BIGGERSIZEOK, SIIGBF_ICONONLY,
+        BHID_SFUIObject, IExtractIconW, IShellItem, IShellItemImageFactory,
+        SHCreateItemFromParsingName, SHDefExtractIconW, GIL_NOTFILENAME, SIIGBF_BIGGERSIZEOK,
+        SIIGBF_ICONONLY,
     };
-    use windows::Win32::UI::WindowsAndMessaging::{DrawIconEx, DI_NORMAL, HICON};
+    use windows::Win32::UI::WindowsAndMessaging::{DestroyIcon, DrawIconEx, DI_NORMAL, HICON};
 
     const ICON_SIZE: i32 = 64;
     const TRAY_SIZE: i32 = 32;
@@ -119,6 +124,47 @@ mod win {
         };
 
         unsafe { factory.GetImage(size, SIIGBF_ICONONLY | SIIGBF_BIGGERSIZEOK) }.ok()
+    }
+
+    // the image factory upscales exes without a large icon inside a framed tile, so extract the icon itself first
+    unsafe fn extracted(path: &str) -> Option<(u32, u32, Vec<u8>)> {
+        let item: IShellItem =
+            unsafe { SHCreateItemFromParsingName(&HSTRING::from(path), None) }.ok()?;
+        let extract: IExtractIconW = unsafe { item.BindToHandler(None, &BHID_SFUIObject) }.ok()?;
+
+        let mut file = [0u16; 1024];
+        let mut index = 0;
+        let mut flags = 0;
+
+        unsafe { extract.GetIconLocation(0, &mut file, &mut index, &mut flags) }.ok()?;
+
+        if flags & GIL_NOTFILENAME != 0 {
+            index = 0;
+        }
+
+        let mut icon = HICON::default();
+        let found = unsafe {
+            SHDefExtractIconW(
+                PCWSTR(file.as_ptr()),
+                index,
+                0,
+                Some(&mut icon),
+                None,
+                ICON_SIZE as u32,
+            )
+        };
+
+        if found != S_OK || icon.is_invalid() {
+            return None;
+        }
+
+        let pixels = draw(icon, ICON_SIZE);
+
+        unsafe {
+            let _ = DestroyIcon(icon);
+        }
+
+        pixels
     }
 
     unsafe fn rgba(bitmap: HBITMAP) -> Option<(u32, u32, Vec<u8>)> {
@@ -197,16 +243,19 @@ mod win {
             return None;
         }
 
+        draw(HICON(handle as _), TRAY_SIZE)
+    }
+
+    fn draw(icon: HICON, size: i32) -> Option<(u32, u32, Vec<u8>)> {
         unsafe {
-            let icon = HICON(handle as _);
             let screen = GetDC(None);
             let canvas = CreateCompatibleDC(Some(screen));
 
             let header = BITMAPINFO {
                 bmiHeader: BITMAPINFOHEADER {
                     biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
-                    biWidth: TRAY_SIZE,
-                    biHeight: -TRAY_SIZE,
+                    biWidth: size,
+                    biHeight: -size,
                     biPlanes: 1,
                     biBitCount: 32,
                     biCompression: BI_RGB.0,
@@ -221,8 +270,7 @@ mod win {
 
             let pixels = bitmap.ok().and_then(|bitmap| {
                 let previous = SelectObject(canvas, HGDIOBJ(bitmap.0));
-                let drawn =
-                    DrawIconEx(canvas, 0, 0, icon, TRAY_SIZE, TRAY_SIZE, 0, None, DI_NORMAL);
+                let drawn = DrawIconEx(canvas, 0, 0, icon, size, size, 0, None, DI_NORMAL);
 
                 SelectObject(canvas, previous);
 
@@ -244,11 +292,15 @@ mod win {
         unsafe {
             let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
 
-            let target = crate::apps::shortcut_target(path);
-            let bitmap = target
-                .as_deref()
-                .and_then(|target| image_of(target))
-                .or_else(|| image_of(path))?;
+            if let Some(pixels) = extracted(path) {
+                return Some(pixels);
+            }
+
+            let bitmap = image_of(path).or_else(|| {
+                crate::apps::shortcut_target(path)
+                    .as_deref()
+                    .and_then(|target| image_of(target))
+            })?;
             let result = rgba(bitmap);
 
             let _ = DeleteObject(HGDIOBJ(bitmap.0));

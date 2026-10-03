@@ -8,6 +8,17 @@ export const en = {
   skip: "Skip to content",
   languages: "Language",
 
+  account: {
+    link: "Sign in",
+    signedIn: "Account",
+    title: "Eris account",
+    blurb: "One account for the Eris site and every Eris app.",
+    home: "Back to home",
+    finishing: "Finishing sign-in",
+    failed: "Sign-in failed",
+    retry: "Try again",
+  },
+
   hero: {
     eyebrow: "A desktop shell for Windows",
     tagline: "To the fairest.",

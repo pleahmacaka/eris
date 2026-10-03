@@ -1,0 +1,18 @@
+{
+  "id": "polar-night",
+  "name": "Polar Night",
+  "author": "Eris",
+  "description": "Cool arctic blues on a flat night surface, from the Nord preset.",
+  "swatch": ["#2e3440", "#88c0d0", "#eceff4"],
+  "appearance": {
+    "mode": "dark",
+    "background": "solid",
+    "useSystemAccent": false,
+    "accentHue": 230,
+    "accentSpread": 30,
+    "vividness": 0.05,
+    "texture": 0.1,
+    "radius": 0.5,
+    "blur": 0.8
+  }
+}

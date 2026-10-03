@@ -23,10 +23,23 @@ export type Transcript = {
   segments: Segment[]
 }
 
+export type Details = {
+  title: string | null
+  artist: string | null
+  album: string | null
+  year: string | null
+  track: number | null
+  genre: string | null
+  sampleRate: number | null
+  channels: number | null
+  cover: string | null
+}
+
 export type Waveform = {
   peaks: number[] | null
   duration: number | null
   size: number
+  details: Details
 }
 
 export type Progress =

@@ -11,7 +11,7 @@ use symphonia::core::errors::Error as DecodeError;
 use symphonia::core::formats::probe::Hint;
 use symphonia::core::formats::{FormatOptions, FormatReader, TrackType};
 use symphonia::core::io::MediaSourceStream;
-use symphonia::core::meta::MetadataOptions;
+use symphonia::core::meta::{MetadataOptions, MetadataRevision, StandardTag, StandardVisualKey};
 use symphonia::core::packet::Packet;
 
 use crate::error::{Error, Result};
@@ -19,12 +19,82 @@ use crate::error::{Error, Result};
 const BUCKETS: usize = 1_000;
 const DECODES_PER_BUCKET: u8 = 8;
 const CACHE_LIMIT: usize = 64;
+const COVER_LIMIT: usize = 512 * 1024;
+
+#[derive(Clone, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Details {
+    title: Option<String>,
+    artist: Option<String>,
+    album: Option<String>,
+    year: Option<String>,
+    track: Option<u64>,
+    genre: Option<String>,
+    sample_rate: Option<u32>,
+    channels: Option<usize>,
+    cover: Option<String>,
+}
+
+impl Details {
+    fn take(&mut self, tag: &StandardTag) {
+        let fill = |slot: &mut Option<String>, value: &str| {
+            let value = value.trim();
+
+            if slot.is_none() && !value.is_empty() {
+                *slot = Some(value.to_string());
+            }
+        };
+
+        match tag {
+            StandardTag::TrackTitle(value) => fill(&mut self.title, value),
+            StandardTag::Artist(value) => fill(&mut self.artist, value),
+            StandardTag::Album(value) => fill(&mut self.album, value),
+            StandardTag::Genre(value) => fill(&mut self.genre, value),
+            StandardTag::RecordingDate(value)
+            | StandardTag::ReleaseDate(value)
+            | StandardTag::OriginalReleaseDate(value) => fill(&mut self.year, value),
+            StandardTag::RecordingYear(year) | StandardTag::ReleaseYear(year) => {
+                fill(&mut self.year, &year.to_string())
+            }
+            StandardTag::TrackNumber(number) => {
+                self.track.get_or_insert(*number);
+            }
+            _ => {}
+        }
+    }
+
+    fn read(&mut self, revision: &MetadataRevision) {
+        let containers = std::iter::once(&revision.media)
+            .chain(revision.per_track.iter().map(|track| &track.metadata));
+
+        for container in containers {
+            for tag in container.tags.iter().filter_map(|tag| tag.std.as_ref()) {
+                self.take(tag);
+            }
+
+            let cover = container
+                .visuals
+                .iter()
+                .filter(|visual| visual.data.len() <= COVER_LIMIT)
+                .max_by_key(|visual| visual.usage == Some(StandardVisualKey::FrontCover));
+
+            if let (None, Some(visual)) = (&self.cover, cover) {
+                self.cover = Some(format!(
+                    "data:{};base64,{}",
+                    visual.media_type.as_deref().unwrap_or("image/jpeg"),
+                    data_encoding::BASE64.encode(&visual.data)
+                ));
+            }
+        }
+    }
+}
 
 #[derive(Clone, Serialize)]
 pub struct Waveform {
     peaks: Option<Vec<u8>>,
     duration: Option<f64>,
     size: u64,
+    details: Details,
 }
 
 type CacheKey = (String, u64, Option<SystemTime>);
@@ -121,6 +191,36 @@ impl Source {
     }
 }
 
+fn describe(path: &Path) -> Details {
+    let Ok(mut source) = Source::open(path) else {
+        return Details::default();
+    };
+
+    let mut details = Details {
+        sample_rate: Some(source.rate),
+        channels: source
+            .decoder
+            .codec_params()
+            .channels
+            .as_ref()
+            .map(|channels| channels.count()),
+        ..Details::default()
+    };
+    let mut metadata = source.reader.metadata();
+
+    loop {
+        if let Some(revision) = metadata.current() {
+            details.read(revision);
+        }
+
+        if metadata.pop().is_none() {
+            break;
+        }
+    }
+
+    details
+}
+
 fn bucket(at: f64, duration: f64) -> usize {
     ((at / duration * BUCKETS as f64) as usize).min(BUCKETS - 1)
 }
@@ -202,6 +302,7 @@ fn waveform(path: String) -> Result<Waveform> {
         duration: measured.as_ref().map(|(_, duration)| *duration),
         peaks: measured.map(|(peaks, _)| peaks),
         size: meta.len(),
+        details: describe(Path::new(&path)),
     };
 
     let mut cache = CACHE.lock().unwrap();

@@ -70,6 +70,7 @@ export type DeviceSettings = {
   dockGrowth: number
   dockIconSize: number
   dockAutoHide: boolean
+  dockFullscreenReveal: boolean
   dockHideAnimation: boolean
   dockHideGather: boolean
   dockHideDelay: number
@@ -374,6 +375,7 @@ export const defaultDevice: DeviceSettings = {
   dockGrowth: 0.25,
   dockIconSize: 24,
   dockAutoHide: false,
+  dockFullscreenReveal: true,
   dockHideAnimation: true,
   dockHideGather: true,
   dockHideDelay: 1080,

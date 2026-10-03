@@ -1,6 +1,7 @@
 import { tr } from "@eris/i18n"
 import { isAudio } from "../filetypes"
 import {
+  fromArchive,
   fromDrive,
   fromFolder,
   fromHit,
@@ -21,14 +22,17 @@ import {
   cancelSearch,
   listDir,
   listShell,
+  randomToken,
   reconnectDrive,
   searchDir,
   watchDir,
 } from "../native"
+import { archiveListing, splitArchive } from "./archive.svelte"
 import { driveName, places, refreshPlaces } from "./places.svelte"
 import { takePrefetched } from "./prefetch"
+import { confirmPrivate } from "./privacy.svelte"
 
-export type TabKind = "folder" | "virtual" | "audio" | "shared"
+export type TabKind = "folder" | "virtual" | "audio" | "shared" | "archive"
 
 type Loaded = {
   location: string
@@ -39,8 +43,6 @@ type Loaded = {
 }
 
 type OpenOptions = { record?: boolean; select?: string | null; keep?: boolean }
-
-const randomToken = () => crypto.getRandomValues(new Uint32Array(1))[0]
 
 const loadThisPc = async (): Promise<Item[]> => {
   await refreshPlaces()
@@ -67,7 +69,11 @@ const loadThisPc = async (): Promise<Item[]> => {
     fromFolder(place.path, place.name, tr("explorer.places.networkLocation")),
   )
 
-  return [...folders, ...disks, ...network]
+  const linux = places.linux.map(distro =>
+    fromFolder(distro.path, distro.name, tr("explorer.places.linuxDistro")),
+  )
+
+  return [...folders, ...disks, ...network, ...linux]
 }
 
 const reconnect = async (location: string) => {
@@ -94,9 +100,11 @@ const kindOf = (location: string): TabKind =>
     ? "shared"
     : isVirtual(location)
       ? "virtual"
-      : isAudio(location)
-        ? "audio"
-        : "folder"
+      : splitArchive(location)
+        ? "archive"
+        : isAudio(location)
+          ? "audio"
+          : "folder"
 
 const load = async (location: string, useCache: boolean): Promise<Loaded> => {
   const kind = kindOf(location)
@@ -125,6 +133,23 @@ const load = async (location: string, useCache: boolean): Promise<Loaded> => {
 
   if (kind === "audio") {
     return { ...plain, location: normalize(location) }
+  }
+
+  const packed = kind === "archive" ? splitArchive(location) : null
+
+  if (packed) {
+    const listing = await archiveListing(packed.archive, !useCache)
+
+    return {
+      ...plain,
+      location: normalize(location),
+      items: fromArchive(
+        normalize(location),
+        packed.archive,
+        packed.inner,
+        listing,
+      ),
+    }
   }
 
   const prefetched = useCache ? takePrefetched(location) : null
@@ -190,6 +215,10 @@ export class Tab {
   #settle: ReturnType<typeof setTimeout> | undefined
 
   async open(location: string, options: OpenOptions = {}) {
+    if (!(await confirmPrivate(location, this.location))) {
+      return
+    }
+
     const sequence = ++this.#sequence
     const previous = this.selection
     const moving = !sameLocation(location, this.location)

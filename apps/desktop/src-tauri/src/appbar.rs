@@ -266,6 +266,14 @@ pub fn topbar_on(app: &AppHandle) -> bool {
     })
 }
 
+pub fn fullscreen_reveals(app: &AppHandle) -> bool {
+    app.store("settings.json")
+        .ok()
+        .and_then(|store| store.get("device"))
+        .and_then(|device| device.get("dockFullscreenReveal")?.as_bool())
+        .unwrap_or(true)
+}
+
 pub fn lift(hwnd: windows::Win32::Foundation::HWND, up: bool) {
     win::lift(hwnd, up);
 }

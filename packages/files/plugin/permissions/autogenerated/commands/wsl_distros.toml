@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-wsl-distros"
+description = "Enables the wsl_distros command without any pre-configured scope."
+commands.allow = ["wsl_distros"]
+
+[[permission]]
+identifier = "deny-wsl-distros"
+description = "Denies the wsl_distros command without any pre-configured scope."
+commands.deny = ["wsl_distros"]

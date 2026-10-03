@@ -1,8 +1,9 @@
 <script lang="ts">
+  import { DesktopAccount } from "@eris/auth/tauri"
   import { getVersion } from "@tauri-apps/api/app"
   import { Row, Section, toast } from "@eris/ui"
   import type { Snippet } from "svelte"
-  import { t } from "svelte-i18n"
+  import { locale, t } from "svelte-i18n"
   import TranscribeSettings from "../audio/TranscribeSettings.svelte"
   import DeviceSettings from "../share/DeviceSettings.svelte"
   import TerminalSettings from "../terminal/TerminalSettings.svelte"
@@ -50,78 +51,94 @@
 <dialog bind:this={dialog} class="modal" onclose={() => (open = false)}>
   <div
     class={[
-      "modal-box flex max-w-lg flex-col gap-4 border border-base-content/10",
+      "modal-box flex max-h-4/5 max-w-lg flex-col gap-4 overflow-hidden border border-base-content/10",
       "bg-base-100",
     ]}
   >
     <h3 class="text-base font-semibold">{$t("explorer.settings.title")}</h3>
 
-    <Section title={$t("explorer.settings.general")}>
-      <Row label={$t("explorer.settings.showHidden")}>
-        <input
-          type="checkbox"
-          class="toggle toggle-sm toggle-primary"
-          bind:checked={prefs.showHidden}
-        />
-      </Row>
+    <div class="-mx-6 flex min-h-0 flex-col gap-4 overflow-y-auto px-6">
+      <Section title={$t("explorer.settings.general")}>
+        <Row label={$t("explorer.settings.showHidden")}>
+          <input
+            type="checkbox"
+            class="toggle toggle-sm toggle-primary"
+            bind:checked={prefs.showHidden}
+          />
+        </Row>
 
-      <Row label={$t("explorer.settings.showExtensions")}>
-        <input
-          type="checkbox"
-          class="toggle toggle-sm toggle-primary"
-          bind:checked={prefs.showExtensions}
-        />
-      </Row>
-    </Section>
+        <Row label={$t("explorer.settings.showExtensions")}>
+          <input
+            type="checkbox"
+            class="toggle toggle-sm toggle-primary"
+            bind:checked={prefs.showExtensions}
+          />
+        </Row>
 
-    <Section title={$t("explorer.settings.defaultApp")}>
-      <Row
-        label={$t("explorer.settings.defaultAppLabel")}
-        hint={handler.supported
-          ? $t("explorer.settings.defaultAppHint")
-          : $t("explorer.settings.defaultAppUnavailable")}
-      >
-        <input
-          type="checkbox"
-          class="toggle toggle-sm toggle-primary"
-          checked={handler.enabled}
-          onchange={e => toggleDefault(e.currentTarget)}
-        />
-      </Row>
+        <Row label={$t("explorer.settings.selectionInMore")}>
+          <input
+            type="checkbox"
+            class="toggle toggle-sm toggle-primary"
+            bind:checked={prefs.selectionInMore}
+          />
+        </Row>
+      </Section>
 
-      <Row
-        label={$t("explorer.settings.windowsDefaults")}
-        hint={$t("explorer.settings.windowsDefaultsHint")}
-      >
-        <button
-          type="button"
-          class="btn btn-soft btn-sm"
-          disabled={!handler.supported}
-          onclick={() =>
-            openDefaultApps().catch(() =>
-              toast($t("explorer.settings.defaultAppUnavailable"), "error"),
-            )}
+      <Section title={$t("explorer.settings.defaultApp")}>
+        <Row
+          label={$t("explorer.settings.defaultAppLabel")}
+          hint={handler.supported
+            ? $t("explorer.settings.defaultAppHint")
+            : $t("explorer.settings.defaultAppUnavailable")}
         >
-          {$t("common.open")}
-        </button>
-      </Row>
-    </Section>
+          <input
+            type="checkbox"
+            class="toggle toggle-sm toggle-primary"
+            checked={handler.enabled}
+            onchange={e => toggleDefault(e.currentTarget)}
+          />
+        </Row>
 
-    <SidebarSettings />
+        <Row
+          label={$t("explorer.settings.windowsDefaults")}
+          hint={$t("explorer.settings.windowsDefaultsHint")}
+        >
+          <button
+            type="button"
+            class="btn btn-soft btn-sm"
+            disabled={!handler.supported}
+            onclick={() =>
+              openDefaultApps().catch(() =>
+                toast($t("explorer.settings.defaultAppUnavailable"), "error"),
+              )}
+          >
+            {$t("common.open")}
+          </button>
+        </Row>
+      </Section>
 
-    <TranscribeSettings />
+      <SidebarSettings />
 
-    <TerminalSettings />
+      <TranscribeSettings />
 
-    <DeviceSettings />
+      <TerminalSettings />
 
-    <Section title={$t("explorer.settings.theme")}>
-      {@render theme?.()}
+      <DeviceSettings />
 
-      <Row label={$t("explorer.settings.version")} value={version}>
-        <span></span>
-      </Row>
-    </Section>
+      <Section title={$t("explorer.settings.account")}>
+        <div class="px-4 py-4">
+          <DesktopAccount lang={$locale} />
+        </div>
+      </Section>
+
+      <Section title={$t("explorer.settings.theme")}>
+        {@render theme?.()}
+
+        <Row label={$t("explorer.settings.version")} value={version}>
+          <span></span>
+        </Row>
+      </Section>
+    </div>
 
     <div class="modal-action mt-0">
       <button type="button" class="btn btn-sm" onclick={() => (open = false)}>

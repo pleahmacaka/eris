@@ -35,8 +35,6 @@
     dropBefore?: boolean
     dropAfter?: boolean
     ondragstart?: () => void
-    ondragover?: (before: boolean) => void
-    ondrop?: () => void
     ondragend?: () => void
     reorder?: boolean
     onmenu: (rect: MenuBox | null) => void
@@ -56,8 +54,6 @@
     dropBefore = false,
     dropAfter = false,
     ondragstart,
-    ondragover,
-    ondrop,
     ondragend,
     reorder = true,
     onmenu,
@@ -73,27 +69,6 @@
 
     dismissPreview()
     ondragstart?.()
-  }
-
-  const dragOver = (e: DragEvent) => {
-    if (!e.dataTransfer?.types.includes(APP_DRAG)) {
-      return
-    }
-
-    e.preventDefault()
-
-    const box = (e.currentTarget as HTMLElement).getBoundingClientRect()
-
-    ondragover?.(e.clientX < box.left + box.width / 2)
-  }
-
-  const drop = (e: DragEvent) => {
-    if (!e.dataTransfer?.types.includes(APP_DRAG)) {
-      return
-    }
-
-    e.preventDefault()
-    ondrop?.()
   }
 
   const MENU_MAX_ROWS = 9
@@ -241,8 +216,6 @@
   bind:this={root}
   role="listitem"
   class={["relative transition-opacity duration-100", dragging && "opacity-30"]}
-  ondragover={dragOver}
-  ondrop={drop}
   {ondragend}
 >
   {#if dropBefore}

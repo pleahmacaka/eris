@@ -1,5 +1,5 @@
 import type { InvokeArgs } from "@tauri-apps/api/core"
-import { mockIPC, mockWindows } from "@tauri-apps/api/mocks"
+import { mockConvertFileSrc, mockIPC, mockWindows } from "@tauri-apps/api/mocks"
 import pkg from "../../../package.json"
 import {
   type BusMessage,
@@ -18,6 +18,8 @@ type Handler = (a: Args) => unknown
 type Store = Record<string, unknown>
 
 const INTENTS = "intents"
+
+const SETTINGS = "settings.json"
 
 const QUIET = [
   "plugin:app|",
@@ -63,8 +65,34 @@ let installed = false
 
 export const mocked = () => installed
 
+const seedAppearance = () => {
+  const seeded = new URLSearchParams(location.search).get("appearance")
+
+  if (!seeded) {
+    return
+  }
+
+  try {
+    const settings = readStore(SETTINGS)
+    const profile = (settings.profile ?? {}) as Store
+
+    writeStore(SETTINGS, {
+      ...settings,
+      profile: {
+        ...profile,
+        presetId: "community",
+        appearance: JSON.parse(seeded),
+      },
+    })
+  } catch {
+    return
+  }
+}
+
 export const installMocks = (path: string) => {
   installed = true
+
+  seedAppearance()
 
   const label = labelFor(path)
   const bus = openBus()
@@ -220,6 +248,7 @@ export const installMocks = (path: string) => {
   }
 
   mockWindows(label)
+  mockConvertFileSrc("windows")
 
   mockIPC((cmd, payload) => {
     const args = record(payload)

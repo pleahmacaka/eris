@@ -1,0 +1,35 @@
+{
+  "name": "@eris/community",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "svelte": "./src/index.ts",
+  "exports": {
+    ".": {
+      "svelte": "./src/index.ts",
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./Gallery.svelte": {
+      "svelte": "./src/Gallery.svelte",
+      "types": "./src/Gallery.svelte",
+      "default": "./src/Gallery.svelte"
+    }
+  },
+  "scripts": {
+    "check": "svelte-check --tsconfig ./tsconfig.json"
+  },
+  "dependencies": {
+    "@eris/settings": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.2",
+    "svelte": "^5.57.1",
+    "svelte-check": "^4.7.6",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.2"
+  },
+  "peerDependencies": {
+    "@iconify/svelte": "^5.2.2"
+  }
+}

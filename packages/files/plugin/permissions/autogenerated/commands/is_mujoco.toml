@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-is-mujoco"
+description = "Enables the is_mujoco command without any pre-configured scope."
+commands.allow = ["is_mujoco"]
+
+[[permission]]
+identifier = "deny-is-mujoco"
+description = "Denies the is_mujoco command without any pre-configured scope."
+commands.deny = ["is_mujoco"]

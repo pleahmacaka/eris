@@ -20,6 +20,13 @@
       "csp": null
     }
   },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["eris-terminal"]
+      }
+    }
+  },
   "bundle": {
     "publisher": "ArixLab",
     "active": true,

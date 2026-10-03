@@ -196,6 +196,30 @@ const usage = (): ClaudeUsage => ({
 
 const p2p: P2pStatus = { nodeId: "studio", paired: false, peers: [] }
 
+const HOME_DIR = "C:\\Users\\Studio"
+
+const known = ["desktop", "downloads", "documents", "pictures", "music"].map(
+  id => ({ id, path: `${HOME_DIR}\\${id[0].toUpperCase()}${id.slice(1)}` }),
+)
+
+const entry = (name: string, dir: boolean, size: number, minutes: number) => ({
+  name,
+  dir,
+  size,
+  modified: ago(minutes),
+  attrs: dir ? 16 : 32,
+  link: false,
+})
+
+const folderEntries = [
+  entry("Projects", true, 0, 40),
+  entry("Screenshots", true, 0, 300),
+  entry("eris-0.3.3-setup.exe", false, 18_944_000, 90),
+  entry("notes.md", false, 4_200, 15),
+  entry("wallpaper.png", false, 2_480_000, 2 * 60 * 24),
+  entry("budget.csv", false, 12_800, 3 * 60 * 24),
+]
+
 export const fixtures: Record<string, (args: Args) => unknown> = {
   list_windows: () => windows,
   list_apps: () => apps,
@@ -226,6 +250,61 @@ export const fixtures: Record<string, (args: Args) => unknown> = {
   },
   claude_usage: () => usage(),
   usage_bridge_installed: () => true,
+  "plugin:eris-terminal|shells": () => [
+    { id: "pwsh", name: "PowerShell" },
+    { id: "cmd", name: "Command Prompt" },
+  ],
+  "plugin:eris-terminal|take_intent": () => ({ cwd: null }),
+  "plugin:eris-terminal|spawn": () => Math.floor(Math.random() * 1e9),
+  "plugin:eris-terminal|write": () => null,
+  "plugin:eris-terminal|resize": () => null,
+  "plugin:eris-terminal|kill": () => null,
+  "plugin:eris-files|take_intent": () => ({ path: null, select: null }),
+  "plugin:eris-files|known_folders": () => [
+    { id: "home", path: HOME_DIR },
+    ...known,
+  ],
+  "plugin:eris-files|drives": () => [
+    {
+      path: "C:\\",
+      label: "",
+      kind: "fixed",
+      free: 412_000_000_000,
+      total: 1_000_000_000_000,
+      remote: "",
+      connected: true,
+    },
+  ],
+  "plugin:eris-files|network_places": () => [],
+  "plugin:eris-files|wsl_distros": () => [],
+  "plugin:eris-files|explorer_settings": () => ({
+    showHidden: false,
+    showExtensions: true,
+  }),
+  "plugin:eris-files|list_shell": a => ({
+    path: String(a.path),
+    name: "Home",
+    entries: known.map(folder => ({
+      key: folder.path,
+      path: folder.path,
+      name: folder.path.slice(folder.path.lastIndexOf("\\") + 1),
+      dir: true,
+      size: 0,
+      modified: ago(60),
+      kind: "File folder",
+    })),
+  }),
+  "plugin:eris-files|list_dir": a => ({
+    path: String(a.path),
+    entries: folderEntries,
+    types: {
+      "/": "File folder",
+      ".exe": "Application",
+      ".md": "Markdown File",
+      ".png": "PNG File",
+      ".csv": "CSV File",
+    },
+  }),
   "plugin:eris-files|default_app_status": () => ({
     supported: true,
     enabled: false,
@@ -301,6 +380,7 @@ export const silent = new Set([
   "open_data_folder",
   "install_usage_bridge",
   "plugin:eris-files|new_window",
+  "plugin:eris-files|watch_dir",
   "plugin:eris-files|open_default_apps",
   "p2p_join",
   "p2p_leave",

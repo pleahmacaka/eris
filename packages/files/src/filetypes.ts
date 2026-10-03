@@ -28,7 +28,7 @@ const KINDS: Record<FileKind, string[]> = {
     ".weba",
   ],
   pdf: [".pdf"],
-  model: [".obj"],
+  model: [".obj", ".mjb"],
   text: [
     ".txt",
     ".md",

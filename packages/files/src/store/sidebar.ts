@@ -9,6 +9,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
   "folders",
   "drives",
   "network",
+  "linux",
   "shared",
   "recycleBin",
 ]
@@ -68,7 +69,9 @@ export const sidebarLabel = (
 ) => {
   const known = places.known.find(entry => sameLocation(entry.path, path))
   const drive = places.drives.find(entry => sameLocation(entry.path, path))
-  const place = places.network.find(entry => sameLocation(entry.path, path))
+  const place = [...places.network, ...places.linux].find(entry =>
+    sameLocation(entry.path, path),
+  )
 
   if (known) {
     return translate(`explorer.places.${known.id}`)

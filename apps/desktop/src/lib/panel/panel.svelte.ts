@@ -9,10 +9,12 @@ import {
   type Profile,
 } from "@eris/settings"
 import {
+  blueSaturday,
   hiddenWhileSharing,
   holidayCheck,
   holidaysOn,
   regionOf,
+  restDayOf,
 } from "$lib/calendar"
 import {
   addDays,
@@ -126,6 +128,10 @@ export class Panel {
 
   isHoliday = $derived(holidayCheck(this.profile.calendar))
 
+  restDay = $derived(restDayOf(this.region))
+
+  saturdayBlue = $derived(blueSaturday(this.region))
+
   byDay = $derived(
     eventsByDay(this.shown, this.weeks[0][0], GRID_DAYS, this.isHoliday),
   )
@@ -170,6 +176,16 @@ export class Panel {
 
   holidayFor = (day: Date) =>
     holidaysOn(day, this.region, currentLocale().split("-")[0])
+
+  weekdayTone = (day: Date) =>
+    day.getDay() === this.restDay
+      ? "text-error"
+      : this.saturdayBlue && day.getDay() === 6
+        ? "text-info"
+        : null
+
+  dayTone = (day: Date) =>
+    this.isHoliday(day) ? "text-error" : this.weekdayTone(day)
 
   parentOf = (event: CalendarEvent) =>
     event.parentId ? this.shown.find(e => e.id === event.parentId) : undefined

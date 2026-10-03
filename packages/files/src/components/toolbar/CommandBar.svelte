@@ -28,10 +28,11 @@
 
   const EDIT: CommandId[] = ["cut", "copy", "paste", "rename", "delete"]
 
-  const MORE: CommandId[][] = [
-    ["selectAll", "selectNone", "invertSelection"],
-    ["properties", "newWindow", "shared", "settings"],
-  ]
+  const SELECTION: CommandId[] = ["selectAll", "selectNone", "invertSelection"]
+
+  const OTHERS: CommandId[] = ["properties", "newWindow", "shared", "settings"]
+
+  const more = $derived(prefs.selectionInMore ? [SELECTION, OTHERS] : [OTHERS])
 
   const folder = $derived(explorer.folder)
 
@@ -148,7 +149,7 @@
         {@render option(
           $t(`explorer.groups.by.${key}`),
           () => explorer.setGroup(key),
-          { active: folder.group === key },
+          { active: explorer.group === key },
         )}
       {/each}
     </ul>
@@ -177,6 +178,32 @@
 
       {@render separator()}
 
+      <li class={[!explorer.arrangeable && "menu-disabled"]}>
+        <label class="flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            class="checkbox checkbox-xs"
+            checked={explorer.group === "modified"}
+            disabled={!explorer.arrangeable}
+            onchange={() => explorer.toggleDateGroups()}
+          />
+          {$t("explorer.views.dateGroups")}
+        </label>
+      </li>
+
+      <li class={[!explorer.arrangeable && "menu-disabled"]}>
+        <label class="flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            class="checkbox checkbox-xs"
+            checked={!!explorer.own}
+            disabled={!explorer.arrangeable}
+            onchange={() => explorer.toggleFolderOnly()}
+          />
+          {$t("explorer.views.folderOnly")}
+        </label>
+      </li>
+
       <li>
         <label class="flex cursor-pointer items-center gap-2">
           <input
@@ -203,6 +230,12 @@
 
   <div class="grow"></div>
 
+  {#if !prefs.selectionInMore}
+    {#each SELECTION as id (id)}
+      <CommandButton {id} {explorer} />
+    {/each}
+  {/if}
+
   <CommandButton id="preview" {explorer} text pressed={prefs.preview} />
 
   <div class="dropdown dropdown-end">
@@ -228,7 +261,7 @@
         {@render separator()}
       {/if}
 
-      {#each MORE as group, index (index)}
+      {#each more as group, index (index)}
         {#if index > 0}
           {@render separator()}
         {/if}

@@ -6,7 +6,7 @@
   import { rootRem, track } from "../../pointer"
   import type { Explorer } from "../../store/explorer.svelte"
   import { openMenu } from "../../store/menus"
-  import { prefs, SORT_KEYS } from "../../store/prefs.svelte"
+  import { prefs, SORT_KEYS, VIEWS } from "../../store/prefs.svelte"
   import DetailsHeader from "./DetailsHeader.svelte"
   import ItemCell from "./ItemCell.svelte"
   import {
@@ -25,6 +25,7 @@
   const SIDE_BUTTON = 3
   const DRAG_SLOP = 6
   const TYPEAHEAD_RESET = 900
+  const VIEW_STEP_GAP = 150
 
   let { explorer }: { explorer: Explorer } = $props()
 
@@ -37,6 +38,7 @@
   let band = $state<Band | null>(null)
   let typed = ""
   let typedAt = 0
+  let steppedAt = 0
 
   const tab = $derived(explorer.tab)
   const items = $derived(explorer.visible)
@@ -253,6 +255,29 @@
     )
   }
 
+  const stepView = (e: WheelEvent) => {
+    if (!e.ctrlKey) {
+      return
+    }
+
+    e.preventDefault()
+
+    if (
+      !explorer.arrangeable ||
+      e.deltaY === 0 ||
+      e.timeStamp - steppedAt < VIEW_STEP_GAP
+    ) {
+      return
+    }
+
+    const next = VIEWS[VIEWS.indexOf(explorer.view) + Math.sign(e.deltaY)]
+
+    if (next) {
+      steppedAt = e.timeStamp
+      explorer.setView(next)
+    }
+  }
+
   const lasso = (e: PointerEvent, element: HTMLDivElement) => {
     const box = element.getBoundingClientRect()
     const point = (event: PointerEvent) => ({
@@ -347,6 +372,7 @@
     left = e.currentTarget.scrollLeft
   }}
   onpointerdown={background}
+  onwheel={stepView}
   oncontextmenu={e => {
     e.stopPropagation()
     openMenu(explorer, e, null)

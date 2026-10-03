@@ -7,8 +7,8 @@ use windows::Win32::System::Environment::ExpandEnvironmentStringsW;
 use windows::Win32::UI::Shell::{IShellItem, SIGDN_DESKTOPABSOLUTEPARSING, SIGDN_FILESYSPATH};
 
 use crate::actions::shell_open;
-use crate::com;
 use crate::error::{Error, Result};
+use crate::{com, places};
 
 #[derive(Serialize)]
 pub struct Resolved {
@@ -79,6 +79,27 @@ fn local(path: PathBuf) -> Resolved {
     }
 }
 
+fn linux_path(text: &str) -> Option<PathBuf> {
+    let rest = text
+        .strip_prefix('\\')
+        .filter(|rest| !rest.starts_with('\\'))?;
+    let mounted = rest
+        .strip_prefix(r"mnt\")
+        .map(|mount| mount.split_once('\\').unwrap_or((mount, "")))
+        .filter(|(drive, _)| drive.len() == 1 && drive.chars().all(|c| c.is_ascii_alphabetic()));
+
+    if let Some((drive, tail)) = mounted {
+        return Some(PathBuf::from(format!(r"{drive}:\{tail}")));
+    }
+
+    let distro = places::default_distro()?;
+
+    Some(PathBuf::from(format!(
+        r"{}\{rest}",
+        places::wsl_root(&distro)
+    )))
+}
+
 pub fn resolve(input: &str, cwd: Option<&Path>) -> Result<Resolved> {
     let _apartment = com::Apartment::enter();
     let text = expand(input.trim().trim_matches('"')).replace('/', "\\");
@@ -100,6 +121,10 @@ pub fn resolve(input: &str, cwd: Option<&Path>) -> Result<Resolved> {
 
     if full.exists() {
         return Ok(local(full));
+    }
+
+    if let Some(linux) = linux_path(&text).filter(|path| path.exists()) {
+        return Ok(local(linux));
     }
 
     com::item(&text)

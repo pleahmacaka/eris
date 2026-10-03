@@ -8,7 +8,7 @@
     modelViewerLabels,
     viewerLocale,
   } from "./labels"
-  import { fetchText, loadObj } from "./load"
+  import { fetchText, loadModel } from "./load"
   import {
     disposeMaterials,
     disposeModel,
@@ -191,7 +191,7 @@
     status = "loading"
     progress = null
 
-    loadObj(url, signal, ratio => (progress = ratio))
+    loadModel(url, signal, ratio => (progress = ratio))
       .then(result => {
         if (signal.aborted) {
           disposeModel(result.model)

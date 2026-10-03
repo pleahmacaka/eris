@@ -23,6 +23,7 @@
   } from "@eris/settings"
   import {
     AboutSection,
+    AccountSection,
     AppearanceSection,
     CalendarSection,
     DataSection,
@@ -375,6 +376,8 @@
             <CalendarSection bind:profile bind:device />
           {:else if section === "sync"}
             <SyncPanel bind:device />
+          {:else if section === "account"}
+            <AccountSection />
           {:else if section === "data"}
             <DataSection bind:device bind:profile />
           {:else if section === "about"}

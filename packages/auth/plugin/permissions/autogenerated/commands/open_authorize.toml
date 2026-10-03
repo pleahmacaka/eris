@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-open-authorize"
+description = "Enables the open_authorize command without any pre-configured scope."
+commands.allow = ["open_authorize"]
+
+[[permission]]
+identifier = "deny-open-authorize"
+description = "Denies the open_authorize command without any pre-configured scope."
+commands.deny = ["open_authorize"]

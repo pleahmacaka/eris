@@ -2,7 +2,8 @@
   import Icon from "@iconify/svelte"
   import { Logo } from "@eris/ui"
   import { t } from "svelte-i18n"
-  import { closeTab, openTab, session } from "./tabs.svelte"
+  import { drag, justDragged, pressTab } from "./drag.svelte"
+  import { closeTab, openTab, session, titleOf } from "./tabs.svelte"
   import WindowControls from "./WindowControls.svelte"
 
   let { fallback }: { fallback: string } = $props()
@@ -23,26 +24,33 @@
   >
     {#each session.tabs as tab, index (tab.id)}
       {@const active = index === session.active}
+      {@const title = titleOf(tab)}
 
       <div
         role="tab"
         tabindex="-1"
         aria-selected={active}
-        title={tab.title}
+        title={title}
         class={[
           "group flex h-full w-52 min-w-24 cursor-pointer items-center gap-2",
           "rounded-t-field px-3 text-sm transition-colors",
           active
             ? "bg-base-100 text-base-content"
             : "text-base-content/70 hover:bg-base-content/5",
+          drag.tab === tab.id && "opacity-50",
         ]}
-        onclick={() => (session.active = index)}
+        onpointerdown={e => pressTab(e, tab.id)}
+        onclick={() => {
+          if (!justDragged()) {
+            session.active = index
+          }
+        }}
         onauxclick={e => e.button === 1 && closeTab(index)}
         onkeydown={() => undefined}
       >
         <Icon icon="lucide:square-terminal" class="size-4 shrink-0" />
 
-        <span class="min-w-0 grow truncate">{tab.title}</span>
+        <span class="min-w-0 grow truncate">{title}</span>
 
         <button
           type="button"

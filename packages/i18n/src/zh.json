@@ -72,6 +72,10 @@
       "about": {
         "label": "关于",
         "blurb": "查看版本并安装更新"
+      },
+      "account": {
+        "label": "账号",
+        "blurb": "登录一次即可在所有 Eris 应用中使用同一账号。"
       }
     },
     "groups": {
@@ -182,6 +186,7 @@
       "iconSize": "图标大小",
       "pinDesktop": "置于窗口之后",
       "autoHide": "自动隐藏",
+      "fullscreenReveal": "全屏时显示",
       "showLauncherButton": "启动器按钮",
       "showRunningApps": "运行中的应用",
       "showTrayIcons": "托盘图标",
@@ -290,6 +295,7 @@
       "alignment": "应用在程序坞中的对齐位置",
       "pinDesktop": "窗口可能遮住程序坞，开启自动隐藏时光标到达边缘会将其前置",
       "autoHide": "隐藏程序坞，光标到达屏幕边缘时显示",
+      "fullscreenReveal": "全屏窗口中光标到达屏幕边缘时也显示程序坞",
       "showLauncherButton": "在程序坞上显示启动器按钮，Win 键也可打开启动器",
       "showRunningApps": "未固定的应用只要有打开的窗口也显示在程序坞中",
       "showTrayIcons": "显示后台程序的通知区域图标",
@@ -1120,10 +1126,7 @@
     },
     "dock": {
       "title": "调整程序坞",
-      "blurb": "之后可在设置中微调尺寸和内容。",
-      "autoHide": "隐藏至光标触碰边缘",
-      "replaces": "Eris 替代 Windows 任务栏",
-      "taskbarStays": "Windows 任务栏保持可见"
+      "blurb": "之后可在设置中微调尺寸和内容。"
     },
     "hotkeys": {
       "title": "打开 Eris",

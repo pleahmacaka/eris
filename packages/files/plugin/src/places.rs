@@ -13,6 +13,8 @@ use windows::Win32::UI::Shell::{
     FOLDERID_Profile, FOLDERID_Videos, SHGetKnownFolderPath, SHGetSetSettings, KNOWN_FOLDER_FLAG,
     SHELLSTATEA, SSF_NOCONFIRMRECYCLE, SSF_SHOWALLOBJECTS, SSF_SHOWEXTENSIONS,
 };
+use winreg::enums::HKEY_CURRENT_USER;
+use winreg::RegKey;
 
 use crate::error::Result;
 use crate::{com, network};
@@ -32,6 +34,12 @@ pub struct Drive {
     total: u64,
     remote: String,
     connected: bool,
+}
+
+#[derive(Serialize)]
+pub struct Distro {
+    name: String,
+    path: String,
 }
 
 #[derive(Serialize)]
@@ -224,6 +232,51 @@ fn list_drives() -> Vec<Drive> {
 #[tauri::command]
 pub async fn drives() -> Result<Vec<Drive>> {
     Ok(tauri::async_runtime::spawn_blocking(list_drives).await?)
+}
+
+const LXSS: &str = r"Software\Microsoft\Windows\CurrentVersion\Lxss";
+
+fn lxss() -> Option<RegKey> {
+    RegKey::predef(HKEY_CURRENT_USER).open_subkey(LXSS).ok()
+}
+
+fn distro_name(lxss: &RegKey, id: &str) -> Option<String> {
+    lxss.open_subkey(id)
+        .ok()?
+        .get_value("DistributionName")
+        .ok()
+}
+
+pub fn wsl_root(name: &str) -> String {
+    format!(r"\\wsl.localhost\{name}")
+}
+
+pub fn default_distro() -> Option<String> {
+    let lxss = lxss()?;
+    let id: String = lxss.get_value("DefaultDistribution").ok()?;
+
+    distro_name(&lxss, &id)
+}
+
+#[tauri::command]
+pub fn wsl_distros() -> Vec<Distro> {
+    let Some(lxss) = lxss() else {
+        return Vec::new();
+    };
+
+    let mut found: Vec<Distro> = lxss
+        .enum_keys()
+        .flatten()
+        .filter_map(|id| distro_name(&lxss, &id))
+        .map(|name| Distro {
+            path: wsl_root(&name),
+            name,
+        })
+        .collect();
+
+    found.sort_by_key(|distro| distro.name.to_lowercase());
+
+    found
 }
 
 pub fn shell_state(mask: windows::Win32::UI::Shell::SSF_MASK) -> i32 {

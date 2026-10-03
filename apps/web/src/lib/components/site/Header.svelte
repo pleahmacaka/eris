@@ -1,9 +1,17 @@
 <script lang="ts">
+  import { type Account, webAccount } from "@eris/auth"
   import Logo from "@eris/ui/Logo.svelte"
+  import { onMount } from "svelte"
   import type { Copy } from "$lib/copy/en"
   import { hrefFor, type Lang, languages } from "$lib/copy/languages"
 
   let { lang, t }: { lang: Lang; t: Copy } = $props()
+
+  let account = $state<Account | null>(null)
+
+  onMount(() => {
+    account = webAccount()
+  })
 </script>
 
 <header
@@ -31,5 +39,9 @@
         {l.label}
       </a>
     {/each}
+
+    <a class="btn btn-sm btn-ghost" href="login/">
+      {account?.user ? t.account.signedIn : t.account.link}
+    </a>
   </nav>
 </header>

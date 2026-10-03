@@ -15,8 +15,10 @@ serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 tauri = { version = "2.12.1", features = [] }
 tauri-plugin-clipboard-manager = "2.4.1"
+tauri-plugin-deep-link = "2"
+tauri-plugin-eris-auth = { version = "0.1.0", path = "../../../packages/auth/plugin" }
 tauri-plugin-eris-terminal = { version = "0.1.0", path = "../../../packages/terminal/plugin" }
-tauri-plugin-single-instance = "2.5.2"
+tauri-plugin-single-instance = { version = "2.5.2", features = ["deep-link"] }
 
 [build-dependencies]
 tauri-build = { version = "2.7.1", features = [] }

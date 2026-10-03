@@ -1,8 +1,9 @@
 <script lang="ts">
+  import { DesktopAccount } from "@eris/auth/tauri"
   import { Row, Section } from "@eris/ui"
   import { getVersion } from "@tauri-apps/api/app"
   import type { Snippet } from "svelte"
-  import { t } from "svelte-i18n"
+  import { locale, t } from "svelte-i18n"
   import { prefs } from "./prefs.svelte"
   import { session } from "./tabs.svelte"
 
@@ -75,6 +76,12 @@
           bind:value={prefs.fontSize}
         />
       </Row>
+    </Section>
+
+    <Section title={$t("terminal.settings.account")}>
+      <div class="px-4 py-4">
+        <DesktopAccount lang={$locale} />
+      </div>
     </Section>
 
     <Section title={$t("terminal.settings.theme")}>

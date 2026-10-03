@@ -6,6 +6,7 @@ use windows::Win32::System::Diagnostics::Debug::{SetErrorMode, SEM_FAILCRITICALE
 
 mod actions;
 mod address;
+mod archive;
 mod audio;
 mod com;
 pub mod default_app;
@@ -16,6 +17,7 @@ mod network;
 mod ops;
 mod places;
 mod preview;
+mod privacy;
 mod share;
 mod thumbs;
 mod transcribe;
@@ -54,9 +56,16 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             listing::list_shell,
             listing::search_dir,
             listing::cancel_search,
+            listing::measure_dirs,
+            archive::list_archive,
+            archive::extract_entry,
+            archive::bandizip_available,
+            archive::bandizip_job,
             places::known_folders,
             places::drives,
             places::explorer_settings,
+            places::wsl_distros,
+            privacy::screen_sharing,
             actions::open_item,
             actions::open_with,
             actions::show_properties,
@@ -74,6 +83,7 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             preview::allow_preview,
             preview::preview_text,
             preview::model_files,
+            preview::is_mujoco,
             preview::open_viewer,
             audio::audio_waveform,
             transcribe::transcribe,

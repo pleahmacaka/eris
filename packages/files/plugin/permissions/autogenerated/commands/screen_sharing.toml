@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-screen-sharing"
+description = "Enables the screen_sharing command without any pre-configured scope."
+commands.allow = ["screen_sharing"]
+
+[[permission]]
+identifier = "deny-screen-sharing"
+description = "Denies the screen_sharing command without any pre-configured scope."
+commands.deny = ["screen_sharing"]

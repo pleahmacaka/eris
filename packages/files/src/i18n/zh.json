@@ -47,7 +47,24 @@
       "baseUrlHint": "请输入兼容 OpenAI 的地址。",
       "badUrl": "请输入 https 地址。",
       "saveFailed": "无法保存密钥。"
-    }
+    },
+    "volume": "音量",
+    "mute": "静音",
+    "unmute": "取消静音",
+    "source": "转录信息",
+    "details": "文件信息",
+    "meta": {
+      "title": "标题",
+      "artist": "艺术家",
+      "album": "专辑",
+      "year": "年份",
+      "track": "音轨",
+      "genre": "流派",
+      "sampleRate": "采样率",
+      "channels": "声道",
+      "bitrate": "比特率"
+    },
+    "channelCount": "{count, plural, =1 {单声道} =2 {立体声} other {#声道}}"
   },
   "explorer": {
     "places": {
@@ -62,6 +79,7 @@
       "videos": "视频",
       "folder": "系统文件夹",
       "networkLocation": "网络位置",
+      "linuxDistro": "Linux 发行版",
       "shared": "共享"
     },
     "drive": {
@@ -103,6 +121,7 @@
       "copy": "复制",
       "paste": "粘贴",
       "rename": "重命名",
+      "resetName": "恢复默认名称",
       "delete": "删除",
       "deletePermanently": "永久删除",
       "sort": "排序",
@@ -128,7 +147,9 @@
       "disconnect": "断开连接",
       "mapDrive": "映射网络驱动器",
       "unmapDrive": "断开网络驱动器",
-      "addNetworkLocation": "添加一个网络位置"
+      "addNetworkLocation": "添加一个网络位置",
+      "markPrivate": "共享屏幕时确认",
+      "unmarkPrivate": "取消共享屏幕时确认"
     },
     "sort": {
       "name": "名称",
@@ -146,7 +167,9 @@
       "details": "详细信息",
       "tiles": "平铺",
       "hidden": "隐藏的项目",
-      "extensions": "文件扩展名"
+      "extensions": "文件扩展名",
+      "dateGroups": "按日期分组",
+      "folderOnly": "仅应用于此文件夹"
     },
     "columns": {
       "name": "名称",
@@ -159,7 +182,8 @@
       "items": "{count} 个项目",
       "selected": "已选择 {count} 个项目",
       "results": "{count} 个结果",
-      "searching": "正在搜索"
+      "searching": "正在搜索",
+      "measuring": "正在计算"
     },
     "states": {
       "empty": "空文件夹",
@@ -173,13 +197,16 @@
     "errors": {
       "denied": "拒绝访问",
       "missing": "找不到位置",
-      "notReady": "设备未就绪"
+      "notReady": "设备未就绪",
+      "password": "受密码保护的压缩文件",
+      "unsupported": "不支持的格式"
     },
     "settings": {
       "title": "设置",
       "general": "文件",
       "showHidden": "显示隐藏的项目",
       "showExtensions": "显示文件扩展名",
+      "selectionInMore": "在“查看更多”中显示选择命令",
       "defaultApp": "默认文件管理器",
       "defaultAppLabel": "使用 Eris Files 打开文件夹",
       "defaultAppHint": "在文件夹和 Win+E 中替代文件资源管理器",
@@ -187,7 +214,8 @@
       "theme": "主题",
       "version": "版本",
       "windowsDefaults": "Windows 默认应用",
-      "windowsDefaultsHint": "请在 Windows 设置中选择打开 3D 模型的应用。"
+      "windowsDefaultsHint": "请在 Windows 设置中选择打开 3D 模型的应用。",
+      "account": "账号"
     },
     "sidebar": {
       "title": "侧边栏",
@@ -201,6 +229,7 @@
         "folders": "库文件夹",
         "drives": "此电脑驱动器",
         "network": "网络",
+        "linux": "Linux",
         "shared": "共享",
         "recycleBin": "回收站"
       }
@@ -228,7 +257,24 @@
       "other": "其他",
       "folders": "文件夹",
       "drives": "设备和驱动器",
-      "network": "网络位置"
+      "network": "网络位置",
+      "linux": "Linux"
+    },
+    "privacy": {
+      "title": "正在共享屏幕",
+      "body": "{name} 将显示在共享的屏幕上。",
+      "open": "打开"
+    },
+    "bandizip": {
+      "extractHere": "解压到当前文件夹",
+      "extractAuto": "智能解压",
+      "extractNamed": "解压到 {name} 文件夹",
+      "extractEach": "分别解压到各自文件夹",
+      "compressZip": "压缩为 {name}.zip",
+      "compress7z": "压缩为 {name}.7z",
+      "compressEach": "分别压缩为 ZIP",
+      "working": "压缩任务进行中",
+      "done": "压缩任务完成"
     }
   },
   "terminal": {

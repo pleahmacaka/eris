@@ -2,9 +2,18 @@ import { tr } from "@eris/i18n"
 import { type MenuAction, type MenuItem, openContextMenu } from "@eris/ui"
 import { openShare, share } from "../components/share/share.svelte"
 import type { Item } from "../items"
-import { HOME, isVirtual, RECYCLE_BIN, SHARED, THIS_PC } from "../locations"
+import {
+  baseName,
+  extensionOf,
+  HOME,
+  isVirtual,
+  RECYCLE_BIN,
+  SHARED,
+  THIS_PC,
+} from "../locations"
 import {
   addNetworkLocation,
+  type BandizipJob,
   clipboardHasFiles,
   disconnectDrive,
   disconnectNetworkDrive,
@@ -12,10 +21,12 @@ import {
   nativeMenu,
   openWith,
 } from "../native"
-import { menuItem } from "./commands"
+import { archives, isArchive, splitArchive } from "./archive.svelte"
+import { hintOf, menuItem } from "./commands"
 import { type Explorer, fail } from "./explorer.svelte"
-import { refreshPlaces } from "./places.svelte"
-import type { SidebarSection } from "./prefs.svelte"
+import { nameDrive, refreshPlaces } from "./places.svelte"
+import { prefs, type SidebarSection, VIEW_ICONS, VIEWS } from "./prefs.svelte"
+import { confirmPrivate, isMarked, toggleMark } from "./privacy.svelte"
 import {
   hidePath,
   isPinned,
@@ -64,12 +75,114 @@ const pinItem = (x: Explorer, path: string): MenuAction => {
   }
 }
 
+const privateItem = (path: string): MenuAction => {
+  const marked = isMarked(path)
+
+  return {
+    label: command(marked ? "unmarkPrivate" : "markPrivate"),
+    icon: marked ? "lucide:eye" : "lucide:eye-off",
+    action: () => toggleMark(path),
+  }
+}
+
+const bandizip = (key: string, values?: Record<string, string>) =>
+  tr(`explorer.bandizip.${key}`, values)
+
+const stemOf = (item: Item) =>
+  item.dir
+    ? item.name
+    : item.name.slice(0, item.name.length - extensionOf(item.name).length)
+
+const extractMenu = (x: Explorer, archivesToExtract: Item[]): MenuItem[] => {
+  const paths = archivesToExtract.map(item => item.path)
+  const run = (job: BandizipJob) => () => x.bandizip(job, paths)
+  const [single] = archivesToExtract.length === 1 ? archivesToExtract : []
+
+  return [
+    "separator",
+    {
+      label: bandizip("extractHere"),
+      icon: "lucide:package-open",
+      action: run("extractHere"),
+    },
+    {
+      label: bandizip("extractAuto"),
+      icon: "lucide:wand-sparkles",
+      action: run("extractAuto"),
+    },
+    {
+      label: single
+        ? bandizip("extractNamed", { name: stemOf(single) })
+        : bandizip("extractEach"),
+      icon: "lucide:folder-output",
+      action: run("extractNamed"),
+    },
+  ]
+}
+
+const bandizipMenu = (x: Explorer): MenuItem[] => {
+  const selection = x.selected
+
+  if (!archives.bandizip || !x.filesystem || !selection.length) {
+    return []
+  }
+
+  if (selection.every(item => !item.dir && isArchive(item.name))) {
+    return extractMenu(x, selection)
+  }
+
+  const paths = selection.map(item => item.path)
+  const run = (job: BandizipJob) => () => x.bandizip(job, paths)
+  const name =
+    selection.length === 1 ? stemOf(selection[0]) : baseName(x.tab.location)
+
+  return compact([
+    "separator",
+    {
+      label: bandizip("compressZip", { name }),
+      icon: "lucide:file-archive",
+      action: run("compressZip"),
+    },
+    {
+      label: bandizip("compress7z", { name }),
+      icon: "lucide:file-archive",
+      action: run("compress7z"),
+    },
+    selection.length > 1 && {
+      label: bandizip("compressEach"),
+      icon: "lucide:files",
+      action: run("compressEach"),
+    },
+  ])
+}
+
+const archiveTabMenu = (x: Explorer, items: MenuItem[]): MenuItem[] => {
+  const packed = splitArchive(x.tab.location)
+
+  if (!packed || !archives.bandizip) {
+    return items
+  }
+
+  const archive = {
+    path: packed.archive,
+    name: baseName(packed.archive),
+    dir: false,
+  } as Item
+
+  return [...items, ...extractMenu(x, [archive])]
+}
+
 const itemMenu = (x: Explorer): MenuItem[] => {
   const selection = x.selected
   const keys = selection.map(item => item.key)
   const single = selection.length === 1 ? selection[0] : null
   const folder = single?.dir && !isVirtual(single.path) ? single : null
+  const drive = single?.drive ?? null
   const more = moreOptions(() => x.more(keys))
+
+  if (x.tab.kind === "archive") {
+    return archiveTabMenu(x, [menuItem("open", x)])
+  }
 
   if (x.inBin) {
     return [
@@ -98,8 +211,11 @@ const itemMenu = (x: Explorer): MenuItem[] => {
       !isVirtual(single.path) && {
         label: command("openWith"),
         icon: "lucide:layout-grid",
-        action: () => openWith(single.path).catch(fail),
+        action: async () =>
+          (await confirmPrivate(single.path, x.tab.location)) &&
+          openWith(single.path).catch(fail),
       },
+    ...bandizipMenu(x),
     "separator",
     menuItem("cut", x),
     menuItem("copy", x),
@@ -119,9 +235,23 @@ const itemMenu = (x: Explorer): MenuItem[] => {
         },
       },
     menuItem("rename", x),
+    drive &&
+      drive.path in prefs.driveNames && {
+        label: command("resetName"),
+        icon: "lucide:rotate-ccw",
+        action: () => {
+          nameDrive(drive, "")
+
+          return x.tab.refresh()
+        },
+      },
     menuItem("delete", x),
     "separator",
     folder && pinItem(x, folder.path),
+    single &&
+      x.filesystem &&
+      !isVirtual(single.path) &&
+      privateItem(single.path),
     single?.drive?.kind === "network" && {
       label: command("disconnect"),
       icon: "lucide:unplug",
@@ -132,12 +262,51 @@ const itemMenu = (x: Explorer): MenuItem[] => {
   ])
 }
 
-const backgroundMenu = (x: Explorer, canPaste: boolean): MenuItem[] => {
+const viewMenu = (x: Explorer, e: MouseEvent): MenuAction => ({
+  label: command("view"),
+  icon: VIEW_ICONS[x.view],
+  action: () =>
+    openContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      placement: "down",
+      items: [
+        ...VIEWS.map(mode => ({
+          label: tr(`explorer.views.${mode}`),
+          icon: mode === x.view ? "lucide:check" : VIEW_ICONS[mode],
+          hint: hintOf(`view.${mode}`),
+          action: () => x.setView(mode),
+        })),
+        "separator",
+        {
+          label: tr("explorer.views.dateGroups"),
+          icon: x.group === "modified" ? "lucide:check" : "lucide:calendar",
+          action: () => x.toggleDateGroups(),
+        },
+        {
+          label: tr("explorer.views.folderOnly"),
+          icon: x.own ? "lucide:check" : "lucide:folder-cog",
+          action: () => x.toggleFolderOnly(),
+        },
+      ],
+    }),
+})
+
+const backgroundMenu = (
+  x: Explorer,
+  canPaste: boolean,
+  e: MouseEvent,
+): MenuItem[] => {
   const refresh = menuItem("refresh", x)
   const more = moreOptions(() => x.more([]))
+  const view = x.arrangeable ? [viewMenu(x, e)] : []
+
+  if (x.tab.kind === "archive") {
+    return archiveTabMenu(x, [...view, refresh])
+  }
 
   if (x.inBin) {
-    return [menuItem("emptyBin", x), refresh, more]
+    return [menuItem("emptyBin", x), ...view, refresh, more]
   }
 
   if (x.tab.location === THIS_PC) {
@@ -145,10 +314,11 @@ const backgroundMenu = (x: Explorer, canPaste: boolean): MenuItem[] => {
   }
 
   if (!x.filesystem) {
-    return [refresh, more]
+    return [...view, refresh, more]
   }
 
   return [
+    ...view,
     refresh,
     "separator",
     { ...menuItem("paste", x), disabled: !canPaste },
@@ -178,7 +348,7 @@ export const openMenu = async (
     x: e.clientX,
     y: e.clientY,
     placement: "down",
-    items: item ? itemMenu(x) : backgroundMenu(x, canPaste),
+    items: item ? itemMenu(x) : backgroundMenu(x, canPaste, e),
   })
 }
 

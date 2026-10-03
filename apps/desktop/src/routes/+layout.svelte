@@ -55,13 +55,19 @@
     loadProfile().then(p => apply(p.appearance))
     loadDevice().then(d => setupI18n(d.language))
 
-    fadeShell(false)
+    const fade = (out: boolean) => {
+      if (!framed) {
+        fadeShell(out)
+      }
+    }
+
+    fade(false)
 
     const stops = [
       onProfile(p => apply(p.appearance)),
       onDevice(d => setupI18n(d.language)),
-      onWindowShown(windowLabel, () => fadeShell(false)),
-      onWindowHiding(windowLabel, () => fadeShell(true)),
+      onWindowShown(windowLabel, () => fade(false)),
+      onWindowHiding(windowLabel, () => fade(true)),
     ]
 
     scheme.addEventListener("change", onScheme)

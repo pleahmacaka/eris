@@ -59,6 +59,7 @@
     "eris-files:allow-new-window",
     "eris-files:allow-default-app-status",
     "eris-files:allow-set-default-app",
-    "eris-files:allow-open-default-apps"
+    "eris-files:allow-open-default-apps",
+    "eris-auth:default"
   ]
 }

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="%lang%" data-theme="eris">
+<html lang="%lang%" data-theme="eris" data-korean="%korean%">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -11,8 +11,8 @@
 				const saved = localStorage.getItem("lang")
 				const wanted = saved ?? (navigator.language.startsWith("ko") ? "ko" : "en")
 
-				if (root.lang === "en" && wanted === "ko") {
-					location.replace("ko/")
+				if (root.lang === "en" && wanted === "ko" && root.dataset.korean) {
+					location.replace(root.dataset.korean)
 				}
 
 				if (matchMedia("(prefers-reduced-motion: reduce)").matches) {

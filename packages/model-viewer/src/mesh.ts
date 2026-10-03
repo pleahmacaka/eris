@@ -161,6 +161,10 @@ export const buildModel = (parts: Part[]): Model => {
     slots.push({ object, names: part.materials, fallback })
   }
 
+  return frame(root, slots)
+}
+
+export const frame = (root: Group, slots: Model["slots"]): Model => {
   const box = new Box3().setFromObject(root)
 
   if (box.isEmpty()) {
@@ -257,6 +261,11 @@ export const disposeMaterials = (set: MaterialSet) => {
 export const disposeModel = (model: Model) => {
   for (const { object, fallback } of model.slots) {
     object.geometry.dispose()
+
+    if (fallback instanceof MeshStandardMaterial) {
+      fallback.map?.dispose()
+    }
+
     fallback.dispose()
   }
 }

@@ -23,6 +23,7 @@
     "clipboard-manager:allow-write-text",
     "dialog:allow-open",
     "eris-terminal:default",
-    "eris-files:default"
+    "eris-files:default",
+    "eris-auth:default"
   ]
 }

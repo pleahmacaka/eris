@@ -1,3 +1,9 @@
+<script module lang="ts">
+  import { persisted } from "../../store/persisted.svelte"
+
+  const sound = persisted("eris-files.audio", { volume: 1, muted: false })
+</script>
+
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { currentLocale } from "@eris/i18n"
@@ -9,6 +15,7 @@
   import {
     audioWaveform,
     clock,
+    type Details,
     decodePeaks,
     type Progress,
     readTranscript,
@@ -38,6 +45,8 @@
   let source = $state("")
   let peaks = $state<number[] | null>(null)
   let size = $state<number | null>(null)
+  let details = $state<Details | null>(null)
+  let showSource = $state(false)
   let duration = $state(0)
   let current = $state(0)
   let playing = $state(false)
@@ -65,6 +74,7 @@
         }
 
         size = waveform.size
+        details = waveform.details
         duration = waveform.duration ?? duration
         peaks = waveform.peaks
 
@@ -201,6 +211,46 @@
           values: { done: value.done, total: value.total },
         })
 
+  const facts = $derived.by(() => {
+    if (!details) {
+      return []
+    }
+
+    const locale = currentLocale()
+    const bitrate =
+      size && duration ? Math.round((size * 8) / duration / 1000) : null
+
+    const entries: [string, string | number | null][] = [
+      ["title", details.title],
+      ["artist", details.artist],
+      ["album", details.album],
+      ["year", details.year],
+      ["track", details.track],
+      ["genre", details.genre],
+      [
+        "sampleRate",
+        details.sampleRate &&
+          `${(details.sampleRate / 1000).toLocaleString(locale)} kHz`,
+      ],
+      [
+        "channels",
+        details.channels &&
+          $t("audio.channelCount", { values: { count: details.channels } }),
+      ],
+      ["bitrate", bitrate && `${bitrate.toLocaleString(locale)} kbps`],
+    ]
+
+    return entries.filter(([, value]) => !!value)
+  })
+
+  const volumeIcon = $derived(
+    sound.muted || sound.volume === 0
+      ? "lucide:volume-x"
+      : sound.volume < 0.5
+        ? "lucide:volume-1"
+        : "lucide:volume-2",
+  )
+
   const providerLabel = (value: Saved) =>
     value.provider === "custom"
       ? value.host
@@ -220,6 +270,8 @@
     bind:this={player}
     src={source || undefined}
     preload="metadata"
+    bind:volume={sound.volume}
+    bind:muted={sound.muted}
     onloadedmetadata={e => {
       if (Number.isFinite(e.currentTarget.duration)) {
         duration = e.currentTarget.duration
@@ -253,6 +305,32 @@
       </div>
     </header>
 
+    {#if facts.length || details?.cover}
+      <div class="flex items-start gap-4">
+        {#if details?.cover}
+          <img
+            src={details.cover}
+            alt=""
+            class="size-16 shrink-0 rounded-box object-cover"
+          />
+        {/if}
+
+        <dl
+          class="grid min-w-0 grow grid-cols-2 gap-x-6 gap-y-1 text-xs sm:grid-cols-3"
+          aria-label={$t("audio.details")}
+        >
+          {#each facts as [key, value] (key)}
+            <div class="flex min-w-0 gap-2">
+              <dt class="shrink-0 text-base-content/50">
+                {$t(`audio.meta.${key}`)}
+              </dt>
+              <dd class="truncate tabular-nums" title={String(value)}>{value}</dd>
+            </div>
+          {/each}
+        </dl>
+      </div>
+    {/if}
+
     <div
       class={[
         "flex items-center gap-4 rounded-box border border-base-content/10",
@@ -279,6 +357,29 @@
       <span class="shrink-0 text-xs tabular-nums text-base-content/70">
         {clock(current)} / {clock(duration)}
       </span>
+
+      <div class="flex shrink-0 items-center gap-1">
+        <button
+          type="button"
+          class="btn btn-ghost btn-xs btn-square"
+          aria-label={sound.muted ? $t("audio.unmute") : $t("audio.mute")}
+          aria-pressed={sound.muted}
+          onclick={() => (sound.muted = !sound.muted)}
+        >
+          <Icon icon={volumeIcon} class="size-4" />
+        </button>
+
+        <input
+          type="range"
+          class="range range-primary range-xs w-20"
+          min="0"
+          max="1"
+          step="0.05"
+          aria-label={$t("audio.volume")}
+          bind:value={sound.volume}
+          oninput={() => (sound.muted = false)}
+        />
+      </div>
     </div>
 
     <label class="input input-sm w-full">
@@ -299,12 +400,24 @@
         </h3>
 
         {#if transcript}
-          <span class="badge badge-ghost badge-sm">
-            {providerLabel(transcript)}
-          </span>
-          <span class="badge badge-ghost badge-sm truncate">
-            {transcript.model}
-          </span>
+          <button
+            type="button"
+            class="btn btn-ghost btn-xs btn-square"
+            aria-label={$t("audio.source")}
+            aria-expanded={showSource}
+            onclick={() => (showSource = !showSource)}
+          >
+            <Icon icon="lucide:info" class="size-3.5" />
+          </button>
+
+          {#if showSource}
+            <span class="badge badge-ghost badge-sm">
+              {providerLabel(transcript)}
+            </span>
+            <span class="badge badge-ghost badge-sm truncate">
+              {transcript.model}
+            </span>
+          {/if}
         {/if}
       </div>
 

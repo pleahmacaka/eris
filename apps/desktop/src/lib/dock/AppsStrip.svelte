@@ -22,6 +22,7 @@
 
   let overflowOpen = $state(false)
   let openAtPress: boolean | null = null
+  let toolbar = $state<HTMLElement>()
 
   const spotClaim = $derived(layout.claimFor("spot-apps"))
   const itemsClaim = $derived(layout.claimFor("items"))
@@ -51,7 +52,42 @@
       overflowClaim(null)
     }
   }
+
+  // the whole dock is the drop zone, so the empty space beside the first icon and the gaps still place a drop
+  const track = (e: DragEvent) => {
+    if (!layout.dragPath || !toolbar) {
+      return
+    }
+
+    e.preventDefault()
+
+    const slots = [...toolbar.querySelectorAll<HTMLElement>("[data-path]")]
+    const next = slots.find(slot => {
+      const box = slot.getBoundingClientRect()
+
+      return e.clientX < box.left + box.width / 2
+    })
+    const target = next ?? slots.at(-1)
+
+    if (!target) {
+      return
+    }
+
+    layout.dropPath = target.dataset.path ?? null
+    layout.dropBefore = next !== undefined
+  }
+
+  const drop = (e: DragEvent) => {
+    if (!layout.dragPath) {
+      return
+    }
+
+    e.preventDefault()
+    layout.commitDrop()
+  }
 </script>
+
+<svelte:window ondragover={track} ondrop={drop} />
 
 <EditSpot id="apps" label={$t("edit.spots.apps")} placement={layout.spotPlacement} onmenu={spotClaim}>
   {#snippet options()}
@@ -59,6 +95,7 @@
   {/snippet}
 
   <div
+    bind:this={toolbar}
     role="toolbar"
     tabindex="-1"
     aria-label={$t("dock.apps")}
@@ -68,7 +105,7 @@
     onpointerleave={() => (layout.magnet.target = 0)}
   >
     {#each list as group, index (group.key)}
-      <div animate:flip={{ duration: 120 }} class="flex">
+      <div animate:flip={{ duration: 120 }} class="flex" data-path={group.path}>
         <DockItem
           {group}
           size={device.dockIconSize}
@@ -83,11 +120,6 @@
           dropBefore={layout.dropPath === group.path && layout.dropBefore}
           dropAfter={layout.dropPath === group.path && !layout.dropBefore}
           ondragstart={() => (layout.dragPath = group.path)}
-          ondragover={before => {
-            layout.dropPath = group.path
-            layout.dropBefore = before
-          }}
-          ondrop={layout.commitDrop}
           ondragend={() => {
             layout.dragPath = null
             layout.dropPath = null

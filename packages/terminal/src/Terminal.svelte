@@ -14,6 +14,7 @@
     active?: boolean
     onexit?: (code: number) => void
     ontitle?: (title: string) => void
+    oninput?: (data: string) => void
     class?: string
   }
 
@@ -25,6 +26,7 @@
     active = true,
     onexit,
     ontitle,
+    oninput,
     class: className,
   }: Props = $props()
 
@@ -36,6 +38,8 @@
   export const focus = () => term?.focus()
 
   export const kill = () => pty?.kill()
+
+  export const send = (data: string) => pty?.write(data)
 
   const copy = () => {
     if (!term?.hasSelection()) {
@@ -51,6 +55,9 @@
 
     if (text) {
       term?.paste(text.replaceAll("\r\n", "\r").replaceAll("\n", "\r"))
+    } else {
+      // an image or file clipboard has no text; TUIs read it themselves on Ctrl+V
+      term?.input("\x16", true)
     }
   }
 
@@ -138,7 +145,10 @@
       }
 
       pty = session
-      screen.onData(data => session.write(data))
+      screen.onData(data => {
+        session.write(data)
+        oninput?.(data)
+      })
       screen.onResize(size => session.resize(size.cols, size.rows))
     }
 

@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@azurity/pure-nerd-font": "^3.0.5",
+    "@eris/auth": "workspace:*",
     "@eris/settings": "workspace:*",
     "@eris/ui": "workspace:*",
     "@fontsource-variable/jetbrains-mono": "^5.3.0",

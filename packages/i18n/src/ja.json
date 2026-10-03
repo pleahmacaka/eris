@@ -72,6 +72,10 @@
       "about": {
         "label": "情報",
         "blurb": "バージョンを確認してアップデートをインストールします"
+      },
+      "account": {
+        "label": "アカウント",
+        "blurb": "一度ログインすると、すべての Eris アプリで同じアカウントを使用します。"
       }
     },
     "groups": {
@@ -182,6 +186,7 @@
       "iconSize": "アイコンサイズ",
       "pinDesktop": "ウィンドウの背面に配置",
       "autoHide": "自動的に隠す",
+      "fullscreenReveal": "全画面で表示",
       "showLauncherButton": "ランチャーボタン",
       "showRunningApps": "実行中のアプリ",
       "showTrayIcons": "トレイアイコン",
@@ -290,6 +295,7 @@
       "alignment": "ドック内でアプリを並べる位置です",
       "pinDesktop": "ウィンドウがドックを覆うことがあり、自動的に隠す設定ではカーソルが端に触れると前面に出ます",
       "autoHide": "ドックを隠しておき、カーソルが画面の端に触れると表示します",
+      "fullscreenReveal": "全画面ウィンドウでもカーソルが画面の端に触れるとドックを表示します",
       "showLauncherButton": "ドックにランチャーボタンを表示し、Win キーでもランチャーを開けます",
       "showRunningApps": "ピン留めしていないアプリも、ウィンドウが開いていればドックに表示します",
       "showTrayIcons": "バックグラウンドのプログラムの通知領域アイコンを表示します",
@@ -1120,10 +1126,7 @@
     },
     "dock": {
       "title": "ドックを整える",
-      "blurb": "サイズと内容の微調整はあとから設定でできます。",
-      "autoHide": "カーソルが画面の端に触れるまで隠れます。",
-      "replaces": "Eris が Windows タスクバーの代わりになります。",
-      "taskbarStays": "Windows タスクバーはそのまま表示されます。"
+      "blurb": "サイズと内容の微調整はあとから設定でできます。"
     },
     "hotkeys": {
       "title": "Eris を開く",

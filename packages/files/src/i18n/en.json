@@ -47,7 +47,24 @@
       "baseUrlHint": "Enter an OpenAI-compatible address.",
       "badUrl": "Enter an https address.",
       "saveFailed": "The key couldn't be saved."
-    }
+    },
+    "volume": "Volume",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "source": "Transcript details",
+    "details": "File details",
+    "meta": {
+      "title": "Title",
+      "artist": "Artist",
+      "album": "Album",
+      "year": "Year",
+      "track": "Track",
+      "genre": "Genre",
+      "sampleRate": "Sample rate",
+      "channels": "Channels",
+      "bitrate": "Bitrate"
+    },
+    "channelCount": "{count, plural, =1 {Mono} =2 {Stereo} other {# channels}}"
   },
   "explorer": {
     "places": {
@@ -62,6 +79,7 @@
       "videos": "Videos",
       "folder": "System folder",
       "networkLocation": "Network location",
+      "linuxDistro": "Linux distribution",
       "shared": "Shared"
     },
     "drive": {
@@ -103,6 +121,7 @@
       "copy": "Copy",
       "paste": "Paste",
       "rename": "Rename",
+      "resetName": "Restore default name",
       "delete": "Delete",
       "deletePermanently": "Delete permanently",
       "sort": "Sort",
@@ -128,7 +147,9 @@
       "disconnect": "Disconnect",
       "mapDrive": "Map network drive",
       "unmapDrive": "Disconnect network drive",
-      "addNetworkLocation": "Add a network location"
+      "addNetworkLocation": "Add a network location",
+      "markPrivate": "Ask before showing while sharing",
+      "unmarkPrivate": "Stop asking while sharing"
     },
     "sort": {
       "name": "Name",
@@ -146,7 +167,9 @@
       "details": "Details",
       "tiles": "Tiles",
       "hidden": "Hidden items",
-      "extensions": "File name extensions"
+      "extensions": "File name extensions",
+      "dateGroups": "Group by date",
+      "folderOnly": "Apply to this folder only"
     },
     "columns": {
       "name": "Name",
@@ -159,7 +182,8 @@
       "items": "{count, plural, one {# item} other {# items}}",
       "selected": "{count, plural, one {# item selected} other {# items selected}}",
       "results": "{count, plural, one {# result} other {# results}}",
-      "searching": "Searching"
+      "searching": "Searching",
+      "measuring": "Calculating"
     },
     "states": {
       "empty": "Empty folder",
@@ -173,13 +197,16 @@
     "errors": {
       "denied": "Access denied",
       "missing": "Location not found",
-      "notReady": "Device not ready"
+      "notReady": "Device not ready",
+      "password": "Password-protected archive",
+      "unsupported": "Unsupported format"
     },
     "settings": {
       "title": "Settings",
       "general": "Files",
       "showHidden": "Show hidden items",
       "showExtensions": "Show file name extensions",
+      "selectionInMore": "Show selection commands in See more",
       "defaultApp": "Default file manager",
       "defaultAppLabel": "Open folders with Eris Files",
       "defaultAppHint": "Replaces File Explorer for folders and Win+E",
@@ -187,7 +214,8 @@
       "theme": "Theme",
       "version": "Version",
       "windowsDefaults": "Windows default apps",
-      "windowsDefaultsHint": "Choose the app for 3D models in Windows Settings."
+      "windowsDefaultsHint": "Choose the app for 3D models in Windows Settings.",
+      "account": "Account"
     },
     "sidebar": {
       "title": "Sidebar",
@@ -201,6 +229,7 @@
         "folders": "Library folders",
         "drives": "This PC drives",
         "network": "Network",
+        "linux": "Linux",
         "shared": "Shared",
         "recycleBin": "Recycle Bin"
       }
@@ -228,7 +257,24 @@
       "other": "Other",
       "folders": "Folders",
       "drives": "Devices and drives",
-      "network": "Network locations"
+      "network": "Network locations",
+      "linux": "Linux"
+    },
+    "privacy": {
+      "title": "Screen is being shared",
+      "body": "{name} will be visible on the shared screen.",
+      "open": "Open"
+    },
+    "bandizip": {
+      "extractHere": "Extract here",
+      "extractAuto": "Extract smartly",
+      "extractNamed": "Extract to {name} folder",
+      "extractEach": "Extract each to its own folder",
+      "compressZip": "Compress to {name}.zip",
+      "compress7z": "Compress to {name}.7z",
+      "compressEach": "Compress each to ZIP",
+      "working": "Archive task running",
+      "done": "Archive task complete"
     }
   },
   "terminal": {

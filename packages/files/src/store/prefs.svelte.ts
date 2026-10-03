@@ -29,6 +29,7 @@ export type SidebarSection =
   | "folders"
   | "drives"
   | "network"
+  | "linux"
   | "shared"
   | "recycleBin"
 
@@ -43,12 +44,17 @@ export type Prefs = {
   showHidden: boolean
   showExtensions: boolean
   preview: boolean
+  selectionInMore: boolean
   navWidth: number
   columns: Record<SortKey, number>
   followEris: boolean
   mode: ThemeMode
   shareExpiry: ExpiryPreset
   sidebar: Sidebar
+  driveNames: Record<string, string>
+  privatePaths: string[]
+  groups: Record<string, GroupKey>
+  folderViews: Record<string, FolderView>
 }
 
 export const VIEWS: ViewMode[] = [
@@ -108,12 +114,17 @@ const defaults: Prefs = {
   showHidden: false,
   showExtensions: false,
   preview: false,
+  selectionInMore: false,
   navWidth: 15,
   columns: { name: 20, modified: 10, kind: 10, size: 6 },
   followEris: true,
   mode: "system",
   shareExpiry: "day",
   sidebar: { hidden: [], hiddenPaths: [], order: [] },
+  driveNames: {},
+  privatePaths: [],
+  groups: {},
+  folderViews: {},
 }
 
 const fresh = localStorage.getItem(KEY) === null

@@ -42,6 +42,11 @@
 
   const resetSync = reset(() => device.sync, defaultSync)
 
+  const locked = $derived([
+    "flex flex-col gap-4 transition-opacity duration-100",
+    !device.sync.enabled && "opacity-40",
+  ])
+
   const collectionLabel = (name: SyncedCollection) => $t(`settings.sync.collections.${name}`)
 
   const collectionList = $derived(
@@ -207,6 +212,8 @@
   }
 </script>
 
+<div class={compact ? "grid grid-cols-2 items-start gap-4" : "flex flex-col gap-4"}>
+<div class="flex flex-col gap-4">
 <Section title={$t("settings.groups.syncGeneral")}>
   <Row label={$t("settings.rows.enableSync")} hint={$t("settings.hints.enableSync")}>
     <input
@@ -231,13 +238,7 @@
   </Row>
 </Section>
 
-<fieldset
-  class={[
-    "flex flex-col gap-4 transition-opacity duration-100",
-    !device.sync.enabled && "opacity-40",
-  ]}
-  disabled={!device.sync.enabled}
->
+<fieldset class={locked} disabled={!device.sync.enabled}>
 <Section
   title={$t("settings.sync.thisDevice")}
   description={$t("settings.sync.description", { values: { collections: collectionList } })}
@@ -326,7 +327,10 @@
     </Row>
   {/if}
 </Section>
+</fieldset>
+</div>
 
+<fieldset class={locked} disabled={!device.sync.enabled}>
 <Section
   title={$t("settings.sync.devices.title")}
   description={$t("settings.sync.devices.description")}
@@ -420,3 +424,4 @@
   onconfirm={leave}
 />
 </fieldset>
+</div>

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-bandizip-job"
+description = "Enables the bandizip_job command without any pre-configured scope."
+commands.allow = ["bandizip_job"]
+
+[[permission]]
+identifier = "deny-bandizip-job"
+description = "Denies the bandizip_job command without any pre-configured scope."
+commands.deny = ["bandizip_job"]

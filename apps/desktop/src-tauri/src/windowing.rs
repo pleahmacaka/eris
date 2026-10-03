@@ -188,10 +188,15 @@ pub fn webview_visible(app: &AppHandle, label: &str, visible: bool) {
     }
 }
 
+// child windows start hidden and show themselves from the page, which never re-shows a concealed webview
 pub fn conceal_hidden(app: &AppHandle) {
-    for window in app.webview_windows().values() {
+    for config in &app.config().app.windows {
+        let Some(window) = app.get_webview_window(&config.label) else {
+            continue;
+        };
+
         if !window.is_visible().unwrap_or(true) {
-            set_webview_visible(window, false);
+            set_webview_visible(&window, false);
         }
     }
 }

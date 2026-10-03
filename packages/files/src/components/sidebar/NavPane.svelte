@@ -43,7 +43,7 @@
   const GROUPS: SidebarSection[][] = [
     ["home", "pinned"],
     ["folders"],
-    ["drives", "network"],
+    ["drives", "network", "linux"],
     ["shared", "recycleBin"],
   ]
 
@@ -122,6 +122,15 @@
         label: place.name,
         location: place.path,
         section: "network",
+        hide: "path",
+        nested: sectionShown("drives"),
+      })),
+    linux: places.linux
+      .filter(distro => pathShown(distro.path))
+      .map(distro => ({
+        label: distro.name,
+        location: distro.path,
+        section: "linux",
         hide: "path",
         nested: sectionShown("drives"),
       })),

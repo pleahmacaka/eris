@@ -2,11 +2,13 @@
   import { currentLocale } from "@eris/i18n"
   import { t } from "svelte-i18n"
   import ItemIcon from "../items/ItemIcon.svelte"
+  import ZoomImage from "./ZoomImage.svelte"
   import { formatBytes, formatDate } from "../../format"
   import type { Item } from "../../items"
   import { type FileKind, kindOf } from "../../filetypes"
-  import { isVirtual } from "../../locations"
+  import { isVirtual, parentOf } from "../../locations"
   import { allowPreview, assetUrl, previewText } from "../../native"
+  import { confirmPrivate } from "../../store/privacy.svelte"
 
   type Kind = Exclude<FileKind, "model">
 
@@ -35,6 +37,10 @@
       return blank
     }
 
+    if (!(await confirmPrivate(target.path, parentOf(target.path) ?? ""))) {
+      return blank
+    }
+
     if (kind === "text") {
       const text = await previewText(target.path).catch(() => "")
 
@@ -49,7 +55,7 @@
   $effect(() => {
     const target = item
 
-    if (!target || target.dir || isVirtual(target.path)) {
+    if (!target || target.dir || target.packed || isVirtual(target.path)) {
       shown = null
 
       return
@@ -114,11 +120,9 @@
       ]}
     >
       {#if current?.kind === "image"}
-        <img
-          src={current.url}
-          alt={item.name}
-          class="max-h-full max-w-full object-contain"
-        />
+        {#key current.url}
+          <ZoomImage src={current.url} alt={item.name} />
+        {/key}
       {:else if current?.kind === "video"}
         <video src={current.url} controls class="max-h-full max-w-full">
           <track kind="captions" />

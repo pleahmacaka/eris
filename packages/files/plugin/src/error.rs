@@ -30,6 +30,7 @@ pub enum Error {
     Busy,
     Pending,
     Unpaired,
+    Password,
     Os(String),
 }
 
@@ -60,6 +61,7 @@ impl Error {
             Error::Busy => "busy",
             Error::Pending => "pending",
             Error::Unpaired => "unpaired",
+            Error::Password => "password",
             Error::Os(message) => message,
         }
     }
