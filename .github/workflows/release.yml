@@ -88,8 +88,31 @@ jobs:
           releaseId: ${{ needs.version.outputs.id }}
           uploadUpdaterJson: ${{ matrix.app == 'desktop' }}
 
-  publish:
+  bundle:
     needs: [version, build]
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.version.outputs.tag }}
+          persist-credentials: false
+
+      - shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.version.outputs.tag }}
+        run: |
+          gh release download "$TAG" -R "$GITHUB_REPOSITORY" -D dist -p '*_x64-setup.exe'
+          makensis=$(command -v makensis || echo "/c/Program Files (x86)/NSIS/makensis.exe")
+          cd installer
+          "$makensis" -DVERSION="$TAG" -DDIST="$(cygpath -w ../dist)" -DOUTFILE="$(cygpath -w "../Eris_${TAG}_x64-installer.exe")" eris-setup.nsi
+          cd ..
+          gh release upload "$TAG" -R "$GITHUB_REPOSITORY" "Eris_${TAG}_x64-installer.exe" --clobber
+
+  publish:
+    needs: [version, build, bundle]
     runs-on: ubuntu-latest
     permissions:
       contents: write
