@@ -86,6 +86,13 @@
     return false
   }
 
+  // keys an IME passes through outside a composition, like the space that commits Hangul, only arrive here
+  const onbeforeinput = (e: InputEvent) => {
+    if (e.inputType === "insertText" && !e.isComposing && e.data) {
+      term?.input(e.data, true)
+    }
+  }
+
   const oncontextmenu = (e: MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -209,5 +216,6 @@
   tabindex="0"
   class={["size-full overflow-hidden caret-transparent", className]}
   oncontextmenucapture={oncontextmenu}
+  {onbeforeinput}
   onkeydown={e => e.stopPropagation()}
 ></div>
