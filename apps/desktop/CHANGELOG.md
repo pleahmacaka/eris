@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.6](https://github.com/pleahmacaka/eris/compare/0.3.5...0.3.6) (2026-10-04)
+
+
+### Bug Fixes
+
+* **dock:** always show running apps ([2f925d6](https://github.com/pleahmacaka/eris/commit/2f925d65698e16f7c2208948609712f5af36b070))
+* **dock:** stay hidden over games and maximized windows ([0a69aa3](https://github.com/pleahmacaka/eris/commit/0a69aa3b2acddd58c85893cbc2cf355f681394bd))
+* **files:** unpin quick access folders from their home entry ([b545257](https://github.com/pleahmacaka/eris/commit/b545257c6681cddc0cdc7b3ba7bc79d408b7f72e))
+* **terminal:** keep spaces typed in hangul mode ([b87cdc9](https://github.com/pleahmacaka/eris/commit/b87cdc9f3b4ab7b50dbf6c65dc3c4f60c279d838))
+* **tray:** send the select notice after a left click ([ea2caa6](https://github.com/pleahmacaka/eris/commit/ea2caa6a92da1808a08a2a0db44c10b212ebb9cf))
+
 ## [0.3.5](https://github.com/pleahmacaka/eris/compare/0.3.4...0.3.5) (2026-10-03)
 
 
