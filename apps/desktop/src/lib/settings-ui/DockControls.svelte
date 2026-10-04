@@ -524,21 +524,6 @@
       bind:checked={device.hideSystemTaskbar}
     />
   </Row>
-
-  {#if !subset}
-    <Row
-      label={$t("settings.rows.showRunningApps")}
-      hint={$t("settings.hints.showRunningApps")}
-      onreset={resetRow("showRunningApps")}
-    >
-      <input
-        type="checkbox"
-        class="toggle toggle-primary"
-        aria-label={$t("settings.rows.showRunningApps")}
-        bind:checked={device.showRunningApps}
-      />
-    </Row>
-  {/if}
 {/if}
 
 {#if shows("arrange")}

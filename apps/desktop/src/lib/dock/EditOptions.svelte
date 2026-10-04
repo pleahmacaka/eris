@@ -153,8 +153,6 @@
     {@render toggleRow("dockDesktop", $t("settings.rows.pinDesktop"))}
   {/if}
 
-  {@render toggleRow("showRunningApps", $t("settings.rows.showRunningApps"))}
-
   {@render toggleRow("dockSeparators", $t("settings.rows.dockSeparators"))}
   {@render toggleRow("dockIslands", $t("settings.rows.dockIslands"))}
   {@render toggleRow("dockAutoHide", $t("settings.rows.autoHide"))}

@@ -95,7 +95,6 @@ export const index: SearchEntry[] = [
   entry("dock", "fullscreenReveal", "fullscreen game borderless edge reveal"),
   entry("dock", "pinDesktop", "mac behind windows wallpaper layer"),
   entry("dock", "hideTaskbar", "system bar"),
-  entry("dock", "showRunningApps", "open windows"),
   entry("dock", "topBar", "menubar mac top info widgets clock tray split"),
   entry("dock", "panelPosition", "calendar notifications left center right"),
   entry("dock", "dockSeparators", "divider line sections"),

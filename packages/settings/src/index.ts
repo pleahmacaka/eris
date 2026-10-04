@@ -89,7 +89,6 @@ export type DeviceSettings = {
   dockMonitor: string | null
   hideSystemTaskbar: boolean
   showLauncherButton: boolean
-  showRunningApps: boolean
   showTrayIcons: boolean
   showKeymap: boolean
   showSettingsButton: boolean
@@ -394,7 +393,6 @@ export const defaultDevice: DeviceSettings = {
   dockMonitor: null,
   hideSystemTaskbar: true,
   showLauncherButton: true,
-  showRunningApps: true,
   showTrayIcons: true,
   showKeymap: false,
   showSettingsButton: false,

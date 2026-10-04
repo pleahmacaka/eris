@@ -65,11 +65,6 @@
       action: () => native.runCommand("taskmgr"),
     },
     {
-      label: device.showRunningApps ? $t("dock.hideRunning") : $t("dock.showRunning"),
-      icon: device.showRunningApps ? "lucide:eye-off" : "lucide:eye",
-      action: () => layout.patch("showRunningApps", !device.showRunningApps),
-    },
-    {
       label: device.showSettingsButton
         ? $t("dock.hideSettingsButton")
         : $t("dock.showSettingsButton"),
