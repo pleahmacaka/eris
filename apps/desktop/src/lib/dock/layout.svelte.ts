@@ -123,11 +123,7 @@ export class DockLayout {
         resolvePins(this.device.pinnedApps, dock.apps),
         dock.windows,
       ),
-    ).filter(
-      g =>
-        (g.pinned || this.device.showRunningApps) &&
-        !(this.hidden.has(g.path) && g.windows.length === 0),
-    ),
+    ).filter(g => !(this.hidden.has(g.path) && g.windows.length === 0)),
   )
 
   maxDockWidth = $derived(
