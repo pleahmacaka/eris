@@ -16,9 +16,10 @@ mod win {
     };
     use windows::Win32::System::Threading::GetCurrentProcessId;
     use windows::Win32::UI::WindowsAndMessaging::{
-        GetClassNameW, GetCursorPos, GetForegroundWindow, GetWindowRect, GetWindowThreadProcessId,
-        IsWindowVisible, SetWindowPos, ShowWindow, HWND_TOPMOST, SWP_NOACTIVATE, SWP_NOMOVE,
-        SWP_NOSIZE, SWP_SHOWWINDOW, SW_HIDE,
+        GetClassNameW, GetCursorInfo, GetCursorPos, GetForegroundWindow, GetWindowLongPtrW,
+        GetWindowRect, GetWindowThreadProcessId, IsWindowVisible, IsZoomed, SetWindowPos,
+        ShowWindow, CURSORINFO, CURSOR_SHOWING, GWL_STYLE, HWND_TOPMOST, SWP_NOACTIVATE,
+        SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW, SW_HIDE, WS_POPUP,
     };
 
     const TICK: Duration = Duration::from_millis(80);
@@ -71,7 +72,7 @@ mod win {
 
             let screen = screen();
             let cursor = cursor();
-            let edge_now = near_edge(cursor, &screen);
+            let edge_now = pointer_shown() && near_edge(cursor, &screen);
 
             if edge_now != at_edge {
                 at_edge = edge_now;
@@ -162,6 +163,16 @@ mod win {
         } else {
             RECT::default()
         }
+    }
+
+    // a game hides the pointer while it owns the mouse, and an overlay can let it drift onto the edge
+    fn pointer_shown() -> bool {
+        let mut info = CURSORINFO {
+            cbSize: std::mem::size_of::<CURSORINFO>() as u32,
+            ..Default::default()
+        };
+
+        unsafe { GetCursorInfo(&mut info) }.is_ok() && info.flags.0 & CURSOR_SHOWING.0 != 0
     }
 
     fn cursor() -> POINT {
@@ -267,6 +278,13 @@ mod win {
         }
 
         if pid == unsafe { GetCurrentProcessId() } || DESKTOP_CLASSES.contains(&class.as_str()) {
+            return Some(false);
+        }
+
+        // with an auto-hidden dock reserving no space, any maximized app window spans the monitor
+        let style = unsafe { GetWindowLongPtrW(front, GWL_STYLE) } as u32;
+
+        if unsafe { IsZoomed(front) }.as_bool() && style & WS_POPUP.0 == 0 {
             return Some(false);
         }
 
