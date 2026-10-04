@@ -58,7 +58,9 @@ mod win {
         OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32,
         PROCESS_QUERY_LIMITED_INFORMATION,
     };
-    use windows::Win32::UI::Shell::{SHGetKnownFolderPath, KF_FLAG_DEFAULT};
+    use windows::Win32::UI::Shell::{
+        SHGetKnownFolderPath, KF_FLAG_DEFAULT, NIN_SELECT, NOTIFYICON_VERSION, NOTIFYICON_VERSION_4,
+    };
     use windows::Win32::UI::WindowsAndMessaging::{
         CreateWindowExW, DefWindowProcW, DispatchMessageW, GetCursorPos, GetMessageW,
         GetWindowThreadProcessId, IsWindow, PostMessageW, PostQuitMessage, RegisterClassExW,
@@ -652,7 +654,7 @@ mod win {
     }
 
     fn forward(hwnd: isize, callback: u32, id: u32, version: u32, message: u32) {
-        let (wparam, lparam) = if version >= 4 {
+        let (wparam, lparam) = if version >= NOTIFYICON_VERSION_4 {
             let mut cursor = POINT::default();
             let _ = unsafe { GetCursorPos(&mut cursor) };
 
@@ -699,8 +701,11 @@ mod win {
         forward(hwnd, callback, icon, version, down);
         forward(hwnd, callback, icon, version, up);
 
-        if right && version >= 4 {
-            forward(hwnd, callback, icon, version, WM_CONTEXTMENU);
+        // versioned icons act on the follow-up notification, so Qt apps ignore a bare left click
+        if version >= NOTIFYICON_VERSION {
+            let follow = if right { WM_CONTEXTMENU } else { NIN_SELECT };
+
+            forward(hwnd, callback, icon, version, follow);
         }
     }
 
