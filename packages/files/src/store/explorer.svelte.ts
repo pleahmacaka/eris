@@ -27,6 +27,7 @@ import {
   type ViewMode,
 } from "./prefs.svelte"
 import { confirmAll, confirmPrivate } from "./privacy.svelte"
+import { pinnedEntry } from "./sidebar"
 import { Tab } from "./tab.svelte"
 
 const FOLDER_TYPES: Partial<Record<native.KnownId, FolderType>> = {
@@ -436,8 +437,11 @@ export class Explorer {
   }
 
   async pin(location: string, pinned: boolean) {
+    // the folder itself only ever offers pintohome; unpinning lives on its Home entry
+    const target = (pinned && pinnedEntry(location)?.key) || location
+
     await native
-      .invokeVerb([location], pinned ? "unpinfromhome" : "pintohome")
+      .invokeVerb([target], pinned ? "unpinfromhome" : "pintohome")
       .catch(fail)
     await refreshPlaces()
   }

@@ -40,8 +40,10 @@ export const showPath = (path: string) => {
   )
 }
 
-export const isPinned = (path: string) =>
-  places.pinned.some(pin => sameLocation(pin.path, path))
+export const pinnedEntry = (path: string) =>
+  places.pinned.find(pin => sameLocation(pin.path, path))
+
+export const isPinned = (path: string) => pinnedEntry(path) !== undefined
 
 export const orderedPins = (pins: ShellEntry[]) => {
   const rank = (pin: ShellEntry) => {
