@@ -82,7 +82,7 @@
 
 <!-- container queries can't style the container itself, so the row lives one level down -->
 <div class="@container flex min-h-0 flex-1 break-keep bg-base-100">
-  <div class="flex min-h-0 flex-1 flex-col @3xl:flex-row">
+  <div class="flex min-h-0 min-w-0 flex-1 flex-col @3xl:flex-row">
     <nav
       class={[
         "flex shrink-0 gap-0.5 overflow-x-auto border-b border-base-content/10",
