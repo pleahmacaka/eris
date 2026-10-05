@@ -1,29 +1,39 @@
 <script lang="ts">
-  import Section from "$lib/components/ui/Section.svelte"
+  import Icon from "@iconify/svelte"
   import { patchAdvanced } from "$lib/settings"
   import { device } from "$lib/settings.svelte"
+  import Group from "./Group.svelte"
+  import Row from "./Row.svelte"
+
+  const scripts = $derived(device.value.advanced.scripts)
 </script>
 
-<Section title="고급">
-  <label
-    class={[
-      "flex cursor-pointer items-start justify-between gap-4 border",
-      "border-base-content/10 bg-base-100 p-4",
-    ]}
+<Group title="실행">
+  <Row
+    label="HTML 및 스크립트 실행"
+    hint="노트의 HTML, CSS, JS를 격리된 영역에서 실행합니다. 다른 기기에서 동기화된 노트에도 적용됩니다."
+    icon="lucide:code-xml"
   >
-    <span class="min-w-0">
-      <span class="block text-sm font-medium">HTML 및 스크립트 실행</span>
-      <span class="block text-xs text-base-content/50">
-        노트의 HTML, CSS, JS를 격리된 영역에서 실행합니다. 다른 기기에서
-        동기화된 노트에도 적용됩니다.
-      </span>
-    </span>
-
     <input
       type="checkbox"
-      class="toggle toggle-primary toggle-sm mt-0.5 shrink-0"
-      checked={device.value.advanced.scripts}
+      class="toggle toggle-primary toggle-sm"
+      checked={scripts}
+      aria-label="HTML 및 스크립트 실행"
       onchange={e => patchAdvanced({ scripts: e.currentTarget.checked })}
     />
-  </label>
-</Section>
+  </Row>
+
+  {#if scripts}
+    <p
+      class={[
+        "flex items-start gap-2.5 bg-warning/5 px-4 py-3 text-xs",
+        "leading-relaxed text-warning",
+      ]}
+    >
+      <Icon icon="lucide:shield-alert" class="mt-px size-4 shrink-0" />
+      스크립트는 앱과 분리된 프레임에서 돌아가 앱 데이터에는 닿지 않지만,
+      노트를 읽기 화면으로 열면 바로 실행됩니다. 직접 쓰거나 믿는 기기에서 온
+      노트에만 켜 두세요.
+    </p>
+  {/if}
+</Group>

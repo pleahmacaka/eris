@@ -174,6 +174,12 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ids and pairing codes: Pretendard turns "2x3" into "2×3" unless ligatures are off */
+.verbatim {
+  font-variant-numeric: tabular-nums;
+  font-variant-ligatures: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
