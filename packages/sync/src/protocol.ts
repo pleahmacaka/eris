@@ -1,3 +1,11 @@
+import type { AppTag } from "@eris/bridge"
+
+export {
+  type AppTag,
+  MAX_CLOCK_SKEW,
+  TOMBSTONE_TTL,
+} from "@eris/bridge"
+
 export const syncedCollections = [
   "todos",
   "events",
@@ -17,19 +25,11 @@ export type SyncRecord = {
   data: unknown
 }
 
-export type SnapshotApp = "eris" | "note"
-
 export type Snapshot = {
   deviceId: string
-  app?: SnapshotApp
+  app?: AppTag
   records: SyncRecord[]
 }
-
-export const crossAppCollections: readonly SyncedCollection[] = ["events"]
-
-export const MAX_CLOCK_SKEW = 24 * 60 * 60 * 1000
-
-export const TOMBSTONE_TTL = 30 * 24 * 60 * 60 * 1000
 
 export const isSyncedCollection = (value: string): value is SyncedCollection =>
   (syncedCollections as readonly string[]).includes(value)

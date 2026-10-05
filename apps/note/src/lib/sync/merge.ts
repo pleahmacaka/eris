@@ -1,12 +1,7 @@
+import { type AppTag, crossesApps, MAX_CLOCK_SKEW } from "@eris/bridge"
 import { isCalendarEvent, isRecord, isTodo } from "../data/guards"
 import { filePath } from "../vault/paths"
-import {
-  type AppTag,
-  isSyncedCollection,
-  MAX_CLOCK_SKEW,
-  MAX_FILE,
-  type SyncRecord,
-} from "./protocol"
+import { isSyncedCollection, MAX_FILE, type SyncRecord } from "./protocol"
 
 export type Versioned = { updatedAt: number; deviceId?: string }
 
@@ -96,7 +91,7 @@ export const readSnapshot = (text: string, now = Date.now()): Received => {
   const records = parsed.records
     .filter(r => isSyncRecord(r, now))
     .map(r => (r.deleted ? { ...r, data: null } : r))
-    .filter(r => app === "note" || r.collection === "events")
+    .filter(r => app === "note" || crossesApps(r.collection))
 
   return { app, records }
 }
