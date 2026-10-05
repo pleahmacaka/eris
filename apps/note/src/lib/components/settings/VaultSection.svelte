@@ -60,7 +60,7 @@
     const folder = folderPath(value.trim().replace(/^\/+|\/+$/g, ""))
 
     if (folder === null) {
-      failure = "템플릿 폴더 이름을 확인하세요."
+      failure = "템플릿 폴더 이름이 올바르지 않습니다."
 
       return
     }
@@ -128,7 +128,7 @@
 <Group title="파일">
   <Row
     label="템플릿 폴더"
-    hint="새 노트를 만들 때 고를 수 있는 템플릿이 들어 있는 폴더입니다."
+    hint="새 노트 템플릿 폴더입니다."
     icon="lucide:layout-template"
   >
     <input
@@ -142,7 +142,7 @@
 
   <Row
     label="기존 메모 가져오기"
-    hint="이전 버전의 메모를 볼트의 메모 폴더에 파일로 저장합니다."
+    hint="이전 버전 메모를 볼트에 파일로 저장합니다."
     icon="lucide:file-input"
   >
     <button

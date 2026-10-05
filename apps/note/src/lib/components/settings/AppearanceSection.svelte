@@ -115,7 +115,7 @@
 <Group title="글자와 달력">
   <Row
     label="글자 크기"
-    hint="앱 전체의 글자와 여백을 함께 키우거나 줄입니다."
+    hint="앱 전체 글자 크기입니다."
     icon="lucide:type"
   >
     <input
@@ -139,7 +139,7 @@
 
   <Row
     label="한 주의 시작"
-    hint="캘린더의 첫 번째 열입니다."
+    hint="캘린더 첫 열입니다."
     icon="lucide:calendar-range"
   >
     <Segmented
@@ -152,7 +152,7 @@
 
   <Row
     label="할 일 정렬"
-    hint="할 일 보드에서 항목을 늘어놓는 순서입니다."
+    hint="할 일 보드 정렬 순서입니다."
     icon="lucide:list-ordered"
   >
     <Segmented

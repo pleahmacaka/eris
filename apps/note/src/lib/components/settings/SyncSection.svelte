@@ -47,17 +47,17 @@
   > = {
     files: {
       label: "노트",
-      hint: "볼트의 Markdown과 캔버스 파일",
+      hint: "Markdown, 캔버스 파일입니다.",
       icon: "lucide:file-text",
     },
     todos: {
       label: "할 일",
-      hint: "할 일 보드의 모든 항목",
+      hint: "할 일 전체입니다.",
       icon: "lucide:list-checks",
     },
     events: {
       label: "일정",
-      hint: "캘린더 일정, 같은 체인의 Eris와도 공유됩니다",
+      hint: "캘린더 일정입니다. Eris와 공유됩니다.",
       icon: "lucide:calendar-days",
     },
   }
@@ -238,7 +238,7 @@
 
     {#if sync.state === "unsupported"}
       <p class="border-t border-base-content/10 px-4 py-3 text-xs text-base-content/50">
-        Windows 또는 Android 앱에서 동기화하세요.
+        Windows, Android 앱에서만 지원합니다.
       </p>
     {:else}
       <label
@@ -248,7 +248,7 @@
         <input
           class="input input-sm input-ghost flex-1 px-2"
           value={device.value.deviceName}
-          placeholder="다른 기기에 보일 이름"
+          placeholder="표시 이름"
           onchange={e =>
             patchDevice({ deviceName: e.currentTarget.value.trim() })}
         />
@@ -287,9 +287,7 @@
           class="text-xs leading-tight text-primary/60"
           aria-hidden="true">[ ]──?──[ ]</pre>
         <p class="mt-2 text-sm text-base-content/60">연결된 기기 없음</p>
-        <p class="text-xs text-base-content/40">
-          아래에서 연결 코드를 만들거나 입력하세요.
-        </p>
+        <p class="text-xs text-base-content/40">연결 코드로 기기를 추가합니다.</p>
       </div>
     {:else}
       <ul class="flex flex-col divide-y divide-base-content/10 border border-base-content/10">
@@ -326,8 +324,7 @@
           코드 만들기
         </p>
         <p class="text-xs leading-relaxed text-base-content/50">
-          코드를 만들어 연결할 기기에 입력하세요. 코드는 이 체인에 들어오는
-          열쇠라서 믿는 기기에만 알려 주세요.
+          다른 기기에서 입력할 코드를 만듭니다. 신뢰하는 기기에만 공유합니다.
         </p>
 
         {#if code}
@@ -365,7 +362,7 @@
             코드 입력
           </p>
           <p class="text-xs leading-relaxed text-base-content/50">
-            다른 기기에서 만든 코드를 붙여 넣으면 그 기기의 체인에 합류합니다.
+            다른 기기의 코드로 연결합니다.
           </p>
           <input
             class="verbatim input input-sm mt-auto w-full"
@@ -396,7 +393,7 @@
             연결 해제
           </p>
           <p class="text-xs leading-relaxed text-base-content/50">
-            이 기기를 체인에서 뺍니다. 이 기기의 데이터는 그대로 유지됩니다.
+            이 기기를 연결에서 제외합니다. 데이터는 유지됩니다.
           </p>
 
           {#if confirming}
@@ -449,7 +446,7 @@
 
     <Row
       label="자동 동기화 주기"
-      hint="앱이 열려 있는 동안 이 간격으로 연결된 기기와 맞춥니다."
+      hint="앱 실행 중 동기화 간격입니다."
       icon="lucide:timer"
     >
       <Segmented

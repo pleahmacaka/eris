@@ -43,12 +43,12 @@
 <Group title="Eris 연동">
   <Row
     label="일정 공유"
-    hint="같은 체인에 연결된 Eris와 캘린더 일정을 주고받습니다. 노트와 할 일은 Note끼리만 동기화됩니다."
+    hint="Eris와 캘린더 일정을 동기화합니다."
     icon="lucide:calendar-sync"
   />
   <Row
     label="노트 인용"
-    hint="Eris 일정에 붙인 노트 링크를 누르면 Note에서 그 노트가 열립니다. 링크는 파일 목록의 우클릭 메뉴에서 인용 링크 복사로 만듭니다."
+    hint="Eris 일정의 노트 링크를 Note에서 엽니다."
     icon="lucide:quote"
   >
     <code class="border border-base-content/10 px-2 py-0.5 text-xs text-primary">
