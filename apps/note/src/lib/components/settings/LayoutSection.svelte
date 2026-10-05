@@ -60,7 +60,7 @@
 
 <Section
   title="패널 배치"
-  hint="활동 표시줄 아이콘과 사이드바 탭을 끌어서 순서와 위치를 바꾸세요."
+  hint="아이콘과 탭을 끌어 위치를 바꿉니다."
 >
   <div class="flex flex-col border border-base-content/10" aria-hidden="true">
     <div
@@ -93,7 +93,7 @@
 <Group title="초기화">
   <Row
     label="레이아웃 초기화"
-    hint="패널 위치와 너비, 활동 표시줄 순서를 처음 상태로 되돌립니다."
+    hint="패널 위치, 너비, 순서를 초기화합니다."
     icon="lucide:rotate-ccw"
   >
     <button class="btn btn-sm" onclick={reset}>
