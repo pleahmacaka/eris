@@ -18,15 +18,19 @@ jobs:
     outputs:
       version: ${{ steps.parse.outputs.version }}
       tag: ${{ steps.parse.outputs.tag }}
+      signing: ${{ steps.parse.outputs.signing }}
     steps:
       - id: parse
         env:
           INPUT: ${{ github.event.inputs.version || github.ref_name }}
+          SIGNING: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
         run: |
           version="${INPUT#note-}"
           [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]] || { echo "expected note-x.y.z or x.y.z, got $INPUT"; exit 1; }
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "tag=note-$version" >> "$GITHUB_OUTPUT"
+          echo "signing=$SIGNING" >> "$GITHUB_OUTPUT"
+          [[ "$SIGNING" == "true" ]] || echo "::warning::no Android signing key, releasing Windows only"
 
   windows:
     needs: version
@@ -66,8 +70,10 @@ jobs:
             apps/note/src-tauri/target/release/bundle/nsis/*.exe
             apps/note/src-tauri/target/release/bundle/msi/*.msi
 
+  # without a signing key the apk is skipped, not failed, so Windows still ships
   android:
     needs: version
+    if: needs.version.outputs.signing == 'true'
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.version.outputs.version }}
@@ -147,6 +153,9 @@ jobs:
 
   publish:
     needs: [version, windows, android]
+    if: >-
+      !cancelled() && needs.windows.result == 'success' &&
+      contains(fromJSON('["success", "skipped"]'), needs.android.result)
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.version.outputs.version }}
@@ -182,7 +191,8 @@ jobs:
           name: Note ${{ env.VERSION }}
           body_path: notes.md
           make_latest: false
-          fail_on_unmatched_files: true
+          # the apk is missing when Android was skipped; Windows is guaranteed by the job condition
+          fail_on_unmatched_files: false
           files: |
             artifacts/windows/**/*.exe
             artifacts/windows/**/*.msi
