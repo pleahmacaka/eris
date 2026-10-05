@@ -1,0 +1,135 @@
+.canvas-board .svelte-flow {
+  --xy-background-color: var(--color-base-200);
+  --xy-edge-stroke: color-mix(in oklch, var(--color-base-content) 40%, transparent);
+  --xy-edge-stroke-selected: var(--color-primary);
+  --xy-edge-stroke-width: 1.5;
+  --xy-connectionline-stroke: var(--color-primary);
+  --xy-node-border: none;
+  --xy-node-border-selected: none;
+  --xy-selection-background-color: color-mix(in oklch, var(--color-primary) 10%, transparent);
+  --xy-selection-border: 0.0625rem dashed var(--color-primary);
+  --xy-handle-background-color: var(--color-primary);
+  --xy-resize-background-color: var(--color-primary);
+  font-family: inherit;
+}
+
+.canvas-board .svelte-flow__node {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.canvas-board .svelte-flow__edge-textbg {
+  fill: var(--color-base-100);
+}
+
+.canvas-board .svelte-flow__edge-text {
+  fill: var(--color-base-content);
+  font-size: 0.75rem;
+}
+
+.canvas-board .canvas-handle {
+  width: 0.5rem;
+  height: 0.5rem;
+  border: 0.0625rem solid var(--color-base-100);
+  border-radius: 0;
+  background: var(--color-primary);
+  opacity: 0;
+  transition: opacity 140ms ease-out;
+}
+
+.canvas-board .svelte-flow__node:hover .canvas-handle,
+.canvas-board .svelte-flow__node.selected .canvas-handle {
+  opacity: 1;
+}
+
+.canvas-board .canvas-resize-line {
+  border-color: var(--color-primary);
+}
+
+.canvas-board .canvas-resize-handle {
+  width: 0.5rem;
+  height: 0.5rem;
+  border: 0.0625rem solid var(--color-base-100);
+  border-radius: 0;
+  background: var(--color-primary);
+}
+
+.canvas-md > :first-child {
+  margin-top: 0;
+}
+
+.canvas-md > :last-child {
+  margin-bottom: 0;
+}
+
+.canvas-md :where(p, ul, ol, blockquote, pre, table) {
+  margin-block: 0.5em;
+}
+
+.canvas-md :where(h1, h2, h3, h4, h5, h6) {
+  margin-block: 0.6em 0.3em;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.canvas-md h1 {
+  font-size: 1.4em;
+}
+
+.canvas-md h2 {
+  font-size: 1.25em;
+}
+
+.canvas-md h3 {
+  font-size: 1.1em;
+}
+
+.canvas-md :where(ul) {
+  list-style: disc;
+  padding-inline-start: 1.25em;
+}
+
+.canvas-md :where(ol) {
+  list-style: decimal;
+  padding-inline-start: 1.25em;
+}
+
+.canvas-md blockquote {
+  border-inline-start: 0.125rem solid color-mix(in oklch, var(--color-base-content) 20%, transparent);
+  padding-inline-start: 0.75em;
+  color: color-mix(in oklch, var(--color-base-content) 70%, transparent);
+}
+
+.canvas-md :where(code) {
+  background: color-mix(in oklch, var(--color-base-content) 8%, transparent);
+  padding: 0.1em 0.3em;
+}
+
+.canvas-md pre {
+  overflow-x: auto;
+  background: color-mix(in oklch, var(--color-base-content) 6%, transparent);
+  padding: 0.6em 0.8em;
+}
+
+.canvas-md pre code {
+  background: none;
+  padding: 0;
+}
+
+.canvas-md a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+
+.canvas-md hr {
+  border-color: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+  margin-block: 0.75em;
+}
+
+.canvas-board .svelte-flow__attribution {
+  background: transparent;
+  opacity: 0.35;
+  font-size: 0.625rem;
+}
