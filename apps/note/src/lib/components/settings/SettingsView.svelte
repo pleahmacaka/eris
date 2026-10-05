@@ -1,6 +1,5 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { scramble } from "$lib/ascii/scramble"
   import AsciiField from "$lib/components/ui/AsciiField.svelte"
   import { appVersion } from "$lib/platform/runtime"
   import { device } from "$lib/settings.svelte"
@@ -93,8 +92,8 @@
       aria-label="설정 분류"
     >
       <div class="hidden px-3 pb-4 @3xl:block">
-        <p class="text-xs text-base-content/45">
-          <span class="text-primary/70" aria-hidden="true">//</span> 설정
+        <p class="text-xs font-semibold text-base-content/70">
+          <span class="font-bold text-primary" aria-hidden="true">//</span> 설정
         </p>
         <p class="mt-1 truncate text-sm font-medium">
           {device.value.deviceName || "이 기기"}
@@ -154,19 +153,14 @@
 
           <div class="relative flex items-end justify-between gap-4">
             <div class="min-w-0">
-              <p class="text-xs text-base-content/45">
-                <span class="text-primary/70" aria-hidden="true">//</span>
+              <p class="text-xs font-medium text-base-content/65">
+                <span class="font-bold text-primary" aria-hidden="true">//</span>
                 설정 / {section.id}
               </p>
-              {#key section.id}
-                <h1
-                  class="mt-1 text-2xl font-bold tracking-tight"
-                  use:scramble={{ duration: 420 }}
-                >
-                  {section.label}
-                </h1>
-              {/key}
-              <p class="mt-1 text-sm text-base-content/55">{section.hint}</p>
+              <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                {section.label}
+              </h1>
+              <p class="mt-1 text-sm text-base-content/65">{section.hint}</p>
             </div>
 
             <Icon
