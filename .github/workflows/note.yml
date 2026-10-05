@@ -182,7 +182,14 @@ jobs:
         with:
           path: artifacts
 
-      - run: find artifacts -type f
+      # a single downloaded artifact is unpacked without its name directory,
+      # so match by extension and check the Windows installers explicitly
+      - name: Check installers
+        run: |
+          find artifacts -type f
+          for ext in exe msi; do
+            test -n "$(find artifacts -type f -name "*.$ext")" || { echo "no .$ext in artifacts"; exit 1; }
+          done
 
       # make_latest stays off: releases/latest must keep pointing at Eris for its updater
       - uses: softprops/action-gh-release@v3
@@ -191,9 +198,9 @@ jobs:
           name: Note ${{ env.VERSION }}
           body_path: notes.md
           make_latest: false
-          # the apk is missing when Android was skipped; Windows is guaranteed by the job condition
+          # the apk is missing when Android was skipped
           fail_on_unmatched_files: false
           files: |
-            artifacts/windows/**/*.exe
-            artifacts/windows/**/*.msi
-            artifacts/android/*.apk
+            artifacts/**/*.exe
+            artifacts/**/*.msi
+            artifacts/**/*.apk
