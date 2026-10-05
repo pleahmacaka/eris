@@ -51,7 +51,7 @@ export const en = {
     source: "Source code",
     products: {
       arixlab: "Personal mini infrastructure",
-      matrix: "Self-hosted sensor dashboard",
+      note: "Notes, todos and calendar that sync with Eris",
       eris: "Desktop shell for Windows",
     },
   },
