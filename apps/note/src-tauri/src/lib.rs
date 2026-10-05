@@ -1,4 +1,4 @@
-mod p2p;
+use eris_p2p as p2p;
 
 const SANDBOX: &[u8] = include_bytes!("sandbox.html");
 

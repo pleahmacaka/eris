@@ -1798,10 +1798,9 @@ name = "eris"
 version = "0.1.0"
 dependencies = [
  "base64 0.23.1",
- "data-encoding",
  "diesel",
+ "eris-p2p",
  "image",
- "iroh",
  "is-screen-sharing",
  "libsqlite3-sys",
  "log",
@@ -1827,10 +1826,21 @@ dependencies = [
  "tauri-plugin-single-instance",
  "tauri-plugin-store",
  "tauri-plugin-updater",
- "tokio",
  "walkdir",
  "windows 0.61.3",
  "windows-core 0.61.2",
+]
+
+[[package]]
+name = "eris-p2p"
+version = "0.1.0"
+dependencies = [
+ "data-encoding",
+ "iroh",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tokio",
 ]
 
 [[package]]
