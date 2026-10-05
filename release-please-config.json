@@ -15,6 +15,7 @@
       "exclude-paths": [
         "apps/web",
         "apps/arixlab",
+        "apps/note",
         "packages/community",
         "supabase"
       ],

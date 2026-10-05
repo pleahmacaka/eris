@@ -1,0 +1,189 @@
+name: note
+
+on:
+  push:
+    tags: ["note-*.*.*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Note version to build and publish
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.parse.outputs.version }}
+      tag: ${{ steps.parse.outputs.tag }}
+    steps:
+      - id: parse
+        env:
+          INPUT: ${{ github.event.inputs.version || github.ref_name }}
+        run: |
+          version="${INPUT#note-}"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]] || { echo "expected note-x.y.z or x.y.z, got $INPUT"; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=note-$version" >> "$GITHUB_OUTPUT"
+
+  windows:
+    needs: version
+    runs-on: windows-latest
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+        with:
+          toolchain: stable
+
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          key: note
+          workspaces: "./apps/note/src-tauri -> target"
+          cache-on-failure: true
+
+      - run: bun install --frozen-lockfile
+
+      - working-directory: apps/note
+        run: bun run scripts/set-version.ts "$env:VERSION"
+
+      - working-directory: apps/note
+        run: bun run tauri build
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows
+          if-no-files-found: error
+          path: |
+            apps/note/src-tauri/target/release/bundle/nsis/*.exe
+            apps/note/src-tauri/target/release/bundle/msi/*.msi
+
+  android:
+    needs: version
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools
+
+      - name: Resolve NDK
+        run: |
+          ndk=$(ls -d "$ANDROID_HOME"/ndk/* 2>/dev/null | sort -V | tail -1)
+          test -n "$ndk" || { echo "no ndk under $ANDROID_HOME/ndk"; exit 1; }
+          echo "NDK_HOME=$ndk" >> "$GITHUB_ENV"
+
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+        with:
+          toolchain: stable
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          key: note-android
+          workspaces: "./apps/note/src-tauri -> target"
+          cache-on-failure: true
+
+      - run: bun install --frozen-lockfile
+
+      - working-directory: apps/note
+        run: bun run scripts/set-version.ts "$VERSION"
+
+      - name: Write signing keystore
+        working-directory: apps/note
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          test -n "$KEYSTORE" || { echo "ANDROID_KEYSTORE_BASE64 is empty"; exit 1; }
+          store="$PWD/src-tauri/gen/android/release.p12"
+          printf '%s' "$KEYSTORE" | base64 --decode > "$store"
+          cat > src-tauri/gen/android/keystore.properties <<PROPERTIES
+          storeFile=$store
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          password=$KEYSTORE_PASSWORD
+          PROPERTIES
+
+      - working-directory: apps/note
+        run: bun run tauri android build --apk
+
+      - name: Collect apk
+        working-directory: apps/note
+        run: |
+          mkdir -p dist
+          apk=$(find src-tauri/gen/android/app/build/outputs/apk -name "*-release.apk" \
+            -not -name "*unsigned*" | sort | head -1)
+          test -n "$apk" || { echo "no signed release apk produced"; exit 1; }
+          cp "$apk" "dist/Note-$VERSION.apk"
+          ls -la dist
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: android
+          if-no-files-found: error
+          path: apps/note/dist/*.apk
+
+  publish:
+    needs: [version, windows, android]
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+      TAG: ${{ needs.version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # the repo also tags eris releases, so notes only cover Note's own paths
+      - name: Write release notes
+        run: |
+          previous=$(git tag --list 'note-*' --sort=-v:refname | grep -vx "$TAG" | head -1)
+          range=${previous:+$previous..}HEAD
+          {
+            echo "## Changes"
+            echo
+            git log --no-merges --format='- %s (%h)' "$range" -- apps/note packages/bridge packages/sync/p2p
+          } > notes.md
+          cat notes.md
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+
+      - run: find artifacts -type f
+
+      # make_latest stays off: releases/latest must keep pointing at Eris for its updater
+      - uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ env.TAG }}
+          name: Note ${{ env.VERSION }}
+          body_path: notes.md
+          make_latest: false
+          fail_on_unmatched_files: true
+          files: |
+            artifacts/windows/**/*.exe
+            artifacts/windows/**/*.msi
+            artifacts/android/*.apk
