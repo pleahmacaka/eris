@@ -4,3 +4,13 @@ export const isTauri = () =>
 
 export const isAndroid = () =>
   typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent)
+
+export const appVersion = async () => {
+  if (!isTauri()) {
+    return null
+  }
+
+  const { getVersion } = await import("@tauri-apps/api/app")
+
+  return getVersion()
+}

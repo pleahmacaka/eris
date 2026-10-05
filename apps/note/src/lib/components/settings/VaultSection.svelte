@@ -7,6 +7,8 @@
   import { importLegacyNotes, legacyImported } from "$lib/vault/legacy"
   import { folderPath } from "$lib/vault/paths"
   import { vault } from "$lib/vault/vault.svelte"
+  import Group from "./Group.svelte"
+  import Row from "./Row.svelte"
 
   const android = /Android/i.test(navigator.userAgent)
 
@@ -14,6 +16,8 @@
   let message = $state("")
   let failure = $state("")
   let busy = $state(false)
+
+  const custom = $derived(device.value.vault.path !== null)
 
   $effect(() => {
     if (vault.ready) {
@@ -66,68 +70,102 @@
   }
 </script>
 
-<Section title="볼트">
-  <div class="flex flex-col gap-3 border border-base-content/10 bg-base-100 p-4">
-    <div class="flex items-start gap-3">
-      <Icon icon="lucide:vault" class="mt-0.5 size-4 shrink-0 opacity-60" />
-      <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium">
-          {device.value.vault.path ? "지정한 폴더" : "기본 폴더"}
+<Section title="볼트 위치">
+  <div
+    class={[
+      "flex flex-col gap-4 border border-base-content/10",
+      "bg-base-content/[0.02] p-4 @lg:flex-row @lg:items-center",
+    ]}
+  >
+    <div class="flex min-w-0 flex-1 items-center gap-4">
+      <span
+        class={[
+          "flex size-11 shrink-0 items-center justify-center border",
+          "border-primary/30 bg-primary/10 text-primary",
+        ]}
+      >
+        <Icon icon={custom ? "lucide:folder-open" : "lucide:vault"} class="size-5" />
+      </span>
+
+      <div class="min-w-0">
+        <p class="flex items-center gap-2 text-sm font-medium">
+          {custom ? "지정한 폴더" : "기본 폴더"}
+          <span
+            class={[
+              "badge badge-xs",
+              vault.ready ? "badge-success badge-soft" : "badge-ghost",
+            ]}
+          >
+            {vault.ready ? "열림" : "여는 중"}
+          </span>
         </p>
-        <p class="break-all text-xs text-base-content/50">{vault.root}</p>
+        <p class="mt-0.5 break-all text-xs text-base-content/50 select-text">
+          {vault.root}
+        </p>
       </div>
     </div>
 
     {#if !android}
-      <div class="flex flex-wrap gap-2">
-        <button class="btn btn-sm" disabled={busy} onclick={pick}>
-          <Icon icon="lucide:folder-open" class="size-4" />
-          폴더 선택
-        </button>
-        {#if device.value.vault.path}
+      <div class="flex shrink-0 flex-wrap gap-2">
+        {#if custom}
           <button
             class="btn btn-ghost btn-sm"
             disabled={busy}
             onclick={() => attempt(() => patchVault({ path: null }).then())}
           >
-            기본 폴더 사용
+            기본 폴더
           </button>
         {/if}
+        <button class="btn btn-sm" disabled={busy} onclick={pick}>
+          <Icon icon="lucide:folder-search" class="size-4" />
+          폴더 선택
+        </button>
       </div>
     {/if}
-
-    <label class="flex items-center gap-3">
-      <span class="w-24 shrink-0 text-sm">템플릿 폴더</span>
-      <input
-        class="input input-sm flex-1"
-        value={device.value.vault.templates}
-        placeholder="templates"
-        onchange={e => setTemplates(e.currentTarget.value)}
-      />
-    </label>
   </div>
 </Section>
 
-<Section title="기존 메모">
-  <div class="flex flex-wrap items-center gap-3">
+<Group title="파일">
+  <Row
+    label="템플릿 폴더"
+    hint="새 노트를 만들 때 고를 수 있는 템플릿이 들어 있는 폴더입니다."
+    icon="lucide:layout-template"
+  >
+    <input
+      class="input input-sm w-44"
+      value={device.value.vault.templates}
+      placeholder="templates"
+      aria-label="템플릿 폴더"
+      onchange={e => setTemplates(e.currentTarget.value)}
+    />
+  </Row>
+
+  <Row
+    label="기존 메모 가져오기"
+    hint="이전 버전의 메모를 볼트의 메모 폴더에 파일로 저장합니다."
+    icon="lucide:file-input"
+  >
     <button
       class="btn btn-sm"
       disabled={busy || imported || !vault.ready}
       onclick={importNotes}
     >
-      <Icon icon="lucide:file-input" class="size-4" />
-      {imported ? "가져오기 완료" : "기존 메모 가져오기"}
+      {#if imported}
+        <Icon icon="lucide:check" class="size-4" />
+        가져오기 완료
+      {:else}
+        가져오기
+      {/if}
     </button>
-    <p class="text-xs text-base-content/50">
-      이전 버전의 메모를 볼트의 메모 폴더에 파일로 저장합니다.
-    </p>
-  </div>
+  </Row>
+</Group>
 
-  {#if message}
-    <p class="text-xs text-success">{message}</p>
-  {/if}
+{#if message}
+  <p class="-mt-5 text-xs text-success">{message}</p>
+{/if}
 
-  {#if failure}
-    <p class="text-xs text-error">{failure}</p>
-  {/if}
-</Section>
+{#if failure}
+  <p class="-mt-5 whitespace-pre-wrap break-all text-xs text-error">
+    {failure}
+  </p>
+{/if}
