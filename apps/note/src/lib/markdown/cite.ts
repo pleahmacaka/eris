@@ -1,32 +1,21 @@
+import { NOTE_SCHEME, notePathOf, noteUrl } from "@eris/bridge"
 import { filePath, isNote, stem } from "../vault/paths"
 
 export type Segment = { text: string } | { label: string; path: string }
 
-const CITATION =
-  /\[([^\]\n]*)\]\((arixlab-note:\/\/[^)\s]+)\)|(arixlab-note:\/\/\S+)/g
+const CITATION = new RegExp(
+  `\\[([^\\]\\n]*)\\]\\((${NOTE_SCHEME}://[^)\\s]+)\\)|(${NOTE_SCHEME}://\\S+)`,
+  "g",
+)
 
-export const citeUrl = (path: string) =>
-  `arixlab-note://open?path=${encodeURIComponent(path.normalize("NFC"))}`
+export const citeUrl = noteUrl
 
 export const citeLink = (path: string) => `[${stem(path)}](${citeUrl(path)})`
 
 export const citedPath = (url: string): string | null => {
-  try {
-    const parsed = new URL(url)
-    const path = parsed.searchParams.get("path")
+  const path = notePathOf(url)
 
-    if (
-      parsed.protocol !== "arixlab-note:" ||
-      parsed.hostname !== "open" ||
-      !path
-    ) {
-      return null
-    }
-
-    return filePath(path) === path && isNote(path) ? path : null
-  } catch {
-    return null
-  }
+  return path && filePath(path) === path && isNote(path) ? path : null
 }
 
 export const segments = (text: string): Segment[] => {

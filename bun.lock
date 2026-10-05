@@ -126,6 +126,7 @@
         "@codemirror/search": "^6.7.2",
         "@codemirror/state": "^6.7.6",
         "@codemirror/view": "^6.43.13",
+        "@eris/bridge": "workspace:*",
         "@iconify-json/lucide": "^1.2.129",
         "@iconify/svelte": "^5.2.2",
         "@lezer/highlight": "^1.2.5",
@@ -234,6 +235,13 @@
         "svelte": "^5.56.1",
       },
     },
+    "packages/bridge": {
+      "name": "@eris/bridge",
+      "version": "0.0.0",
+      "devDependencies": {
+        "typescript": "^6.0.3",
+      },
+    },
     "packages/community": {
       "name": "@eris/community",
       "version": "0.0.0",
@@ -256,6 +264,7 @@
       "name": "@eris/data",
       "version": "0.0.0",
       "dependencies": {
+        "@eris/bridge": "workspace:*",
         "@eris/i18n": "workspace:*",
         "@eris/settings": "workspace:*",
       },
@@ -357,6 +366,9 @@
     "packages/sync": {
       "name": "@eris/sync",
       "version": "0.0.0",
+      "dependencies": {
+        "@eris/bridge": "workspace:*",
+      },
       "devDependencies": {
         "typescript": "^6.0.3",
       },
@@ -530,6 +542,8 @@
     "@emnapi/wasi-threads": ["@emnapi/wasi-threads@1.2.1", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-uTII7OYF+/Mes/MrcIOYp5yOtSMLBWSIoLPpcgwipoiKbli6k322tcoFsxoIIxPDqW01SQGAgko4EzZi2BNv2w=="],
 
     "@eris/auth": ["@eris/auth@workspace:packages/auth"],
+
+    "@eris/bridge": ["@eris/bridge@workspace:packages/bridge"],
 
     "@eris/community": ["@eris/community@workspace:packages/community"],
 

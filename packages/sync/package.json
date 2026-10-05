@@ -16,6 +16,9 @@
   "scripts": {
     "check": "tsc -p tsconfig.json"
   },
+  "dependencies": {
+    "@eris/bridge": "workspace:*"
+  },
   "devDependencies": {
     "typescript": "^6.0.3"
   }
