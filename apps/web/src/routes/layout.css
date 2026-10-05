@@ -78,7 +78,6 @@
 @layer base {
   html {
     background-color: var(--color-base-100);
-    scroll-behavior: smooth;
     font-synthesis-weight: none;
     text-rendering: optimizeLegibility;
   }
@@ -98,10 +97,6 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    html {
-      scroll-behavior: auto;
-    }
-
     *,
     ::before,
     ::after {

@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+    <script>
+      addEventListener(
+        "message",
+        event => {
+          if (event.source !== parent || event.data?.type !== "render") {
+            return
+          }
+
+          document.open()
+          document.write(event.data.html)
+          document.close()
+
+          const report = () =>
+            parent.postMessage(
+              { type: "height", height: document.documentElement.scrollHeight },
+              "*",
+            )
+
+          new ResizeObserver(report).observe(document.documentElement)
+          report()
+
+          document.addEventListener("click", click => {
+            const link = click.target.closest?.("a")
+
+            if (!link) {
+              return
+            }
+
+            click.preventDefault()
+            parent.postMessage(
+              {
+                type: "link",
+                target: link.dataset.target ?? null,
+                href: link.getAttribute("href"),
+                newTab: click.ctrlKey || click.metaKey,
+              },
+              "*",
+            )
+          })
+        },
+        { once: true },
+      )
+    </script>
+  </body>
+</html>

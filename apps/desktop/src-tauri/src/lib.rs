@@ -25,7 +25,6 @@ mod note;
 mod notices;
 mod notify;
 mod outside;
-mod p2p;
 mod pins;
 mod preview;
 mod quick;
@@ -37,6 +36,8 @@ mod theme_link;
 mod usage;
 mod windowing;
 mod winkey;
+
+use eris_p2p as p2p;
 
 const QUIET_LOGS: [&str; 6] = [
     "iroh",

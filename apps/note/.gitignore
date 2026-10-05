@@ -1,0 +1,10 @@
+node_modules
+/build
+/.svelte-kit
+/dist
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+.keys

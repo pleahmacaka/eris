@@ -13,6 +13,7 @@
     "check": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "@eris/bridge": "workspace:*",
     "@eris/i18n": "workspace:*",
     "@eris/settings": "workspace:*"
   },

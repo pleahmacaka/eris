@@ -41,9 +41,7 @@ tauri-plugin-mcp-bridge = "0.12"
 roxmltree = "0.21.1"
 libsqlite3-sys = { version = "0.38", features = ["bundled"] }
 diesel = { version = "2.3.13", default-features = false, features = ["sqlite"] }
-iroh = "1.2.0"
-tokio = { version = "1.53.1", features = ["sync", "time"] }
-data-encoding = "2.11.1"
+eris-p2p = { version = "0.1.0", path = "../../../packages/sync/p2p" }
 is-screen-sharing = { version = "0.1.0", path = "../../../packages/is-screen-sharing/core" }
 tauri-plugin-eris-terminal = { version = "0.1.0", path = "../../../packages/terminal/plugin" }
 tauri-plugin-eris-files = { version = "0.1.0", path = "../../../packages/files/plugin" }
