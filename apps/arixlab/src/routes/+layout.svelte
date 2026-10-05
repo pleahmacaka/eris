@@ -5,7 +5,7 @@ import { browser, dev } from "$app/environment"
 import { page } from "$app/state"
 import socialCard from "$lib/assets/og.png"
 import { OPERATOR } from "$lib/data/nodes"
-import { services, serviceUrl } from "$lib/data/services"
+import { projects } from "$lib/data/projects"
 import * as m from "$lib/paraglide/messages"
 import {
   deLocalizeHref,
@@ -13,7 +13,7 @@ import {
   locales,
   localizeHref,
 } from "$lib/paraglide/runtime"
-import { SITE_NAME, SITE_TAGLINE, SITE_URL } from "$lib/site"
+import { SITE_NAME, SITE_URL } from "$lib/site"
 import "../app.css"
 
 let { children } = $props()
@@ -23,7 +23,7 @@ if (browser) {
   injectSpeedInsights()
 }
 
-const description = `${SITE_TAGLINE} ${m.hero_personal()}`
+const description = $derived(page.data.description ?? m.hero_personal())
 
 const path = $derived(deLocalizeHref(page.url.pathname))
 
@@ -44,10 +44,10 @@ const site = {
     url: OPERATOR.href,
     sameAs: ["https://www.npmjs.com/~pleahmacaka"],
   },
-  hasPart: services.map(s => ({
-    "@type": "WebSite",
-    name: s.name,
-    url: serviceUrl(s),
+  hasPart: projects.map(project => ({
+    "@type": "WebPage",
+    name: project.name,
+    url: `${SITE_URL}${project.path}`,
   })),
 }
 </script>

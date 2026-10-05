@@ -1,11 +1,12 @@
 import { OPERATOR } from "$lib/data/nodes"
+import { projects } from "$lib/data/projects"
 import { locales, localizeHref } from "$lib/paraglide/runtime"
 import { SITE_URL } from "$lib/site"
 import type { RequestHandler } from "./$types"
 
 export const prerender = true
 
-const PATHS = ["/", OPERATOR.profile]
+const PATHS = ["/", OPERATOR.profile, ...projects.map(p => p.path)]
 
 const alternates = (path: string) =>
   locales

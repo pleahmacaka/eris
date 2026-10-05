@@ -4,12 +4,11 @@ import type { Attachment } from "svelte/attachments"
 import { on } from "svelte/events"
 import Clock from "$lib/components/hud/Clock.svelte"
 import LocaleSwitch from "$lib/components/locale/LocaleSwitch.svelte"
-import ServiceList from "$lib/components/services/ServiceList.svelte"
+import ProjectList from "$lib/components/projects/ProjectList.svelte"
 import { OPERATOR } from "$lib/data/nodes"
 import { scramble } from "$lib/motion/scramble"
 import * as m from "$lib/paraglide/messages"
 import { localizeHref } from "$lib/paraglide/runtime"
-import { SITE_TAGLINE } from "$lib/site"
 import PipeMark from "./PipeMark.svelte"
 
 let pointer = $state<{ x: number; y: number } | null>(null)
@@ -108,11 +107,6 @@ const readout = $derived(
   <div
     class="flex flex-1 flex-col items-center justify-center gap-6 py-16"
   >
-    <div class="flex items-center gap-3 text-primary text-sm">
-      <span class="size-1.5 bg-primary"></span>
-      <span use:scramble={{ delay: 120 }}>{SITE_TAGLINE}</span>
-    </div>
-
     <PipeMark />
 
     <p
@@ -126,7 +120,7 @@ const readout = $derived(
     </p>
 
     <div class="mt-2 flex w-full justify-center px-5">
-      <ServiceList />
+      <ProjectList />
     </div>
   </div>
 </section>

@@ -13,6 +13,14 @@ const pick = (set: typeof lucide, names: string[]) => {
 }
 
 export const icons = [
-  pick(lucide, ["activity", "arrow-up-right", "mail", "user-round"]),
+  pick(lucide, [
+    "activity",
+    "arrow-up-right",
+    "download",
+    "mail",
+    "monitor",
+    "smartphone",
+    "user-round",
+  ]),
   pick(simpleIcons, ["github", "npm"]),
 ]

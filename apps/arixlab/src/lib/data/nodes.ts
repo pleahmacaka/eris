@@ -1,5 +1,4 @@
 import * as m from "$lib/paraglide/messages"
-import { services, serviceUrl } from "./services"
 
 type Endpoint = {
   host: string
@@ -32,9 +31,6 @@ export const nodes: InfraNode[] = [
   },
   {
     role: m.section_services,
-    endpoints: [
-      { host: "arixlab.com" },
-      ...services.map(s => ({ host: s.host, href: serviceUrl(s) })),
-    ],
+    endpoints: [{ host: "arixlab.com" }],
   },
 ]
