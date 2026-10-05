@@ -232,7 +232,7 @@
           icon="lucide:refresh-cw"
           class={["size-4", sync.state === "syncing" && "animate-spin"]}
         />
-        <span class="max-@lg:hidden">지금 동기화</span>
+        <span class="@max-lg:hidden">지금 동기화</span>
       </button>
     </div>
 

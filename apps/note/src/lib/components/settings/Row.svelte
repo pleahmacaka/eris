@@ -37,7 +37,12 @@
   </div>
 
   {#if children}
-    <div class="flex shrink-0 flex-wrap items-center gap-2">
+    <div
+      class={[
+        "flex shrink-0 flex-wrap items-center gap-2",
+        icon && "@max-lg:pl-7",
+      ]}
+    >
       {@render children()}
     </div>
   {/if}

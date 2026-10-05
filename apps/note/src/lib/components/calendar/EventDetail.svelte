@@ -114,31 +114,42 @@
 
 <div class="flex h-full min-h-0 flex-col">
   <header class="flex items-center gap-2 border-b border-base-content/10 px-4 py-3">
-    <Icon icon="lucide:calendar-check" class="size-3.5 opacity-60" />
+    <button
+      class="btn btn-sm btn-ghost btn-square -ml-2 @4xl:hidden"
+      aria-label="뒤로"
+      onclick={close}
+    >
+      <Icon icon="lucide:arrow-left" class="size-4" />
+    </button>
+    <Icon icon="lucide:calendar-check" class="size-3.5 opacity-60 @max-4xl:hidden" />
     <span class="flex-1 text-xs text-base-content/55">
       {editing ? "일정 편집" : "일정 상세"}
     </span>
 
     {#if event && !editing}
       <button
-        class="btn btn-xs btn-ghost"
+        class="btn btn-sm btn-ghost btn-square @4xl:btn-xs"
         aria-label="편집"
         onclick={() => setEditing(true)}
       >
-        <Icon icon="lucide:pencil" class="size-3" />
+        <Icon icon="lucide:pencil" class="size-4 @4xl:size-3" />
       </button>
 
       <button
-        class="btn btn-xs btn-ghost text-error"
+        class="btn btn-sm btn-ghost btn-square @4xl:btn-xs text-error"
         aria-label="삭제"
         onclick={drop}
       >
-        <Icon icon="lucide:trash-2" class="size-3" />
+        <Icon icon="lucide:trash-2" class="size-4 @4xl:size-3" />
       </button>
     {/if}
 
-    <button class="btn btn-xs btn-ghost" aria-label="닫기" onclick={close}>
-      <Icon icon="lucide:x" class="size-3" />
+    <button
+      class="btn btn-sm btn-ghost btn-square @max-4xl:hidden @4xl:btn-xs"
+      aria-label="닫기"
+      onclick={close}
+    >
+      <Icon icon="lucide:x" class="size-4 @4xl:size-3" />
     </button>
   </header>
 
