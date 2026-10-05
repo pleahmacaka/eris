@@ -1,8 +1,18 @@
 <script lang="ts">
 import Icon from "@iconify/svelte/dist/OfflineIcon.svelte"
 import LocaleSwitch from "$lib/components/locale/LocaleSwitch.svelte"
+import ErisLink from "$lib/components/note/ErisLink.svelte"
+import Phone from "$lib/components/note/Phone.svelte"
+import Shot from "$lib/components/note/Shot.svelte"
 import SectionHeading from "$lib/components/ui/SectionHeading.svelte"
-import { features, NOTE_RELEASES, NOTE_SOURCE } from "$lib/data/note"
+import {
+  chipsOf,
+  extras,
+  heroShot,
+  NOTE_RELEASES,
+  NOTE_SOURCE,
+  showcase,
+} from "$lib/data/note"
 import { reveal } from "$lib/motion/reveal"
 import { scramble } from "$lib/motion/scramble"
 import * as m from "$lib/paraglide/messages"
@@ -36,7 +46,7 @@ const day = (iso: string) =>
   )
 </script>
 
-<main class="relative isolate min-h-dvh">
+<main class="relative isolate min-h-dvh overflow-x-clip">
   <div class="grid-lines absolute inset-0 -z-10 opacity-60"></div>
 
   <nav
@@ -62,59 +72,195 @@ const day = (iso: string) =>
   <div
     class={[
       "mx-auto flex max-w-6xl flex-col gap-24",
-      "px-5 pt-24 pb-24 sm:gap-32 sm:px-8 sm:pb-32",
+      "px-5 pt-20 pb-24 sm:gap-32 sm:px-8 sm:pt-24 sm:pb-32",
     ]}
   >
-    <header class="flex flex-col gap-6">
-      <p class="flex items-center gap-3 text-primary text-sm">
-        <span class="size-1.5 bg-primary"></span>
-        <span use:scramble={{ delay: 120 }}>/note</span>
-      </p>
+    <div class="flex flex-col gap-14 sm:gap-16">
+      <header class="flex flex-col gap-6">
+        <p class="flex items-center gap-3 text-primary text-sm">
+          <span class="size-1.5 bg-primary"></span>
+          <span use:scramble={{ delay: 120 }}>/note</span>
+        </p>
 
-      <h1
-        class={[
-          "font-extrabold leading-none tracking-tight",
-          "text-5xl sm:text-7xl",
-        ]}
-        use:scramble={{ duration: 900 }}
-      >
-        ArixLab Note
-      </h1>
-
-      <p class={["max-w-2xl text-base-content/70 text-lg sm:text-xl", KO_WRAP]}>
-        {m.note_tagline()}
-      </p>
-
-      <nav
-        class={[
-          "flex flex-wrap items-center gap-x-6 gap-y-3",
-          "text-base-content/70 text-sm",
-        ]}
-      >
-        <a
-          class="flex items-center gap-2 transition hover:text-primary"
-          href={NOTE_SOURCE}
-          rel="noreferrer"
-          target="_blank"
+        <h1
+          class={[
+            "font-extrabold leading-none tracking-tight",
+            "text-5xl sm:text-7xl",
+          ]}
+          use:scramble={{ duration: 900 }}
         >
-          <Icon class="size-4 shrink-0" icon="simple-icons:github" />
-          {m.note_source()}
-        </a>
+          ArixLab Note
+        </h1>
 
-        <a
-          class="flex items-center gap-2 transition hover:text-primary"
-          href={NOTE_RELEASES}
-          rel="noreferrer"
-          target="_blank"
+        <p class={["max-w-2xl text-base-content/70 text-lg sm:text-xl", KO_WRAP]}>
+          {m.note_tagline()}
+        </p>
+
+        <nav
+          class={[
+            "flex flex-wrap items-center gap-x-6 gap-y-3",
+            "text-base-content/70 text-sm",
+          ]}
         >
-          <Icon class="size-4 shrink-0" icon="lucide:arrow-up-right" />
-          {m.note_releases()}
-        </a>
-      </nav>
-    </header>
+          <a
+            class={[
+              "flex items-center gap-2 bg-primary px-4 py-2 font-semibold",
+              "text-primary-content transition hover:bg-primary/85",
+            ]}
+            href="#download"
+          >
+            <Icon class="size-4 shrink-0" icon="lucide:download" />
+            {m.note_download()}
+          </a>
+
+          <a
+            class="flex items-center gap-2 transition hover:text-primary"
+            href={NOTE_SOURCE}
+            rel="noreferrer"
+            target="_blank"
+          >
+            <Icon class="size-4 shrink-0" icon="simple-icons:github" />
+            {m.note_source()}
+          </a>
+
+          <a
+            class="flex items-center gap-2 transition hover:text-primary"
+            href={NOTE_RELEASES}
+            rel="noreferrer"
+            target="_blank"
+          >
+            <Icon class="size-4 shrink-0" icon="lucide:arrow-up-right" />
+            {m.note_releases()}
+          </a>
+        </nav>
+      </header>
+
+      <div class="relative flex flex-col gap-5">
+        <div
+          class={[
+            "pointer-events-none absolute inset-x-[8%] top-1/4 bottom-1/4 -z-10",
+            "bg-primary/20 blur-3xl",
+          ]}
+          aria-hidden="true"
+        ></div>
+
+        <Shot shot={heroShot} alt={m.note_shot_editor()} eager />
+
+        <ul class="flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs">
+          {#each chipsOf(m.note_hero_chips) as chip (chip)}
+            <li class="flex items-center gap-2 text-base-content/60">
+              <span class="size-1 bg-primary"></span>
+              {chip}
+            </li>
+          {/each}
+        </ul>
+      </div>
+    </div>
+
+    <section class="flex flex-col gap-12 sm:gap-16">
+      <SectionHeading index={1} title={m.section_features()} />
+
+      <div class="flex flex-col gap-24 sm:gap-32">
+        {#each showcase as item, i (item.id)}
+          {@const visual = item.visual}
+
+          <article
+            class="grid items-center gap-8 lg:grid-cols-12 lg:gap-14"
+            data-reveal
+            use:reveal
+          >
+            <div
+              class={[
+                "flex flex-col gap-4 lg:col-span-5",
+                i % 2 === 1 && "lg:order-last",
+              ]}
+            >
+              <span class="text-primary text-xs tabular-nums">
+                {pad(i + 1)} / {pad(showcase.length)}
+              </span>
+              <h3 class="font-bold text-2xl tracking-tight sm:text-3xl">
+                {item.title()}
+              </h3>
+              <p class={["text-base-content/70 leading-relaxed", KO_WRAP]}>
+                {item.body()}
+              </p>
+              <ul class="flex flex-wrap gap-2">
+                {#each chipsOf(item.chips) as chip (chip)}
+                  <li
+                    class="border border-base-300 px-2.5 py-1 text-base-content/70 text-xs"
+                  >
+                    {chip}
+                  </li>
+                {/each}
+              </ul>
+            </div>
+
+            <div class="lg:col-span-7">
+              {#if visual.kind === "shot"}
+                <Shot shot={visual.shot} alt={item.title()} />
+              {:else if visual.kind === "stack"}
+                <div class="relative pr-10 pb-20 sm:pr-20 sm:pb-28">
+                  <Shot shot={visual.back} alt={item.title()} />
+                  <Shot
+                    class="absolute right-0 bottom-0 w-1/2 shadow-2xl shadow-black/70"
+                    shot={visual.front}
+                    alt=""
+                  />
+                </div>
+              {:else if visual.kind === "phones"}
+                <div class="flex justify-center gap-4 pb-10 sm:gap-8">
+                  <Phone
+                    class="w-36 sm:w-52"
+                    shot={visual.shots[0]}
+                    alt={item.title()}
+                  />
+                  <Phone
+                    class="w-36 translate-y-10 sm:w-52"
+                    shot={visual.shots[1]}
+                    alt=""
+                  />
+                </div>
+              {:else}
+                <ErisLink />
+              {/if}
+            </div>
+          </article>
+        {/each}
+      </div>
+    </section>
 
     <section class="flex flex-col gap-8">
-      <SectionHeading index={1} title={m.note_download()} />
+      <SectionHeading index={2} title={m.section_more()} />
+
+      <div class="grid gap-px border border-base-300 bg-base-300 sm:grid-cols-2 lg:grid-cols-3">
+        {#each extras as extra, i (extra.icon)}
+          <div
+            class="group flex gap-4 bg-base-200 p-5 transition hover:bg-base-100 sm:p-6"
+            data-reveal
+            use:reveal={i % 3}
+          >
+            <span
+              class={[
+                "flex size-9 shrink-0 items-center justify-center border",
+                "border-base-300 text-primary transition",
+                "group-hover:border-primary/60",
+              ]}
+            >
+              <Icon class="size-4" icon={extra.icon} />
+            </span>
+            <div class="flex min-w-0 flex-col gap-1">
+              <h3 class="font-semibold text-sm">{extra.title()}</h3>
+              <p class={["text-base-content/60 text-sm leading-relaxed", KO_WRAP]}>
+                {extra.body()}
+              </p>
+            </div>
+          </div>
+        {/each}
+      </div>
+    </section>
+
+    <section id="download" class="flex scroll-mt-8 flex-col gap-8">
+      <SectionHeading index={3} title={m.note_download()} />
 
       {#await data.release}
         <div class="hud min-h-32 bg-neutral/60"></div>
@@ -180,36 +326,6 @@ const day = (iso: string) =>
           </p>
         {/if}
       {/await}
-    </section>
-
-    <section class="flex flex-col gap-8">
-      <SectionHeading index={2} title={m.section_features()} />
-
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {#each features as feature, i (feature.title())}
-          <article
-            class={[
-              "hud flex h-full flex-col gap-3 bg-base-100/60 p-5",
-              "hover:hud-lit sm:p-6",
-            ]}
-            data-reveal
-            use:reveal={i}
-          >
-            <div class="flex items-baseline justify-between gap-3">
-              <h3 class="font-semibold text-lg tracking-tight">
-                {feature.title()}
-              </h3>
-              <span class="text-primary text-xs tabular-nums">
-                {pad(i + 1)}
-              </span>
-            </div>
-
-            <p class={["text-base-content/70 text-sm leading-relaxed", KO_WRAP]}>
-              {feature.body()}
-            </p>
-          </article>
-        {/each}
-      </div>
     </section>
   </div>
 </main>
