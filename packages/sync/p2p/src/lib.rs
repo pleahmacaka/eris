@@ -508,42 +508,52 @@ pub fn start(app: &AppHandle) {
     }
 }
 
-#[tauri::command(async)]
-pub fn p2p_status(app: AppHandle) -> Result<Status, String> {
-    Ok(node(&app)?.status())
-}
+// commands sit in a module: pub commands at a crate root clash with the
+// macros tauri exports for them
+mod commands {
+    use tauri::AppHandle;
 
-#[tauri::command(async)]
-pub async fn p2p_invite(app: AppHandle, name: String) -> Result<String, String> {
-    node(&app)?.invite(name).await
-}
+    use super::{node, parse_code, Status, MAX_FRAME};
 
-#[tauri::command(async)]
-pub async fn p2p_join(app: AppHandle, code: String, name: String) -> Result<(), String> {
-    let (inviter, chain) = parse_code(&code)?;
-
-    node(&app)?.join(inviter.into(), chain, name).await
-}
-
-#[tauri::command(async)]
-pub fn p2p_leave(app: AppHandle) -> Result<(), String> {
-    node(&app)?.leave();
-
-    Ok(())
-}
-
-#[tauri::command(async)]
-pub fn p2p_publish(app: AppHandle, snapshot: String) -> Result<(), String> {
-    if snapshot.len() > MAX_FRAME {
-        return Err("snapshot too large".into());
+    #[tauri::command(async)]
+    pub fn p2p_status(app: AppHandle) -> Result<Status, String> {
+        Ok(node(&app)?.status())
     }
 
-    node(&app)?.publish(snapshot);
+    #[tauri::command(async)]
+    pub async fn p2p_invite(app: AppHandle, name: String) -> Result<String, String> {
+        node(&app)?.invite(name).await
+    }
 
-    Ok(())
+    #[tauri::command(async)]
+    pub async fn p2p_join(app: AppHandle, code: String, name: String) -> Result<(), String> {
+        let (inviter, chain) = parse_code(&code)?;
+
+        node(&app)?.join(inviter.into(), chain, name).await
+    }
+
+    #[tauri::command(async)]
+    pub fn p2p_leave(app: AppHandle) -> Result<(), String> {
+        node(&app)?.leave();
+
+        Ok(())
+    }
+
+    #[tauri::command(async)]
+    pub fn p2p_publish(app: AppHandle, snapshot: String) -> Result<(), String> {
+        if snapshot.len() > MAX_FRAME {
+            return Err("snapshot too large".into());
+        }
+
+        node(&app)?.publish(snapshot);
+
+        Ok(())
+    }
+
+    #[tauri::command(async)]
+    pub async fn p2p_sync(app: AppHandle) -> Result<usize, String> {
+        node(&app)?.sync().await
+    }
 }
 
-#[tauri::command(async)]
-pub async fn p2p_sync(app: AppHandle) -> Result<usize, String> {
-    node(&app)?.sync().await
-}
+pub use commands::{p2p_invite, p2p_join, p2p_leave, p2p_publish, p2p_status, p2p_sync};

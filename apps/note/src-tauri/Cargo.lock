@@ -116,8 +116,7 @@ dependencies = [
 name = "arixlab-note"
 version = "0.2.0"
 dependencies = [
- "data-encoding",
- "iroh",
+ "eris-p2p",
  "serde",
  "serde_json",
  "tauri",
@@ -131,7 +130,6 @@ dependencies = [
  "tauri-plugin-persisted-scope",
  "tauri-plugin-single-instance",
  "tauri-plugin-store",
- "tokio",
 ]
 
 [[package]]
@@ -1379,6 +1377,18 @@ dependencies = [
  "serde",
  "serde_core",
  "typeid",
+]
+
+[[package]]
+name = "eris-p2p"
+version = "0.1.0"
+dependencies = [
+ "data-encoding",
+ "iroh",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tokio",
 ]
 
 [[package]]
