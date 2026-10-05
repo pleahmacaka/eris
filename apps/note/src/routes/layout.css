@@ -1,0 +1,285 @@
+@import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
+@import "tailwindcss";
+
+@plugin "daisyui" {
+  themes: false;
+}
+
+@plugin "daisyui/theme" {
+  name: "arixlab";
+  default: true;
+  prefersdark: true;
+  color-scheme: "dark";
+  --color-base-100: oklch(15.5% 0.008 303);
+  --color-base-200: oklch(11.5% 0.006 303);
+  --color-base-300: oklch(27% 0.012 303);
+  --color-base-content: oklch(94% 0.006 303);
+  --color-primary: oklch(72% 0.15 303);
+  --color-primary-content: oklch(14% 0.03 303);
+  --color-secondary: oklch(75.5% 0.083 303);
+  --color-secondary-content: oklch(14% 0.03 303);
+  --color-accent: oklch(79% 0.14 78);
+  --color-accent-content: oklch(20% 0.05 78);
+  --color-neutral: oklch(22% 0.01 303);
+  --color-neutral-content: oklch(94% 0.006 303);
+  --color-info: oklch(72% 0.12 240);
+  --color-info-content: oklch(14% 0.03 240);
+  --color-success: oklch(78% 0.17 152);
+  --color-success-content: oklch(16% 0.04 152);
+  --color-warning: oklch(80% 0.15 75);
+  --color-warning-content: oklch(18% 0.04 75);
+  --color-error: oklch(66% 0.2 24);
+  --color-error-content: oklch(14% 0.03 24);
+  --radius-selector: 0rem;
+  --radius-field: 0rem;
+  --radius-box: 0rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 0.0625rem;
+  --depth: 0;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: "arixlab-light";
+  default: false;
+  prefersdark: false;
+  color-scheme: "light";
+  --color-base-100: oklch(100% 0 0);
+  --color-base-200: oklch(96.5% 0.004 303);
+  --color-base-300: oklch(92% 0.006 303);
+  --color-base-content: oklch(22% 0.012 303);
+  --color-primary: oklch(56% 0.2 303);
+  --color-primary-content: oklch(99% 0 0);
+  --color-secondary: oklch(94% 0.024 303);
+  --color-secondary-content: oklch(50% 0.19 303);
+  --color-accent: oklch(72% 0.15 72);
+  --color-accent-content: oklch(26% 0.06 72);
+  --color-neutral: oklch(28% 0.012 303);
+  --color-neutral-content: oklch(97% 0.004 303);
+  --color-info: oklch(54% 0.12 225);
+  --color-info-content: oklch(99% 0 0);
+  --color-success: oklch(55% 0.15 152);
+  --color-success-content: oklch(99% 0 0);
+  --color-warning: oklch(72% 0.16 68);
+  --color-warning-content: oklch(26% 0.07 68);
+  --color-error: oklch(56% 0.21 25);
+  --color-error-content: oklch(99% 0 0);
+  --radius-selector: 0rem;
+  --radius-field: 0rem;
+  --radius-box: 0rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 0.0625rem;
+  --depth: 0;
+  --noise: 0;
+}
+
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, system-ui, sans-serif;
+  --font-mono: var(--font-sans);
+  --default-transition-duration: 140ms;
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 1.4;
+}
+
+:root {
+  font-size: calc(1rem * var(--font-scale, 1));
+  --safe-top: env(safe-area-inset-top, 0rem);
+  --safe-bottom: env(safe-area-inset-bottom, 0rem);
+}
+
+@layer base {
+  :root {
+    font-synthesis-weight: none;
+    font-feature-settings: "tnum" 1;
+  }
+
+  html,
+  body {
+    height: 100%;
+    overscroll-behavior: none;
+    background: var(--color-base-200);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  input,
+  textarea,
+  [contenteditable] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: inherit;
+  }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--color-primary-content);
+  }
+
+  :focus-visible {
+    outline: 0.125rem solid var(--color-primary);
+    outline-offset: 0.125rem;
+  }
+
+  ::-webkit-scrollbar {
+    width: 0.5rem;
+    height: 0.5rem;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklch, var(--color-base-content) 16%, transparent);
+    background-clip: padding-box;
+    border: 0.125rem solid transparent;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(
+      in oklch,
+      var(--color-base-content) 32%,
+      transparent
+    );
+  }
+
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-button {
+    display: none;
+  }
+}
+
+.pad-top {
+  padding-top: var(--safe-top);
+}
+
+.pad-bottom {
+  padding-bottom: var(--safe-bottom);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ids and pairing codes: Pretendard turns "2x3" into "2×3" unless ligatures are off */
+.verbatim {
+  font-variant-numeric: tabular-nums;
+  font-variant-ligatures: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.markdown {
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+.markdown > * + * {
+  margin-top: 0.85em;
+}
+
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+}
+
+.markdown h1 {
+  font-size: 1.9em;
+}
+
+.markdown h2 {
+  font-size: 1.55em;
+}
+
+.markdown h3 {
+  font-size: 1.3em;
+}
+
+.markdown a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklch, var(--color-primary) 40%, transparent);
+  text-underline-offset: 0.2em;
+}
+
+.markdown ul {
+  list-style: disc;
+  padding-left: 1.5em;
+}
+
+.markdown ol {
+  list-style: decimal;
+  padding-left: 1.5em;
+}
+
+.markdown blockquote {
+  border-left: 0.1875rem solid var(--color-primary);
+  padding-left: 0.75rem;
+  color: color-mix(in oklch, currentColor 75%, transparent);
+}
+
+.markdown code {
+  background: color-mix(in oklch, currentColor 8%, transparent);
+  padding: 0.1em 0.3em;
+}
+
+.markdown pre {
+  background: var(--color-base-200);
+  border: var(--border) solid color-mix(in oklch, currentColor 10%, transparent);
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+}
+
+.markdown pre code {
+  background: none;
+  padding: 0;
+}
+
+.markdown hr {
+  border: 0;
+  border-top: var(--border) solid color-mix(in oklch, currentColor 15%, transparent);
+}
+
+.markdown table {
+  border-collapse: collapse;
+}
+
+.markdown th,
+.markdown td {
+  border: var(--border) solid color-mix(in oklch, currentColor 15%, transparent);
+  padding: 0.35em 0.75em;
+}
+
+.markdown img {
+  max-width: 100%;
+}
+
+:root {
+  scrollbar-color: auto;
+}

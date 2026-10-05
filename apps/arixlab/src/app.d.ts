@@ -6,6 +6,7 @@ declare global {
     // interface Locals {}
     interface PageData {
       title?: string
+      description?: string
     }
     // interface PageState {}
     // interface Platform {}

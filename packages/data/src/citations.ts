@@ -1,4 +1,4 @@
-export const NOTE_LINK = "arixlab-note://open?path="
+import { NOTE_LINK, notePathOf } from "@eris/bridge"
 
 export type Citation = {
   title: string
@@ -16,14 +16,6 @@ const titleOf = (path: string) => {
   const file = path.slice(path.lastIndexOf("/") + 1)
 
   return file.toLowerCase().endsWith(".md") ? file.slice(0, -3) : file
-}
-
-const pathOf = (url: string) => {
-  try {
-    return new URL(url).searchParams.get("path")
-  } catch {
-    return null
-  }
 }
 
 export const splitCitations = (text: string): NotesPart[] => {
@@ -47,7 +39,7 @@ export const splitCitations = (text: string): NotesPart[] => {
     }
 
     const url = rest.slice(at, end)
-    const path = pathOf(url)
+    const path = notePathOf(url)
     const start = markdown ? bracket : at
     const stop = markdown ? end + 1 : end
 

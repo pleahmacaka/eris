@@ -2,7 +2,7 @@
   import AsciiLogo from "@eris/ui/AsciiLogo.svelte"
   import Icon from "@iconify/svelte"
   import type { Copy } from "$lib/copy/en"
-  import { ARIXLAB, MATRIX, REPO } from "$lib/links"
+  import { ARIXLAB, NOTE, REPO } from "$lib/links"
 
   let { t }: { t: Copy } = $props()
 
@@ -14,10 +14,10 @@
       host: "arixlab.com",
     },
     {
-      name: "ArixLab Matrix",
-      about: t.footer.products.matrix,
-      href: MATRIX,
-      host: "matrix.arixlab.com",
+      name: "ArixLab Note",
+      about: t.footer.products.note,
+      href: NOTE,
+      host: "arixlab.com/note",
     },
     {
       name: "Eris",
