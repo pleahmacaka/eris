@@ -116,7 +116,7 @@
     },
     "apps/note": {
       "name": "arixlab-note",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "dependencies": {
         "@codemirror/autocomplete": "^6.20.3",
         "@codemirror/commands": "^6.11.1",
