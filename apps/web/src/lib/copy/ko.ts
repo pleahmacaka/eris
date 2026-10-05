@@ -53,7 +53,7 @@ export const ko: Copy = {
     source: "소스 코드",
     products: {
       arixlab: "개인용 미니 인프라",
-      matrix: "셀프 호스팅 센서 대시보드",
+      note: "Eris와 동기화되는 노트, 할 일, 캘린더",
       eris: "Windows 데스크톱 셸",
     },
   },
