@@ -1,11 +1,14 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { Confirm, toast } from "@eris/ui"
+  import { Confirm, Segmented, toast } from "@eris/ui"
+  import { open } from "@tauri-apps/plugin-dialog"
   import { writeText } from "@tauri-apps/plugin-clipboard-manager"
   import { t } from "svelte-i18n"
   import { shareError } from "./errors"
   import Qr from "./Qr.svelte"
+  import RemoteBrowser from "./RemoteBrowser.svelte"
   import {
+    answerBrowse,
     type Device,
     dismissPair,
     type Invite,
@@ -14,6 +17,10 @@
     removeDevice,
     renameDevice,
     renameSelf,
+    revokeBrowse,
+    type Member,
+    type Scope,
+    setBrowseScope,
   } from "./share"
   import { share } from "./share.svelte"
 
@@ -27,6 +34,32 @@
   let draft = $state("")
   let removing = $state<Device | null>(null)
   let confirmRemove = $state(false)
+  let browsing = $state<Member | null>(null)
+
+  const browse = $derived(share.state.browse)
+
+  const nameOf = (id: string) =>
+    [...share.state.devices, ...share.state.members].find(known => known.id === id)?.name ??
+    id.slice(0, 8)
+
+  const changeScope = (scope: Scope) =>
+    setBrowseScope(scope, browse.folders).catch(reason => toast(shareError(reason), "error"))
+
+  const addFolder = async () => {
+    const picked = await open({ directory: true }).catch(() => null)
+
+    if (typeof picked === "string" && !browse.folders.includes(picked)) {
+      await setBrowseScope("folders", [...browse.folders, picked]).catch(reason =>
+        toast(shareError(reason), "error"),
+      )
+    }
+  }
+
+  const removeFolder = (folder: string) =>
+    setBrowseScope(
+      browse.scope,
+      browse.folders.filter(known => known !== folder),
+    ).catch(reason => toast(shareError(reason), "error"))
 
   const startInvite = async () => {
     inviting = true
@@ -110,6 +143,35 @@
     </div>
   {/if}
 
+  {#each share.state.browseAsks as ask (ask.id)}
+    <div class="flex flex-col gap-2 rounded-box border border-primary/30 bg-primary/5 p-3">
+      <span class="text-sm">{$t("devices.browseRequest", { values: { name: ask.name } })}</span>
+      <div class="flex flex-wrap gap-2">
+        <button
+          type="button"
+          class="btn btn-xs btn-primary"
+          onclick={() => answerBrowse(ask.id, "once").catch(() => undefined)}
+        >
+          {$t("devices.allowOnce")}
+        </button>
+        <button
+          type="button"
+          class="btn btn-xs btn-soft"
+          onclick={() => answerBrowse(ask.id, "always").catch(() => undefined)}
+        >
+          {$t("devices.allowAlways")}
+        </button>
+        <button
+          type="button"
+          class="btn btn-xs btn-ghost"
+          onclick={() => answerBrowse(ask.id, "deny").catch(() => undefined)}
+        >
+          {$t("devices.deny")}
+        </button>
+      </div>
+    </div>
+  {/each}
+
   <div class="flex flex-col gap-1">
     <span class="text-xs font-medium text-base-content/60">{$t("devices.paired")}</span>
 
@@ -144,6 +206,16 @@
             <button
               type="button"
               class="btn btn-ghost btn-square btn-xs"
+              aria-label={$t("devices.browse")}
+              title={$t("devices.browse")}
+              onclick={() => (browsing = device)}
+            >
+              <Icon icon="lucide:folder-search" class="size-3.5" />
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-ghost btn-square btn-xs"
               aria-label={$t("devices.rename")}
               onclick={() => {
                 draft = device.name
@@ -169,6 +241,97 @@
       </ul>
     {/if}
   </div>
+
+  {#if share.state.members.length > 0}
+    <div class="flex flex-col gap-1">
+      <span class="text-xs font-medium text-base-content/60">{$t("devices.syncDevices")}</span>
+
+      <ul class="flex flex-col">
+        {#each share.state.members as member (member.id)}
+          <li class="flex items-center gap-2 rounded-field px-1 py-1 hover:bg-base-content/5">
+            <Icon icon="lucide:monitor" class="size-4 shrink-0 text-base-content/60" />
+            <span class="min-w-0 flex-1 truncate text-sm">{member.name}</span>
+            <button
+              type="button"
+              class="btn btn-ghost btn-square btn-xs"
+              aria-label={$t("devices.browse")}
+              title={$t("devices.browse")}
+              onclick={() => (browsing = member)}
+            >
+              <Icon icon="lucide:folder-search" class="size-3.5" />
+            </button>
+          </li>
+        {/each}
+      </ul>
+    </div>
+  {/if}
+
+  <div class="flex flex-col gap-2">
+    <span class="text-xs font-medium text-base-content/60">{$t("devices.browseScope")}</span>
+
+    <Segmented
+      label={$t("devices.browseScope")}
+      value={browse.scope}
+      onchange={changeScope}
+      options={[
+        { value: "drives", label: $t("devices.scopes.drives") },
+        { value: "home", label: $t("devices.scopes.home") },
+        { value: "folders", label: $t("devices.scopes.folders") },
+      ]}
+    />
+
+    {#if browse.scope === "folders"}
+      {#if browse.folders.length === 0}
+        <p class="text-sm text-base-content/60">{$t("devices.noFolders")}</p>
+      {:else}
+        <ul class="flex flex-col">
+          {#each browse.folders as folder (folder)}
+            <li class="flex items-center gap-2 rounded-field px-1 py-1 hover:bg-base-content/5">
+              <Icon icon="lucide:folder" class="size-4 shrink-0 text-base-content/60" />
+              <span class="min-w-0 flex-1 truncate text-sm" title={folder}>{folder}</span>
+              <button
+                type="button"
+                class="btn btn-ghost btn-square btn-xs hover:text-error"
+                aria-label={$t("devices.removeFolder")}
+                onclick={() => removeFolder(folder)}
+              >
+                <Icon icon="lucide:x" class="size-3.5" />
+              </button>
+            </li>
+          {/each}
+        </ul>
+      {/if}
+
+      <button type="button" class="btn btn-sm btn-soft justify-start" onclick={addFolder}>
+        <Icon icon="lucide:folder-plus" class="size-4" />
+        {$t("devices.addFolder")}
+      </button>
+    {/if}
+
+    {#if browse.always.length > 0}
+      <span class="text-xs font-medium text-base-content/60">{$t("devices.allowed")}</span>
+
+      <ul class="flex flex-col">
+        {#each browse.always as id (id)}
+          <li class="flex items-center gap-2 rounded-field px-1 py-1 hover:bg-base-content/5">
+            <Icon icon="lucide:shield-check" class="size-4 shrink-0 text-base-content/60" />
+            <span class="min-w-0 flex-1 truncate text-sm">{nameOf(id)}</span>
+            <button
+              type="button"
+              class="btn btn-ghost btn-xs"
+              onclick={() => revokeBrowse(id).catch(() => undefined)}
+            >
+              {$t("devices.revoke")}
+            </button>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+  </div>
+
+  {#if browsing}
+    <RemoteBrowser device={browsing} onclose={() => (browsing = null)} />
+  {/if}
 
   <Confirm
     bind:open={confirmRemove}

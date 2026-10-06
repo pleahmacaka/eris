@@ -206,6 +206,10 @@ pub fn run() {
             desktop::watch(handle.clone());
             apps::watch(handle.clone());
             share::watch(handle.clone());
+            if let Some(id) = tauri_plugin_eris_files::endpoint_id(&handle) {
+                p2p::set_files(id);
+            }
+
             p2p::start(&handle);
 
             if let Some(link) = theme_link::link(&args) {

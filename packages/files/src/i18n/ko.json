@@ -417,6 +417,36 @@
     "joined": "장치를 연결했습니다.",
     "confirmRemove": "{name} 장치를 삭제할까요?",
     "removeEverywhere": "이 장치보다 나중에 추가된 장치이면 다른 장치에서도 삭제됩니다.",
-    "removeHere": "이 장치에서만 연결을 해제합니다."
+    "removeHere": "이 장치에서만 연결을 해제합니다.",
+    "browse": "파일 열람",
+    "browseRequest": "{name} 장치의 파일 열람 요청",
+    "allowOnce": "이번만 허용",
+    "allowAlways": "항상 허용",
+    "deny": "거부",
+    "syncDevices": "Eris 동기화 장치",
+    "browseScope": "열람 범위",
+    "scopes": {
+      "drives": "전체 드라이브",
+      "home": "사용자 폴더",
+      "folders": "선택한 폴더"
+    },
+    "noFolders": "선택한 폴더 없음",
+    "addFolder": "폴더 추가",
+    "removeFolder": "폴더 제거",
+    "allowed": "항상 허용한 장치",
+    "revoke": "허용 해제"
+  },
+  "remote": {
+    "location": "위치",
+    "close": "닫기",
+    "empty": "항목 없음",
+    "saved": "다운로드 폴더에 저장했습니다",
+    "failed": "파일을 열 수 없습니다",
+    "waitingHint": "상대 장치에서 요청을 허용하세요.",
+    "states": {
+      "waiting": "허용 대기",
+      "denied": "열람 거부",
+      "failed": "연결 실패"
+    }
   }
 }

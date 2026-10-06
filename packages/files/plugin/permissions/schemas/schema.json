@@ -823,6 +823,66 @@
           "markdownDescription": "Denies the set_default_app command without any pre-configured scope."
         },
         {
+          "description": "Enables the share_browse command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-browse",
+          "markdownDescription": "Enables the share_browse command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_browse command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-browse",
+          "markdownDescription": "Denies the share_browse command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_browse_answer command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-browse-answer",
+          "markdownDescription": "Enables the share_browse_answer command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_browse_answer command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-browse-answer",
+          "markdownDescription": "Denies the share_browse_answer command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_browse_fetch command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-browse-fetch",
+          "markdownDescription": "Enables the share_browse_fetch command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_browse_fetch command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-browse-fetch",
+          "markdownDescription": "Denies the share_browse_fetch command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_browse_revoke command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-browse-revoke",
+          "markdownDescription": "Enables the share_browse_revoke command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_browse_revoke command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-browse-revoke",
+          "markdownDescription": "Denies the share_browse_revoke command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the share_browse_scope command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-share-browse-scope",
+          "markdownDescription": "Enables the share_browse_scope command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the share_browse_scope command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-share-browse-scope",
+          "markdownDescription": "Denies the share_browse_scope command without any pre-configured scope."
+        },
+        {
           "description": "Enables the share_cancel command without any pre-configured scope.",
           "type": "string",
           "const": "allow-share-cancel",
@@ -1255,10 +1315,10 @@
           "markdownDescription": "Denies the wsl_distros command without any pre-configured scope."
         },
         {
-          "description": "Browse, preview, share and manage files.\n#### This default permission set includes:\n\n- `allow-list-dir`\n- `allow-list-shell`\n- `allow-search-dir`\n- `allow-cancel-search`\n- `allow-measure-dirs`\n- `allow-list-archive`\n- `allow-extract-entry`\n- `allow-bandizip-available`\n- `allow-bandizip-job`\n- `allow-known-folders`\n- `allow-drives`\n- `allow-explorer-settings`\n- `allow-wsl-distros`\n- `allow-screen-sharing`\n- `allow-open-item`\n- `allow-open-with`\n- `allow-show-properties`\n- `allow-empty-recycle-bin`\n- `allow-start-drag`\n- `allow-native-menu`\n- `allow-invoke-verb`\n- `allow-transfer-items`\n- `allow-delete-items`\n- `allow-rename-item`\n- `allow-new-folder`\n- `allow-set-clipboard`\n- `allow-paste-items`\n- `allow-clipboard-has-files`\n- `allow-allow-preview`\n- `allow-preview-text`\n- `allow-model-files`\n- `allow-is-mujoco`\n- `allow-open-viewer`\n- `allow-audio-waveform`\n- `allow-transcribe`\n- `allow-read-transcript`\n- `allow-transcribe-key-status`\n- `allow-save-transcribe-key`\n- `allow-clear-transcribe-key`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-default-app-status`\n- `allow-set-default-app`\n- `allow-open-default-apps`\n- `allow-watch-dir`\n- `allow-network-places`\n- `allow-reconnect-drive`\n- `allow-disconnect-drive`\n- `allow-map-network-drive`\n- `allow-disconnect-network-drive`\n- `allow-add-network-location`\n- `allow-run-address`\n- `allow-share-state`\n- `allow-share-take-attention`\n- `allow-share-rename-self`\n- `allow-share-invite`\n- `allow-share-join`\n- `allow-share-dismiss-pair`\n- `allow-share-rename-device`\n- `allow-share-remove-device`\n- `allow-share-create`\n- `allow-share-set-public`\n- `allow-share-offer`\n- `allow-share-revoke`\n- `allow-share-open`\n- `allow-share-fetch`\n- `allow-share-download`\n- `allow-share-cancel`\n- `allow-share-dismiss`\n- `allow-share-qr`\n- `allow-share-set-expiry`\n- `allow-sync-check`\n- `allow-sync-create`\n- `allow-sync-accept`\n- `allow-sync-decline`\n- `allow-sync-pause`\n- `allow-sync-now`\n- `allow-sync-remove`\n- `allow-share-files`",
+          "description": "Browse, preview, share and manage files.\n#### This default permission set includes:\n\n- `allow-list-dir`\n- `allow-list-shell`\n- `allow-search-dir`\n- `allow-cancel-search`\n- `allow-measure-dirs`\n- `allow-list-archive`\n- `allow-extract-entry`\n- `allow-bandizip-available`\n- `allow-bandizip-job`\n- `allow-known-folders`\n- `allow-drives`\n- `allow-explorer-settings`\n- `allow-wsl-distros`\n- `allow-screen-sharing`\n- `allow-open-item`\n- `allow-open-with`\n- `allow-show-properties`\n- `allow-empty-recycle-bin`\n- `allow-start-drag`\n- `allow-native-menu`\n- `allow-invoke-verb`\n- `allow-transfer-items`\n- `allow-delete-items`\n- `allow-rename-item`\n- `allow-new-folder`\n- `allow-set-clipboard`\n- `allow-paste-items`\n- `allow-clipboard-has-files`\n- `allow-allow-preview`\n- `allow-preview-text`\n- `allow-model-files`\n- `allow-is-mujoco`\n- `allow-open-viewer`\n- `allow-audio-waveform`\n- `allow-transcribe`\n- `allow-read-transcript`\n- `allow-transcribe-key-status`\n- `allow-save-transcribe-key`\n- `allow-clear-transcribe-key`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-default-app-status`\n- `allow-set-default-app`\n- `allow-open-default-apps`\n- `allow-watch-dir`\n- `allow-network-places`\n- `allow-reconnect-drive`\n- `allow-disconnect-drive`\n- `allow-map-network-drive`\n- `allow-disconnect-network-drive`\n- `allow-add-network-location`\n- `allow-run-address`\n- `allow-share-state`\n- `allow-share-take-attention`\n- `allow-share-rename-self`\n- `allow-share-invite`\n- `allow-share-join`\n- `allow-share-dismiss-pair`\n- `allow-share-rename-device`\n- `allow-share-remove-device`\n- `allow-share-create`\n- `allow-share-set-public`\n- `allow-share-offer`\n- `allow-share-revoke`\n- `allow-share-open`\n- `allow-share-fetch`\n- `allow-share-download`\n- `allow-share-cancel`\n- `allow-share-dismiss`\n- `allow-share-qr`\n- `allow-share-browse`\n- `allow-share-browse-fetch`\n- `allow-share-browse-answer`\n- `allow-share-browse-revoke`\n- `allow-share-browse-scope`\n- `allow-share-set-expiry`\n- `allow-sync-check`\n- `allow-sync-create`\n- `allow-sync-accept`\n- `allow-sync-decline`\n- `allow-sync-pause`\n- `allow-sync-now`\n- `allow-sync-remove`\n- `allow-share-files`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Browse, preview, share and manage files.\n#### This default permission set includes:\n\n- `allow-list-dir`\n- `allow-list-shell`\n- `allow-search-dir`\n- `allow-cancel-search`\n- `allow-measure-dirs`\n- `allow-list-archive`\n- `allow-extract-entry`\n- `allow-bandizip-available`\n- `allow-bandizip-job`\n- `allow-known-folders`\n- `allow-drives`\n- `allow-explorer-settings`\n- `allow-wsl-distros`\n- `allow-screen-sharing`\n- `allow-open-item`\n- `allow-open-with`\n- `allow-show-properties`\n- `allow-empty-recycle-bin`\n- `allow-start-drag`\n- `allow-native-menu`\n- `allow-invoke-verb`\n- `allow-transfer-items`\n- `allow-delete-items`\n- `allow-rename-item`\n- `allow-new-folder`\n- `allow-set-clipboard`\n- `allow-paste-items`\n- `allow-clipboard-has-files`\n- `allow-allow-preview`\n- `allow-preview-text`\n- `allow-model-files`\n- `allow-is-mujoco`\n- `allow-open-viewer`\n- `allow-audio-waveform`\n- `allow-transcribe`\n- `allow-read-transcript`\n- `allow-transcribe-key-status`\n- `allow-save-transcribe-key`\n- `allow-clear-transcribe-key`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-default-app-status`\n- `allow-set-default-app`\n- `allow-open-default-apps`\n- `allow-watch-dir`\n- `allow-network-places`\n- `allow-reconnect-drive`\n- `allow-disconnect-drive`\n- `allow-map-network-drive`\n- `allow-disconnect-network-drive`\n- `allow-add-network-location`\n- `allow-run-address`\n- `allow-share-state`\n- `allow-share-take-attention`\n- `allow-share-rename-self`\n- `allow-share-invite`\n- `allow-share-join`\n- `allow-share-dismiss-pair`\n- `allow-share-rename-device`\n- `allow-share-remove-device`\n- `allow-share-create`\n- `allow-share-set-public`\n- `allow-share-offer`\n- `allow-share-revoke`\n- `allow-share-open`\n- `allow-share-fetch`\n- `allow-share-download`\n- `allow-share-cancel`\n- `allow-share-dismiss`\n- `allow-share-qr`\n- `allow-share-set-expiry`\n- `allow-sync-check`\n- `allow-sync-create`\n- `allow-sync-accept`\n- `allow-sync-decline`\n- `allow-sync-pause`\n- `allow-sync-now`\n- `allow-sync-remove`\n- `allow-share-files`"
+          "markdownDescription": "Browse, preview, share and manage files.\n#### This default permission set includes:\n\n- `allow-list-dir`\n- `allow-list-shell`\n- `allow-search-dir`\n- `allow-cancel-search`\n- `allow-measure-dirs`\n- `allow-list-archive`\n- `allow-extract-entry`\n- `allow-bandizip-available`\n- `allow-bandizip-job`\n- `allow-known-folders`\n- `allow-drives`\n- `allow-explorer-settings`\n- `allow-wsl-distros`\n- `allow-screen-sharing`\n- `allow-open-item`\n- `allow-open-with`\n- `allow-show-properties`\n- `allow-empty-recycle-bin`\n- `allow-start-drag`\n- `allow-native-menu`\n- `allow-invoke-verb`\n- `allow-transfer-items`\n- `allow-delete-items`\n- `allow-rename-item`\n- `allow-new-folder`\n- `allow-set-clipboard`\n- `allow-paste-items`\n- `allow-clipboard-has-files`\n- `allow-allow-preview`\n- `allow-preview-text`\n- `allow-model-files`\n- `allow-is-mujoco`\n- `allow-open-viewer`\n- `allow-audio-waveform`\n- `allow-transcribe`\n- `allow-read-transcript`\n- `allow-transcribe-key-status`\n- `allow-save-transcribe-key`\n- `allow-clear-transcribe-key`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-default-app-status`\n- `allow-set-default-app`\n- `allow-open-default-apps`\n- `allow-watch-dir`\n- `allow-network-places`\n- `allow-reconnect-drive`\n- `allow-disconnect-drive`\n- `allow-map-network-drive`\n- `allow-disconnect-network-drive`\n- `allow-add-network-location`\n- `allow-run-address`\n- `allow-share-state`\n- `allow-share-take-attention`\n- `allow-share-rename-self`\n- `allow-share-invite`\n- `allow-share-join`\n- `allow-share-dismiss-pair`\n- `allow-share-rename-device`\n- `allow-share-remove-device`\n- `allow-share-create`\n- `allow-share-set-public`\n- `allow-share-offer`\n- `allow-share-revoke`\n- `allow-share-open`\n- `allow-share-fetch`\n- `allow-share-download`\n- `allow-share-cancel`\n- `allow-share-dismiss`\n- `allow-share-qr`\n- `allow-share-browse`\n- `allow-share-browse-fetch`\n- `allow-share-browse-answer`\n- `allow-share-browse-revoke`\n- `allow-share-browse-scope`\n- `allow-share-set-expiry`\n- `allow-sync-check`\n- `allow-sync-create`\n- `allow-sync-accept`\n- `allow-sync-decline`\n- `allow-sync-pause`\n- `allow-sync-now`\n- `allow-sync-remove`\n- `allow-share-files`"
         }
       ]
     }

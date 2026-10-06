@@ -7,6 +7,7 @@ pub const HOST: Host = Host {
     marker: Some("--files"),
     app_name: "Eris",
     prog_prefix: "Eris",
+    peers: Some(eris_p2p::members),
 };
 
 pub fn open_instead(app: &AppHandle, reveal: Option<String>) -> bool {

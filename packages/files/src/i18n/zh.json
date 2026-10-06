@@ -417,6 +417,36 @@
     "joined": "设备已配对。",
     "confirmRemove": "移除 {name}?",
     "removeEverywhere": "如果它比这台设备更晚加入,其他设备也会移除它。",
-    "removeHere": "只在这台设备上断开连接。"
+    "removeHere": "只在这台设备上断开连接。",
+    "browse": "浏览文件",
+    "browseRequest": "{name} 请求浏览文件",
+    "allowOnce": "仅本次允许",
+    "allowAlways": "始终允许",
+    "deny": "拒绝",
+    "syncDevices": "Eris 同步设备",
+    "browseScope": "浏览范围",
+    "scopes": {
+      "drives": "所有驱动器",
+      "home": "用户文件夹",
+      "folders": "所选文件夹"
+    },
+    "noFolders": "未选择文件夹",
+    "addFolder": "添加文件夹",
+    "removeFolder": "移除文件夹",
+    "allowed": "始终允许的设备",
+    "revoke": "取消允许"
+  },
+  "remote": {
+    "location": "位置",
+    "close": "关闭",
+    "empty": "没有项目",
+    "saved": "已保存到下载文件夹",
+    "failed": "无法打开文件",
+    "waitingHint": "请在对方设备上允许请求。",
+    "states": {
+      "waiting": "等待允许",
+      "denied": "已拒绝浏览",
+      "failed": "连接失败"
+    }
   }
 }

@@ -50,6 +50,16 @@ pub struct Entry {
     pub modified: u64,
 }
 
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RemoteEntry {
+    pub name: String,
+    pub path: String,
+    pub dir: bool,
+    pub size: u64,
+    pub modified: u64,
+}
+
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase")]
 pub enum Request {
@@ -79,6 +89,12 @@ pub enum Request {
     Evict {
         device: String,
     },
+    Browse {
+        path: Option<String>,
+    },
+    Fetch {
+        path: String,
+    },
     #[serde(other)]
     Unknown,
 }
@@ -89,6 +105,16 @@ pub enum Reply {
     Welcome { name: String },
     Manifest { manifest: Manifest },
     Index { entries: Vec<Entry> },
+    Listing {
+        path: Option<String>,
+        entries: Vec<RemoteEntry>,
+    },
+    Blob {
+        hash: Hash,
+        size: u64,
+        name: String,
+    },
+    Pending,
     Accepted,
     Denied,
 }

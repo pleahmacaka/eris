@@ -11,6 +11,7 @@ use tauri::{AppHandle, Emitter};
 use tokio::sync::OnceCell;
 use uuid::Uuid;
 
+use super::browse::{Browse, Member};
 use super::incoming::{Incoming, IncomingView};
 use super::outgoing::Outgoing;
 use super::peers::{default_name, Device};
@@ -29,6 +30,8 @@ pub(super) struct Saved {
     pub(super) inbox: Vec<Incoming>,
     pub(super) syncs: Vec<Sync>,
     pub(super) sync_invites: Vec<SyncInvite>,
+    #[serde(default)]
+    pub(super) browse: Browse,
 }
 
 impl Saved {
@@ -41,6 +44,7 @@ impl Saved {
             inbox: Vec::new(),
             syncs: Vec::new(),
             sync_invites: Vec::new(),
+            browse: Browse::default(),
         }
     }
 
@@ -87,6 +91,9 @@ pub struct State {
     syncs: Vec<Sync>,
     sync_invites: Vec<SyncInvite>,
     senior: bool,
+    browse: Browse,
+    browse_asks: Vec<Member>,
+    members: Vec<Member>,
 }
 
 fn read_saved(file: &Path) -> Result<Option<Saved>> {
@@ -136,6 +143,7 @@ impl Node {
             net: OnceCell::new(),
             slots: Mutex::default(),
             sync_hashes: Mutex::default(),
+            gate: Mutex::default(),
             _lock: lock,
         })
     }
@@ -184,6 +192,8 @@ impl Node {
         let fetching = self.fetching.lock().unwrap().clone();
         let receiving: HashSet<Uuid> = self.transfers.lock().unwrap().keys().copied().collect();
         let pending_pair = self.pending_pair.lock().unwrap().clone();
+        let browse_asks = self.browse_asks();
+        let members = self.browse_members();
         let saved = self.lock();
 
         State {
@@ -203,6 +213,9 @@ impl Node {
             syncs: saved.syncs.clone(),
             sync_invites: saved.sync_invites.clone(),
             senior: saved.senior(),
+            browse: saved.browse.clone(),
+            browse_asks,
+            members,
         }
     }
 }
