@@ -73,6 +73,7 @@ export type ShareState = {
   pendingPair: string | null
   syncs: Sync[]
   syncInvites: SyncInvite[]
+  senior: boolean
 }
 
 export type Invite = { code: string; link: string }

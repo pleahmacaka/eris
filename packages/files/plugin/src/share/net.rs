@@ -196,6 +196,7 @@ impl Node {
             Request::SyncInvite { sync, name } => self.invited(remote, sync, name),
             Request::SyncIndex { sync } => self.index_reply(&remote, sync),
             Request::SyncChanged { sync } => self.wake_sync(&remote, sync),
+            Request::Evict { device } => self.evicted(remote, &device),
             Request::Unknown => Reply::Denied,
         }
     }

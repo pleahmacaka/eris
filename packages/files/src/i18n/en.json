@@ -414,6 +414,9 @@
     "showQr": "Show pairing QR code",
     "enterCode": "Enter pairing code",
     "scan": "Scan QR code",
-    "joined": "Device paired."
+    "joined": "Device paired.",
+    "confirmRemove": "Remove {name}?",
+    "removeEverywhere": "Your other devices remove it too, as long as it was added after this device.",
+    "removeHere": "Only this device disconnects from it."
   }
 }

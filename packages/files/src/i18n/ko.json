@@ -414,6 +414,9 @@
     "showQr": "연결 QR 코드 표시",
     "enterCode": "연결 코드 입력",
     "scan": "QR 코드 스캔",
-    "joined": "장치를 연결했습니다."
+    "joined": "장치를 연결했습니다.",
+    "confirmRemove": "{name} 장치를 삭제할까요?",
+    "removeEverywhere": "이 장치보다 나중에 추가된 장치이면 다른 장치에서도 삭제됩니다.",
+    "removeHere": "이 장치에서만 연결을 해제합니다."
   }
 }
