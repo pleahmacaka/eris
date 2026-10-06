@@ -68,7 +68,7 @@ mod win {
         PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION,
     };
     use windows::Win32::UI::Accessibility::{SetWinEventHook, HWINEVENTHOOK};
-    use windows::Win32::UI::Input::KeyboardAndMouse::{SetFocus, VK_MENU};
+    use windows::Win32::UI::Input::KeyboardAndMouse::SetFocus;
     use windows::Win32::UI::WindowsAndMessaging::{
         BringWindowToTop, DispatchMessageW, EnumWindows, GetClassNameW, GetForegroundWindow,
         GetMessageW, GetWindow, GetWindowLongPtrW, GetWindowTextW, GetWindowThreadProcessId,
@@ -336,16 +336,11 @@ mod win {
                 && AttachThreadInput(me, front, true).as_bool();
 
             let _ = BringWindowToTop(hwnd);
-            let raised = SetForegroundWindow(hwnd).as_bool();
+            let _ = SetForegroundWindow(hwnd);
             let _ = SetFocus(Some(hwnd));
 
             if attached {
                 let _ = AttachThreadInput(me, front, false);
-            }
-
-            if !raised {
-                crate::winkey::tap(VK_MENU);
-                let _ = SetForegroundWindow(hwnd);
             }
         }
     }

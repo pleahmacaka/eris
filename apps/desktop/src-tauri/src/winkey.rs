@@ -122,7 +122,7 @@ pub fn set_win_key_capture(enabled: bool) {
     release();
 }
 
-pub use win::{chord, install, release, tap};
+pub use win::{chord, install, release};
 
 mod win {
     use std::sync::atomic::{AtomicU16, Ordering};
@@ -166,13 +166,6 @@ mod win {
 
     fn send(inputs: &[INPUT]) -> u32 {
         unsafe { SendInput(inputs, std::mem::size_of::<INPUT>() as i32) }
-    }
-
-    pub fn tap(key: VIRTUAL_KEY) {
-        send(&[
-            stroke(key, 0, KEYBD_EVENT_FLAGS(0)),
-            stroke(key, 0, KEYEVENTF_KEYUP),
-        ]);
     }
 
     pub fn chord(keys: &[VIRTUAL_KEY]) {
