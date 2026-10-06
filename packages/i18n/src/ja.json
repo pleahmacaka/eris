@@ -130,7 +130,11 @@
       "claude": "Claude 使用量",
       "syncGeneral": "基本",
       "erisFiles": "Eris Files",
-      "eventTags": "予定のタグ"
+      "eventTags": "予定のタグ",
+      "windowBackgrounds": {
+        "title": "ウィンドウ別の背景",
+        "description": "ウィンドウごとに背景を指定します"
+      }
     },
     "rows": {
       "deviceName": "デバイス名",
@@ -251,7 +255,13 @@
       "islandGap": "アイランドの間隔",
       "dockIcon": "ドックアイコン",
       "gatherHideMs": "非表示アニメーションの長さ",
-      "gatherShowMs": "表示アニメーションの長さ"
+      "gatherShowMs": "表示アニメーションの長さ",
+      "launcherBackground": "ランチャー",
+      "panelBackground": "カレンダーパネル",
+      "settingsBackground": "設定",
+      "noticesBackground": "通知",
+      "filesBackground": "Eris Files",
+      "terminalBackground": "Eris Terminal"
     },
     "hints": {
       "deviceName": "同期した他のデバイスに表示される名前です",
@@ -377,9 +387,9 @@
       "dark": "ダーク",
       "light": "ライト",
       "system": "システム",
-      "aura": "オーラ",
-      "glass": "ガラス",
-      "solid": "単色",
+      "aura": "モダン",
+      "glass": "グラス",
+      "solid": "標準",
       "cozy": "ゆったり",
       "compact": "コンパクト",
       "minBefore": "{minutes}分前",

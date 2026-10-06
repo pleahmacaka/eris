@@ -3,9 +3,11 @@
   import { live, newId, presets as userPresets } from "$lib/data"
   import {
     type Appearance,
+    type DockBackground,
     type Profile,
     defaultAppearance,
     defaultProfile,
+    WINDOW_BACKGROUNDS,
   } from "@eris/settings"
   import { allPresets, CUSTOM, sameAppearance } from "./presets"
   import { reset as resetField } from "./reset"
@@ -39,6 +41,8 @@
     step: number
     format: (v: number) => string
   }
+
+  const BACKGROUND_CHOICES: DockBackground[] = ["inherit", "solid", "aura", "glass"]
 
   const percent = (v: number) => `${Math.round(v * 100)}%`
   const times = (v: number) => `${v.toFixed(2)}x`
@@ -174,9 +178,9 @@
       onchange={markCustom}
       options={[
         { value: "inherit", label: $t("settings.options.inherit") },
+        { value: "solid", label: $t("settings.options.solid") },
         { value: "aura", label: $t("settings.options.aura") },
         { value: "glass", label: $t("settings.options.glass") },
-        { value: "solid", label: $t("settings.options.solid") },
       ]}
     />
   </Row>
@@ -270,15 +274,35 @@
         bind:value={profile.appearance.background}
         onchange={markCustom}
         options={[
+          { value: "solid", label: $t("settings.options.solid") },
           { value: "aura", label: $t("settings.options.aura") },
           { value: "glass", label: $t("settings.options.glass") },
-          { value: "solid", label: $t("settings.options.solid") },
         ]}
       />
     </Row>
 
     {#each surfaceSliders as s (s.key)}
       {@render slider(s)}
+    {/each}
+  </Section>
+
+  <Section
+    title={$t("settings.groups.windowBackgrounds.title")}
+    description={$t("settings.groups.windowBackgrounds.description")}
+  >
+    {#each Object.values(WINDOW_BACKGROUNDS) as key (key)}
+      <Row label={$t(`settings.rows.${key}`)} onreset={resetRow(key)}>
+        <select
+          class="select select-sm w-40"
+          aria-label={$t(`settings.rows.${key}`)}
+          bind:value={profile.appearance[key]}
+          onchange={markCustom}
+        >
+          {#each BACKGROUND_CHOICES as choice (choice)}
+            <option value={choice}>{$t(`settings.options.${choice}`)}</option>
+          {/each}
+        </select>
+      </Row>
     {/each}
   </Section>
 

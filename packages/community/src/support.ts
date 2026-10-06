@@ -1,4 +1,8 @@
-import type { Appearance, DeviceSettings } from "@eris/settings"
+import {
+  type Appearance,
+  type DeviceSettings,
+  WINDOW_BACKGROUNDS,
+} from "@eris/settings"
 
 export type Tool = "eris" | "files" | "terminal"
 
@@ -35,17 +39,21 @@ export const SORTS: Sort[] = ["popular", "downloads", "likes", "newest", "name"]
 
 export const MODES: Mode[] = ["dark", "light"]
 
-const dockOnly = (key: string) => key.startsWith("dock")
+const OWNED: Record<string, Tool> = Object.fromEntries(
+  Object.entries(WINDOW_BACKGROUNDS).map(([surface, key]) => [
+    key,
+    surface === "files" || surface === "terminal" ? surface : "eris",
+  ]),
+)
 
-// Files and Terminal follow the Eris look for every key except the dock ones, which only the dock reads
+// Files and Terminal follow the Eris look for every shared key; dock and per-window keys reach only their own app
+const toolsFor = (key: string): Tool[] =>
+  key.startsWith("dock") ? ["eris"] : OWNED[key] ? [OWNED[key]] : TOOLS
+
 export const toolsOf = (theme: Pick<CommunityTheme, "appearance">): Tool[] => {
-  const keys = Object.keys(theme.appearance)
+  const reached = new Set(Object.keys(theme.appearance).flatMap(toolsFor))
 
-  if (!keys.length) {
-    return []
-  }
-
-  return keys.every(dockOnly) ? ["eris"] : TOOLS
+  return TOOLS.filter(tool => reached.has(tool))
 }
 
 const fitsMode = (theme: CommunityTheme, mode: Mode | "") =>

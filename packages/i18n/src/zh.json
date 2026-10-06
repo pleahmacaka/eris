@@ -130,7 +130,11 @@
       "claude": "Claude 用量",
       "syncGeneral": "基本",
       "erisFiles": "Eris Files",
-      "eventTags": "日程标签"
+      "eventTags": "日程标签",
+      "windowBackgrounds": {
+        "title": "按窗口设置背景",
+        "description": "为每个窗口指定不同的背景"
+      }
     },
     "rows": {
       "deviceName": "设备名称",
@@ -251,7 +255,13 @@
       "islandGap": "岛间距",
       "dockIcon": "程序坞图标",
       "gatherHideMs": "隐藏动画时长",
-      "gatherShowMs": "显示动画时长"
+      "gatherShowMs": "显示动画时长",
+      "launcherBackground": "启动器",
+      "panelBackground": "日历面板",
+      "settingsBackground": "设置",
+      "noticesBackground": "通知",
+      "filesBackground": "Eris Files",
+      "terminalBackground": "Eris Terminal"
     },
     "hints": {
       "deviceName": "其他已同步设备上显示的名称",
@@ -377,9 +387,9 @@
       "dark": "深色",
       "light": "浅色",
       "system": "跟随系统",
-      "aura": "光晕",
+      "aura": "现代",
       "glass": "玻璃",
-      "solid": "纯色",
+      "solid": "标准",
       "cozy": "宽松",
       "compact": "紧凑",
       "minBefore": "提前 {minutes} 分钟",
