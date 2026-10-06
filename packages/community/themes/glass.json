@@ -1,0 +1,28 @@
+{
+  "id": "glass",
+  "name": "Glass",
+  "author": "Eris",
+  "description": "A light frosted surface with a blue accent.",
+  "swatch": [
+    "#f3f5fb",
+    "#6f97f5",
+    "#dbe4ff"
+  ],
+  "tags": [
+    "official",
+    "glass",
+    "light"
+  ],
+  "appearance": {
+    "mode": "light",
+    "background": "glass",
+    "useSystemAccent": true,
+    "accentHue": 225,
+    "accentSpread": 24,
+    "vividness": 0.05,
+    "texture": 0.12,
+    "radius": 1.2,
+    "blur": 1.4,
+    "density": "cozy"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "night-orchid",
+  "name": "Night Orchid",
+  "author": "Eris",
+  "description": "Purple and pink on charcoal.",
+  "swatch": [
+    "#282a36",
+    "#bd93f9",
+    "#ff79c6"
+  ],
+  "tags": [
+    "official",
+    "dark",
+    "vivid"
+  ],
+  "appearance": {
+    "mode": "system",
+    "background": "aura",
+    "useSystemAccent": false,
+    "accentHue": 290,
+    "accentSpread": 50,
+    "vividness": 0.14,
+    "texture": 0.25,
+    "radius": 0.8,
+    "blur": 1,
+    "density": "cozy"
+  }
+}

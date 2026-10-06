@@ -1,0 +1,28 @@
+{
+  "id": "forest",
+  "name": "Forest",
+  "author": "Eris",
+  "description": "Mossy greens with a grainy texture.",
+  "swatch": [
+    "#12201a",
+    "#4fb47a",
+    "#c8e6c9"
+  ],
+  "tags": [
+    "official",
+    "green",
+    "texture"
+  ],
+  "appearance": {
+    "mode": "system",
+    "background": "aura",
+    "useSystemAccent": false,
+    "accentHue": 150,
+    "accentSpread": 30,
+    "vividness": 0.09,
+    "texture": 0.4,
+    "radius": 0.9,
+    "blur": 0.9,
+    "density": "cozy"
+  }
+}

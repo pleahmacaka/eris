@@ -1,0 +1,28 @@
+{
+  "id": "arix",
+  "name": "Arix",
+  "author": "Eris",
+  "description": "The Eris default: flat near-black with soft corners and a violet accent.",
+  "swatch": [
+    "#131018",
+    "#ac89e8",
+    "#e8e7ed"
+  ],
+  "tags": [
+    "official",
+    "dark",
+    "minimal"
+  ],
+  "appearance": {
+    "mode": "dark",
+    "background": "solid",
+    "useSystemAccent": false,
+    "accentHue": 300,
+    "accentSpread": 0,
+    "vividness": 0.07,
+    "texture": 0,
+    "radius": 0.65,
+    "blur": 1,
+    "density": "cozy"
+  }
+}

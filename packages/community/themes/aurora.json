@@ -1,0 +1,28 @@
+{
+  "id": "aurora",
+  "name": "Aurora",
+  "author": "Eris",
+  "description": "Soft light drifting over deep blue, following your system mode.",
+  "swatch": [
+    "#1b1b26",
+    "#5b8def",
+    "#a9c7ff"
+  ],
+  "tags": [
+    "official",
+    "modern",
+    "cool"
+  ],
+  "appearance": {
+    "mode": "system",
+    "background": "aura",
+    "useSystemAccent": true,
+    "accentHue": 215,
+    "accentSpread": 14,
+    "vividness": 0.06,
+    "texture": 0.3,
+    "radius": 1,
+    "blur": 1,
+    "density": "cozy"
+  }
+}
