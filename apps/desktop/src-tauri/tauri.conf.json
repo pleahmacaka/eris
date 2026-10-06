@@ -89,7 +89,7 @@
         "url": "/panel",
         "title": "Eris Panel",
         "width": 900,
-        "height": 620,
+        "height": 700,
         "resizable": false,
         "transparent": true,
         "decorations": false,

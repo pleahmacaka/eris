@@ -51,7 +51,11 @@ export type View =
 
 export type ScopeMode = "edit" | "delete"
 
-type Asking = { mode: ScopeMode; answer: (scope: Scope | null) => void }
+type Asking = {
+  mode: ScopeMode
+  scoped: boolean
+  answer: (scope: Scope | null) => void
+}
 
 const GRID_DAYS = 42
 
@@ -129,7 +133,16 @@ export class Panel {
     eventsByDay(this.shown, this.weeks[0][0], GRID_DAYS, this.isHoliday),
   )
 
-  dayEvents = $derived(eventsOn(this.shown, this.selected, this.isHoliday))
+  orderedDay = (day: Date) => {
+    const list = eventsOn(this.shown, day, this.isHoliday)
+    const allDay = list
+      .filter(e => e.allDay)
+      .sort((a, b) => (a.order ?? a.createdAt) - (b.order ?? b.createdAt))
+
+    return [...allDay, ...list.filter(e => !e.allDay)]
+  }
+
+  dayEvents = $derived(this.orderedDay(this.selected))
 
   range = $derived(
     this.view.kind === "new" && this.view.span > 0
@@ -278,17 +291,47 @@ export class Panel {
 
   showNotes = () => this.go({ kind: "notes" })
 
-  askScope = (mode: ScopeMode) =>
+  askScope = (mode: ScopeMode, scoped = true) =>
     new Promise<Scope | null>(resolve => {
       this.asking?.answer(null)
       this.asking = {
         mode,
+        scoped,
         answer: scope => {
           this.asking = null
           resolve(scope)
         },
       }
     })
+
+  reorderDay = async (fromId: string, toId: string, after: boolean) => {
+    if (fromId === toId) {
+      return
+    }
+
+    const allDay = this.dayEvents.filter(e => e.allDay)
+    const from = allDay.findIndex(e => e.id === fromId)
+
+    if (from < 0 || !allDay.some(e => e.id === toId)) {
+      return
+    }
+
+    const next = [...allDay]
+    const [moved] = next.splice(from, 1)
+    const target = next.findIndex(e => e.id === toId)
+
+    next.splice(after ? target + 1 : target, 0, moved)
+
+    await Promise.all(
+      next.map((occ, index) => {
+        const base = this.shown.find(e => e.id === occ.id)
+
+        return base && base.order !== index
+          ? events.put({ ...base, order: index, updatedAt: Date.now() })
+          : null
+      }),
+    )
+  }
 
   remove = async (event: Occurrence) => {
     if (event.seriesDate) {
@@ -300,6 +343,10 @@ export class Panel {
 
       await removeOccurrence(event, scope)
     } else {
+      if (!(await this.askScope("delete", false))) {
+        return
+      }
+
       await events.remove(event.id)
     }
 

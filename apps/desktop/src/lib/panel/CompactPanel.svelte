@@ -25,7 +25,7 @@
   const selectedKey = $derived(dateKey(panel.selected))
 </script>
 
-<div class="grid w-[44rem] grid-cols-12 gap-3">
+<div class="grid w-[48rem] grid-cols-12 gap-3">
   <section
     {@attach morph.monthCard}
     class="panel-surface col-span-7 flex flex-col"
@@ -81,7 +81,7 @@
         {#each weekdays as weekday, index (index)}
           <span
             class={[
-              "py-1.5 text-center text-3xs font-medium",
+              "py-2 text-center text-2xs font-medium",
               panel.weekdayTone(panel.weeks[0][index]) ?? "text-base-content/45",
             ]}
           >
@@ -100,7 +100,7 @@
             <button
               type="button"
               class={[
-                "flex h-11 cursor-pointer flex-col items-center gap-1 rounded-xl pt-1.5",
+                "flex h-14 cursor-pointer flex-col items-center gap-1.5 rounded-xl pt-2",
                 "outline-none transition-colors duration-120",
                 "focus-visible:ring-2 focus-visible:ring-primary/50",
                 outside && "*:opacity-40",
@@ -113,7 +113,7 @@
             >
               <span
                 class={[
-                  "grid size-6 place-items-center rounded-lg text-xs tabular-nums",
+                  "grid size-7 place-items-center rounded-lg text-sm tabular-nums",
                   isToday
                     ? "bg-primary font-semibold text-primary-content"
                     : ["font-medium", panel.dayTone(day)],
@@ -122,11 +122,11 @@
                 {day.getDate()}
               </span>
 
-              <span class="flex h-1.5 items-center gap-0.5">
+              <span class="flex h-2 items-center gap-1">
                 {#each dayEvents.slice(0, DOTS) as event (event.id + event.start)}
                   <span
                     class={[
-                      "size-1 rounded-full",
+                      "size-1.5 rounded-full",
                       colorMeta[toColor(event.color)].chip,
                       isDone(event) && "opacity-30",
                     ]}

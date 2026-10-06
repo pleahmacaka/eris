@@ -23,7 +23,7 @@
     <div class="pane">
       <NotesPane items={panel.noteLive.items} back={panel.close} />
     </div>
-  {:else if panel.detailOpen}
+  {:else if panel.detailOpen && compact}
     {#key detailKey}
       <div class="pane">
         <EventDetail {panel} />
@@ -38,6 +38,7 @@
   {#if panel.asking}
     <ScopeSheet
       mode={panel.asking.mode}
+      scoped={panel.asking.scoped}
       choose={panel.asking.answer}
       cancel={() => panel.asking?.answer(null)}
     />
