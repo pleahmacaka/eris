@@ -1,9 +1,18 @@
-import { type Appearance, defaultAppearance } from "@eris/settings"
+import {
+  type Appearance,
+  defaultAppearance,
+  WINDOW_BACKGROUNDS,
+} from "@eris/settings"
+
+const SURFACE = ["inherit", "aura", "glass", "solid"]
 
 const CHOICES: Partial<Record<keyof Appearance, string[]>> = {
   mode: ["dark", "light", "system"],
   background: ["aura", "glass", "solid"],
-  dockBackground: ["inherit", "aura", "glass", "solid"],
+  dockBackground: SURFACE,
+  ...Object.fromEntries(
+    Object.values(WINDOW_BACKGROUNDS).map(key => [key, SURFACE]),
+  ),
   density: ["compact", "cozy"],
 }
 

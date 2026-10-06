@@ -10,6 +10,7 @@
     loadProfile,
     onDevice,
     onProfile,
+    type WindowSurface,
   } from "@eris/settings"
   import { applyAppearance } from "$lib/theme"
   import { fadeShell } from "$lib/motion"
@@ -27,7 +28,22 @@
 
   addCollection(lucideSubset)
 
+  const WINDOWS: Record<string, WindowSurface> = {
+    "": "launcher",
+    panel: "panel",
+    settings: "settings",
+    notices: "notices",
+    files: "files",
+    terminal: "terminal",
+  }
+
   const favicon = `data:image/svg+xml,${encodeURIComponent(logoSvg())}`
+
+  const surface = WINDOWS[page.route.id?.split("/")[1] ?? ""]
+
+  if (surface) {
+    document.documentElement.dataset.window = surface
+  }
 
   const appWindow = getCurrentWindow()
   const windowLabel = appWindow.label as WindowLabel

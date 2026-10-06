@@ -51,26 +51,6 @@
     display: none;
   }
 
-  :root[data-surface="dock"][data-background="glass"] .siri-aura {
-    background:
-      radial-gradient(
-        90% 60% at 18% 0%,
-        oklch(80% var(--vividness) var(--accent-hue) / 0.28),
-        transparent 60%
-      ),
-      radial-gradient(
-        80% 60% at 100% 100%,
-        oklch(70% var(--vividness) calc(var(--accent-hue) + var(--accent-spread)) / 0.18),
-        transparent 60%
-      ),
-      linear-gradient(
-        160deg,
-        color-mix(in oklch, var(--color-base-100) 82%, transparent),
-        color-mix(in oklch, var(--color-base-200) 74%, transparent)
-      );
-    mask-image: none;
-  }
-
   :root[data-background="glass"]:is([data-surface="dock"], [data-surface="overlay"])
     .siri-shell {
     box-shadow: inset 0 0 0 1px

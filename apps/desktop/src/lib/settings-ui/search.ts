@@ -64,6 +64,36 @@ export const index: SearchEntry[] = [
   entry("appearance", "followAccent", "accent color system"),
   entry("appearance", "accentHue", "color"),
   entry("appearance", "colorSpread", "hue accent"),
+  entry(
+    "appearance",
+    "launcherBackground",
+    "window background aura glass solid modern standard launcher",
+  ),
+  entry(
+    "appearance",
+    "panelBackground",
+    "window background aura glass solid modern standard calendar panel",
+  ),
+  entry(
+    "appearance",
+    "settingsBackground",
+    "window background aura glass solid modern standard settings",
+  ),
+  entry(
+    "appearance",
+    "noticesBackground",
+    "window background aura glass solid modern standard notifications",
+  ),
+  entry(
+    "appearance",
+    "filesBackground",
+    "window background aura glass solid modern standard files explorer",
+  ),
+  entry(
+    "appearance",
+    "terminalBackground",
+    "window background aura glass solid modern standard terminal",
+  ),
   entry("appearance", "vividness", "saturation color"),
   entry("appearance", "background", "aura glass solid surface"),
   entry("appearance", "windowOpacity", "transparency translucent alpha"),

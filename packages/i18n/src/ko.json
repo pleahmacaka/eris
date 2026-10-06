@@ -130,7 +130,11 @@
       "claude": "Claude 사용량",
       "syncGeneral": "기본",
       "erisFiles": "Eris Files",
-      "eventTags": "일정 태그"
+      "eventTags": "일정 태그",
+      "windowBackgrounds": {
+        "title": "창별 배경",
+        "description": "창마다 다른 배경을 지정합니다."
+      }
     },
     "rows": {
       "deviceName": "장치 이름",
@@ -251,7 +255,13 @@
       "islandGap": "아일랜드 간격",
       "dockIcon": "독 아이콘",
       "gatherHideMs": "숨김 애니메이션 시간",
-      "gatherShowMs": "표시 애니메이션 시간"
+      "gatherShowMs": "표시 애니메이션 시간",
+      "launcherBackground": "런처",
+      "panelBackground": "캘린더 패널",
+      "settingsBackground": "설정",
+      "noticesBackground": "알림",
+      "filesBackground": "Eris Files",
+      "terminalBackground": "Eris Terminal"
     },
     "hints": {
       "deviceName": "동기화한 다른 장치에 표시되는 이름입니다.",
@@ -377,9 +387,9 @@
       "dark": "다크",
       "light": "라이트",
       "system": "시스템",
-      "aura": "오라",
+      "aura": "모던",
       "glass": "글래스",
-      "solid": "단색",
+      "solid": "일반",
       "cozy": "여유",
       "compact": "조밀",
       "minBefore": "{minutes}분 전",

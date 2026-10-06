@@ -143,6 +143,12 @@ export type Appearance = {
   surfaceOpacity: number
   dockOpacity: number
   dockBackground: DockBackground
+  launcherBackground: DockBackground
+  panelBackground: DockBackground
+  settingsBackground: DockBackground
+  noticesBackground: DockBackground
+  filesBackground: DockBackground
+  terminalBackground: DockBackground
   dockBlur: number
   dockRadius: number
   dockBorder: boolean
@@ -189,6 +195,12 @@ export const defaultAppearance: Appearance = {
   surfaceOpacity: 1,
   dockOpacity: 1,
   dockBackground: "inherit",
+  launcherBackground: "inherit",
+  panelBackground: "inherit",
+  settingsBackground: "inherit",
+  noticesBackground: "inherit",
+  filesBackground: "inherit",
+  terminalBackground: "inherit",
   dockBlur: 1,
   dockRadius: 1,
   dockBorder: true,
@@ -318,9 +330,24 @@ export const presetAppearances: Record<string, Appearance> = {
   }),
 }
 
+export const WINDOW_BACKGROUNDS = {
+  launcher: "launcherBackground",
+  panel: "panelBackground",
+  settings: "settingsBackground",
+  notices: "noticesBackground",
+  files: "filesBackground",
+  terminal: "terminalBackground",
+} as const satisfies Record<string, keyof Appearance>
+
+export type WindowSurface = keyof typeof WINDOW_BACKGROUNDS
+
+const WINDOW_KEYS: string[] = Object.values(WINDOW_BACKGROUNDS)
+
 const dockLook = (appearance?: Partial<Appearance>) =>
   Object.fromEntries(
-    Object.entries(appearance ?? {}).filter(([key]) => key.startsWith("dock")),
+    Object.entries(appearance ?? {}).filter(
+      ([key]) => key.startsWith("dock") || WINDOW_KEYS.includes(key),
+    ),
   )
 
 export const defaultProfile: Profile = {
@@ -694,12 +721,28 @@ const syncNativeGlass = async (on: boolean, restingShadow: boolean) => {
   await current.setShadow(restingShadow)
 }
 
+const isWindowSurface = (name: string | undefined): name is WindowSurface =>
+  name !== undefined && Object.hasOwn(WINDOW_BACKGROUNDS, name)
+
+const surfaceBackground = (a: Appearance, root: HTMLElement): Background => {
+  const name = root.dataset.window
+  const own =
+    root.dataset.surface === "dock"
+      ? a.dockBackground
+      : isWindowSurface(name)
+        ? a[WINDOW_BACKGROUNDS[name]]
+        : "inherit"
+
+  return own === "inherit" ? a.background : own
+}
+
 export const applyAppearance = async (
   a: Appearance,
   { restingShadow = false }: { restingShadow?: boolean } = {},
 ) => {
   const root = document.documentElement
   const dock = root.dataset.surface === "dock"
+  const background = surfaceBackground(a, root)
   const systemHue = a.useSystemAccent
     ? await systemAccentHue().catch(() => null)
     : null
@@ -707,8 +750,7 @@ export const applyAppearance = async (
 
   root.dataset.theme = mode === "light" ? "eris-light" : "eris"
   root.dataset.mode = mode
-  root.dataset.background =
-    dock && a.dockBackground !== "inherit" ? a.dockBackground : a.background
+  root.dataset.background = background
   root.dataset.density = a.density
   root.dataset.motion = String(a.motion)
   root.dataset.dockBorder = String(a.dockBorder)
@@ -731,7 +773,7 @@ export const applyAppearance = async (
   }
 
   if (root.dataset.surface === "window") {
-    const glass = a.background === "glass"
+    const glass = background === "glass"
 
     root.dataset.frame = glass || restingShadow ? "native" : "css"
 

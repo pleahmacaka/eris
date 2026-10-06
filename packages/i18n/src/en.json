@@ -130,7 +130,11 @@
       "claude": "Claude usage",
       "syncGeneral": "General",
       "erisFiles": "Eris Files",
-      "eventTags": "Event tags"
+      "eventTags": "Event tags",
+      "windowBackgrounds": {
+        "title": "Per-window backgrounds",
+        "description": "Give each window its own background"
+      }
     },
     "rows": {
       "deviceName": "Device name",
@@ -251,7 +255,13 @@
       "islandGap": "Island spacing",
       "dockIcon": "Dock icon",
       "gatherHideMs": "Hide duration",
-      "gatherShowMs": "Show duration"
+      "gatherShowMs": "Show duration",
+      "launcherBackground": "Launcher",
+      "panelBackground": "Calendar panel",
+      "settingsBackground": "Settings",
+      "noticesBackground": "Notifications",
+      "filesBackground": "Eris Files",
+      "terminalBackground": "Eris Terminal"
     },
     "hints": {
       "deviceName": "The name other synced devices see",
@@ -377,9 +387,9 @@
       "dark": "Dark",
       "light": "Light",
       "system": "System",
-      "aura": "Aura",
+      "aura": "Modern",
       "glass": "Glass",
-      "solid": "Solid",
+      "solid": "Standard",
       "cozy": "Cozy",
       "compact": "Compact",
       "minBefore": "{minutes} min before",
