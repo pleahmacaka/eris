@@ -10,20 +10,22 @@ name = "files_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [dependencies]
-eris-style = { version = "0.1.0", path = "../../../packages/eris-style" }
 serde_json = "1"
 tauri = { version = "2.11.3", features = ["protocol-asset"] }
 tauri-plugin-clipboard-manager = "2.3.3"
 tauri-plugin-deep-link = "2"
 tauri-plugin-dialog = "2.7.3"
-tauri-plugin-eris-auth = { version = "0.1.0", path = "../../../packages/auth/plugin" }
 tauri-plugin-eris-files = { version = "0.1.0", path = "../../../packages/files/plugin" }
-tauri-plugin-eris-terminal = { version = "0.1.0", path = "../../../packages/terminal/plugin" }
-tauri-plugin-single-instance = { version = "2.4.4", features = ["deep-link"] }
-windows = { version = "0.62.2", features = ["Win32_UI_WindowsAndMessaging"] }
 
 [build-dependencies]
 tauri-build = { version = "2.6.3", features = [] }
 
 [target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
 tauri-plugin-barcode-scanner = "2"
+
+[target."cfg(windows)".dependencies]
+eris-style = { version = "0.1.0", path = "../../../packages/eris-style" }
+tauri-plugin-eris-auth = { version = "0.1.0", path = "../../../packages/auth/plugin" }
+tauri-plugin-eris-terminal = { version = "0.1.0", path = "../../../packages/terminal/plugin" }
+tauri-plugin-single-instance = { version = "2.4.4", features = ["deep-link"] }
+windows = { version = "0.62.2", features = ["Win32_UI_WindowsAndMessaging"] }

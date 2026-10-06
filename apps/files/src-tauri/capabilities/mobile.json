@@ -1,0 +1,20 @@
+{
+  "$schema": "../gen/schemas/mobile-schema.json",
+  "identifier": "mobile",
+  "description": "Phone share window",
+  "platforms": [
+    "android",
+    "iOS"
+  ],
+  "windows": [
+    "files-*"
+  ],
+  "permissions": [
+    "core:default",
+    "clipboard-manager:allow-read-text",
+    "clipboard-manager:allow-write-text",
+    "dialog:allow-open",
+    "eris-files:default",
+    "barcode-scanner:default"
+  ]
+}

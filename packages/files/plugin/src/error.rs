@@ -1,9 +1,11 @@
 use serde::{Serialize, Serializer};
+#[cfg(windows)]
 use windows::Win32::Foundation::{
     ERROR_ACCESS_DENIED, ERROR_CANCELLED, ERROR_DIRECTORY, ERROR_FILE_NOT_FOUND,
     ERROR_INVALID_NAME, ERROR_NOT_READY, ERROR_PATH_NOT_FOUND, WIN32_ERROR,
 };
 
+#[cfg(windows)]
 const USER_CANCELLED: windows::core::HRESULT = windows::core::HRESULT(0x8027_0000_u32 as i32);
 
 #[derive(Debug)]
@@ -79,6 +81,7 @@ impl Serialize for Error {
     }
 }
 
+#[cfg(windows)]
 impl From<windows::core::Error> for Error {
     fn from(error: windows::core::Error) -> Self {
         let code = error.code();
@@ -112,6 +115,7 @@ impl From<windows::core::Error> for Error {
     }
 }
 
+#[cfg(windows)]
 impl From<WIN32_ERROR> for Error {
     fn from(error: WIN32_ERROR) -> Self {
         windows::core::Error::from(error.to_hresult()).into()
