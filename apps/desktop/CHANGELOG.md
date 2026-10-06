@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.3.7](https://github.com/pleahmacaka/eris/compare/0.3.6...0.3.7) (2026-10-06)
+
+
+### Features
+
+* **appearance:** per-window backgrounds and new glass ([6ce3df1](https://github.com/pleahmacaka/eris/commit/6ce3df147bf54f17c91d6c25370ba613aca4aca8))
+* **auth:** keep sessions in the system keychain on linux and macos ([d11ca10](https://github.com/pleahmacaka/eris/commit/d11ca1011b528e1ee3808d461df1d5956889a1a7))
+* **calendar:** task events, inline editor and note link ([9b844eb](https://github.com/pleahmacaka/eris/commit/9b844ebb1f99897615b29dde0d7c8c6ab09e9d4e))
+* **desktop:** share the eris style with note ([2a4d1d8](https://github.com/pleahmacaka/eris/commit/2a4d1d8dedd4ec2b739e9d6b5b9478428b3de649))
+* **dock:** open sound settings from the volume popup ([c3ae8f3](https://github.com/pleahmacaka/eris/commit/c3ae8f315b09da1f6f2072f7cc7e94dc29a7210f))
+* **dock:** reveal the hidden dock only at the screen edge ([77d5db7](https://github.com/pleahmacaka/eris/commit/77d5db7edab04b6e5d2935f16eb0eac14723ccb3))
+* **files:** browse other devices' files with their approval ([af0c52c](https://github.com/pleahmacaka/eris/commit/af0c52c1e2ea2e3d23c066b80fbe413c032d67a7))
+* **files:** build for android ([a8e7d4c](https://github.com/pleahmacaka/eris/commit/a8e7d4c8c770c8ea3265716ae2ce4e568c62f153))
+* **files:** let long-standing devices remove newer ones ([099ef82](https://github.com/pleahmacaka/eris/commit/099ef82683e18b5c0cfddd224d87b764b1c43448))
+* give files, terminal and studio their own icons ([ee3c33b](https://github.com/pleahmacaka/eris/commit/ee3c33b6d87aa8a584fc9c482ee0fd7b0ffec9d2))
+* **launcher:** add power actions to the menu ([cf6c927](https://github.com/pleahmacaka/eris/commit/cf6c927c13a602894d4a91a7d2c314a621df3ec8))
+* **note:** redesign the calendar for phones ([1e31c4d](https://github.com/pleahmacaka/eris/commit/1e31c4d54d11bcf5c1697846b3e904cfee501657))
+* **note:** remake the settings page ([14e42ad](https://github.com/pleahmacaka/eris/commit/14e42ad3d2dd44e77ef83085a73f97835f3182ce))
+* run files and terminal on linux and macos ([ab478e4](https://github.com/pleahmacaka/eris/commit/ab478e4ed259f97f1a57930205727bbe80025f66))
+* **studio:** work in release builds and publish themes ([aca4c68](https://github.com/pleahmacaka/eris/commit/aca4c689998aaca1580a2eb7bd35766290765b16))
+* **sync:** let long-standing devices remove newer ones ([72364e1](https://github.com/pleahmacaka/eris/commit/72364e1e3f7137c419cd4fabaaf7b3cd5f62daf7))
+
+
+### Bug Fixes
+
+* **desktop:** use the eris logo as favicon ([e92e2ba](https://github.com/pleahmacaka/eris/commit/e92e2ba1deeae7dc8712b4018d08d76e4b43506a))
+* **note:** drop the scrambling titles and make section headers readable ([69312e5](https://github.com/pleahmacaka/eris/commit/69312e5dc9768ae16e7e7887c032bfd25d212caa))
+* shorten Note and site copy to plain statements ([545e4b2](https://github.com/pleahmacaka/eris/commit/545e4b23266bf7037d668d3cf945a15138e0a281))
+* **terminal:** pass wheel and paste chords to tui apps ([492adb7](https://github.com/pleahmacaka/eris/commit/492adb7533733da65d3a4588e1fc9c83fb2ccafb))
+
 ## [0.3.6](https://github.com/pleahmacaka/eris/compare/0.3.5...0.3.6) (2026-10-04)
 
 
