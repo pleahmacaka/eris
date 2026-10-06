@@ -9,11 +9,56 @@ import { conformed } from "./engine"
 const POLL = 15_000
 const DEBOUNCE = 1_000
 
+const TOKENS = [
+  "base-100",
+  "base-200",
+  "base-300",
+  "base-content",
+  "primary",
+  "primary-content",
+  "secondary",
+  "secondary-content",
+  "accent",
+  "accent-content",
+  "neutral",
+  "neutral-content",
+]
+
 const linked = (device: DeviceSettings) =>
   device.note.enabled && device.note.calendar
 
+const styleOf = (device: DeviceSettings) => {
+  const follow = device.note.enabled && device.note.style
+
+  if (!follow) {
+    return { version: 1, follow }
+  }
+
+  const probe = document.createElement("span")
+
+  document.body.append(probe)
+
+  const colors = Object.fromEntries(
+    TOKENS.map(token => {
+      probe.style.color = `var(--color-${token})`
+
+      return [token, getComputedStyle(probe).color]
+    }),
+  )
+
+  probe.remove()
+
+  return {
+    version: 1,
+    follow,
+    mode: document.documentElement.dataset.mode ?? "dark",
+    colors,
+  }
+}
+
 export const startNoteLink = () => {
   let published = ""
+  let styled = ""
   let received = ""
   let timer: ReturnType<typeof setTimeout> | undefined
 
@@ -33,7 +78,16 @@ export const startNoteLink = () => {
 
     if (text !== published) {
       published = text
-      await noteBridgePublish(text)
+      await noteBridgePublish("events.json", text)
+    }
+  }
+
+  const publishStyle = async () => {
+    const text = JSON.stringify(styleOf(await ensureDevice()))
+
+    if (text !== styled) {
+      styled = text
+      await noteBridgePublish("style.json", text)
     }
   }
 
@@ -65,6 +119,8 @@ export const startNoteLink = () => {
     pull()
       .then(publish)
       .catch(() => undefined)
+
+    publishStyle().catch(() => undefined)
   }
 
   tick()

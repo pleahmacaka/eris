@@ -11,6 +11,7 @@ const PAGE_LIMIT: usize = 20;
 const SCAN_LIMIT: usize = 20_000;
 // arixlab-note reads and writes this same path under its own data folder; change both apps together
 const BRIDGE_FILE: &str = r"bridge\events.json";
+const PUBLISHED: [&str; 2] = ["events.json", "style.json"];
 const NOTE_ID: &str = "com.arixlab.note";
 
 #[derive(Deserialize)]
@@ -144,19 +145,24 @@ pub fn note_pages(query: String) -> Vec<NotePage> {
 }
 
 #[tauri::command(async)]
-pub fn note_bridge_publish(app: AppHandle, snapshot: String) -> Result<(), String> {
+pub fn note_bridge_publish(app: AppHandle, name: String, text: String) -> Result<(), String> {
+    if !PUBLISHED.contains(&name.as_str()) {
+        return Err("unknown bridge file".into());
+    }
+
     let file = app
         .path()
         .app_data_dir()
         .map_err(|e| e.to_string())?
-        .join(BRIDGE_FILE);
+        .join("bridge")
+        .join(name);
     let staged = file.with_extension("json.tmp");
 
     if let Some(folder) = file.parent() {
         std::fs::create_dir_all(folder).map_err(|e| e.to_string())?;
     }
 
-    std::fs::write(&staged, snapshot).map_err(|e| e.to_string())?;
+    std::fs::write(&staged, text).map_err(|e| e.to_string())?;
     std::fs::rename(&staged, &file).map_err(|e| e.to_string())
 }
 
