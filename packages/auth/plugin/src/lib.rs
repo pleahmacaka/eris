@@ -72,6 +72,17 @@ fn take_callback() -> Option<String> {
     PENDING.lock().unwrap().take()
 }
 
+#[cfg(not(windows))]
+#[tauri::command]
+fn open_authorize(url: String) -> Result<(), String> {
+    if !url.starts_with(&format!("{PROJECT}/auth/v1/authorize?")) {
+        return Err("invalid".into());
+    }
+
+    open::that_detached(url).map_err(|_| "unreachable".to_string())
+}
+
+#[cfg(windows)]
 #[tauri::command]
 fn open_authorize(url: String) -> Result<(), String> {
     use windows::core::{w, HSTRING};

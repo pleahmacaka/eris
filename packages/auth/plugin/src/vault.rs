@@ -1,6 +1,8 @@
 use std::path::{Path, PathBuf};
 
+#[cfg(windows)]
 use windows::Win32::Foundation::{LocalFree, HLOCAL};
+#[cfg(windows)]
 use windows::Win32::Security::Cryptography::{
     CryptProtectData, CryptUnprotectData, CRYPTPROTECT_UI_FORBIDDEN, CRYPT_INTEGER_BLOB,
 };
@@ -19,6 +21,7 @@ fn file(folder: &Path, key: &str) -> Result<PathBuf, String> {
     }
 }
 
+#[cfg(windows)]
 fn blob(bytes: &[u8]) -> CRYPT_INTEGER_BLOB {
     CRYPT_INTEGER_BLOB {
         cbData: bytes.len() as u32,
@@ -26,6 +29,7 @@ fn blob(bytes: &[u8]) -> CRYPT_INTEGER_BLOB {
     }
 }
 
+#[cfg(windows)]
 fn take(output: CRYPT_INTEGER_BLOB) -> Vec<u8> {
     let bytes = unsafe { std::slice::from_raw_parts(output.pbData, output.cbData as usize) }.to_vec();
 
@@ -36,6 +40,7 @@ fn take(output: CRYPT_INTEGER_BLOB) -> Vec<u8> {
     bytes
 }
 
+#[cfg(windows)]
 fn seal(plain: &[u8]) -> Result<Vec<u8>, String> {
     let mut output = CRYPT_INTEGER_BLOB::default();
 
@@ -55,6 +60,7 @@ fn seal(plain: &[u8]) -> Result<Vec<u8>, String> {
     Ok(take(output))
 }
 
+#[cfg(windows)]
 fn open(sealed: &[u8]) -> Result<Vec<u8>, String> {
     let mut output = CRYPT_INTEGER_BLOB::default();
 
@@ -74,6 +80,7 @@ fn open(sealed: &[u8]) -> Result<Vec<u8>, String> {
     Ok(take(output))
 }
 
+#[cfg(windows)]
 pub fn load(folder: &Path, key: &str) -> Result<Option<String>, String> {
     let Ok(sealed) = std::fs::read(file(folder, key)?) else {
         return Ok(None);
@@ -84,6 +91,7 @@ pub fn load(folder: &Path, key: &str) -> Result<Option<String>, String> {
         .and_then(|plain| String::from_utf8(plain).ok()))
 }
 
+#[cfg(windows)]
 pub fn store(folder: &Path, key: &str, value: &str) -> Result<(), String> {
     let target = file(folder, key)?;
     let partial = target.with_extension("tmp");
@@ -95,6 +103,35 @@ pub fn store(folder: &Path, key: &str, value: &str) -> Result<(), String> {
     std::fs::rename(&partial, &target).map_err(|e| e.to_string())
 }
 
+#[cfg(not(windows))]
+fn entry(folder: &Path, key: &str) -> Result<keyring::Entry, String> {
+    file(folder, key)?;
+
+    // Eris, Files and Terminal read the same entries, so this service name must not change
+    keyring::Entry::new("com.arixlab.eris.auth", key).map_err(|e| e.to_string())
+}
+
+#[cfg(not(windows))]
+pub fn load(folder: &Path, key: &str) -> Result<Option<String>, String> {
+    Ok(entry(folder, key)?.get_password().ok())
+}
+
+#[cfg(not(windows))]
+pub fn store(folder: &Path, key: &str, value: &str) -> Result<(), String> {
+    entry(folder, key)?
+        .set_password(value)
+        .map_err(|e| e.to_string())
+}
+
+#[cfg(not(windows))]
+pub fn forget(folder: &Path, key: &str) -> Result<(), String> {
+    match entry(folder, key)?.delete_credential() {
+        Err(keyring::Error::NoEntry) | Ok(()) => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+#[cfg(windows)]
 pub fn forget(folder: &Path, key: &str) -> Result<(), String> {
     match std::fs::remove_file(file(folder, key)?) {
         Err(e) if e.kind() != std::io::ErrorKind::NotFound => Err(e.to_string()),
@@ -102,7 +139,7 @@ pub fn forget(folder: &Path, key: &str) -> Result<(), String> {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, windows))]
 mod tests {
     use super::{forget, load, store};
 
