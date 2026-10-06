@@ -2,8 +2,19 @@
   import Icon from "@iconify/svelte"
   import type { LogEntry } from "./bus"
 
-  let { entries, onclear }: { entries: LogEntry[]; onclear: () => void } =
-    $props()
+  type Side = "bottom" | "right"
+
+  let {
+    entries,
+    side,
+    onside,
+    onclear,
+  }: {
+    entries: LogEntry[]
+    side: Side
+    onside: (side: Side) => void
+    onclear: () => void
+  } = $props()
 
   let filter = $state("")
 
@@ -28,16 +39,16 @@
 </script>
 
 <section class="flex min-h-0 flex-col">
-  <header class="flex items-center gap-2 px-3 py-2">
+  <header class="flex flex-wrap items-center gap-2 px-3 py-2">
     <Icon icon="lucide:scroll-text" class="size-4 text-base-content/60" />
 
-    <h2 class="text-sm font-semibold">IPC log</h2>
+    <h2 class="text-sm font-semibold whitespace-nowrap">IPC log</h2>
 
     <span class="text-xs text-base-content/50 tabular-nums">{entries.length}</span>
 
     <span class="grow"></span>
 
-    <label class="input input-xs w-56">
+    <label class="input input-xs w-56 min-w-0 shrink">
       <Icon icon="lucide:search" class="size-3 shrink-0 opacity-50" />
 
       <input
@@ -52,6 +63,19 @@
 
     <button type="button" class="btn btn-ghost btn-xs" onclick={onclear}>
       Clear
+    </button>
+
+    <button
+      type="button"
+      class="btn btn-ghost btn-square btn-xs"
+      aria-label={side === "bottom" ? "Dock to the right" : "Dock to the bottom"}
+      title={side === "bottom" ? "Dock to the right" : "Dock to the bottom"}
+      onclick={() => onside(side === "bottom" ? "right" : "bottom")}
+    >
+      <Icon
+        icon={side === "bottom" ? "lucide:panel-right" : "lucide:panel-bottom"}
+        class="size-3.5"
+      />
     </button>
   </header>
 

@@ -76,6 +76,7 @@ export type CommunityCopy = {
     publish: string
     save: string
     cancel: string
+    openStudio: string
     signIn: string
     rateLimited: string
     failed: string
@@ -173,6 +174,7 @@ const en: CommunityCopy = {
     publish: "Publish",
     save: "Save",
     cancel: "Cancel",
+    openStudio: "Edit in Studio",
     signIn: "Sign in to publish",
     rateLimited: "Publishing limit reached. Try again later.",
     failed: "Publishing failed",
@@ -274,6 +276,7 @@ const ko: CommunityCopy = {
     publish: "게시",
     save: "저장",
     cancel: "취소",
+    openStudio: "Studio에서 편집",
     signIn: "로그인 후 게시",
     rateLimited: "게시 한도를 넘었습니다. 잠시 후 다시 시도하세요.",
     failed: "게시 실패",
