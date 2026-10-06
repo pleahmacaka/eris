@@ -226,7 +226,12 @@ impl Node {
 
         asking
             .into_iter()
-            .filter_map(|id| Some(Member { name: self.member_name(&id)?, id }))
+            .filter_map(|id| {
+                Some(Member {
+                    name: self.member_name(&id)?,
+                    id,
+                })
+            })
             .collect()
     }
 
@@ -290,7 +295,11 @@ impl Node {
             .then_some(target)
     }
 
-    pub(super) async fn browsed(self: &Arc<Self>, remote: EndpointId, path: Option<String>) -> Reply {
+    pub(super) async fn browsed(
+        self: &Arc<Self>,
+        remote: EndpointId,
+        path: Option<String>,
+    ) -> Reply {
         if let Some(reply) = self.check(remote) {
             return reply;
         }

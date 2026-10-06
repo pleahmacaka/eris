@@ -7,11 +7,6 @@ use serde::{Deserialize, Serialize};
 use tauri::async_runtime::spawn_blocking;
 use tauri::ipc::Channel;
 use tokio::sync::mpsc;
-use windows::core::{HSTRING, PWSTR};
-use windows::Win32::Security::Credentials::{
-    CredDeleteW, CredFree, CredReadW, CredWriteW, CREDENTIALW, CRED_PERSIST_LOCAL_MACHINE,
-    CRED_TYPE_GENERIC,
-};
 
 use crate::audio::{self, Source};
 use crate::error::{Error, Result};
@@ -105,8 +100,8 @@ struct ProviderMessage {
     message: String,
 }
 
-fn target(provider: &str) -> HSTRING {
-    HSTRING::from(format!("Eris Files/transcription/{provider}"))
+fn target(provider: &str) -> String {
+    format!("Eris Files/transcription/{provider}")
 }
 
 fn known(provider: &str) -> Result<()> {
@@ -116,10 +111,24 @@ fn known(provider: &str) -> Result<()> {
     }
 }
 
+#[cfg(windows)]
 fn read_secret(provider: &str) -> Option<String> {
+    use windows::core::HSTRING;
+    use windows::Win32::Security::Credentials::{
+        CredFree, CredReadW, CREDENTIALW, CRED_TYPE_GENERIC,
+    };
+
     let mut found: *mut CREDENTIALW = std::ptr::null_mut();
 
-    unsafe { CredReadW(&target(provider), CRED_TYPE_GENERIC, None, &mut found) }.ok()?;
+    unsafe {
+        CredReadW(
+            &HSTRING::from(target(provider)),
+            CRED_TYPE_GENERIC,
+            None,
+            &mut found,
+        )
+    }
+    .ok()?;
 
     let secret = unsafe {
         let credential = &*found;
@@ -141,8 +150,14 @@ fn read_secret(provider: &str) -> Option<String> {
     String::from_utf8(secret).ok()
 }
 
+#[cfg(windows)]
 fn write_secret(provider: &str, secret: &str) -> Result<()> {
-    let name = target(provider);
+    use windows::core::{HSTRING, PWSTR};
+    use windows::Win32::Security::Credentials::{
+        CredWriteW, CREDENTIALW, CRED_PERSIST_LOCAL_MACHINE, CRED_TYPE_GENERIC,
+    };
+
+    let name = HSTRING::from(target(provider));
     let mut blob = secret.as_bytes().to_vec();
     let credential = CREDENTIALW {
         Type: CRED_TYPE_GENERIC,
@@ -154,6 +169,39 @@ fn write_secret(provider: &str, secret: &str) -> Result<()> {
     };
 
     Ok(unsafe { CredWriteW(&credential, 0) }?)
+}
+
+#[cfg(windows)]
+fn delete_secret(provider: &str) {
+    use windows::core::HSTRING;
+    use windows::Win32::Security::Credentials::{CredDeleteW, CRED_TYPE_GENERIC};
+
+    let _ = unsafe { CredDeleteW(&HSTRING::from(target(provider)), CRED_TYPE_GENERIC, None) };
+}
+
+#[cfg(not(windows))]
+fn entry(provider: &str) -> Option<keyring::Entry> {
+    keyring::Entry::new(&target(provider), "key").ok()
+}
+
+#[cfg(not(windows))]
+fn read_secret(provider: &str) -> Option<String> {
+    entry(provider)?.get_password().ok()
+}
+
+#[cfg(not(windows))]
+fn write_secret(provider: &str, secret: &str) -> Result<()> {
+    entry(provider)
+        .ok_or(Error::Unsupported)?
+        .set_password(secret)
+        .map_err(|error| Error::Os(error.to_string()))
+}
+
+#[cfg(not(windows))]
+fn delete_secret(provider: &str) {
+    if let Some(entry) = entry(provider) {
+        let _ = entry.delete_credential();
+    }
 }
 
 fn custom_base(input: &str) -> Result<String> {
@@ -223,7 +271,7 @@ pub fn save_transcribe_key(
 pub fn clear_transcribe_key(provider: String) -> Result<()> {
     known(&provider)?;
 
-    let _ = unsafe { CredDeleteW(&target(&provider), CRED_TYPE_GENERIC, None) };
+    delete_secret(&provider);
 
     Ok(())
 }

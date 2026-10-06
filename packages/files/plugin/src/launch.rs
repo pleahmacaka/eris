@@ -94,11 +94,14 @@ fn build(
         .open(&label, intent, builder)?;
 
     track(&window);
+
+    #[cfg(windows)]
     skip_open_animation(&window);
 
     Ok(window)
 }
 
+#[cfg(windows)]
 fn skip_open_animation(window: &WebviewWindow) {
     use windows::Win32::Foundation::TRUE;
     use windows::Win32::Graphics::Dwm::{DwmSetWindowAttribute, DWMWA_TRANSITIONS_FORCEDISABLED};

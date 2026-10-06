@@ -152,7 +152,8 @@ mod tests {
 
     #[test]
     fn finds_the_root_past_the_prolog() {
-        let head = "\u{feff}<?xml version=\"1.0\"?>\n<!-- robot -->\n<!DOCTYPE x>\n<mujoco model=\"x2\">";
+        let head =
+            "\u{feff}<?xml version=\"1.0\"?>\n<!-- robot -->\n<!DOCTYPE x>\n<mujoco model=\"x2\">";
 
         assert_eq!(root_element(head), Some("mujoco"));
         assert_eq!(root_element("<mujoco/>"), Some("mujoco"));

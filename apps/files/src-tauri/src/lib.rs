@@ -11,27 +11,27 @@ pub fn run() {
 
     let builder = tauri::Builder::default();
 
-    #[cfg(windows)]
+    #[cfg(desktop)]
     let builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
         tauri_plugin_eris_files::forward(app, args, cwd);
     }));
 
     let builder = builder.plugin(tauri_plugin_deep_link::init());
 
-    #[cfg(windows)]
-    let builder = builder.plugin(tauri_plugin_eris_auth::init("eris-files"));
+    #[cfg(desktop)]
+    let builder = builder
+        .plugin(tauri_plugin_eris_auth::init("eris-files"))
+        .plugin(tauri_plugin_eris_terminal::init("/terminal"));
 
     let builder = builder
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_dialog::init());
 
     #[cfg(windows)]
-    let builder = builder
-        .plugin(tauri_plugin_eris_terminal::init("/terminal"))
-        .invoke_handler(tauri::generate_handler![
-            eris_style::commands::eris_style,
-            eris_style::commands::system_accent
-        ]);
+    let builder = builder.invoke_handler(tauri::generate_handler![
+        eris_style::commands::eris_style,
+        eris_style::commands::system_accent
+    ]);
 
     #[cfg(mobile)]
     let builder = builder.plugin(tauri_plugin_barcode_scanner::init());
@@ -42,9 +42,10 @@ pub fn run() {
         ))
         .setup(|app| {
             #[cfg(windows)]
-            {
-                eris_style::watch(app.handle().clone());
+            eris_style::watch(app.handle().clone());
 
+            #[cfg(desktop)]
+            {
                 let args: Vec<String> = std::env::args().skip(1).collect();
                 let cwd = std::env::current_dir().unwrap_or_default();
 
@@ -53,7 +54,7 @@ pub fn run() {
                 }
             }
 
-            #[cfg(not(windows))]
+            #[cfg(mobile)]
             let _ = app;
 
             Ok(())

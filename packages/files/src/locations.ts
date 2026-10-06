@@ -10,17 +10,26 @@ export const HIDDEN = 0x2
 
 export const SYSTEM = 0x4
 
+export const WINDOWS =
+  typeof navigator === "undefined" || navigator.userAgent.includes("Windows")
+
+export const SEP = WINDOWS ? "\\" : "/"
+
+export const pathKey = (path: string) => (WINDOWS ? path.toLowerCase() : path)
+
 const trimSlashes = (path: string) => {
+  const floor = WINDOWS ? 0 : 1
   let end = path.length
 
-  while (end > 0 && path[end - 1] === "\\") {
+  while (end > floor && path[end - 1] === SEP) {
     end -= 1
   }
 
   return path.slice(0, end)
 }
 
-export const isUnc = (location: string) => location.startsWith("\\\\")
+export const isUnc = (location: string) =>
+  WINDOWS && location.startsWith("\\\\")
 
 const isServer = (location: string) =>
   isUnc(location) &&
@@ -37,7 +46,7 @@ const isDriveLetter = (path: string) =>
   path[0].toLowerCase() !== path[0].toUpperCase()
 
 export const isDriveRoot = (path: string) =>
-  isDriveLetter(path) && trimSlashes(path).length === 2
+  WINDOWS ? isDriveLetter(path) && trimSlashes(path).length === 2 : path === SEP
 
 export const normalize = (location: string) => {
   if (location.startsWith("::")) {
@@ -48,6 +57,10 @@ export const normalize = (location: string) => {
     return location
   }
 
+  if (!WINDOWS) {
+    return trimSlashes(location)
+  }
+
   const path = location.replaceAll("/", "\\")
 
   return isDriveRoot(path)
@@ -56,7 +69,7 @@ export const normalize = (location: string) => {
 }
 
 export const sameLocation = (a: string, b: string) =>
-  normalize(a).toLowerCase() === normalize(b).toLowerCase()
+  pathKey(normalize(a)) === pathKey(normalize(b))
 
 export const parentOf = (location: string): string | null => {
   if (isVirtual(location)) {
@@ -68,7 +81,11 @@ export const parentOf = (location: string): string | null => {
   }
 
   const path = trimSlashes(location)
-  const at = path.lastIndexOf("\\")
+  const at = path.lastIndexOf(SEP)
+
+  if (!WINDOWS) {
+    return at < 0 ? null : at === 0 ? SEP : path.slice(0, at)
+  }
 
   if (at <= 0) {
     return null
@@ -80,12 +97,12 @@ export const parentOf = (location: string): string | null => {
 }
 
 export const joinPath = (dir: string, name: string) =>
-  dir.endsWith("\\") ? `${dir}${name}` : `${dir}\\${name}`
+  dir.endsWith(SEP) ? `${dir}${name}` : `${dir}${SEP}${name}`
 
 export const baseName = (path: string) => {
   const trimmed = trimSlashes(path)
 
-  return trimmed.slice(trimmed.lastIndexOf("\\") + 1) || trimmed
+  return trimmed.slice(trimmed.lastIndexOf(SEP) + 1) || trimmed
 }
 
 export const extensionOf = (name: string) => {
@@ -95,6 +112,18 @@ export const extensionOf = (name: string) => {
 }
 
 export const segments = (path: string) => {
+  if (!WINDOWS) {
+    const parts = path.split(SEP).filter(Boolean)
+
+    return [
+      { name: SEP, path: SEP },
+      ...parts.map((name, index) => ({
+        name,
+        path: `${SEP}${parts.slice(0, index + 1).join(SEP)}`,
+      })),
+    ]
+  }
+
   const unc = isUnc(path)
   const parts = path.split("\\").filter(Boolean)
   const root = unc ? `\\\\${parts[0]}` : `${parts[0]}\\`

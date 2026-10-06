@@ -2,8 +2,9 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::io::BufReader;
+#[cfg(windows)]
 use std::os::windows::process::CommandExt;
-use std::path::{Component, Path, PathBuf};
+use std::path::{Component, Path, PathBuf, MAIN_SEPARATOR};
 use std::process::{Command, Stdio};
 
 use chrono::{Local, NaiveDate, NaiveDateTime, TimeZone};
@@ -11,8 +12,11 @@ use serde::{Deserialize, Serialize};
 use unarc_rs::date_time::DosDateTime;
 use unarc_rs::error::ArchiveError;
 use unarc_rs::unified::{ArchiveFormat, ArchiveOptions, UnifiedArchive};
+#[cfg(windows)]
 use windows::Win32::System::Threading::CREATE_NO_WINDOW;
+#[cfg(windows)]
 use winreg::enums::HKEY_LOCAL_MACHINE;
+#[cfg(windows)]
 use winreg::RegKey;
 
 use crate::error::{Error, Result};
@@ -44,6 +48,12 @@ pub enum Job {
     CompressEach,
 }
 
+#[cfg(not(windows))]
+fn bandizip() -> Option<PathBuf> {
+    None
+}
+
+#[cfg(windows)]
 fn bandizip() -> Option<PathBuf> {
     let folder: String = RegKey::predef(HKEY_LOCAL_MACHINE)
         .open_subkey(r"SOFTWARE\Bandizip")
@@ -59,13 +69,18 @@ fn bandizip() -> Option<PathBuf> {
 fn bz(command: &str, args: &[String]) -> Result<String> {
     let console = bandizip().ok_or(Error::Unsupported)?;
 
-    let output = Command::new(console)
+    let mut process = Command::new(console);
+
+    process
         .arg(command)
         .arg("-consolemode:utf8")
         .args(args)
-        .stdin(Stdio::null())
-        .creation_flags(CREATE_NO_WINDOW.0)
-        .output()?;
+        .stdin(Stdio::null());
+
+    #[cfg(windows)]
+    process.creation_flags(CREATE_NO_WINDOW.0);
+
+    let output = process.output()?;
 
     let text = String::from_utf8_lossy(&output.stdout).into_owned();
 
@@ -188,9 +203,11 @@ fn dos_millis(stamp: DosDateTime) -> u64 {
 }
 
 fn inner(name: &str) -> String {
-    name.replace('/', "\\")
-        .trim_start_matches(".\\")
-        .trim_matches('\\')
+    let joined = name.replace(['/', '\\'], &MAIN_SEPARATOR.to_string());
+
+    joined
+        .trim_start_matches(&format!(".{MAIN_SEPARATOR}"))
+        .trim_matches(MAIN_SEPARATOR)
         .to_string()
 }
 
@@ -236,7 +253,9 @@ fn described(entries: Vec<Packed>) -> Result<ArchiveListing> {
 
     for entry in entries.iter().filter(|entry| !entry.dir) {
         types
-            .entry(extension(entry.path.rsplit('\\').next().unwrap_or_default()))
+            .entry(extension(
+                entry.path.rsplit(MAIN_SEPARATOR).next().unwrap_or_default(),
+            ))
             .or_insert_with_key(|ext| type_name(ext, false));
     }
 
@@ -251,10 +270,7 @@ fn scratch(archive: &Path) -> Result<PathBuf> {
     let modified = archive.metadata()?.modified()?;
     let mut hasher = DefaultHasher::new();
 
-    archive
-        .to_string_lossy()
-        .to_lowercase()
-        .hash(&mut hasher);
+    archive.to_string_lossy().to_lowercase().hash(&mut hasher);
     modified.hash(&mut hasher);
 
     Ok(scratch_root().join(format!("{:016x}", hasher.finish())))

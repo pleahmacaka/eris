@@ -6,6 +6,7 @@ import {
   SHARED,
   sameLocation,
   THIS_PC,
+  WINDOWS,
 } from "../locations"
 import {
   type Drive,
@@ -50,7 +51,7 @@ export const driveLabel = (drive: Drive, translate: (key: string) => string) =>
   prefs.driveNames[drive.path] || systemLabel(drive, translate)
 
 export const driveName = (drive: Drive, translate: (key: string) => string) =>
-  `${driveLabel(drive, translate)} (${drive.path.slice(0, 2)})`
+  `${driveLabel(drive, translate)} (${WINDOWS ? drive.path.slice(0, 2) : drive.path})`
 
 export const nameDrive = (drive: Drive, name: string) => {
   const alias = name.trim()

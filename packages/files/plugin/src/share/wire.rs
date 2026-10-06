@@ -102,9 +102,15 @@ pub enum Request {
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase")]
 pub enum Reply {
-    Welcome { name: String },
-    Manifest { manifest: Manifest },
-    Index { entries: Vec<Entry> },
+    Welcome {
+        name: String,
+    },
+    Manifest {
+        manifest: Manifest,
+    },
+    Index {
+        entries: Vec<Entry>,
+    },
     Listing {
         path: Option<String>,
         entries: Vec<RemoteEntry>,

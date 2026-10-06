@@ -1,6 +1,6 @@
 import { isAudio } from "../filetypes"
 import { fromListing, iconPixels, iconSource } from "../items"
-import { isVirtual, normalize, sameLocation } from "../locations"
+import { isUnc, isVirtual, normalize, sameLocation } from "../locations"
 import { type Listing, listDir } from "../native"
 import { places } from "./places.svelte"
 
@@ -12,7 +12,7 @@ const WARM_ICONS = 40
 const cache = new Map<string, { at: number; listing: Promise<Listing> }>()
 
 const remote = (path: string) =>
-  path.startsWith("\\\\") ||
+  isUnc(path) ||
   places.drives.some(
     drive => !!drive.remote && sameLocation(drive.path, path.slice(0, 3)),
   )

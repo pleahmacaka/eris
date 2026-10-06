@@ -145,11 +145,13 @@ pub async fn share_browse(
     device: EndpointId,
     path: Option<String>,
 ) -> Result<Browsed> {
-    Ok(match node(&app)?.call(device, Request::Browse { path }).await? {
-        Reply::Listing { path, entries } => Browsed::Listing { path, entries },
-        Reply::Pending => Browsed::Pending,
-        _ => Browsed::Denied,
-    })
+    Ok(
+        match node(&app)?.call(device, Request::Browse { path }).await? {
+            Reply::Listing { path, entries } => Browsed::Listing { path, entries },
+            Reply::Pending => Browsed::Pending,
+            _ => Browsed::Denied,
+        },
+    )
 }
 
 #[tauri::command(async)]

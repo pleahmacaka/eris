@@ -1,4 +1,4 @@
-#[cfg(windows)]
+#[cfg(desktop)]
 use std::path::Path;
 
 use tauri::plugin::{Builder, TauriPlugin};
@@ -6,38 +6,46 @@ use tauri::{AppHandle, Manager, Wry};
 #[cfg(windows)]
 use windows::Win32::System::Diagnostics::Debug::{SetErrorMode, SEM_FAILCRITICALERRORS};
 
-#[cfg(windows)]
+#[cfg(desktop)]
+#[cfg_attr(not(windows), path = "unix/actions.rs")]
 mod actions;
-#[cfg(windows)]
+#[cfg(desktop)]
+#[cfg_attr(not(windows), path = "unix/address.rs")]
 mod address;
-#[cfg(windows)]
+#[cfg(desktop)]
 mod archive;
 mod audio;
 #[cfg(windows)]
 mod com;
 pub mod default_app;
 pub mod error;
-#[cfg(windows)]
+#[cfg(desktop)]
 mod launch;
-#[cfg(windows)]
+#[cfg(desktop)]
+#[cfg_attr(not(windows), path = "unix/listing.rs")]
 mod listing;
-#[cfg(windows)]
+#[cfg(desktop)]
+#[cfg_attr(not(windows), path = "unix/network.rs")]
 mod network;
-#[cfg(windows)]
+#[cfg(desktop)]
+#[cfg_attr(not(windows), path = "unix/ops.rs")]
 mod ops;
-#[cfg(windows)]
+#[cfg(desktop)]
+#[cfg_attr(not(windows), path = "unix/places.rs")]
 mod places;
-#[cfg(windows)]
+#[cfg(desktop)]
 mod preview;
 mod privacy;
 mod share;
 
 pub use share::endpoint_id;
-#[cfg(windows)]
+#[cfg(desktop)]
+#[cfg_attr(not(windows), path = "unix/thumbs.rs")]
 mod thumbs;
-#[cfg(windows)]
+#[cfg(desktop)]
 mod transcribe;
-#[cfg(windows)]
+#[cfg(desktop)]
+#[cfg_attr(not(windows), path = "unix/watch.rs")]
 mod watch;
 
 pub(crate) const IDENTIFIER: &str = "com.arixlab.eris.files";
@@ -70,109 +78,109 @@ pub(crate) fn data_dir(app: &AppHandle) -> tauri::Result<std::path::PathBuf> {
 pub fn init(host: Host) -> TauriPlugin<Wry> {
     let builder = Builder::new("eris-files");
 
-    #[cfg(windows)]
+    #[cfg(desktop)]
     let builder = builder.register_asynchronous_uri_scheme_protocol("shell", thumbs::serve);
 
     builder
         .invoke_handler(tauri::generate_handler![
-            #[cfg(windows)]
+            #[cfg(desktop)]
             listing::list_dir,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             listing::list_shell,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             listing::search_dir,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             listing::cancel_search,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             listing::measure_dirs,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             archive::list_archive,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             archive::extract_entry,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             archive::bandizip_available,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             archive::bandizip_job,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             places::known_folders,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             places::drives,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             places::explorer_settings,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             places::wsl_distros,
             privacy::screen_sharing,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             actions::open_item,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             actions::open_with,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             actions::show_properties,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             actions::empty_recycle_bin,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             actions::start_drag,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             actions::native_menu,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             actions::invoke_verb,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             ops::transfer_items,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             ops::delete_items,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             ops::rename_item,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             ops::new_folder,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             ops::set_clipboard,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             ops::paste_items,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             ops::clipboard_has_files,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             preview::allow_preview,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             preview::preview_text,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             preview::model_files,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             preview::is_mujoco,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             preview::open_viewer,
             audio::audio_waveform,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             transcribe::transcribe,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             transcribe::read_transcript,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             transcribe::transcribe_key_status,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             transcribe::save_transcribe_key,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             transcribe::clear_transcribe_key,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             launch::take_intent,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             launch::new_window,
             default_app::default_app_status,
             default_app::set_default_app,
             default_app::open_default_apps,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             watch::watch_dir,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             network::network_places,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             network::reconnect_drive,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             network::disconnect_drive,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             network::map_network_drive,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             network::disconnect_network_drive,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             network::add_network_location,
-            #[cfg(windows)]
+            #[cfg(desktop)]
             address::run_address,
             share::commands::share_state,
             share::commands::share_take_attention,
@@ -215,7 +223,7 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             };
 
             app.manage(host);
-            #[cfg(windows)]
+            #[cfg(desktop)]
             app.manage(eris_window_kit::Intents::<launch::Intent>::default());
             share::start(app);
 
@@ -232,7 +240,7 @@ pub fn takes_over() -> bool {
     default_app::enabled()
 }
 
-#[cfg(windows)]
+#[cfg(desktop)]
 pub fn show(app: &AppHandle, target: Option<String>, select: bool) -> bool {
     let cwd = std::env::current_dir().unwrap_or_default();
 
@@ -244,14 +252,14 @@ pub fn claims(host: &Host, args: &[String]) -> bool {
         .any(|arg| host.marker.is_some_and(|marker| arg == marker) || arg.starts_with(SCHEME))
 }
 
-#[cfg(windows)]
+#[cfg(desktop)]
 pub fn start(app: &AppHandle, mut args: Vec<String>, cwd: &Path) -> bool {
     share::take_links(app, &mut args);
 
     launch::start(app, &args, cwd)
 }
 
-#[cfg(windows)]
+#[cfg(desktop)]
 pub fn forward(app: &AppHandle, mut args: Vec<String>, cwd: String) {
     let app = app.clone();
 

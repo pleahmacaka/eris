@@ -2,7 +2,9 @@ use std::env;
 use std::path::PathBuf;
 
 use serde::Serialize;
+#[cfg(windows)]
 use winreg::enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE};
+#[cfg(windows)]
 use winreg::RegKey;
 
 #[derive(Clone, Serialize)]
@@ -36,22 +38,26 @@ impl Shell {
     }
 }
 
+#[cfg(windows)]
 fn system_root() -> PathBuf {
     env::var_os("SystemRoot")
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from(r"C:\Windows"))
 }
 
+#[cfg(windows)]
 fn on_path(name: &str) -> Option<PathBuf> {
     env::split_paths(&env::var_os("PATH")?)
         .map(|dir| dir.join(name))
         .find(|path| std::fs::symlink_metadata(path).is_ok_and(|meta| !meta.is_dir()))
 }
 
+#[cfg(windows)]
 fn existing(path: PathBuf) -> Option<PathBuf> {
     path.is_file().then_some(path)
 }
 
+#[cfg(windows)]
 fn pwsh() -> Option<PathBuf> {
     on_path("pwsh.exe").or_else(|| {
         let programs = env::var_os("ProgramFiles")?;
@@ -60,6 +66,7 @@ fn pwsh() -> Option<PathBuf> {
     })
 }
 
+#[cfg(windows)]
 fn git_bash() -> Option<PathBuf> {
     let installed = RegKey::predef(HKEY_LOCAL_MACHINE)
         .open_subkey(r"SOFTWARE\GitForWindows")
@@ -75,6 +82,7 @@ fn git_bash() -> Option<PathBuf> {
         .find_map(|root| existing(root.join(r"bin\bash.exe")))
 }
 
+#[cfg(windows)]
 fn wsl_distros() -> Vec<String> {
     let Ok(lxss) = RegKey::predef(HKEY_CURRENT_USER)
         .open_subkey(r"Software\Microsoft\Windows\CurrentVersion\Lxss")
@@ -90,6 +98,7 @@ fn wsl_distros() -> Vec<String> {
         .collect()
 }
 
+#[cfg(windows)]
 fn detect() -> Vec<Shell> {
     let root = system_root();
     let mut found = Vec::new();
@@ -131,6 +140,39 @@ fn detect() -> Vec<Shell> {
             program,
             &["--login", "-i"],
         ));
+    }
+
+    found
+}
+
+#[cfg(not(windows))]
+fn detect() -> Vec<Shell> {
+    let login = env::var_os("SHELL").map(PathBuf::from);
+    let listed = std::fs::read_to_string("/etc/shells").unwrap_or_default();
+
+    let programs = login.into_iter().chain(
+        listed
+            .lines()
+            .map(str::trim)
+            .filter(|line| line.starts_with('/'))
+            .map(PathBuf::from),
+    );
+
+    let mut found: Vec<Shell> = Vec::new();
+
+    for program in programs.filter(|program| program.is_file()) {
+        let name = program
+            .file_name()
+            .map(|name| name.to_string_lossy().into_owned())
+            .unwrap_or_default();
+
+        if !name.is_empty() && !found.iter().any(|shell| shell.id == name) {
+            found.push(Shell::new(&name, &name, program, &["-l"]));
+        }
+    }
+
+    if found.is_empty() {
+        found.push(Shell::new("sh", "sh", PathBuf::from("/bin/sh"), &[]));
     }
 
     found

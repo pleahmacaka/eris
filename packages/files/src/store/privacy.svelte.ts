@@ -1,8 +1,8 @@
-import { normalize } from "../locations"
+import { normalize, pathKey, SEP } from "../locations"
 import { screenSharing } from "../native"
 import { prefs } from "./prefs.svelte"
 
-const key = (path: string) => normalize(path).toLowerCase()
+const key = (path: string) => pathKey(normalize(path))
 
 const covers = (mark: string, path: string) => {
   const root = key(mark)
@@ -10,7 +10,7 @@ const covers = (mark: string, path: string) => {
 
   return (
     target === root ||
-    target.startsWith(root.endsWith("\\") ? root : `${root}\\`)
+    target.startsWith(root.endsWith(SEP) ? root : `${root}${SEP}`)
   )
 }
 

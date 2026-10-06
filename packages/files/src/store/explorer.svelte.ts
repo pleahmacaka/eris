@@ -11,9 +11,12 @@ import {
   joinPath,
   normalize,
   parentOf,
+  pathKey,
   RECYCLE_BIN,
+  SEP,
   sameLocation,
   THIS_PC,
+  WINDOWS,
 } from "../locations"
 import * as native from "../native"
 import { isArchive } from "./archive.svelte"
@@ -53,7 +56,8 @@ const failed = (reason: unknown) => {
 }
 
 const sameDrive = (a: string, b: string) =>
-  a.slice(0, 2).toLowerCase() === b.slice(0, 2).toLowerCase() && a[1] === ":"
+  !WINDOWS ||
+  (a.slice(0, 2).toLowerCase() === b.slice(0, 2).toLowerCase() && a[1] === ":")
 
 const sectionOf = (item: Item) => {
   if (item.drive) {
@@ -320,7 +324,7 @@ export class Explorer {
 
     const inside = (path: string) =>
       sameLocation(path, into) ||
-      into.toLowerCase().startsWith(`${path.toLowerCase()}\\`)
+      pathKey(into).startsWith(`${pathKey(path)}${SEP}`)
     const sources = paths.filter(path => !inside(path))
     const move = sources.every(path => sameDrive(path, into))
     const changed = move
