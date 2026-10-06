@@ -597,18 +597,22 @@
         "unlinked": "장치 연결을 해제했습니다",
         "noPeers": "연결할 수 있는 장치가 없습니다",
         "joined": "연결했습니다",
-        "copied": "코드를 복사했습니다"
+        "copied": "코드를 복사했습니다",
+        "removed": "장치를 삭제했습니다"
       },
       "confirm": {
         "unlinkTitle": "이 장치의 연결을 해제할까요?",
-        "unlinkBody": "다른 장치와의 동기화를 중단합니다. 로컬 데이터는 유지됩니다."
+        "unlinkBody": "다른 장치와의 동기화를 중단합니다. 로컬 데이터는 유지됩니다.",
+        "removeTitle": "{name} 장치를 삭제할까요?",
+        "removeBody": "모든 장치에서 이 장치를 삭제하고 페어링 코드를 변경합니다. 이전 페어링 코드는 사용할 수 없습니다."
       },
       "description": "{collections} 데이터를 장치 간에 동기화합니다.",
       "neverSeen": "접속 기록 없음",
       "createCode": "페어링 코드 만들기",
       "joinWithCode": "코드로 연결",
       "copyCode": "코드 복사",
-      "codePlaceholder": "페어링 코드"
+      "codePlaceholder": "페어링 코드",
+      "remove": "삭제"
     },
     "backup": {
       "exportJson": "JSON 내보내기",

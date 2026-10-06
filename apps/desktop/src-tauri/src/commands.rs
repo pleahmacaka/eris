@@ -101,6 +101,7 @@ pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
         p2p::p2p_leave,
         p2p::p2p_publish,
         p2p::p2p_sync,
+        p2p::p2p_remove,
         theme_link::take_theme_link,
     ]
 }

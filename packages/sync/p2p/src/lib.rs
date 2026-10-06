@@ -20,6 +20,8 @@ const DIAL_TIMEOUT: Duration = Duration::from_secs(8);
 const JOIN_TIMEOUT: Duration = Duration::from_secs(20);
 const SERVE_TIMEOUT: Duration = Duration::from_secs(30);
 const ONLINE_TIMEOUT: Duration = Duration::from_secs(10);
+const SENIORITY: u64 = 24 * 60 * 60 * 1000;
+const RETIRED_LIMIT: usize = 8;
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -28,6 +30,8 @@ pub struct Peer {
     name: String,
     #[serde(default)]
     last_seen: Option<u64>,
+    #[serde(default)]
+    first_seen: Option<u64>,
 }
 
 #[derive(Serialize)]
@@ -36,6 +40,20 @@ pub struct Status {
     node_id: String,
     paired: bool,
     peers: Vec<Peer>,
+    removable: Vec<String>,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Revocation {
+    node_id: String,
+    by: String,
+}
+
+#[derive(Clone, Copy, Serialize, Deserialize)]
+struct Rotation {
+    epoch: u64,
+    chain: [u8; 32],
 }
 
 #[derive(Serialize, Deserialize)]
@@ -45,17 +63,74 @@ struct Saved {
     chain: Option<[u8; 32]>,
     name: String,
     peers: Vec<Peer>,
+    #[serde(default)]
+    joined_at: Option<u64>,
+    #[serde(default)]
+    epoch: u64,
+    #[serde(default)]
+    retired: Vec<[u8; 32]>,
+    #[serde(default)]
+    revoked: Vec<Revocation>,
+}
+
+impl Saved {
+    fn knows(&self, node_id: &str) -> bool {
+        self.peers.iter().any(|peer| peer.node_id == node_id)
+    }
+
+    fn revokes(&self, node_id: &str) -> bool {
+        self.revoked.iter().any(|entry| entry.node_id == node_id)
+    }
+
+    // peers recorded before seniority tracking count as the oldest members
+    fn first_seen(&self, node_id: &str) -> Option<u64> {
+        self.peers
+            .iter()
+            .find(|peer| peer.node_id == node_id)
+            .map(|peer| peer.first_seen.unwrap_or(0))
+    }
+
+    fn may_remove(&self, remover_since: u64, target: &str) -> bool {
+        now().saturating_sub(remover_since) >= SENIORITY
+            && self
+                .first_seen(target)
+                .is_none_or(|seen| seen >= remover_since)
+    }
+
+    fn rotate(&mut self) {
+        if let Some(old) = self.chain.replace(random()) {
+            self.retired.insert(0, old);
+            self.retired.truncate(RETIRED_LIMIT);
+        }
+
+        self.epoch += 1;
+    }
+
+    fn forget(&mut self) {
+        self.chain = None;
+        self.peers.clear();
+        self.joined_at = None;
+        self.epoch = 0;
+        self.retired.clear();
+        self.revoked.clear();
+    }
 }
 
 #[derive(Serialize, Deserialize)]
 struct Hello {
     secret: [u8; 32],
+    #[serde(default)]
+    retired: Vec<[u8; 32]>,
 }
 
 #[derive(Serialize, Deserialize)]
 struct Exchange {
     peers: Vec<Peer>,
     snapshot: Option<String>,
+    #[serde(default)]
+    revoked: Vec<Revocation>,
+    #[serde(default)]
+    rotation: Option<Rotation>,
 }
 
 pub enum Event {
@@ -111,6 +186,10 @@ impl Node {
             chain: None,
             name: String::new(),
             peers: Vec::new(),
+            joined_at: None,
+            epoch: 0,
+            retired: Vec::new(),
+            revoked: Vec::new(),
         });
 
         let node = Self {
@@ -149,11 +228,18 @@ impl Node {
 
     fn status(&self) -> Status {
         let saved = self.lock();
+        let since = saved.joined_at.unwrap_or(0);
 
         Status {
             node_id: self.id.to_string(),
             paired: saved.chain.is_some(),
             peers: saved.peers.clone(),
+            removable: saved
+                .peers
+                .iter()
+                .filter(|peer| saved.may_remove(since, &peer.node_id))
+                .map(|peer| peer.node_id.clone())
+                .collect(),
         }
     }
 
@@ -169,12 +255,37 @@ impl Node {
         {
             let mut saved = self.lock();
 
-            saved.chain = None;
-            saved.peers.clear();
+            saved.forget();
             self.persist(&saved);
         }
 
         (self.sink)(Event::Peers);
+    }
+
+    fn remove(&self, node_id: String) -> Result<(), String> {
+        {
+            let mut saved = self.lock();
+            let since = saved.joined_at.unwrap_or(0);
+
+            if saved.chain.is_none()
+                || !saved.knows(&node_id)
+                || !saved.may_remove(since, &node_id)
+            {
+                return Err("not allowed".into());
+            }
+
+            saved.peers.retain(|peer| peer.node_id != node_id);
+            saved.revoked.push(Revocation {
+                node_id,
+                by: self.id.to_string(),
+            });
+            saved.rotate();
+            self.persist(&saved);
+        }
+
+        (self.sink)(Event::Peers);
+
+        Ok(())
     }
 
     async fn endpoint(self: &Arc<Self>) -> Result<Endpoint, String> {
@@ -206,6 +317,10 @@ impl Node {
 
             saved.name = name;
 
+            if saved.chain.is_none() {
+                saved.joined_at = Some(now());
+            }
+
             let chain = *saved.chain.get_or_insert_with(random);
 
             self.persist(&saved);
@@ -233,19 +348,34 @@ impl Node {
 
             saved.name = name;
 
-            (saved.chain.replace(chain), std::mem::take(&mut saved.peers))
+            (
+                saved.chain.replace(chain),
+                std::mem::take(&mut saved.peers),
+                saved.joined_at.replace(now()),
+                std::mem::take(&mut saved.epoch),
+                std::mem::take(&mut saved.retired),
+                std::mem::take(&mut saved.revoked),
+            )
         };
 
         let outcome = timeout(JOIN_TIMEOUT, self.dial(&endpoint, inviter))
             .await
             .unwrap_or_else(|_| Err("inviter unreachable".into()));
 
-        if outcome.is_err() {
-            let mut saved = self.lock();
+        let mut saved = self.lock();
 
-            (saved.chain, saved.peers) = previous;
-            self.persist(&saved);
+        if outcome.is_err() {
+            (
+                saved.chain,
+                saved.peers,
+                saved.joined_at,
+                saved.epoch,
+                saved.retired,
+                saved.revoked,
+            ) = previous;
         }
+
+        self.persist(&saved);
 
         outcome
     }
@@ -291,13 +421,21 @@ impl Node {
     }
 
     async fn dial(&self, endpoint: &Endpoint, addr: EndpointAddr) -> Result<(), String> {
-        let secret = self.lock().chain.ok_or("not paired")?;
+        let hello = {
+            let saved = self.lock();
+
+            Hello {
+                secret: saved.chain.ok_or("not paired")?,
+                retired: saved.retired.clone(),
+            }
+        };
+
         let remote = addr.id;
 
         let connection = endpoint.connect(addr, ALPN).await.map_err(fail)?;
         let (mut send, mut recv) = connection.open_bi().await.map_err(fail)?;
 
-        write(&mut send, &Hello { secret }).await?;
+        write(&mut send, &hello).await?;
         write(&mut send, &self.outgoing()).await?;
         send.finish().map_err(fail)?;
 
@@ -315,7 +453,7 @@ impl Node {
 
         let hello: Hello = read(&mut recv, MAX_HELLO).await?;
 
-        if !self.admits(&hello.secret) {
+        if !self.admits(&hello, &remote) {
             return Err("rejected".into());
         }
 
@@ -329,14 +467,26 @@ impl Node {
         Ok(())
     }
 
-    fn admits(&self, secret: &[u8; 32]) -> bool {
-        self.lock().chain.is_some_and(|chain| {
-            chain
-                .iter()
-                .zip(secret)
-                .fold(0, |diff, (a, b)| diff | (a ^ b))
-                == 0
-        })
+    // a known peer still holding a retired chain gets in so it can learn the current one
+    fn admits(&self, hello: &Hello, remote: &EndpointId) -> bool {
+        let saved = self.lock();
+        let remote = remote.to_string();
+
+        let Some(chain) = saved.chain else {
+            return false;
+        };
+
+        if saved.revokes(&remote) {
+            return false;
+        }
+
+        if same(&chain, &hello.secret) {
+            return true;
+        }
+
+        saved.knows(&remote)
+            && (hello.retired.iter().any(|old| same(old, &chain))
+                || saved.retired.iter().any(|old| same(old, &hello.secret)))
     }
 
     fn outgoing(&self) -> Exchange {
@@ -348,17 +498,86 @@ impl Node {
             node_id: self.id.to_string(),
             name: saved.name.clone(),
             last_seen: None,
+            first_seen: None,
         });
 
         Exchange {
             peers,
             snapshot: self.snapshot.lock().unwrap().clone(),
+            revoked: saved.revoked.clone(),
+            rotation: saved.chain.map(|chain| Rotation {
+                epoch: saved.epoch,
+                chain,
+            }),
         }
+    }
+
+    fn honor(&self, saved: &mut Saved, revoked: Vec<Revocation>) -> bool {
+        let me = self.id.to_string();
+
+        for entry in revoked {
+            if saved.revokes(&entry.node_id) {
+                continue;
+            }
+
+            let Some(since) = saved.first_seen(&entry.by) else {
+                continue;
+            };
+
+            if entry.node_id == me {
+                let mine = saved.joined_at.unwrap_or(0);
+
+                if now().saturating_sub(since) >= SENIORITY && mine >= since {
+                    saved.forget();
+
+                    return false;
+                }
+
+                continue;
+            }
+
+            if saved.may_remove(since, &entry.node_id) {
+                saved.peers.retain(|peer| peer.node_id != entry.node_id);
+                saved.revoked.push(entry);
+            }
+        }
+
+        true
+    }
+
+    fn adopt(saved: &mut Saved, rotation: Rotation) {
+        let Some(chain) = saved.chain else {
+            return;
+        };
+
+        if (rotation.epoch, rotation.chain) <= (saved.epoch, chain) {
+            return;
+        }
+
+        if rotation.chain != chain {
+            saved.retired.insert(0, chain);
+            saved.retired.truncate(RETIRED_LIMIT);
+            saved.chain = Some(rotation.chain);
+        }
+
+        saved.epoch = rotation.epoch;
     }
 
     fn absorb(&self, remote: EndpointId, exchange: Exchange) {
         {
             let mut saved = self.lock();
+
+            if !self.honor(&mut saved, exchange.revoked) {
+                self.persist(&saved);
+                drop(saved);
+                (self.sink)(Event::Peers);
+
+                return;
+            }
+
+            if let Some(rotation) = exchange.rotation {
+                Self::adopt(&mut saved, rotation);
+            }
 
             for peer in exchange.peers {
                 let Ok(id) = peer.node_id.parse::<EndpointId>() else {
@@ -371,6 +590,10 @@ impl Node {
 
                 let node_id = id.to_string();
 
+                if saved.revokes(&node_id) {
+                    continue;
+                }
+
                 let index = match saved
                     .peers
                     .iter()
@@ -382,6 +605,7 @@ impl Node {
                             node_id,
                             name: peer.name.clone(),
                             last_seen: None,
+                            first_seen: Some(now()),
                         });
 
                         saved.peers.len() - 1
@@ -407,6 +631,10 @@ impl Node {
 
 fn random() -> [u8; 32] {
     SecretKey::generate().to_bytes()
+}
+
+fn same(a: &[u8; 32], b: &[u8; 32]) -> bool {
+    a.iter().zip(b).fold(0, |diff, (x, y)| diff | (x ^ y)) == 0
 }
 
 fn now() -> u64 {
@@ -554,6 +782,16 @@ mod commands {
     pub async fn p2p_sync(app: AppHandle) -> Result<usize, String> {
         node(&app)?.sync().await
     }
+
+    #[tauri::command(async)]
+    pub async fn p2p_remove(app: AppHandle, node_id: String) -> Result<(), String> {
+        let node = node(&app)?;
+
+        node.remove(node_id)?;
+        node.sync().await.map(|_| ())
+    }
 }
 
-pub use commands::{p2p_invite, p2p_join, p2p_leave, p2p_publish, p2p_status, p2p_sync};
+pub use commands::{
+    p2p_invite, p2p_join, p2p_leave, p2p_publish, p2p_remove, p2p_status, p2p_sync,
+};

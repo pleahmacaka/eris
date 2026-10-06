@@ -597,18 +597,22 @@
         "unlinked": "接続を解除しました。",
         "noPeers": "接続できるデバイスがありません。",
         "joined": "接続しました。",
-        "copied": "コードをコピーしました。"
+        "copied": "コードをコピーしました。",
+        "removed": "デバイスを削除しました"
       },
       "confirm": {
         "unlinkTitle": "このデバイスの接続を解除しますか?",
-        "unlinkBody": "他のデバイスとの同期を停止します。ローカルデータは保持されます。"
+        "unlinkBody": "他のデバイスとの同期を停止します。ローカルデータは保持されます。",
+        "removeTitle": "{name} を削除しますか?",
+        "removeBody": "すべてのデバイスから削除し、ペアリングコードを変更します。以前のペアリングコードは使えなくなります。"
       },
       "description": "{collections}をデバイス間で同期します。",
       "neverSeen": "接続履歴なし",
       "createCode": "ペアリングコードを作成",
       "joinWithCode": "コードで接続",
       "copyCode": "コードをコピー",
-      "codePlaceholder": "ペアリングコード"
+      "codePlaceholder": "ペアリングコード",
+      "remove": "削除"
     },
     "backup": {
       "exportJson": "JSON をエクスポート",
