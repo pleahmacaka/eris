@@ -1,0 +1,28 @@
+{
+  "id": "pastel-mauve",
+  "name": "Pastel Mauve",
+  "author": "Eris",
+  "description": "Soft pastel mauve and pink on a calm dark base.",
+  "swatch": [
+    "#1e1e2e",
+    "#cba6f7",
+    "#f5c2e7"
+  ],
+  "tags": [
+    "official",
+    "pastel",
+    "dark"
+  ],
+  "appearance": {
+    "mode": "system",
+    "background": "aura",
+    "useSystemAccent": false,
+    "accentHue": 305,
+    "accentSpread": 40,
+    "vividness": 0.09,
+    "texture": 0.15,
+    "radius": 1.4,
+    "blur": 1.1,
+    "density": "cozy"
+  }
+}

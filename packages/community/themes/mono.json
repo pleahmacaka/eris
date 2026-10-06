@@ -1,0 +1,28 @@
+{
+  "id": "mono",
+  "name": "Mono",
+  "author": "Eris",
+  "description": "Greyscale with no accent and compact spacing.",
+  "swatch": [
+    "#111111",
+    "#9a9a9a",
+    "#f2f2f2"
+  ],
+  "tags": [
+    "official",
+    "minimal",
+    "compact"
+  ],
+  "appearance": {
+    "mode": "system",
+    "background": "solid",
+    "useSystemAccent": false,
+    "accentHue": 0,
+    "accentSpread": 0,
+    "vividness": 0,
+    "texture": 0.4,
+    "radius": 0.25,
+    "blur": 0.5,
+    "density": "compact"
+  }
+}

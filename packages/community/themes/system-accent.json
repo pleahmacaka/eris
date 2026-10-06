@@ -1,0 +1,28 @@
+{
+  "id": "system-accent",
+  "name": "System Accent",
+  "author": "Eris",
+  "description": "A solid surface tinted with the accent color you picked in Windows.",
+  "swatch": [
+    "#202020",
+    "#0078d4",
+    "#3d3d3d"
+  ],
+  "tags": [
+    "official",
+    "minimal",
+    "system"
+  ],
+  "appearance": {
+    "mode": "system",
+    "background": "solid",
+    "useSystemAccent": true,
+    "accentHue": 206,
+    "accentSpread": 0,
+    "vividness": 0.04,
+    "texture": 0.2,
+    "radius": 0.6,
+    "blur": 0.6,
+    "density": "cozy"
+  }
+}

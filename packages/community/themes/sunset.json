@@ -1,0 +1,28 @@
+{
+  "id": "sunset",
+  "name": "Sunset",
+  "author": "Eris",
+  "description": "Orange and gold on a dusky base.",
+  "swatch": [
+    "#2a1620",
+    "#ff7a45",
+    "#ffc46b"
+  ],
+  "tags": [
+    "official",
+    "warm",
+    "dark"
+  ],
+  "appearance": {
+    "mode": "system",
+    "background": "aura",
+    "useSystemAccent": false,
+    "accentHue": 35,
+    "accentSpread": 45,
+    "vividness": 0.14,
+    "texture": 0.3,
+    "radius": 1.2,
+    "blur": 1.1,
+    "density": "cozy"
+  }
+}

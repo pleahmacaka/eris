@@ -1,0 +1,28 @@
+{
+  "id": "neon",
+  "name": "Neon",
+  "author": "Eris",
+  "description": "Vivid magenta and cyan with rounded corners.",
+  "swatch": [
+    "#0b0714",
+    "#ff3cac",
+    "#2bd2ff"
+  ],
+  "tags": [
+    "official",
+    "vivid",
+    "dark"
+  ],
+  "appearance": {
+    "mode": "system",
+    "background": "aura",
+    "useSystemAccent": false,
+    "accentHue": 325,
+    "accentSpread": 90,
+    "vividness": 0.2,
+    "texture": 0.15,
+    "radius": 1.6,
+    "blur": 1.3,
+    "density": "cozy"
+  }
+}

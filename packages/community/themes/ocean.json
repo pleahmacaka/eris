@@ -1,0 +1,28 @@
+{
+  "id": "ocean",
+  "name": "Ocean",
+  "author": "Eris",
+  "description": "Deep teal currents with cyan highlights.",
+  "swatch": [
+    "#0c1b24",
+    "#2fb8c6",
+    "#9fe3ec"
+  ],
+  "tags": [
+    "official",
+    "cool",
+    "teal"
+  ],
+  "appearance": {
+    "mode": "system",
+    "background": "aura",
+    "useSystemAccent": false,
+    "accentHue": 200,
+    "accentSpread": 40,
+    "vividness": 0.11,
+    "texture": 0.2,
+    "radius": 1.1,
+    "blur": 1.2,
+    "density": "cozy"
+  }
+}
