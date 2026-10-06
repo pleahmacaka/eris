@@ -321,7 +321,7 @@
       type="range"
       class="range range-primary range-xs w-full"
       min="32"
-      max="88"
+      max="140"
       step="2"
       aria-label={$t("settings.rows.height")}
       bind:value={device.dockHeight}
@@ -375,7 +375,7 @@
       type="range"
       class="range range-primary range-xs w-full"
       min="16"
-      max="32"
+      max="56"
       step="2"
       aria-label={$t("settings.rows.iconSize")}
       bind:value={device.dockIconSize}
