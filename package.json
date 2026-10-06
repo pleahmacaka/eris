@@ -23,7 +23,7 @@
     "typescript": "^6.0.3"
   },
   "patchedDependencies": {
-    "ghostty-web@0.4.0": "patches/ghostty-web@0.4.0.patch"
+    "ghostty-web@0.4.0-next.20.g1858a59": "patches/ghostty-web@0.4.0-next.20.g1858a59.patch"
   },
   "version": "0.3.6"
 }

@@ -61,6 +61,16 @@
     }
   }
 
+  const latin = (e: KeyboardEvent) => {
+    if (e.code.startsWith("Key")) {
+      const letter = e.code.slice(3).toLowerCase()
+
+      return e.shiftKey ? letter.toUpperCase() : letter
+    }
+
+    return e.key.length === 1 ? e.key : null
+  }
+
   const keys = (e: KeyboardEvent) => {
     const ctrl = e.ctrlKey && !e.altKey && !e.metaKey
 
@@ -76,9 +86,11 @@
       return true
     }
 
+    const key = e.altKey && !e.ctrlKey && !e.metaKey ? latin(e) : null
+
     // ghostty-web sends Alt+key as the bare key, so TUI shortcuts such as Alt+V never arrive
-    if (e.altKey && !e.ctrlKey && !e.metaKey && e.key.length === 1) {
-      term?.input(`\x1b${e.key}`, true)
+    if (key) {
+      term?.input(`\x1b${key}`, true)
 
       return true
     }
