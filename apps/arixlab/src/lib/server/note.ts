@@ -27,8 +27,7 @@ type GitHubRelease = {
   assets: Asset[]
 }
 
-// the repo also tags eris releases, so Note's own are the note-* tags
-const TAG = /^note-(\d+\.\d+\.\d+.*)$/
+const TAG = /^(\d+\.\d+\.\d+.*)$/
 
 const ENDPOINT = `https://api.github.com/repos/${NOTE_REPO}/releases?per_page=30`
 

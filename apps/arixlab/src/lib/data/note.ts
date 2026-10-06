@@ -9,11 +9,11 @@ import sync from "$lib/assets/note/sync.webp"
 import todos from "$lib/assets/note/todos.webp"
 import * as m from "$lib/paraglide/messages"
 
-export const NOTE_REPO = "pleahmacaka/eris"
+export const NOTE_REPO = "pleahmacaka/arixlab-note"
 
-export const NOTE_SOURCE = `https://github.com/${NOTE_REPO}/tree/main/apps/note`
+export const NOTE_SOURCE = `https://github.com/${NOTE_REPO}`
 
-export const NOTE_RELEASES = `https://github.com/${NOTE_REPO}/releases?q=note&expanded=true`
+export const NOTE_RELEASES = `https://github.com/${NOTE_REPO}/releases`
 
 export type Shot = { src: string; width: number; height: number }
 
