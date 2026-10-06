@@ -1304,5 +1304,32 @@
       "title": "Eris 有可用更新",
       "body": "请在设置的高级中安装 {version} 版本。"
     }
+  },
+  "studio": {
+    "windows": "窗口",
+    "pick": "请从左侧选择窗口。",
+    "reload": "重新加载",
+    "reloadSettings": "载入我的设置",
+    "resetData": "重置数据",
+    "apply": "应用到 Eris",
+    "applied": "已应用",
+    "confirm": {
+      "title": "应用到 Eris?",
+      "body": "外观、程序坞、启动器和日历设置将替换为 Studio 中的设置。设备名称、固定的应用和同步保持不变。",
+      "action": "应用"
+    },
+    "names": {
+      "main": "启动器",
+      "taskbar": "程序坞",
+      "topbar": "顶栏",
+      "settings": "设置",
+      "panel": "日历面板",
+      "notices": "通知",
+      "onboarding": "设置向导",
+      "preview": "窗口预览",
+      "files": "Files",
+      "edit": "编辑模式"
+    },
+    "publish": "发布主题"
   }
 }

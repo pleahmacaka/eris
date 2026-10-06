@@ -9,6 +9,7 @@ declare global {
   interface Window {
     __TAURI_INTERNALS__?: {
       runCallback: (id: number, data: unknown) => void
+      metadata?: { currentWindow?: { label?: string } }
     }
   }
 }

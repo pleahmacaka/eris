@@ -61,6 +61,43 @@ const cloneable = (args: Args) => {
   }
 }
 
+const IPC_HOST = "ipc.localhost"
+
+const reply = (value: unknown, outcome: "ok" | "error") =>
+  new Response(JSON.stringify(value ?? null), {
+    headers: { "Content-Type": "application/json", "Tauri-Response": outcome },
+  })
+
+// a Tauri frame locks every __TAURI_INTERNALS__ field, so mockIPC cannot swap invoke there; answer the IPC protocol's fetch instead
+const answerIpc = (respond: (cmd: string, payload?: InvokeArgs) => unknown) => {
+  const real = window.fetch.bind(window)
+
+  const answer = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = new URL(
+      input instanceof Request ? input.url : String(input),
+      location.href,
+    )
+
+    if (url.hostname !== IPC_HOST) {
+      return real(input, init)
+    }
+
+    try {
+      const body =
+        typeof init?.body === "string" ? JSON.parse(init.body) : undefined
+
+      return reply(
+        await respond(decodeURIComponent(url.pathname.slice(1)), body),
+        "ok",
+      )
+    } catch (error) {
+      return reply(String(error), "error")
+    }
+  }
+
+  window.fetch = Object.assign(answer, window.fetch)
+}
+
 let installed = false
 
 export const mocked = () => installed
@@ -147,7 +184,10 @@ export const installMocks = (path: string) => {
     emit("window-hidden", String(target))
   }
 
-  const own = (a: Args) => a.label ?? label
+  // inside a Tauri frame the real metadata still names the host studio window
+  const host = window.__TAURI_INTERNALS__?.metadata?.currentWindow?.label
+
+  const own = (a: Args) => (a.label && a.label !== host ? a.label : label)
 
   const pathOf = (a: Args) =>
     [...stores].find(([, rid]) => rid === a.rid)?.[0] ?? ""
@@ -268,10 +308,7 @@ export const installMocks = (path: string) => {
     },
   }
 
-  mockWindows(label)
-  mockConvertFileSrc("windows")
-
-  mockIPC((cmd, payload) => {
+  const respond = (cmd: string, payload?: InvokeArgs) => {
     const args = record(payload)
     const handler = handlers[cmd] ?? fixtures[cmd]
     const mocked =
@@ -294,7 +331,15 @@ export const installMocks = (path: string) => {
     }
 
     return handler?.(args) ?? null
-  })
+  }
+
+  if (host) {
+    answerIpc(respond)
+  } else {
+    mockWindows(label)
+    mockConvertFileSrc("windows")
+    mockIPC(respond)
+  }
 
   if (bus) {
     bus.onmessage = (e: MessageEvent<BusMessage>) => {

@@ -1304,5 +1304,32 @@
       "title": "Eris 업데이트",
       "body": "설정의 고급에서 {version} 버전을 설치하세요."
     }
+  },
+  "studio": {
+    "windows": "창",
+    "pick": "왼쪽에서 창을 선택하세요.",
+    "reload": "새로고침",
+    "reloadSettings": "내 설정 불러오기",
+    "resetData": "데이터 초기화",
+    "apply": "Eris에 적용",
+    "applied": "적용 완료",
+    "confirm": {
+      "title": "Eris에 적용할까요?",
+      "body": "모양, 독, 런처, 캘린더 설정을 Studio 설정으로 바꿉니다. 장치 이름, 고정한 앱, 동기화는 그대로 유지됩니다.",
+      "action": "적용"
+    },
+    "names": {
+      "main": "런처",
+      "taskbar": "독",
+      "topbar": "상단 바",
+      "settings": "설정",
+      "panel": "캘린더 패널",
+      "notices": "알림",
+      "onboarding": "설정 마법사",
+      "preview": "창 미리보기",
+      "files": "Files",
+      "edit": "편집 모드"
+    },
+    "publish": "테마 게시"
   }
 }

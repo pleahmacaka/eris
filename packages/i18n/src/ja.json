@@ -1304,5 +1304,32 @@
       "title": "Eris のアップデート",
       "body": "設定の詳細設定からバージョン {version} をインストールしてください。"
     }
+  },
+  "studio": {
+    "windows": "ウィンドウ",
+    "pick": "左からウィンドウを選択してください。",
+    "reload": "再読み込み",
+    "reloadSettings": "自分の設定を読み込む",
+    "resetData": "データのリセット",
+    "apply": "Eris に適用",
+    "applied": "適用済み",
+    "confirm": {
+      "title": "Eris に適用しますか?",
+      "body": "外観、ドック、ランチャー、カレンダーの設定を Studio の設定に置き換えます。デバイス名、固定したアプリ、同期はそのままです。",
+      "action": "適用"
+    },
+    "names": {
+      "main": "ランチャー",
+      "taskbar": "ドック",
+      "topbar": "トップバー",
+      "settings": "設定",
+      "panel": "カレンダーパネル",
+      "notices": "通知",
+      "onboarding": "セットアップ",
+      "preview": "ウィンドウプレビュー",
+      "files": "Files",
+      "edit": "編集モード"
+    },
+    "publish": "テーマを公開"
   }
 }

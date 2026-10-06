@@ -64,6 +64,42 @@
 
   const PREVIEW_DELAY = 300
 
+  const DRAFT_KEY = "eris-theme-draft"
+
+  type Kept = {
+    name: string
+    author: string
+    description: string
+    tags: string
+    swatch: [string, string, string]
+  }
+
+  const fromStudio = (): Partial<Appearance> | null => {
+    try {
+      const raw: unknown = JSON.parse(new URLSearchParams(location.search).get("studio") ?? "null")
+
+      return raw && typeof raw === "object"
+        ? Object.fromEntries(Object.entries(raw).filter(([key]) => key in defaultAppearance))
+        : null
+    } catch {
+      return null
+    }
+  }
+
+  const keptDraft = (): Kept | null => {
+    try {
+      return JSON.parse(sessionStorage.getItem(DRAFT_KEY) ?? "null")
+    } catch {
+      return null
+    }
+  }
+
+  const studied = fromStudio()
+
+  const kept = studied ? keptDraft() : null
+
+  sessionStorage.removeItem(DRAFT_KEY)
+
   const user = $derived(account?.user ?? null)
 
   const authorOf = () => {
@@ -74,20 +110,23 @@
 
   const initial = untrack(() => theme)
 
-  let name = $state(initial?.name ?? "")
-  let author = $state(initial?.author ?? authorOf())
-  let description = $state(initial?.description ?? "")
-  let tags = $state(initial?.tags.join(", ") ?? "")
+  let name = $state(kept?.name ?? initial?.name ?? "")
+  let author = $state(kept?.author ?? initial?.author ?? authorOf())
+  let description = $state(kept?.description ?? initial?.description ?? "")
+  let tags = $state(kept?.tags ?? initial?.tags.join(", ") ?? "")
   const isField = (key: string): key is keyof Appearance => key in defaultAppearance
 
   const option = <T extends string>(options: readonly T[], value: string) =>
     options.find(candidate => candidate === value)
 
   let swatch = $state<[string, string, string]>(
-    initial ? [initial.swatch[0], initial.swatch[1], initial.swatch[2]] : ["#131018", "#ac89e8", "#e8e7ed"],
+    kept?.swatch ??
+      (initial ? [initial.swatch[0], initial.swatch[1], initial.swatch[2]] : ["#131018", "#ac89e8", "#e8e7ed"]),
   )
-  let draft = $state<Appearance>({ ...defaultAppearance, ...initial?.appearance })
-  let touched = $state(new Set(Object.keys(initial?.appearance ?? {}).filter(isField)))
+  let draft = $state<Appearance>({ ...defaultAppearance, ...initial?.appearance, ...studied })
+  let touched = $state(
+    new Set(Object.keys({ ...initial?.appearance, ...studied }).filter(isField)),
+  )
   let surface = $state<Surface>("desktop")
   let busy = $state(false)
   let failure = $state("")
@@ -124,6 +163,22 @@
   const ALL_SURFACES: Surface[] = ["desktop", "files", "terminal"]
 
   const surfaces = $derived(toolsOf({ appearance }).length > 1 ? ALL_SURFACES : ALL_SURFACES.slice(0, 1))
+
+  const openStudio = () => {
+    if (!studio) {
+      return
+    }
+
+    const kept: Kept = { name, author, description, tags, swatch }
+    const back = new URL(location.href)
+    const target = new URL("studio", new URL(studio, location.href))
+
+    back.searchParams.delete("studio")
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(kept))
+    target.searchParams.set("appearance", JSON.stringify(draft))
+    target.searchParams.set("return", back.href)
+    location.href = target.href
+  }
 
   const set = <K extends keyof Appearance>(key: K, value: Appearance[K]) => {
     draft[key] = value
@@ -200,6 +255,13 @@
           unavailable={t.previewUnavailable}
         />
       </div>
+
+      {#if studio}
+        <button type="button" class="btn btn-soft btn-primary btn-sm self-start" onclick={openStudio}>
+          <Icon icon="lucide:palette" class="size-4" />
+          {t.editor.openStudio}
+        </button>
+      {/if}
 
       {#if surfaces.length > 1}
         <div role="tablist" class="tabs tabs-box self-start">

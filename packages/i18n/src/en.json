@@ -1304,5 +1304,32 @@
       "title": "Eris update available",
       "body": "Install version {version} from Settings, Advanced."
     }
+  },
+  "studio": {
+    "windows": "Windows",
+    "pick": "Select a window on the left.",
+    "reload": "Reload",
+    "reloadSettings": "Load my settings",
+    "resetData": "Reset data",
+    "apply": "Apply to Eris",
+    "applied": "Applied",
+    "confirm": {
+      "title": "Apply to Eris?",
+      "body": "Your appearance, dock, launcher and calendar settings are replaced with the Studio ones. Device name, pinned apps and sync stay as they are.",
+      "action": "Apply"
+    },
+    "names": {
+      "main": "Launcher",
+      "taskbar": "Dock",
+      "topbar": "Top bar",
+      "settings": "Settings",
+      "panel": "Calendar panel",
+      "notices": "Notifications",
+      "onboarding": "Setup",
+      "preview": "Window preview",
+      "files": "Files",
+      "edit": "Edit mode"
+    },
+    "publish": "Publish theme"
   }
 }

@@ -1,6 +1,8 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { base } from "$app/paths"
   import { saveProfileSynced } from "$lib/data"
+  import { CUSTOM } from "$lib/settings-ui"
   import type { TaskbarLayout } from "$lib/native"
   import {
     BARS,
@@ -25,6 +27,7 @@
     withProfileDefaults,
   } from "@eris/settings"
   import { Confirm, Logo, Segmented } from "@eris/ui"
+  import { t } from "svelte-i18n"
 
   type Bar = {
     edge: "top" | "bottom"
@@ -38,11 +41,16 @@
 
   type Mode = "dark" | "light"
 
+  type LogSide = "bottom" | "right"
+
   const MENU_SPACE = 520
   const FLOAT_MARGIN = 12
   const LOG_LIMIT = 400
   const SETTINGS = "settings.json"
   const APPLIED_FOR = 2_500
+  const LOG_KEY = "eris-studio-log"
+  const LOG_MIN = 120
+  const LOG_MAX = 0.7
 
   const MACHINE: (keyof DeviceSettings)[] = [
     "deviceId",
@@ -61,20 +69,60 @@
 
   const live = !mocked()
 
-  const NAMES: Record<string, string> = {
-    main: "Launcher",
-    taskbar: "Dock",
-    topbar: "Top bar",
-    settings: "Settings",
-    panel: "Calendar panel",
-    notices: "Notifications",
-    onboarding: "Setup",
-    preview: "Window preview",
-    files: "Files",
-    edit: "Edit mode",
+  const params = new URLSearchParams(location.search)
+
+  const returnTo = (() => {
+    try {
+      const url = new URL(params.get("return") ?? "", location.href)
+      const trusted =
+        url.origin === location.origin ||
+        (import.meta.env.DEV && url.hostname === "localhost")
+
+      return params.has("return") && trusted ? url : null
+    } catch {
+      return null
+    }
+  })()
+
+  const given = (): Partial<Profile["appearance"]> | null => {
+    try {
+      const raw: unknown = JSON.parse(params.get("appearance") ?? "null")
+
+      return raw && typeof raw === "object" ? raw : null
+    } catch {
+      return null
+    }
   }
 
-  const nameOf = (label: string) => NAMES[label] ?? label
+  const dev = import.meta.env.DEV
+
+  const NAMED = [
+    "main",
+    "taskbar",
+    "topbar",
+    "settings",
+    "panel",
+    "notices",
+    "onboarding",
+    "preview",
+    "files",
+    "edit",
+  ]
+
+  const nameOf = (label: string) =>
+    NAMED.includes(label) ? $t(`studio.names.${label}`) : label
+
+  type LogLayout = { side: LogSide; sizes: Record<LogSide, number> }
+
+  const LOG_DEFAULT: LogLayout = { side: "right", sizes: { bottom: 224, right: 440 } }
+
+  const storedLog = (): LogLayout => {
+    try {
+      return { ...LOG_DEFAULT, ...JSON.parse(localStorage.getItem(LOG_KEY) ?? "{}") }
+    } catch {
+      return LOG_DEFAULT
+    }
+  }
 
   const windows = surfaces.filter(
     s => !BARS.includes(s.label) && s.label !== "studio",
@@ -82,6 +130,21 @@
 
   const storedProfile = () =>
     withProfileDefaults(readStore(SETTINGS).profile as Partial<Profile>)
+
+  const seeded = live ? null : given()
+
+  if (seeded) {
+    const profile = storedProfile()
+
+    writeStore(SETTINGS, {
+      ...readStore(SETTINGS),
+      profile: {
+        ...profile,
+        presetId: CUSTOM,
+        appearance: { ...profile.appearance, ...seeded },
+      },
+    })
+  }
 
   const initial = windows.find(s => s.label === "settings") ?? null
 
@@ -93,6 +156,11 @@
   let confirming = $state(false)
   let applied = $state(false)
   let logOpen = $state(true)
+  let logLayout = $state<LogLayout>(storedLog())
+
+  const logSide = $derived(logLayout.side)
+
+  const logSize = $derived(logLayout.sizes[logLayout.side])
   let entries = $state.raw<LogEntry[]>([])
   let mode = $state<Mode>(
     storedProfile().appearance.mode === "light" ? "light" : "dark",
@@ -251,9 +319,46 @@
     const profile = storedProfile()
 
     profile.appearance.mode = next
+    profile.presetId = CUSTOM
     writeStore(SETTINGS, { ...stored, profile })
     publish("profile-changed", profile)
     mode = next
+  }
+
+  $effect(() => {
+    localStorage.setItem(LOG_KEY, JSON.stringify(logLayout))
+  })
+
+  const resizeLog = (e: PointerEvent) => {
+    const handle = e.currentTarget as HTMLElement
+    const bottom = logSide === "bottom"
+    const start = bottom ? e.clientY : e.clientX
+    const from = logSize
+    const limit = (bottom ? innerHeight : innerWidth) * LOG_MAX
+
+    const move = (m: PointerEvent) => {
+      const delta = (bottom ? m.clientY : m.clientX) - start
+
+      logLayout.sizes[logLayout.side] = Math.round(
+        Math.min(limit, Math.max(LOG_MIN, from - delta)),
+      )
+    }
+
+    const stop = () => {
+      handle.removeEventListener("pointermove", move)
+      handle.removeEventListener("pointerup", stop)
+    }
+
+    handle.setPointerCapture(e.pointerId)
+    handle.addEventListener("pointermove", move)
+    handle.addEventListener("pointerup", stop)
+  }
+
+  const publishTheme = () => {
+    const back = returnTo ?? new URL("../themes/?edit=", location.href)
+
+    back.searchParams.set("studio", JSON.stringify(storedProfile().appearance))
+    location.href = back.href
   }
 
   const reload = () => {
@@ -327,21 +432,23 @@
     <Segmented
       value={mode}
       options={[
-        { value: "dark", label: "Dark" },
-        { value: "light", label: "Light" },
+        { value: "dark", label: $t("settings.options.dark") },
+        { value: "light", label: $t("settings.options.light") },
       ]}
       onchange={setMode}
     />
 
     <button type="button" class="btn btn-ghost btn-sm" onclick={reload}>
       <Icon icon="lucide:rotate-cw" class="size-4" />
-      Reload
+      {$t("studio.reload")}
     </button>
 
-    <button type="button" class="btn btn-ghost btn-sm" onclick={reset}>
-      <Icon icon="lucide:eraser" class="size-4" />
-      {live ? "Reload my settings" : "Reset data"}
-    </button>
+    {#if live || dev}
+      <button type="button" class="btn btn-ghost btn-sm" onclick={reset}>
+        <Icon icon="lucide:eraser" class="size-4" />
+        {live ? $t("studio.reloadSettings") : $t("studio.resetData")}
+      </button>
+    {/if}
 
     {#if live}
       <button
@@ -351,25 +458,34 @@
         onclick={() => (confirming = true)}
       >
         <Icon icon={applied ? "lucide:check" : "lucide:upload"} class="size-4" />
-        {applied ? "Applied" : "Apply to Eris"}
+        {applied ? $t("studio.applied") : $t("studio.apply")}
       </button>
     {/if}
 
-    <button
-      type="button"
-      class={["btn btn-sm", logOpen ? "btn-soft btn-primary" : "btn-ghost"]}
-      aria-pressed={logOpen}
-      onclick={() => (logOpen = !logOpen)}
-    >
-      <Icon icon="lucide:scroll-text" class="size-4" />
-      IPC log
-    </button>
+    {#if !live && (returnTo || !dev)}
+      <button type="button" class="btn btn-primary btn-sm" onclick={publishTheme}>
+        <Icon icon="lucide:send" class="size-4" />
+        {$t("studio.publish")}
+      </button>
+    {/if}
+
+    {#if dev}
+      <button
+        type="button"
+        class={["btn btn-sm", logOpen ? "btn-soft btn-primary" : "btn-ghost"]}
+        aria-pressed={logOpen}
+        onclick={() => (logOpen = !logOpen)}
+      >
+        <Icon icon="lucide:scroll-text" class="size-4" />
+        IPC log
+      </button>
+    {/if}
   </header>
 
   <div class="flex min-h-0 grow">
     <nav class="flex w-60 shrink-0 flex-col gap-1 overflow-y-auto border-r border-base-content/10 p-2">
       <p class="px-2 pt-1 pb-1 text-xs font-semibold text-base-content/50">
-        Windows
+        {$t("studio.windows")}
       </p>
 
       <ul class="menu w-full gap-0.5 p-0">
@@ -383,13 +499,15 @@
             >
               {nameOf(s.label)}
 
-              <span class="text-xs tabular-nums opacity-60">{s.width}×{s.height}</span>
+              {#if dev}
+                <span class="text-xs tabular-nums opacity-60">{s.width}×{s.height}</span>
+              {/if}
             </button>
           </li>
         {/each}
       </ul>
 
-      {#if selected?.resizable}
+      {#if dev && selected?.resizable}
         <div class="mt-3 flex flex-col gap-2 border-t border-base-content/10 px-2 pt-3">
           <label class="input input-sm">
             <span class="label">Width</span>
@@ -433,48 +551,81 @@
               {#key selected.label}
                 <iframe
                   title={nameOf(selected.label)}
-                  src={selected.url}
+                  src={base + selected.url}
                   class="m-auto shrink-0"
                   style:width="{width}px"
                   style:height="{height}px"
                 ></iframe>
               {/key}
             {:else}
-              <p class="m-auto text-sm text-base-content/60">Select a window on the left.</p>
+              <p class="m-auto text-sm text-base-content/60">{$t("studio.pick")}</p>
             {/if}
           </div>
 
           <iframe
-            title="Top bar"
-            src="/topbar"
+            title={nameOf("topbar")}
+            src="{base}/topbar"
             class={["absolute z-10", !top.on && "invisible"]}
             style={barStyle(top)}
           ></iframe>
 
           <iframe
-            title="Dock"
-            src="/taskbar"
+            title={nameOf("taskbar")}
+            src="{base}/taskbar"
             class="absolute z-10"
             style={barStyle(dock)}
           ></iframe>
         {/if}
       {/key}
     </main>
+
+    {#if dev && logOpen && logSide === "right"}
+      {@render logPanel()}
+    {/if}
   </div>
 
-  {#if logOpen}
-    <div class="flex h-56 shrink-0 flex-col border-t border-base-content/10 bg-base-100">
-      <IpcLog {entries} onclear={() => (entries = [])} />
-    </div>
+  {#if dev && logOpen && logSide === "bottom"}
+    {@render logPanel()}
   {/if}
 </div>
 
+{#snippet logPanel()}
+  {@const bottom = logSide === "bottom"}
+  <div
+    class={[
+      "relative flex shrink-0 flex-col bg-base-100",
+      bottom ? "border-t border-base-content/10" : "border-l border-base-content/10",
+    ]}
+    style:height={bottom ? `${logSize}px` : undefined}
+    style:width={bottom ? undefined : `${logSize}px`}
+  >
+    <div
+      role="separator"
+      aria-orientation={bottom ? "horizontal" : "vertical"}
+      class={[
+        "absolute z-10 transition-colors duration-100 hover:bg-primary/40",
+        bottom
+          ? "inset-x-0 -top-0.5 h-1 cursor-row-resize"
+          : "inset-y-0 -left-0.5 w-1 cursor-col-resize",
+      ]}
+      onpointerdown={resizeLog}
+    ></div>
+
+    <IpcLog
+      {entries}
+      side={logSide}
+      onside={next => (logLayout.side = next)}
+      onclear={() => (entries = [])}
+    />
+  </div>
+{/snippet}
+
 <Confirm
   bind:open={confirming}
-  title="Apply to Eris?"
-  body="Your appearance, dock, launcher and calendar settings are replaced with the studio ones. Device name, pinned apps and sync stay as they are."
-  action="Apply"
-  cancel="Cancel"
+  title={$t("studio.confirm.title")}
+  body={$t("studio.confirm.body")}
+  action={$t("studio.confirm.action")}
+  cancel={$t("common.cancel")}
   onconfirm={apply}
 />
 
