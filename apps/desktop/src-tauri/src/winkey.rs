@@ -2,12 +2,15 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, OnceLock};
 use std::time::Instant;
 
+use tauri::AppHandle;
+
 const LONE_LIMIT: u64 = 3_000;
 const HOLD_LIMIT: u64 = 5_000;
 const LWIN_BIT: u8 = 1;
 const RWIN_BIT: u8 = 2;
 
 static CAPTURE: AtomicBool = AtomicBool::new(false);
+static DELEGATED: AtomicBool = AtomicBool::new(false);
 static KEYS: Mutex<Keys> = Mutex::new(Keys::IDLE);
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -115,39 +118,62 @@ fn now() -> u64 {
     ORIGIN.get_or_init(Instant::now).elapsed().as_millis() as u64
 }
 
-#[tauri::command]
-pub fn set_win_key_capture(enabled: bool) {
+pub fn capture(enabled: bool) {
     CAPTURE.store(enabled, Ordering::Relaxed);
     *KEYS.lock().unwrap() = Keys::IDLE;
     release();
 }
 
-pub use win::{chord, install, release, tap};
+pub fn capturing() -> bool {
+    CAPTURE.load(Ordering::Relaxed)
+}
+
+pub fn delegate(on: bool) {
+    DELEGATED.store(on, Ordering::Relaxed);
+    *KEYS.lock().unwrap() = Keys::IDLE;
+    release();
+}
+
+#[tauri::command]
+pub fn set_win_key_capture(app: AppHandle, enabled: bool) {
+    capture(enabled);
+    crate::elevate::capture(&app, enabled);
+}
+
+pub fn lone_tap(app: &AppHandle) {
+    if crate::features::LAUNCHER_ON.load(Ordering::Relaxed) {
+        crate::windowing::toggle(app, "main");
+    }
+}
+
+pub use win::{chord, hook_ready, install, raise, release, tap};
 
 mod win {
-    use std::sync::atomic::{AtomicU16, Ordering};
+    use std::sync::atomic::{AtomicU16, AtomicU32, Ordering};
     use std::sync::mpsc::{sync_channel, SyncSender};
     use std::sync::OnceLock;
 
-    use tauri::AppHandle;
     use windows::Win32::Foundation::{LPARAM, LRESULT, WPARAM};
+    use windows::Win32::System::Threading::GetCurrentThreadId;
     use windows::Win32::UI::Input::KeyboardAndMouse::{
         GetAsyncKeyState, SendInput, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT, KEYBD_EVENT_FLAGS,
         KEYEVENTF_EXTENDEDKEY, KEYEVENTF_KEYUP, VIRTUAL_KEY, VK_LWIN, VK_RWIN,
     };
     use windows::Win32::UI::WindowsAndMessaging::{
-        CallNextHookEx, DispatchMessageW, GetMessageW, SetWindowsHookExW, TranslateMessage,
-        UnhookWindowsHookEx, KBDLLHOOKSTRUCT, LLKHF_EXTENDED, MSG, WH_KEYBOARD_LL, WM_KEYDOWN,
-        WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP,
+        CallNextHookEx, DispatchMessageW, GetMessageW, PostThreadMessageW, SetWindowsHookExW,
+        TranslateMessage, UnhookWindowsHookEx, KBDLLHOOKSTRUCT, LLKHF_EXTENDED, MSG,
+        WH_KEYBOARD_LL, WM_APP, WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP,
     };
 
-    use super::{now, WinUp, CAPTURE, KEYS, LWIN_BIT, RWIN_BIT};
+    use super::{now, WinUp, CAPTURE, DELEGATED, KEYS, LWIN_BIT, RWIN_BIT};
 
     const TAG: usize = 0x4552_4953;
     const RELEASE_TRIES: usize = 2;
+    const RAISE: u32 = WM_APP;
 
     static EVENTS: OnceLock<SyncSender<()>> = OnceLock::new();
     static OPEN_KEY: AtomicU16 = AtomicU16::new(0);
+    static HOOK_THREAD: AtomicU32 = AtomicU32::new(0);
 
     fn stroke(key: VIRTUAL_KEY, scan: u16, flags: KEYBD_EVENT_FLAGS) -> INPUT {
         INPUT {
@@ -273,7 +299,7 @@ mod win {
     }
 
     unsafe extern "system" fn keyboard_hook(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
-        if code < 0 || !CAPTURE.load(Ordering::Relaxed) {
+        if code < 0 || !CAPTURE.load(Ordering::Relaxed) || DELEGATED.load(Ordering::Relaxed) {
             return unsafe { CallNextHookEx(None, code, wparam, lparam) };
         }
 
@@ -355,15 +381,26 @@ mod win {
         unsafe { CallNextHookEx(None, code, wparam, lparam) }
     }
 
-    pub fn install(app: AppHandle) {
+    pub fn hook_ready() -> bool {
+        HOOK_THREAD.load(Ordering::Relaxed) != 0
+    }
+
+    // the hook thread owns a message queue, which AttachThreadInput needs to borrow the foreground
+    pub fn raise(raw: isize) {
+        let thread = HOOK_THREAD.load(Ordering::Relaxed);
+
+        if thread != 0 {
+            let _ = unsafe { PostThreadMessageW(thread, RAISE, WPARAM(raw as usize), LPARAM(0)) };
+        }
+    }
+
+    pub fn install(on_lone: impl Fn() + Send + 'static) {
         let (sender, receiver) = sync_channel(4);
         let _ = EVENTS.set(sender);
 
         std::thread::spawn(move || {
             while receiver.recv().is_ok() {
-                if crate::features::LAUNCHER_ON.load(Ordering::Relaxed) {
-                    crate::windowing::toggle(&app, "main");
-                }
+                on_lone();
             }
         });
 
@@ -377,11 +414,21 @@ mod win {
                 }
             };
 
+            HOOK_THREAD.store(GetCurrentThreadId(), Ordering::Relaxed);
             log::info!("hook installed");
 
             let mut message = MSG::default();
 
             while GetMessageW(&mut message, None, 0, 0).as_bool() {
+                if message.message == RAISE {
+                    let raw = message.wParam.0 as isize;
+
+                    // activation makes synchronous cross-process calls; keep them off the hook pump
+                    std::thread::spawn(move || crate::desktop::activate_window(raw));
+
+                    continue;
+                }
+
                 let _ = TranslateMessage(&message);
                 DispatchMessageW(&message);
             }

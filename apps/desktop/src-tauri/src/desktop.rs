@@ -64,8 +64,8 @@ mod win {
     use windows::Win32::Foundation::{CloseHandle, HWND, LPARAM, WPARAM};
     use windows::Win32::Graphics::Dwm::{DwmGetWindowAttribute, DWMWA_CLOAKED};
     use windows::Win32::System::Threading::{
-        AttachThreadInput, GetCurrentThreadId, OpenProcess, QueryFullProcessImageNameW,
-        PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION,
+        AttachThreadInput, GetCurrentProcessId, GetCurrentThreadId, OpenProcess,
+        QueryFullProcessImageNameW, PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION,
     };
     use windows::Win32::UI::Accessibility::{SetWinEventHook, HWINEVENTHOOK};
     use windows::Win32::UI::Input::KeyboardAndMouse::{SetFocus, VK_MENU};
@@ -343,7 +343,12 @@ mod win {
                 let _ = AttachThreadInput(me, front, false);
             }
 
-            if !raised {
+            // only our own windows go through the elevated helper; it drops any other hwnd
+            let mut owner = 0;
+            GetWindowThreadProcessId(hwnd, Some(&mut owner));
+            let ours = owner == GetCurrentProcessId();
+
+            if !raised && !(ours && crate::elevate::raise(raw)) {
                 crate::winkey::tap(VK_MENU);
                 let _ = SetForegroundWindow(hwnd);
             }

@@ -15,6 +15,7 @@ mod commands;
 mod desktop;
 mod edge;
 mod edit;
+mod elevate;
 mod eris_files;
 mod features;
 mod icons;
@@ -116,6 +117,13 @@ fn logger() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 pub fn run() {
     let args: Vec<String> = std::env::args().skip(1).collect();
 
+    match args.first().map(String::as_str) {
+        Some(elevate::HOOK_ARG) => return elevate::helper(),
+        Some(elevate::INSTALL_ARG) => std::process::exit(elevate::install()),
+        Some(elevate::REMOVE_ARG) => std::process::exit(elevate::remove()),
+        _ => {}
+    }
+
     if let Some(code) = tauri_plugin_eris_files::default_app::cli(&eris_files::HOST, &args) {
         std::process::exit(code);
     }
@@ -201,7 +209,14 @@ pub fn run() {
             handle.set_device_event_filter(DeviceEventFilter::Always);
 
             notify::host(handle.clone());
-            winkey::install(handle.clone());
+            winkey::install({
+                let handle = handle.clone();
+
+                move || {
+                    winkey::lone_tap(&handle);
+                    elevate::offer(&handle);
+                }
+            });
             clipboard::watch(handle.clone());
             desktop::watch(handle.clone());
             apps::watch(handle.clone());
