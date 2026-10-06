@@ -321,6 +321,7 @@ pub async fn audio_waveform(path: String) -> Result<Waveform> {
     tauri::async_runtime::spawn_blocking(move || waveform(path)).await?
 }
 
+#[cfg(windows)]
 pub fn duration(path: &Path) -> Option<f64> {
     Source::open(path).ok()?.duration
 }

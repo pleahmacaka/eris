@@ -2,6 +2,7 @@ mod registry;
 #[cfg(windows)]
 mod win;
 
+#[cfg(windows)]
 use std::path::PathBuf;
 
 use serde::Serialize;
@@ -21,6 +22,7 @@ pub struct DefaultApp {
     enabled: bool,
 }
 
+#[cfg(windows)]
 fn exe() -> Result<PathBuf> {
     Ok(std::env::current_exe()?)
 }

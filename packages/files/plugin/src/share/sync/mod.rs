@@ -213,12 +213,55 @@ fn unchanged(target: &Path, expected: Option<&Entry>) -> bool {
     current == expected.map(|entry| (true, entry.size, entry.modified))
 }
 
+#[cfg(windows)]
 async fn recycle(path: PathBuf) -> Result<()> {
     tauri::async_runtime::spawn_blocking(move || {
         crate::ops::recycle(vec![path.to_string_lossy().into_owned()])
     })
     .await
     .map_err(fail)?
+}
+
+// phones have no recycle bin to send a synced deletion to
+#[cfg(not(windows))]
+async fn recycle(path: PathBuf) -> Result<()> {
+    tauri::async_runtime::spawn_blocking(move || {
+        if path.is_dir() {
+            std::fs::remove_dir_all(&path)
+        } else {
+            std::fs::remove_file(&path)
+        }
+    })
+    .await
+    .map_err(fail)?
+    .map_err(Into::into)
+}
+
+#[cfg(windows)]
+use crate::watch::watch_tree;
+
+// without a change journal the folder is rescanned on a timer
+#[cfg(not(windows))]
+fn watch_tree(
+    _path: PathBuf,
+    settle: std::time::Duration,
+    on_change: impl Fn() + Send + 'static,
+) -> std::sync::Arc<std::sync::atomic::AtomicBool> {
+    let stop = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let stopped = stop.clone();
+    let every = settle.max(std::time::Duration::from_secs(30));
+
+    std::thread::spawn(move || {
+        while !stopped.load(Ordering::Relaxed) {
+            std::thread::sleep(every);
+
+            if !stopped.load(Ordering::Relaxed) {
+                on_change();
+            }
+        }
+    });
+
+    stop
 }
 
 impl Node {
@@ -614,7 +657,7 @@ impl Node {
         let watcher = {
             let wake = wake.clone();
 
-            crate::watch::watch_tree(PathBuf::from(&sync.folder), SETTLE, move || {
+            watch_tree(PathBuf::from(&sync.folder), SETTLE, move || {
                 wake.notify_one()
             })
         };

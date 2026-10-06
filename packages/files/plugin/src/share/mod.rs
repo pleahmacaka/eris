@@ -17,7 +17,9 @@ use std::time::{Instant, SystemTime, UNIX_EPOCH};
 use iroh::EndpointId;
 use iroh_blobs::Hash;
 use tauri::async_runtime::JoinHandle;
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
+#[cfg(desktop)]
+use tauri::Manager;
 use tokio::sync::OnceCell;
 use uuid::Uuid;
 
@@ -132,6 +134,7 @@ fn open_links(app: &AppHandle, links: Vec<String>) {
     }
 }
 
+#[cfg(windows)]
 pub fn take_links(app: &AppHandle, args: &mut Vec<String>) -> bool {
     let (links, rest): (Vec<String>, Vec<String>) = std::mem::take(args)
         .into_iter()
@@ -146,6 +149,7 @@ pub fn take_links(app: &AppHandle, args: &mut Vec<String>) -> bool {
     found
 }
 
+#[cfg(windows)]
 pub fn focus_window(app: &AppHandle) -> bool {
     let window = app
         .webview_windows()
@@ -153,6 +157,7 @@ pub fn focus_window(app: &AppHandle) -> bool {
         .find(|window| window.label().starts_with("files-"));
 
     window.is_some_and(|window| {
+        #[cfg(desktop)]
         let _ = window.unminimize();
 
         window.set_focus().is_ok()

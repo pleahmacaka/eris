@@ -3,7 +3,7 @@ use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Mutex;
 
 use tauri::webview::{NewWindowFeatures, NewWindowResponse};
-use tauri::{AppHandle, Runtime, Url, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
+use tauri::{AppHandle, Runtime, Url, WebviewWindow, WebviewWindowBuilder};
 
 const LINK_SCHEMES: [&str; 3] = ["http", "https", "mailto"];
 
@@ -44,12 +44,13 @@ pub fn label(prefix: &str) -> String {
 }
 
 // windows only join the host's WebView2 browser process when their arguments match
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub fn child<'a, R: Runtime>(
     app: &'a AppHandle<R>,
     label: &str,
     route: &str,
 ) -> WebviewWindowBuilder<'a, R, AppHandle<R>> {
-    let builder = WebviewWindowBuilder::new(app, label, WebviewUrl::App(route.into()))
+    let builder = WebviewWindowBuilder::new(app, label, tauri::WebviewUrl::App(route.into()))
         .decorations(false)
         .transparent(true)
         .general_autofill_enabled(false)

@@ -25,5 +25,8 @@
     "eris-terminal:default",
     "eris-files:default",
     "eris-auth:default"
+  ],
+  "platforms": [
+    "windows"
   ]
 }
