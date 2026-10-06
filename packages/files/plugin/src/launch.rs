@@ -82,7 +82,8 @@ fn build(
     let mut builder = eris_window_kit::child(app, &label, route)
         .title(title)
         .inner_size(1180.0, 740.0)
-        .min_inner_size(560.0, 380.0);
+        .min_inner_size(560.0, 380.0)
+        .icon(tauri::include_image!("icons/128x128.png"))?;
 
     if !native_drop {
         builder = builder.disable_drag_drop_handler();

@@ -266,11 +266,16 @@ pub(crate) fn window_for(app: &AppHandle, label: &str) -> Option<WebviewWindow> 
     }
 
     let config = lazy_config(app, label)?;
+    let builder = tauri::WebviewWindowBuilder::from_config(app, &config).ok()?;
+    let builder = if label == "studio" {
+        builder
+            .icon(tauri::include_image!("icons/studio.png"))
+            .ok()?
+    } else {
+        builder
+    };
 
-    tauri::WebviewWindowBuilder::from_config(app, &config)
-        .ok()?
-        .build()
-        .ok()
+    builder.build().ok()
 }
 
 fn reveal(window: &WebviewWindow) {
