@@ -2,10 +2,18 @@
   import { updateDevice } from "@eris/settings"
   import { ContextMenu, type MenuItem } from "@eris/ui"
   import { t } from "svelte-i18n"
+  import { type PowerAction, powerAction } from "$lib/native/system"
   import { showWindow } from "$lib/native/windows"
   import type { Launcher } from "./launcher.svelte"
 
   let { launcher }: { launcher: Launcher } = $props()
+
+  const POWER: [PowerAction, string][] = [
+    ["lock", "lucide:lock"],
+    ["sleep", "lucide:moon"],
+    ["restart", "lucide:rotate-cw"],
+    ["shutdown", "lucide:power"],
+  ]
 
   const backdropItems = $derived.by((): MenuItem[] => [
     {
@@ -27,6 +35,12 @@
       icon: "lucide:settings",
       action: () => showWindow("settings"),
     },
+    "separator",
+    ...POWER.map(([id, icon]) => ({
+      label: $t(`launcher.commands.${id}`),
+      icon,
+      action: () => powerAction(id),
+    })),
   ])
 </script>
 
