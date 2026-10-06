@@ -826,7 +826,7 @@ mod win {
         let _ = store.save();
     }
 
-    // ponytail: explorer keeps its work-area strip while merely hidden, so park it in auto-hide first
+    // explorer keeps its work-area strip while merely hidden, so park it in auto-hide first
     fn shell_taskbar_autohide(enabled: bool) {
         if enabled {
             if tray_window().is_none() {
@@ -882,7 +882,7 @@ mod win {
         }
     }
 
-    // ponytail: explorer re-shows the tray on its own events, so poll instead of hiding once
+    // explorer re-shows the tray on its own events, so poll instead of hiding once
     fn sync_system_taskbar(hidden: bool) {
         let stale = SHELL_STALE.swap(false, Ordering::SeqCst);
 

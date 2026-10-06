@@ -105,7 +105,7 @@ mod win {
         };
 
         let Some(base) = previous.replace(first) else {
-            // ponytail: one 120 ms wait under the lock, only for the first sample of the process
+            // one 120 ms wait under the lock, only for the first sample of the process
             sleep(SEED_WINDOW);
 
             let Some(second) = sample() else {
