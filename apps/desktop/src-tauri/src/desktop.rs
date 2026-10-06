@@ -51,6 +51,10 @@ pub fn force_foreground(window: &WebviewWindow) {
     }
 }
 
+pub fn foreground_reachable() -> bool {
+    win::foreground_reachable()
+}
+
 pub fn watch(app: tauri::AppHandle) {
     win::watch(app);
 }
@@ -64,11 +68,11 @@ mod win {
     use windows::Win32::Foundation::{CloseHandle, HWND, LPARAM, WPARAM};
     use windows::Win32::Graphics::Dwm::{DwmGetWindowAttribute, DWMWA_CLOAKED};
     use windows::Win32::System::Threading::{
-        AttachThreadInput, GetCurrentProcessId, GetCurrentThreadId, OpenProcess,
-        QueryFullProcessImageNameW, PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION,
+        AttachThreadInput, GetCurrentThreadId, OpenProcess, QueryFullProcessImageNameW,
+        PROCESS_NAME_WIN32, PROCESS_QUERY_INFORMATION, PROCESS_QUERY_LIMITED_INFORMATION,
     };
     use windows::Win32::UI::Accessibility::{SetWinEventHook, HWINEVENTHOOK};
-    use windows::Win32::UI::Input::KeyboardAndMouse::{SetFocus, VK_MENU};
+    use windows::Win32::UI::Input::KeyboardAndMouse::SetFocus;
     use windows::Win32::UI::WindowsAndMessaging::{
         BringWindowToTop, DispatchMessageW, EnumWindows, GetClassNameW, GetForegroundWindow,
         GetMessageW, GetWindow, GetWindowLongPtrW, GetWindowTextW, GetWindowThreadProcessId,
@@ -329,29 +333,46 @@ mod win {
         unsafe {
             let me = GetCurrentThreadId();
             let front_window = GetForegroundWindow();
-            let front = GetWindowThreadProcessId(front_window, None);
+            let mut front_pid = 0;
+            let front = GetWindowThreadProcessId(front_window, Some(&mut front_pid));
+
+            // never attach to a process we cannot open: an elevated game is unreachable, and anti-cheat must see nothing
             let attached = front != 0
                 && front != me
                 && !IsHungAppWindow(front_window).as_bool()
+                && reachable(front_pid)
                 && AttachThreadInput(me, front, true).as_bool();
 
             let _ = BringWindowToTop(hwnd);
-            let raised = SetForegroundWindow(hwnd).as_bool();
+            let _ = SetForegroundWindow(hwnd);
             let _ = SetFocus(Some(hwnd));
 
             if attached {
                 let _ = AttachThreadInput(me, front, false);
             }
+        }
+    }
 
-            // only our own windows go through the elevated helper; it drops any other hwnd
-            let mut owner = 0;
-            GetWindowThreadProcessId(hwnd, Some(&mut owner));
-            let ours = owner == GetCurrentProcessId();
+    pub fn foreground_reachable() -> bool {
+        let mut pid = 0;
+        unsafe { GetWindowThreadProcessId(GetForegroundWindow(), Some(&mut pid)) };
 
-            if !raised && !(ours && crate::elevate::raise(raw)) {
-                crate::winkey::tap(VK_MENU);
-                let _ = SetForegroundWindow(hwnd);
+        reachable(pid)
+    }
+
+    // a higher-integrity (elevated) process denies this open, which is exactly when we must not touch it
+    fn reachable(pid: u32) -> bool {
+        if pid == 0 {
+            return false;
+        }
+
+        match unsafe { OpenProcess(PROCESS_QUERY_INFORMATION, false, pid) } {
+            Ok(handle) => {
+                let _ = unsafe { CloseHandle(handle) };
+
+                true
             }
+            Err(_) => false,
         }
     }
 }

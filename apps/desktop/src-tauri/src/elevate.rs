@@ -21,7 +21,7 @@ use windows::Win32::Storage::FileSystem::{
 };
 use windows::Win32::System::Com::CoTaskMemFree;
 use windows::Win32::System::Console::FreeConsole;
-use windows::Win32::System::Pipes::{GetNamedPipeClientProcessId, GetNamedPipeServerProcessId};
+use windows::Win32::System::Pipes::GetNamedPipeClientProcessId;
 use windows::Win32::System::RemoteDesktop::ProcessIdToSessionId;
 use windows::Win32::System::Threading::{
     GetCurrentProcess, GetExitCodeProcess, OpenProcess, QueryFullProcessImageNameW,
@@ -32,7 +32,7 @@ use windows::Win32::UI::Shell::{
     FOLDERID_ProgramFiles, FOLDERID_System, SHGetKnownFolderPath, ShellExecuteExW, KF_FLAG_DEFAULT,
     SEE_MASK_NOCLOSEPROCESS, SHELLEXECUTEINFOW,
 };
-use windows::Win32::UI::WindowsAndMessaging::{GetWindowThreadProcessId, SW_HIDE};
+use windows::Win32::UI::WindowsAndMessaging::SW_HIDE;
 
 pub const HOOK_ARG: &str = "--win-hook";
 pub const INSTALL_ARG: &str = "--install-win-hook";
@@ -50,8 +50,7 @@ const RETRY: Duration = Duration::from_millis(250);
 const RETRIES: usize = 20;
 
 const CAPTURE_FRAME: u8 = 0;
-const RAISE_FRAME: u8 = 1;
-const TAP: u8 = 2;
+const TAP: u8 = 1;
 
 static STARTED: AtomicBool = AtomicBool::new(false);
 static OFFER: AtomicBool = AtomicBool::new(false);
@@ -74,10 +73,6 @@ pub fn offer(app: &AppHandle) {
 
         std::thread::spawn(move || tauri::async_runtime::block_on(setup(app)));
     }
-}
-
-pub fn raise(raw: isize) -> bool {
-    send(RAISE_FRAME, raw as u64)
 }
 
 fn frame(tag: u8, value: u64) -> [u8; 9] {
@@ -269,7 +264,6 @@ pub fn helper() {
 
 async fn relay() -> std::io::Result<()> {
     let pipe = open().await?;
-    let owner = server_process(&pipe);
     let (mut reader, mut writer) = tokio::io::split(pipe);
     let (taps, mut tapped) = unbounded_channel::<()>();
 
@@ -306,14 +300,8 @@ async fn relay() -> std::io::Result<()> {
         let mut value = [0; 8];
         value.copy_from_slice(&frame[1..]);
 
-        let value = u64::from_le_bytes(value);
-
-        match frame[0] {
-            CAPTURE_FRAME => crate::winkey::capture(value != 0),
-            RAISE_FRAME if window_process(value as isize) == owner => {
-                crate::winkey::raise(value as isize)
-            }
-            _ => {}
+        if frame[0] == CAPTURE_FRAME {
+            crate::winkey::capture(u64::from_le_bytes(value) != 0);
         }
     }
 
@@ -352,20 +340,6 @@ fn pipe_name() -> String {
     let _ = unsafe { ProcessIdToSessionId(std::process::id(), &mut session) };
 
     format!(r"\\.\pipe\{HELPER_NAME}-{session}")
-}
-
-fn server_process(pipe: &NamedPipeClient) -> u32 {
-    let mut process = 0;
-    let _ = unsafe { GetNamedPipeServerProcessId(HANDLE(pipe.as_raw_handle()), &mut process) };
-
-    process
-}
-
-fn window_process(raw: isize) -> u32 {
-    let mut process = 0;
-    unsafe { GetWindowThreadProcessId(HWND(raw as _), Some(&mut process)) };
-
-    process
 }
 
 pub fn install() -> i32 {

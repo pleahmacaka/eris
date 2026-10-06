@@ -141,12 +141,19 @@ pub fn set_win_key_capture(app: AppHandle, enabled: bool) {
 }
 
 pub fn lone_tap(app: &AppHandle) {
-    if crate::features::LAUNCHER_ON.load(Ordering::Relaxed) {
-        crate::windowing::toggle(app, "main");
+    if !crate::features::LAUNCHER_ON.load(Ordering::Relaxed) {
+        return;
     }
+
+    // over an elevated foreground we cannot take focus without touching it, so suppress Start and stop there
+    if !crate::desktop::foreground_reachable() {
+        return;
+    }
+
+    crate::windowing::toggle(app, "main");
 }
 
-pub use win::{chord, hook_ready, install, raise, release, tap};
+pub use win::{chord, hook_ready, install, release};
 
 mod win {
     use std::sync::atomic::{AtomicU16, AtomicU32, Ordering};
@@ -160,16 +167,15 @@ mod win {
         KEYEVENTF_EXTENDEDKEY, KEYEVENTF_KEYUP, VIRTUAL_KEY, VK_LWIN, VK_RWIN,
     };
     use windows::Win32::UI::WindowsAndMessaging::{
-        CallNextHookEx, DispatchMessageW, GetMessageW, PostThreadMessageW, SetWindowsHookExW,
-        TranslateMessage, UnhookWindowsHookEx, KBDLLHOOKSTRUCT, LLKHF_EXTENDED, MSG,
-        WH_KEYBOARD_LL, WM_APP, WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP,
+        CallNextHookEx, DispatchMessageW, GetMessageW, SetWindowsHookExW, TranslateMessage,
+        UnhookWindowsHookEx, KBDLLHOOKSTRUCT, LLKHF_EXTENDED, MSG, WH_KEYBOARD_LL, WM_KEYDOWN,
+        WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP,
     };
 
     use super::{now, WinUp, CAPTURE, DELEGATED, KEYS, LWIN_BIT, RWIN_BIT};
 
     const TAG: usize = 0x4552_4953;
     const RELEASE_TRIES: usize = 2;
-    const RAISE: u32 = WM_APP;
 
     static EVENTS: OnceLock<SyncSender<()>> = OnceLock::new();
     static OPEN_KEY: AtomicU16 = AtomicU16::new(0);
@@ -192,13 +198,6 @@ mod win {
 
     fn send(inputs: &[INPUT]) -> u32 {
         unsafe { SendInput(inputs, std::mem::size_of::<INPUT>() as i32) }
-    }
-
-    pub fn tap(key: VIRTUAL_KEY) {
-        send(&[
-            stroke(key, 0, KEYBD_EVENT_FLAGS(0)),
-            stroke(key, 0, KEYEVENTF_KEYUP),
-        ]);
     }
 
     pub fn chord(keys: &[VIRTUAL_KEY]) {
@@ -385,15 +384,6 @@ mod win {
         HOOK_THREAD.load(Ordering::Relaxed) != 0
     }
 
-    // the hook thread owns a message queue, which AttachThreadInput needs to borrow the foreground
-    pub fn raise(raw: isize) {
-        let thread = HOOK_THREAD.load(Ordering::Relaxed);
-
-        if thread != 0 {
-            let _ = unsafe { PostThreadMessageW(thread, RAISE, WPARAM(raw as usize), LPARAM(0)) };
-        }
-    }
-
     pub fn install(on_lone: impl Fn() + Send + 'static) {
         let (sender, receiver) = sync_channel(4);
         let _ = EVENTS.set(sender);
@@ -420,15 +410,6 @@ mod win {
             let mut message = MSG::default();
 
             while GetMessageW(&mut message, None, 0, 0).as_bool() {
-                if message.message == RAISE {
-                    let raw = message.wParam.0 as isize;
-
-                    // activation makes synchronous cross-process calls; keep them off the hook pump
-                    std::thread::spawn(move || crate::desktop::activate_window(raw));
-
-                    continue;
-                }
-
                 let _ = TranslateMessage(&message);
                 DispatchMessageW(&message);
             }
