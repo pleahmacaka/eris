@@ -51,6 +51,21 @@ impl Saved {
     pub(super) fn share(&self, id: Uuid) -> Option<&Outgoing> {
         self.shares.iter().find(|share| share.id == id)
     }
+
+    pub(super) fn added_at(&self, peer: &EndpointId) -> Option<u64> {
+        self.devices
+            .iter()
+            .find(|device| device.id == *peer)
+            .map(|device| device.added_at)
+    }
+
+    pub(super) fn senior(&self) -> bool {
+        self.devices
+            .iter()
+            .map(|device| device.added_at)
+            .min()
+            .is_some_and(|since| super::now().saturating_sub(since) >= super::peers::SENIORITY)
+    }
 }
 
 #[derive(Serialize)]
@@ -71,6 +86,7 @@ pub struct State {
     pending_pair: Option<String>,
     syncs: Vec<Sync>,
     sync_invites: Vec<SyncInvite>,
+    senior: bool,
 }
 
 fn read_saved(file: &Path) -> Result<Option<Saved>> {
@@ -186,6 +202,7 @@ impl Node {
             pending_pair,
             syncs: saved.syncs.clone(),
             sync_invites: saved.sync_invites.clone(),
+            senior: saved.senior(),
         }
     }
 }

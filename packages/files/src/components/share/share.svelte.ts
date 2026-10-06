@@ -22,6 +22,7 @@ export const share = $state<{
     pendingPair: null,
     syncs: [],
     syncInvites: [],
+    senior: false,
   },
   problem: null,
   progress: {},

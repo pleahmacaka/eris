@@ -414,6 +414,9 @@
     "showQr": "显示配对二维码",
     "enterCode": "输入配对代码",
     "scan": "扫描二维码",
-    "joined": "设备已配对。"
+    "joined": "设备已配对。",
+    "confirmRemove": "移除 {name}?",
+    "removeEverywhere": "如果它比这台设备更晚加入,其他设备也会移除它。",
+    "removeHere": "只在这台设备上断开连接。"
   }
 }

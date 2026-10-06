@@ -1,11 +1,12 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { toast } from "@eris/ui"
+  import { Confirm, toast } from "@eris/ui"
   import { writeText } from "@tauri-apps/plugin-clipboard-manager"
   import { t } from "svelte-i18n"
   import { shareError } from "./errors"
   import Qr from "./Qr.svelte"
   import {
+    type Device,
     dismissPair,
     type Invite,
     invite,
@@ -24,6 +25,8 @@
   let joining = $state(false)
   let editing = $state<string | null>(null)
   let draft = $state("")
+  let removing = $state<Device | null>(null)
+  let confirmRemove = $state(false)
 
   const startInvite = async () => {
     inviting = true
@@ -154,7 +157,10 @@
               type="button"
               class="btn btn-ghost btn-square btn-xs hover:text-error"
               aria-label={$t("devices.remove")}
-              onclick={() => removeDevice(device.id).catch(() => undefined)}
+              onclick={() => {
+                removing = device
+                confirmRemove = true
+              }}
             >
               <Icon icon="lucide:trash-2" class="size-3.5" />
             </button>
@@ -163,6 +169,14 @@
       </ul>
     {/if}
   </div>
+
+  <Confirm
+    bind:open={confirmRemove}
+    title={$t("devices.confirmRemove", { values: { name: removing?.name ?? "" } })}
+    body={$t(share.state.senior ? "devices.removeEverywhere" : "devices.removeHere")}
+    action={$t("devices.remove")}
+    onconfirm={() => removing && removeDevice(removing.id).catch(() => undefined)}
+  />
 
   <div class="flex flex-col gap-2">
     <span class="text-xs font-medium text-base-content/60">{$t("devices.add")}</span>

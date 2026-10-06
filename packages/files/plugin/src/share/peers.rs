@@ -14,6 +14,7 @@ use super::{now, Node};
 use crate::error::{Error, Result};
 
 const INVITE_TTL: Duration = Duration::from_secs(600);
+pub(super) const SENIORITY: u64 = 24 * 60 * 60 * 1000;
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -121,7 +122,67 @@ impl Node {
         self.changed();
     }
 
+    // ponytail: devices offline right now never hear of the removal; queue it if that matters
     pub(super) async fn remove_device(self: &Arc<Self>, id: EndpointId) -> Result<()> {
+        let witnesses: Vec<EndpointId> = {
+            let saved = self.lock();
+
+            if saved.senior() {
+                saved
+                    .devices
+                    .iter()
+                    .map(|device| device.id)
+                    .filter(|device| *device != id)
+                    .collect()
+            } else {
+                Vec::new()
+            }
+        };
+
+        self.forget_device(id).await?;
+
+        let device = wire::encode(id.as_bytes());
+
+        for witness in witnesses {
+            let node = self.clone();
+            let device = device.clone();
+
+            tauri::async_runtime::spawn(async move {
+                let _ = node.call(witness, Request::Evict { device }).await;
+            });
+        }
+
+        Ok(())
+    }
+
+    pub(super) fn evicted(self: &Arc<Self>, remote: EndpointId, device: &str) -> Reply {
+        let Some(target) = wire::decode_id(device) else {
+            return Reply::Denied;
+        };
+
+        let allowed = {
+            let saved = self.lock();
+
+            match (saved.added_at(&remote), saved.added_at(&target)) {
+                (Some(by), Some(at)) => now().saturating_sub(by) >= SENIORITY && at >= by,
+                _ => false,
+            }
+        };
+
+        if !allowed {
+            return Reply::Denied;
+        }
+
+        let node = self.clone();
+
+        tauri::async_runtime::spawn(async move {
+            let _ = node.forget_device(target).await;
+        });
+
+        Reply::Accepted
+    }
+
+    async fn forget_device(self: &Arc<Self>, id: EndpointId) -> Result<()> {
         let (orphaned, received) = self.update(|saved| {
             let received: Vec<Uuid> = saved
                 .inbox

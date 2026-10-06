@@ -76,6 +76,9 @@ pub enum Request {
     SyncChanged {
         sync: Uuid,
     },
+    Evict {
+        device: String,
+    },
     #[serde(other)]
     Unknown,
 }
@@ -111,7 +114,7 @@ fn decode(text: &str) -> Option<[u8; 32]> {
         .ok()
 }
 
-fn decode_id(text: &str) -> Option<EndpointId> {
+pub fn decode_id(text: &str) -> Option<EndpointId> {
     decode(text).and_then(|bytes| EndpointId::from_bytes(&bytes).ok())
 }
 
