@@ -21,6 +21,7 @@ pub fn open_window<R: Runtime>(
         .title("Eris Terminal")
         .inner_size(960.0, 600.0)
         .min_inner_size(480.0, 300.0)
+        .icon(tauri::include_image!("icons/128x128.png"))?
         .disable_drag_drop_handler();
 
     app.state::<Intents<Intent>>()
