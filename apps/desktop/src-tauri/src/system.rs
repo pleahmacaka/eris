@@ -193,7 +193,7 @@ mod win {
         }
     }
 
-    // ponytail: SetSuspendState returns only after resume, so it runs off the caller's thread
+    // SetSuspendState returns only after resume, so it runs off the caller's thread
     pub fn suspend(hibernate: bool) -> Result<(), String> {
         enable_suspend_privilege()?;
 

@@ -11,7 +11,7 @@ pub struct MediaStatus {
     pub playing: bool,
 }
 
-// ponytail: single flight; overlapping polls would stack 1.5 s waits on the blocking pool
+// single flight; overlapping polls would stack 1.5 s waits on the blocking pool
 static POLL_IN_FLIGHT: AtomicBool = AtomicBool::new(false);
 static LAST_STATUS: Mutex<Option<MediaStatus>> = Mutex::new(None);
 
