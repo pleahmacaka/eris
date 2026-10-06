@@ -34,6 +34,8 @@ export class DockLayout {
 
   dockHidden = $state(false)
 
+  maximized = $state(false)
+
   claims = new SvelteMap<string, MenuBox>()
 
   pointerX = $state<number | null>(null)
@@ -65,6 +67,11 @@ export class DockLayout {
   centered = $derived(!this.mac && this.device.dockAlign === "center")
 
   desktop = $derived(this.mac && this.device.dockDesktop)
+
+  edgeOnly = $derived(
+    this.device.dockEdgeOnly === "always" ||
+      (this.device.dockEdgeOnly === "maximized" && this.maximized),
+  )
 
   hideSystemTaskbar = $derived(
     this.device.hideSystemTaskbar && this.device.onboarded,
@@ -203,6 +210,7 @@ export class DockLayout {
       this.hideSystemTaskbar,
       this.device.dockMonitor,
       this.collapsed,
+      this.edgeOnly,
     ].join("|"),
   )
 
@@ -380,7 +388,11 @@ export class DockLayout {
     return native
       .applyTaskbar({
         edge: this.device.dockEdge,
-        height: this.collapsed ? STRIP : this.device.dockHeight,
+        height: this.collapsed
+          ? this.edgeOnly
+            ? 0
+            : STRIP
+          : this.device.dockHeight,
         width: this.dockWidth,
         floating: this.device.dockStyle !== "windows",
         autoHide: this.device.dockAutoHide,

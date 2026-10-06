@@ -2,9 +2,9 @@ use tauri::ipc::Invoke;
 use tauri::Wry;
 
 use crate::{
-    appbar, apps, audio, clipboard, desktop, edit, features, icons, media, meters, monitors, note,
-    notices, notify, p2p, pins, preview, quick, share, shortcuts, spectrum, system, theme_link,
-    usage, windowing, winkey,
+    appbar, apps, audio, clipboard, desktop, edge, edit, features, icons, media, meters, monitors,
+    note, notices, notify, p2p, pins, preview, quick, share, shortcuts, spectrum, system,
+    theme_link, usage, windowing, winkey,
 };
 
 pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
@@ -41,6 +41,7 @@ pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
         appbar::apply_topbar,
         appbar::extend_topbar,
         appbar::release_topbar,
+        edge::dock_maximized,
         monitors::list_monitors,
         media::media_status,
         media::media_command,

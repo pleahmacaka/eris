@@ -47,6 +47,13 @@ export const setFeatures = (features: Features) =>
 export const onDockEdge = (handler: (atEdge: boolean) => void) =>
   listen<{ atEdge: boolean }>("dock-edge", e => handler(e.payload.atEdge))
 
+export const dockMaximized = () => invoke<boolean>("dock_maximized")
+
+export const onDockMaximized = (handler: (maximized: boolean) => void) =>
+  listen<{ maximized: boolean }>("dock-maximized", e =>
+    handler(e.payload.maximized),
+  )
+
 export const onDockFullscreen = (handler: (fullscreen: boolean) => void) =>
   listen<{ fullscreen: boolean }>("dock-fullscreen", e =>
     handler(e.payload.fullscreen),
