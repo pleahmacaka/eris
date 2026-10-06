@@ -64,6 +64,7 @@ export const isCalendarEvent = (value: unknown): value is CalendarEvent =>
   isBoolean(value.allDay) &&
   (value.color === null || isString(value.color)) &&
   (value.reminderMinutes === null || isNumber(value.reminderMinutes)) &&
+  (value.order === undefined || isNumber(value.order)) &&
   isOneOf(RECURRENCES, value.recurrence) &&
   (value.tags === undefined ||
     (Array.isArray(value.tags) && value.tags.every(isString))) &&

@@ -41,6 +41,7 @@ export type CalendarEvent = {
   allDay: boolean
   color: string | null
   reminderMinutes: number | null
+  order?: number
   recurrence: Recurrence
   tags?: string[]
   parentId?: string | null

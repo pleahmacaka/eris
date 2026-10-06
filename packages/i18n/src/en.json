@@ -895,7 +895,7 @@
   },
   "edit": {
     "title": "Edit layout",
-    "hint": "Click a highlighted part to change it. Press Esc or Done to finish.",
+    "hint": "Click a highlighted part to change it, or drag it to reorder.",
     "done": "Done",
     "spots": {
       "launcher": "Launcher button",
@@ -904,7 +904,8 @@
       "widgets": "Widgets",
       "search": "Launcher",
       "spacer": "Spacer"
-    }
+    },
+    "panel": "Panel"
   },
   "menu": {
     "label": "Menu",
@@ -1078,7 +1079,8 @@
       "delete": "Delete repeating event",
       "one": "This event",
       "following": "This and following events",
-      "all": "All events"
+      "all": "All events",
+      "confirm": "Delete this event?"
     },
     "task": {
       "label": "Checkable",

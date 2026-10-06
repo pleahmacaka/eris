@@ -6,10 +6,12 @@
 
   const {
     mode,
+    scoped = true,
     choose,
     cancel,
   }: {
     mode: "edit" | "delete"
+    scoped?: boolean
     choose: (scope: Scope) => void
     cancel: () => void
   } = $props()
@@ -34,21 +36,31 @@
     ]}
   >
     <h3 class="px-2 pt-1 pb-1.5 text-sm font-semibold">
-      {$t(`panel.scope.${mode}`)}
+      {$t(scoped ? `panel.scope.${mode}` : "panel.scope.confirm")}
     </h3>
 
-    {#each SCOPES as scope (scope)}
+    {#if scoped}
+      {#each SCOPES as scope (scope)}
+        <button
+          type="button"
+          class={[
+            "btn btn-ghost btn-sm justify-start",
+            mode === "delete" && "text-error",
+          ]}
+          onclick={() => choose(scope)}
+        >
+          {$t(`panel.scope.${scope}`)}
+        </button>
+      {/each}
+    {:else}
       <button
         type="button"
-        class={[
-          "btn btn-ghost btn-sm justify-start",
-          mode === "delete" && "text-error",
-        ]}
-        onclick={() => choose(scope)}
+        class="btn btn-ghost btn-sm justify-start text-error"
+        onclick={() => choose("one")}
       >
-        {$t(`panel.scope.${scope}`)}
+        {$t("common.delete")}
       </button>
-    {/each}
+    {/if}
 
     <button type="button" class="btn btn-sm mt-1" onclick={cancel}>
       {$t("common.cancel")}

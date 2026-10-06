@@ -1,8 +1,10 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { Aura } from "@eris/ui"
-  import { getCurrentWindow } from "@tauri-apps/api/window"
+  import { PhysicalPosition, PhysicalSize } from "@tauri-apps/api/dpi"
+  import { currentMonitor, getCurrentWindow } from "@tauri-apps/api/window"
   import { t } from "svelte-i18n"
+  import EventDetail from "$lib/panel/EventDetail.svelte"
   import { longDay } from "$lib/calendar"
   import { dateKey } from "$lib/data"
   import * as native from "$lib/native"
@@ -24,8 +26,66 @@
   const panel = new Panel()
   const morph = new Morph()
 
+  const DETAIL_WIDTH = 364
+
   let focusLanded = false
   let shownAt = 0
+
+  let detailSide = $state<"left" | "right">("right")
+  let showDetail = $state(false)
+  let detailClosing = $state(false)
+  let widened = false
+  let closeTimer: ReturnType<typeof setTimeout> | null = null
+
+  const detailKey = $derived(
+    panel.view.kind === "event"
+      ? `${panel.view.id}@${panel.view.date}`
+      : "new",
+  )
+
+  const widen = async () => {
+    const scale = await appWindow.scaleFactor()
+    const pos = await appWindow.outerPosition()
+    const size = await appWindow.outerSize()
+    const monitor = await currentMonitor()
+
+    if (!monitor) {
+      return
+    }
+
+    const add = Math.round(DETAIL_WIDTH * scale)
+    const left = monitor.position.x
+    const right = monitor.position.x + monitor.size.width
+
+    detailSide =
+      right - (pos.x + size.width) >= add || pos.x - left < add ? "right" : "left"
+
+    if (detailSide === "left") {
+      await appWindow.setPosition(new PhysicalPosition(pos.x - add, pos.y))
+    }
+
+    await appWindow.setSize(new PhysicalSize(size.width + add, size.height))
+    widened = true
+  }
+
+  const unwiden = async () => {
+    if (!widened) {
+      return
+    }
+
+    widened = false
+
+    const scale = await appWindow.scaleFactor()
+    const pos = await appWindow.outerPosition()
+    const size = await appWindow.outerSize()
+    const add = Math.round(DETAIL_WIDTH * scale)
+
+    await appWindow.setSize(new PhysicalSize(size.width - add, size.height))
+
+    if (detailSide === "left") {
+      await appWindow.setPosition(new PhysicalPosition(pos.x + add, pos.y))
+    }
+  }
 
   const isPicker = (el: Element | null) =>
     el instanceof HTMLSelectElement ||
@@ -33,7 +93,16 @@
 
   const hide = () => {
     focusLanded = false
+
+    if (closeTimer) {
+      clearTimeout(closeTimer)
+      closeTimer = null
+    }
+
+    showDetail = false
+    detailClosing = false
     panel.close()
+    unwiden()
     native.hideWindow("panel")
   }
 
@@ -61,6 +130,29 @@
   $effect(() => {
     if (!panel.calendarOn) {
       native.setWindowRegion(null).catch(() => undefined)
+    }
+  })
+
+  $effect(() => {
+    if (panel.detailOpen) {
+      if (closeTimer) {
+        clearTimeout(closeTimer)
+        closeTimer = null
+      }
+
+      if (!showDetail) {
+        showDetail = true
+        detailClosing = false
+        widen()
+      }
+    } else if (showDetail && !detailClosing) {
+      detailClosing = true
+      closeTimer = setTimeout(() => {
+        showDetail = false
+        detailClosing = false
+        closeTimer = null
+        unwiden()
+      }, 200)
     }
   })
 
@@ -150,24 +242,44 @@
   </div>
 
   <div
-    class={[
-      "full absolute inset-0 grid grid-cols-[minmax(0,1fr)_22rem] gap-3",
-      !morph.expanded && "folded",
-    ]}
+    class={["full absolute inset-0", !morph.expanded && "folded"]}
     style:clip-path={morph.clipPath}
     inert={!morph.expanded}
     ontransitionend={morph.settle}
   >
-    <main class="panel-surface flex min-h-0 flex-col">
-      <Aura />
-      <PanelHeader {panel} {collapse} {hide} />
+    <div
+      class={[
+        "base absolute top-0 bottom-0 grid grid-cols-[minmax(0,1fr)_22rem] gap-3",
+        detailSide === "left" ? "right-0" : "left-0",
+      ]}
+      style:width={showDetail ? `calc(100% - ${DETAIL_WIDTH}px)` : "100%"}
+    >
+      <main class="panel-surface flex min-h-0 flex-col">
+        <Aura />
+        <PanelHeader {panel} {collapse} {hide} />
 
-      <div class="flex min-h-0 flex-1 flex-col px-2 pb-2">
-        <MonthGrid {panel} />
-      </div>
-    </main>
+        <div class="flex min-h-0 flex-1 flex-col px-2 pb-2">
+          <MonthGrid {panel} />
+        </div>
+      </main>
 
-    <PanelAside {panel} />
+      <PanelAside {panel} />
+    </div>
+
+    {#if showDetail}
+      <section
+        class={[
+          "detail panel-surface absolute top-0 bottom-0 flex w-[22rem] min-h-0 flex-col",
+          detailSide === "left" ? "left-0 from-left" : "right-0 from-right",
+          detailClosing && "closing",
+        ]}
+        inert={detailClosing}
+      >
+        {#key detailKey}
+          <EventDetail {panel} />
+        {/key}
+      </section>
+    {/if}
   </div>
 {/if}
 
@@ -198,5 +310,45 @@
     transition:
       clip-path 380ms cubic-bezier(0.2, 0.9, 0.1, 1),
       opacity 140ms ease-in 240ms;
+  }
+
+  .detail {
+    transition:
+      transform 200ms cubic-bezier(0.2, 0.9, 0.1, 1),
+      opacity 180ms ease-out;
+  }
+
+  .detail.from-right {
+    animation: detail-in-right 220ms cubic-bezier(0.2, 0.9, 0.1, 1);
+  }
+
+  .detail.from-left {
+    animation: detail-in-left 220ms cubic-bezier(0.2, 0.9, 0.1, 1);
+  }
+
+  .detail.closing {
+    opacity: 0;
+  }
+
+  .detail.from-right.closing {
+    transform: translateX(1rem);
+  }
+
+  .detail.from-left.closing {
+    transform: translateX(-1rem);
+  }
+
+  @keyframes detail-in-right {
+    from {
+      opacity: 0;
+      transform: translateX(1rem);
+    }
+  }
+
+  @keyframes detail-in-left {
+    from {
+      opacity: 0;
+      transform: translateX(-1rem);
+    }
   }
 </style>
