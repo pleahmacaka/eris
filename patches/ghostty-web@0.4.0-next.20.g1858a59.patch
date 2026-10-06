@@ -1,0 +1,236 @@
+diff --git a/dist/ghostty-web.js b/dist/ghostty-web.js
+index bb02e76ebacbb954d2a4f006caece5c15dad95ac..70115a63cdda42b2afab20131deb464c0232c0d3 100644
+--- a/dist/ghostty-web.js
++++ b/dist/ghostty-web.js
+@@ -914,8 +914,13 @@ const X = {
+    * @param event - KeyboardEvent
+    */
+   handleKeyDown(A) {
+-    if (this.isDisposed || this.isComposing || A.isComposing || A.keyCode === 229)
++    if (this.isDisposed)
++      return;
++    // an IME reports Ctrl and Alt chords as keyCode 229 too, yet they never compose text
++    if (this.isComposing || A.isComposing || A.keyCode === 229) {
++      (A.ctrlKey || A.altKey) && this.customKeyEventHandler && this.customKeyEventHandler(A) && A.preventDefault();
+       return;
++    }
+     if (this.onKeyCallback && this.onKeyCallback({ key: A.key, domEvent: A }), this.customKeyEventHandler && this.customKeyEventHandler(A)) {
+       A.preventDefault();
+       return;
+@@ -1639,6 +1644,12 @@ const b = {
+   brightCyan: "#29b8db",
+   brightWhite: "#ffffff"
+ };
++const BOX_ARMS = new Map(
++  "2500:0101 2501:0202 2502:1010 2503:2020 250c:0110 250d:0210 250e:0120 250f:0220 2510:0011 2511:0012 2512:0021 2513:0022 2514:1100 2515:1200 2516:2100 2517:2200 2518:1001 2519:1002 251a:2001 251b:2002 251c:1110 251d:1210 251e:2110 251f:1120 2520:2120 2521:2210 2522:1220 2523:2220 2524:1011 2525:1012 2526:2011 2527:1021 2528:2021 2529:2012 252a:1022 252b:2022 252c:0111 252d:0112 252e:0211 252f:0212 2530:0121 2531:0122 2532:0221 2533:0222 2534:1101 2535:1102 2536:1201 2537:1202 2538:2101 2539:2102 253a:2201 253b:2202 253c:1111 253d:1112 253e:1211 253f:1212 2540:2111 2541:1121 2542:2121 2543:2112 2544:2211 2545:1122 2546:1221 2547:2212 2548:1222 2549:2122 254a:2221 254b:2222 2574:0001 2575:1000 2576:0100 2577:0010 2578:0002 2579:2000 257a:0200 257b:0020 257c:0201 257d:1020 257e:0102 257f:2010".split(" ").map((entry) => {
++    const [code, arms] = entry.split(":");
++    return [parseInt(code, 16), [...arms].map(Number)];
++  })
++), BOX_QUADRANTS = [4, 8, 1, 13, 9, 7, 11, 2, 6, 14];
+ class BA {
+   constructor(A, Q = {}) {
+     this.cursorVisible = !0, this.lastCursorPosition = { x: 0, y: 0 }, this.lastViewportY = 0, this.currentBuffer = null, this.currentSelectionCoords = null, this.hoveredHyperlinkId = 0, this.previousHoveredHyperlinkId = 0, this.hoveredLinkRange = null, this.previousHoveredLinkRange = null, this.canvas = A;
+@@ -1670,7 +1681,7 @@ class BA {
+   measureFont() {
+     const Q = document.createElement("canvas").getContext("2d");
+     Q.font = `${this.fontSize}px ${this.fontFamily}`;
+-    const g = Q.measureText("M"), E = Math.ceil(g.width), C = g.actualBoundingBoxAscent || this.fontSize * 0.8, I = g.actualBoundingBoxDescent || this.fontSize * 0.2, D = Math.ceil(C + I) + 2, o = Math.ceil(C) + 1;
++    const g = Q.measureText("M"), C = g.fontBoundingBoxAscent || this.fontSize * 0.8, I = g.fontBoundingBoxDescent || this.fontSize * 0.2, E = Math.max(1, Math.round(g.width)), D = Math.max(Math.ceil(C + I), Math.round(this.fontSize * 1.2)), o = Math.round((D - C - I) / 2 + C);
+     return { width: E, height: D, baseline: o };
+   }
+   /**
+@@ -1685,6 +1696,49 @@ class BA {
+   rgbToCSS(A, Q, g) {
+     return `rgb(${A}, ${Q}, ${g})`;
+   }
++  fillSnapped(A, B, g, E) {
++    const C = this.devicePixelRatio, I = Math.round(A * C) / C, D = Math.round(B * C) / C;
++    this.ctx.fillRect(I, D, Math.round((A + g) * C) / C - I, Math.round((B + E) * C) / C - D);
++  }
++  // font block and line glyphs never fill a padded cell, so draw them as device-pixel rects that meet their neighbours
++  drawBox(A, B, g, E) {
++    const arms = BOX_ARMS.get(A), block = A >= 9600 && A <= 9631, rounded = A >= 9581 && A <= 9584, double = A === 9552 || A === 9553;
++    if (!arms && !block && !rounded && !double)
++      return !1;
++    const d = this.devicePixelRatio, ctx = this.ctx, X0 = Math.round(B * d), Y0 = Math.round(g * d), X1 = Math.round((B + E) * d), Y1 = Math.round((g + this.metrics.height) * d), W = X1 - X0, H = Y1 - Y0;
++    const fx = (f) => X0 + Math.round(W * f), fy = (f) => Y0 + Math.round(H * f), rect = (x0, y0, x1, y1) => ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
++    const light = Math.max(1, Math.round(this.fontSize * d / 14)), weights = [0, light, light * 2], mx = X0 + Math.floor(W / 2), my = Y0 + Math.floor(H / 2), from = (m, t) => m - Math.floor(t / 2);
++    if (ctx.save(), ctx.setTransform(1, 0, 0, 1, 0, 0), block) {
++      if (A === 9600)
++        rect(X0, Y0, X1, fy(0.5));
++      else if (A <= 9608)
++        rect(X0, fy(1 - (A - 9600) / 8), X1, Y1);
++      else if (A <= 9615)
++        rect(X0, Y0, fx((9616 - A) / 8), Y1);
++      else if (A === 9616)
++        rect(fx(0.5), Y0, X1, Y1);
++      else if (A <= 9619)
++        ctx.globalAlpha *= (A - 9616) / 4, rect(X0, Y0, X1, Y1);
++      else if (A === 9620)
++        rect(X0, Y0, X1, fy(1 / 8));
++      else if (A === 9621)
++        rect(fx(7 / 8), Y0, X1, Y1);
++      else {
++        const q = BOX_QUADRANTS[A - 9622];
++        q & 1 && rect(X0, Y0, fx(0.5), fy(0.5)), q & 2 && rect(fx(0.5), Y0, X1, fy(0.5)), q & 4 && rect(X0, fy(0.5), fx(0.5), Y1), q & 8 && rect(fx(0.5), fy(0.5), X1, Y1);
++      }
++    } else if (double) {
++      const start = from(A === 9552 ? my : mx, 3 * light);
++      A === 9552 ? (rect(X0, start, X1, start + light), rect(X0, start + 2 * light, X1, start + 3 * light)) : (rect(start, Y0, start + light, Y1), rect(start + 2 * light, Y0, start + 3 * light, Y1));
++    } else if (rounded) {
++      const right = A === 9581 || A === 9584, end = A === 9581 || A === 9582 ? Y1 : Y0, cx = from(mx, light) + light / 2, cy = from(my, light) + light / 2;
++      ctx.strokeStyle = ctx.fillStyle, ctx.lineWidth = light, ctx.beginPath(), ctx.moveTo(right ? X1 : X0, cy), ctx.arcTo(cx, cy, cx, end, Math.min(W, H) / 2), ctx.lineTo(cx, end), ctx.stroke();
++    } else {
++      const [up, right, down, left] = arms.map((a) => weights[a]), vertical = Math.max(up, down), horizontal = Math.max(left, right), reach = (m, t) => from(m, t) + t;
++      up && rect(from(mx, up), Y0, from(mx, up) + up, reach(my, Math.max(horizontal, up))), down && rect(from(mx, down), from(my, Math.max(horizontal, down)), from(mx, down) + down, Y1), left && rect(X0, from(my, left), reach(mx, Math.max(vertical, left)), from(my, left) + left), right && rect(from(mx, Math.max(vertical, right)), from(my, right), X1, from(my, right) + right);
++    }
++    return ctx.restore(), !0;
++  }
+   // ==========================================================================
+   // Canvas Sizing
+   // ==========================================================================
+@@ -1693,7 +1747,7 @@ class BA {
+    */
+   resize(A, Q) {
+     const g = A * this.metrics.width, E = Q * this.metrics.height;
+-    this.canvas.style.width = `${g}px`, this.canvas.style.height = `${E}px`, this.canvas.width = g * this.devicePixelRatio, this.canvas.height = E * this.devicePixelRatio, this.ctx.scale(this.devicePixelRatio, this.devicePixelRatio), this.ctx.textBaseline = "alphabetic", this.ctx.textAlign = "left", this.ctx.fillStyle = this.theme.background, this.ctx.fillRect(0, 0, g, E);
++    this.canvas.style.width = `${g}px`, this.canvas.style.height = `${E}px`, this.canvas.width = Math.round(g * this.devicePixelRatio), this.canvas.height = Math.round(E * this.devicePixelRatio), this.ctx.scale(this.devicePixelRatio, this.devicePixelRatio), this.ctx.textBaseline = "alphabetic", this.ctx.textAlign = "left", this.ctx.fillStyle = this.theme.background, this.ctx.fillRect(0, 0, g, E);
+   }
+   // ==========================================================================
+   // Main Rendering
+@@ -1705,7 +1759,7 @@ class BA {
+     var U;
+     this.currentBuffer = A;
+     const I = A.getCursor(), D = A.getDimensions(), o = E ? E.getScrollbackLength() : 0;
+-    (U = A.needsFullRedraw) != null && U.call(A) && (Q = !0), (this.canvas.width !== D.cols * this.metrics.width * this.devicePixelRatio || this.canvas.height !== D.rows * this.metrics.height * this.devicePixelRatio) && (this.resize(D.cols, D.rows), Q = !0), g !== this.lastViewportY && (Q = !0, this.lastViewportY = g);
++    (U = A.needsFullRedraw) != null && U.call(A) && (Q = !0), (this.canvas.width !== Math.round(D.cols * this.metrics.width * this.devicePixelRatio) || this.canvas.height !== Math.round(D.rows * this.metrics.height * this.devicePixelRatio)) && (this.resize(D.cols, D.rows), Q = !0), g !== this.lastViewportY && (Q = !0, this.lastViewportY = g);
+     const s = I.x !== this.lastCursorPosition.x || I.y !== this.lastCursorPosition.y;
+     if (s || this.cursorBlink) {
+       if (!Q && !A.isRowDirty(I.y)) {
+@@ -1798,7 +1852,7 @@ class BA {
+    */
+   renderLine(A, Q, g) {
+     const E = Q * this.metrics.height, C = g * this.metrics.width;
+-    this.ctx.clearRect(0, E, C, this.metrics.height), this.ctx.fillStyle = this.theme.background, this.ctx.fillRect(0, E, C, this.metrics.height);
++    this.ctx.clearRect(0, E, C, this.metrics.height), this.ctx.fillStyle = this.theme.background, this.fillSnapped(0, E, C, this.metrics.height);
+     for (let I = 0; I < A.length; I++) {
+       const D = A[I];
+       D.width !== 0 && this.renderCellBackground(D, I, Q);
+@@ -1816,11 +1870,11 @@ class BA {
+   renderCellBackground(A, Q, g) {
+     const E = Q * this.metrics.width, C = g * this.metrics.height, I = this.metrics.width * A.width;
+     if (this.isInSelection(Q, g)) {
+-      this.ctx.fillStyle = this.theme.selectionBackground, this.ctx.fillRect(E, C, I, this.metrics.height);
++      this.ctx.fillStyle = this.theme.selectionBackground, this.fillSnapped(E, C, I, this.metrics.height);
+       return;
+     }
+     let o = A.bg_r, w = A.bg_g, s = A.bg_b;
+-    A.flags & G.INVERSE && (o = A.fg_r, w = A.fg_g, s = A.fg_b), o === 0 && w === 0 && s === 0 || (this.ctx.fillStyle = this.rgbToCSS(o, w, s), this.ctx.fillRect(E, C, I, this.metrics.height));
++    A.flags & G.INVERSE && (o = A.fg_r, w = A.fg_g, s = A.fg_b), o === 0 && w === 0 && s === 0 || (this.ctx.fillStyle = this.rgbToCSS(o, w, s), this.fillSnapped(E, C, I, this.metrics.height));
+   }
+   /**
+    * Render a cell's text and decorations (Pass 2 of two-pass rendering)
+@@ -1844,7 +1898,7 @@ class BA {
+     A.flags & G.FAINT && (this.ctx.globalAlpha = 0.5);
+     const s = C, h = I + this.metrics.baseline;
+     let N;
+-    if (A.grapheme_len > 0 && ((k = this.currentBuffer) != null && k.getGraphemeString) ? N = this.currentBuffer.getGraphemeString(g, Q) : N = String.fromCodePoint(A.codepoint || 32), this.ctx.fillText(N, s, h), A.flags & G.FAINT && (this.ctx.globalAlpha = 1), A.flags & G.UNDERLINE) {
++    if (A.grapheme_len > 0 && ((k = this.currentBuffer) != null && k.getGraphemeString) ? N = this.currentBuffer.getGraphemeString(g, Q) : N = String.fromCodePoint(A.codepoint || 32), (A.grapheme_len > 0 || !this.drawBox(A.codepoint, C, I, D)) && this.ctx.fillText(N, s, h), A.flags & G.FAINT && (this.ctx.globalAlpha = 1), A.flags & G.UNDERLINE) {
+       const t = I + this.metrics.baseline + 2;
+       this.ctx.strokeStyle = this.ctx.fillStyle, this.ctx.lineWidth = 1, this.ctx.beginPath(), this.ctx.moveTo(C, t), this.ctx.lineTo(C + D, t), this.ctx.stroke();
+     }
+@@ -2557,7 +2611,9 @@ class iA {
+       N && (N.activate(g), (g.ctrlKey || g.metaKey) && g.preventDefault());
+     }, this.handleWheel = (g) => {
+       var C, I, D;
+-      if (g.preventDefault(), g.stopPropagation(), this.customWheelEventHandler && this.customWheelEventHandler(g))
++      if (g.preventDefault(), (C = this.wasmTerm) != null && C.hasMouseTracking())
++        return;
++      if (g.stopPropagation(), this.customWheelEventHandler && this.customWheelEventHandler(g))
+         return;
+       if (((C = this.wasmTerm) == null ? void 0 : C.isAlternateScreen()) ?? !1) {
+         const o = g.deltaY > 0 ? "down" : "up", w = Math.min(Math.abs(Math.round(g.deltaY / 33)), 5);
+@@ -2732,8 +2788,15 @@ class iA {
+         o.target === A && o.preventDefault();
+       }), A.setAttribute("role", "textbox"), A.setAttribute("aria-label", "Terminal input"), A.setAttribute("aria-multiline", "true");
+       const Q = this.buildWasmConfig();
+-      this.wasmTerm = this.ghostty.createTerminal(this.cols, this.rows, Q), this.canvas = document.createElement("canvas"), this.canvas.style.display = "block", this.canvas.style.cursor = "text", A.appendChild(this.canvas), this.textarea = document.createElement("textarea"), this.textarea.setAttribute("autocorrect", "off"), this.textarea.setAttribute("autocapitalize", "off"), this.textarea.setAttribute("spellcheck", "false"), this.textarea.setAttribute("tabindex", "0"), this.textarea.setAttribute("aria-label", "Terminal input"), this.textarea.style.position = "absolute", this.textarea.style.left = "0", this.textarea.style.top = "0", this.textarea.style.width = "1px", this.textarea.style.height = "1px", this.textarea.style.padding = "0", this.textarea.style.border = "none", this.textarea.style.margin = "0", this.textarea.style.opacity = "0", this.textarea.style.clipPath = "inset(50%)", this.textarea.style.overflow = "hidden", this.textarea.style.whiteSpace = "nowrap", this.textarea.style.resize = "none", A.appendChild(this.textarea);
++      this.wasmTerm = this.ghostty.createTerminal(this.cols, this.rows, Q), this.canvas = document.createElement("canvas"), this.canvas.style.display = "block", this.canvas.style.cursor = "text", A.appendChild(this.canvas), this.textarea = document.createElement("textarea"), this.textarea.setAttribute("autocorrect", "off"), this.textarea.setAttribute("autocapitalize", "off"), this.textarea.setAttribute("spellcheck", "false"), this.textarea.setAttribute("tabindex", "0"), this.textarea.setAttribute("aria-label", "Terminal input"), this.textarea.style.position = "absolute", this.textarea.style.left = "0", this.textarea.style.top = "0", this.textarea.style.width = "1px", this.textarea.style.height = "1px", this.textarea.style.padding = "0", this.textarea.style.border = "none", this.textarea.style.margin = "0", this.textarea.style.opacity = "0", this.textarea.style.clipPath = "inset(50%)", this.textarea.style.overflow = "hidden", this.textarea.style.whiteSpace = "nowrap", this.textarea.style.resize = "none", A.appendChild(this.textarea), getComputedStyle(A).position === "static" && (A.style.position = "relative");
+       const g = this.textarea;
++      A.addEventListener("focus", (o) => {
++        o.target === A && g.focus();
++      }), g.addEventListener("compositionupdate", (o) => this.showComposition(o.data)), g.addEventListener("compositionend", () => {
++        this.showComposition(""), setTimeout(() => {
++          g.value = "";
++        }, 0);
++      });
+       this.canvas.addEventListener("mousedown", (o) => {
+         o.preventDefault(), g.focus();
+       }), this.canvas.addEventListener("touchend", (o) => {
+@@ -2866,16 +2929,16 @@ class iA {
+    * Focus terminal input
+    */
+   focus() {
+-    this.isOpen && this.element && (this.element.focus(), setTimeout(() => {
++    this.isOpen && this.textarea && (this.textarea.focus(), setTimeout(() => {
+       var A;
+-      (A = this.element) == null || A.focus();
++      (A = this.textarea) == null || A.focus();
+     }, 0));
+   }
+   /**
+    * Blur terminal (remove focus)
+    */
+   blur() {
+-    this.isOpen && this.element && this.element.blur();
++    this.isOpen && this.textarea && this.textarea.blur();
+   }
+   /**
+    * Load an addon
+@@ -3063,6 +3126,37 @@ class iA {
+   // ==========================================================================
+   // Private Methods
+   // ==========================================================================
++  // the IME composes inside this textarea, so it follows the cursor to put the preview and candidate window there
++  syncTextarea() {
++    const A = this.textarea;
++    if (!A || A.style.zIndex === "1000")
++      return;
++    const B = this.wasmTerm.getCursor(), g = this.renderer.getMetrics(), E = `${this.canvas.offsetLeft + B.x * g.width}px`, C = `${this.canvas.offsetTop + B.y * g.height}px`;
++    A.style.position !== "absolute" && (A.style.position = "absolute"), A.style.left !== E && (A.style.left = E), A.style.top !== C && (A.style.top = C);
++  }
++  showComposition(A) {
++    const B = this.textarea, g = this.renderer;
++    if (!B || !g)
++      return;
++    if (!A) {
++      Object.assign(B.style, { opacity: "0", clipPath: "inset(50%)", zIndex: "", width: "1px", height: "1px" });
++      return;
++    }
++    const E = g.getMetrics();
++    g.ctx.font = `${g.fontSize}px ${g.fontFamily}`, Object.assign(B.style, {
++      opacity: "1",
++      clipPath: "none",
++      outline: "none",
++      zIndex: "1",
++      width: `${Math.ceil(g.ctx.measureText(A).width) + 2}px`,
++      height: `${E.height}px`,
++      fontFamily: g.fontFamily,
++      fontSize: `${g.fontSize}px`,
++      lineHeight: `${E.height}px`,
++      color: g.theme.foreground,
++      background: g.theme.background
++    });
++  }
+   /**
+    * Cancel the render loop
+    */
+@@ -3086,7 +3180,7 @@ class iA {
+       return;
+     const A = () => {
+       if (!this.isDisposed && this.isOpen) {
+-        this.renderer.render(this.wasmTerm, !1, this.viewportY, this, this.scrollbarOpacity);
++        this.renderer.render(this.wasmTerm, !1, this.viewportY, this, this.scrollbarOpacity), this.syncTextarea();
+         const Q = this.wasmTerm.getCursor();
+         Q.y !== this.lastCursorY && (this.lastCursorY = Q.y, this.cursorMoveEmitter.fire()), this.animationFrameId = requestAnimationFrame(A);
+       }
