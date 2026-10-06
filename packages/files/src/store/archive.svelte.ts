@@ -1,4 +1,4 @@
-import { extensionOf, isVirtual } from "../locations"
+import { extensionOf, isVirtual, SEP } from "../locations"
 import { type ArchiveListing, bandizipAvailable, listArchive } from "../native"
 
 const READABLE = new Set([
@@ -47,7 +47,7 @@ export const splitArchive = (location: string) => {
     return null
   }
 
-  const parts = location.split("\\")
+  const parts = location.split(SEP)
   const at = parts.findIndex((part, index) => index > 0 && isArchive(part))
 
   if (at < 0) {
@@ -55,11 +55,11 @@ export const splitArchive = (location: string) => {
   }
 
   return {
-    archive: parts.slice(0, at + 1).join("\\"),
+    archive: parts.slice(0, at + 1).join(SEP),
     inner: parts
       .slice(at + 1)
       .filter(Boolean)
-      .join("\\"),
+      .join(SEP),
   }
 }
 

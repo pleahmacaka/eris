@@ -152,7 +152,9 @@ pub fn spawn<R: Runtime>(
     command.env("TERM_PROGRAM", "Eris Terminal");
     command.env("COLORTERM", "truecolor");
 
-    if let Some(dir) = cwd.or_else(|| std::env::var("USERPROFILE").ok()) {
+    let home = std::env::var("USERPROFILE").or_else(|_| std::env::var("HOME"));
+
+    if let Some(dir) = cwd.or_else(|| home.ok()) {
         command.cwd(dir);
     }
 

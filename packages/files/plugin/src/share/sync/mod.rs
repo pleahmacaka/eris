@@ -213,7 +213,7 @@ fn unchanged(target: &Path, expected: Option<&Entry>) -> bool {
     current == expected.map(|entry| (true, entry.size, entry.modified))
 }
 
-#[cfg(windows)]
+#[cfg(desktop)]
 async fn recycle(path: PathBuf) -> Result<()> {
     tauri::async_runtime::spawn_blocking(move || {
         crate::ops::recycle(vec![path.to_string_lossy().into_owned()])
@@ -223,7 +223,7 @@ async fn recycle(path: PathBuf) -> Result<()> {
 }
 
 // phones have no recycle bin to send a synced deletion to
-#[cfg(not(windows))]
+#[cfg(mobile)]
 async fn recycle(path: PathBuf) -> Result<()> {
     tauri::async_runtime::spawn_blocking(move || {
         if path.is_dir() {
@@ -237,11 +237,11 @@ async fn recycle(path: PathBuf) -> Result<()> {
     .map_err(Into::into)
 }
 
-#[cfg(windows)]
+#[cfg(desktop)]
 use crate::watch::watch_tree;
 
 // without a change journal the folder is rescanned on a timer
-#[cfg(not(windows))]
+#[cfg(mobile)]
 fn watch_tree(
     _path: PathBuf,
     settle: std::time::Duration,

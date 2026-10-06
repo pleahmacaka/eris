@@ -140,7 +140,7 @@ fn open_links(app: &AppHandle, links: Vec<String>) {
     }
 }
 
-#[cfg(windows)]
+#[cfg(desktop)]
 pub fn take_links(app: &AppHandle, args: &mut Vec<String>) -> bool {
     let (links, rest): (Vec<String>, Vec<String>) = std::mem::take(args)
         .into_iter()
@@ -155,7 +155,7 @@ pub fn take_links(app: &AppHandle, args: &mut Vec<String>) -> bool {
     found
 }
 
-#[cfg(windows)]
+#[cfg(desktop)]
 pub fn focus_window(app: &AppHandle) -> bool {
     let window = app
         .webview_windows()

@@ -27,6 +27,8 @@
     "eris-auth:default"
   ],
   "platforms": [
-    "windows"
+    "windows",
+    "linux",
+    "macOS"
   ]
 }

@@ -11,7 +11,8 @@ use windows::Win32::System::SystemServices::{SFGAO_FOLDER, SFGAO_STREAM};
 use windows::Win32::UI::Shell::Common::ITEMIDLIST;
 use windows::Win32::UI::Shell::{
     BHID_LinkTargetItem, ILGetSize, IShellItem, IShellItemArray, SHCreateItemFromIDList,
-    SHCreateShellItemArrayFromIDLists, SHGetIDListFromObject, SHParseDisplayName, SHSimpleIDListFromPath, SIGDN,
+    SHCreateShellItemArrayFromIDLists, SHGetIDListFromObject, SHParseDisplayName,
+    SHSimpleIDListFromPath, SIGDN,
 };
 
 use crate::error::{Error, Result};

@@ -1,4 +1,4 @@
-import { extensionOf, joinPath } from "./locations"
+import { extensionOf, joinPath, SEP } from "./locations"
 import {
   type ArchiveListing,
   type Drive,
@@ -61,7 +61,7 @@ export const fromArchive = (
   inner: string,
   listing: ArchiveListing,
 ): Item[] => {
-  const prefix = inner ? `${inner.toLowerCase()}\\` : ""
+  const prefix = inner ? `${inner.toLowerCase()}${SEP}` : ""
   const found = new Map<string, Item>()
 
   for (const entry of listing.entries) {
@@ -70,7 +70,7 @@ export const fromArchive = (
     }
 
     const rest = entry.path.slice(prefix.length)
-    const cut = rest.indexOf("\\")
+    const cut = rest.indexOf(SEP)
     const own = cut < 0
     const name = own ? rest : rest.slice(0, cut)
     const key = name.toLowerCase()
