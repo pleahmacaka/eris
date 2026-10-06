@@ -1291,7 +1291,8 @@
       "mute": "静音",
       "unmute": "取消静音",
       "output": "输出设备",
-      "noDevices": "无设备"
+      "noDevices": "无设备",
+      "settings": "声音设置"
     },
     "claude": {
       "unmeasured": "Claude 用量未测量",

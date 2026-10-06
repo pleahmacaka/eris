@@ -1291,7 +1291,8 @@
       "mute": "음소거",
       "unmute": "음소거 해제",
       "output": "출력 장치",
-      "noDevices": "장치 없음"
+      "noDevices": "장치 없음",
+      "settings": "소리 설정"
     },
     "claude": {
       "unmeasured": "Claude 사용량 미측정",

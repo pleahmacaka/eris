@@ -203,6 +203,23 @@
           </ul>
         {/if}
       </div>
+
+      <div class="mt-2 border-t border-base-content/10 pt-2">
+        <button
+          type="button"
+          class="flex w-full items-center gap-2 rounded-field px-2 py-1.5 text-left text-xs transition-colors duration-100 hover:bg-base-content/10"
+          onclick={() => {
+            setOpen(false)
+            native.openUrl("ms-settings:sound").catch(() => undefined)
+          }}
+        >
+          <Icon icon="lucide:settings" class="size-3.5 shrink-0" />
+
+          <span class="grow truncate">{$t("tray.volume.settings")}</span>
+
+          <Icon icon="lucide:external-link" class="size-3 shrink-0 text-base-content/40" />
+        </button>
+      </div>
     </div>
   {/if}
 </div>

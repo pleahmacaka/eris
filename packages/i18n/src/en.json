@@ -1291,7 +1291,8 @@
       "mute": "Mute",
       "unmute": "Unmute",
       "output": "Output device",
-      "noDevices": "No devices"
+      "noDevices": "No devices",
+      "settings": "Sound settings"
     },
     "claude": {
       "unmeasured": "Claude usage not measured",
