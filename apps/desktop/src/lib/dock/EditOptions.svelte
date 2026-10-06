@@ -146,8 +146,8 @@
     {@render rangeRow("dockWidth", $t("settings.rows.width"), 320, 1400, 20)}
   {/if}
 
-  {@render rangeRow("dockIconSize", $t("settings.rows.iconSize"), 16, 32, 2)}
-  {@render rangeRow("dockHeight", $t("settings.rows.height"), 32, 88, 2)}
+  {@render rangeRow("dockIconSize", $t("settings.rows.iconSize"), 16, 56, 2)}
+  {@render rangeRow("dockHeight", $t("settings.rows.height"), 32, 140, 2)}
 
   {#if layout.mac}
     {@render toggleRow("dockDesktop", $t("settings.rows.pinDesktop"))}
