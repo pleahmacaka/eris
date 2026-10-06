@@ -187,6 +187,7 @@
       "pinDesktop": "置于窗口之后",
       "autoHide": "自动隐藏",
       "fullscreenReveal": "全屏时显示",
+      "edgeOnly": "仅在边缘显示",
       "showLauncherButton": "启动器按钮",
       "showTrayIcons": "托盘图标",
       "showClaudeUsage": "Claude 用量",
@@ -295,6 +296,7 @@
       "pinDesktop": "窗口可能遮住程序坞，开启自动隐藏时光标到达边缘会将其前置",
       "autoHide": "隐藏程序坞，光标到达屏幕边缘时显示",
       "fullscreenReveal": "全屏窗口中光标到达屏幕边缘时也显示程序坞",
+      "edgeOnly": "光标经过隐藏的程序坞时不显示，只在光标到达屏幕边缘时显示",
       "showLauncherButton": "在程序坞上显示启动器按钮，Win 键也可打开启动器",
       "showTrayIcons": "显示后台程序的通知区域图标",
       "showClaudeUsage": "显示 Claude 的 5 小时和每周限额",
@@ -529,7 +531,11 @@
       "alignCenter": "居中",
       "alignEnd": "右",
       "openEditMode": "打开",
-      "chooseImage": "选择图像"
+      "chooseImage": "选择图像",
+      "edgeOnly": {
+        "maximized": "最大化时",
+        "always": "始终"
+      }
     },
     "sync": {
       "devices": {

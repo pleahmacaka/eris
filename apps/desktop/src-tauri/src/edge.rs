@@ -1,7 +1,16 @@
+use std::sync::atomic::{AtomicBool, Ordering};
+
 use tauri::AppHandle;
+
+static MAXIMIZED: AtomicBool = AtomicBool::new(false);
 
 pub fn watch(app: AppHandle) {
     win::watch(app);
+}
+
+#[tauri::command]
+pub fn dock_maximized() -> bool {
+    MAXIMIZED.load(Ordering::Relaxed)
 }
 
 mod win {
@@ -77,6 +86,12 @@ mod win {
             if edge_now != at_edge {
                 at_edge = edge_now;
                 let _ = app.emit("dock-edge", json!({ "atEdge": at_edge }));
+            }
+
+            if let Some(maximized) = foreground_maximized(&screen) {
+                if super::MAXIMIZED.swap(maximized, Ordering::Relaxed) != maximized {
+                    let _ = app.emit("dock-maximized", json!({ "maximized": maximized }));
+                }
             }
 
             if crate::appbar::desktop_pinned() {
@@ -296,6 +311,22 @@ mod win {
                 && rect.right >= screen.right
                 && rect.bottom >= screen.bottom,
         )
+    }
+
+    fn foreground_maximized(screen: &RECT) -> Option<bool> {
+        let front = unsafe { GetForegroundWindow() };
+
+        if front.is_invalid() || OVERLAY_CLASSES.contains(&class_name(front).as_str()) {
+            return None;
+        }
+
+        let rect = window_rect(front);
+        let center = POINT {
+            x: (rect.left + rect.right) / 2,
+            y: (rect.top + rect.bottom) / 2,
+        };
+
+        Some(unsafe { IsZoomed(front) }.as_bool() && inside(center, screen))
     }
 
     fn set_visible(app: &AppHandle, dock: HWND, visible: bool) {

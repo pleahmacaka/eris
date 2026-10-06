@@ -100,6 +100,12 @@
       layout.device = d
       ready = true
     })
+    native
+      .dockMaximized()
+      .then(maximized => {
+        layout.maximized = maximized
+      })
+      .catch(() => undefined)
     loadProfile().then(p => {
       profile = p
     })
@@ -145,6 +151,9 @@
       }),
       native.onDockEdge(atEdge => {
         edgeHover = atEdge
+      }),
+      native.onDockMaximized(maximized => {
+        layout.maximized = maximized
       }),
       listen<{ visible: boolean }>("dock-visible", e => {
         layout.dockHidden = !e.payload.visible

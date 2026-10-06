@@ -187,6 +187,7 @@
       "pinDesktop": "창 뒤에 배치",
       "autoHide": "자동 숨김",
       "fullscreenReveal": "전체 화면에서 표시",
+      "edgeOnly": "가장자리에서만 표시",
       "showLauncherButton": "런처 버튼",
       "showTrayIcons": "트레이 아이콘",
       "showClaudeUsage": "Claude 사용량",
@@ -295,6 +296,7 @@
       "pinDesktop": "창이 독을 가릴 수 있으며, 자동 숨김을 켜면 커서가 가장자리에 닿을 때 앞으로 나옵니다.",
       "autoHide": "독을 숨겨 두고 커서가 화면 가장자리에 닿으면 표시합니다.",
       "fullscreenReveal": "전체 화면 창에서도 커서가 화면 가장자리에 닿으면 독을 표시합니다.",
+      "edgeOnly": "커서가 숨긴 독 위를 지나가도 반응하지 않고, 화면 가장자리에 닿을 때만 독을 표시합니다.",
       "showLauncherButton": "독에 런처 버튼을 표시하며, Win 키로도 런처를 열 수 있습니다.",
       "showTrayIcons": "백그라운드 프로그램의 알림 영역 아이콘을 표시합니다.",
       "showClaudeUsage": "Claude의 5시간 한도와 주간 한도를 표시합니다.",
@@ -529,7 +531,11 @@
       "alignCenter": "가운데",
       "alignEnd": "오른쪽",
       "openEditMode": "열기",
-      "chooseImage": "이미지 선택"
+      "chooseImage": "이미지 선택",
+      "edgeOnly": {
+        "maximized": "최대화 창",
+        "always": "항상"
+      }
     },
     "sync": {
       "devices": {

@@ -187,6 +187,7 @@
       "pinDesktop": "ウィンドウの背面に配置",
       "autoHide": "自動的に隠す",
       "fullscreenReveal": "全画面で表示",
+      "edgeOnly": "端でのみ表示",
       "showLauncherButton": "ランチャーボタン",
       "showTrayIcons": "トレイアイコン",
       "showClaudeUsage": "Claude 使用量",
@@ -295,6 +296,7 @@
       "pinDesktop": "ウィンドウがドックを覆うことがあり、自動的に隠す設定ではカーソルが端に触れると前面に出ます",
       "autoHide": "ドックを隠しておき、カーソルが画面の端に触れると表示します",
       "fullscreenReveal": "全画面ウィンドウでもカーソルが画面の端に触れるとドックを表示します",
+      "edgeOnly": "隠したドックの上をカーソルが通っても反応せず、画面の端に触れたときだけ表示します",
       "showLauncherButton": "ドックにランチャーボタンを表示し、Win キーでもランチャーを開けます",
       "showTrayIcons": "バックグラウンドのプログラムの通知領域アイコンを表示します",
       "showClaudeUsage": "Claude の 5 時間と週間の上限を表示します",
@@ -529,7 +531,11 @@
       "alignCenter": "中央",
       "alignEnd": "右",
       "openEditMode": "開く",
-      "chooseImage": "画像を選択"
+      "chooseImage": "画像を選択",
+      "edgeOnly": {
+        "maximized": "最大化時",
+        "always": "常に"
+      }
     },
     "sync": {
       "devices": {

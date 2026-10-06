@@ -187,6 +187,7 @@
       "pinDesktop": "Behind windows",
       "autoHide": "Auto-hide",
       "fullscreenReveal": "Show over fullscreen",
+      "edgeOnly": "Reveal at the edge only",
       "showLauncherButton": "Launcher button",
       "showTrayIcons": "Tray icons",
       "showClaudeUsage": "Claude usage",
@@ -295,6 +296,7 @@
       "pinDesktop": "Windows can cover the dock; with auto-hide on it comes forward when the cursor reaches the edge",
       "autoHide": "Keep the dock hidden until the cursor reaches the screen edge",
       "fullscreenReveal": "Bring the dock over fullscreen windows when the cursor reaches the screen edge",
+      "edgeOnly": "Ignore the cursor passing over the hidden dock and show it only when the cursor reaches the screen edge",
       "showLauncherButton": "Show a launcher button on the dock; the Win key opens the launcher too",
       "showTrayIcons": "Show notification area icons from background programs",
       "showClaudeUsage": "Show Claude's 5-hour and weekly limits",
@@ -529,7 +531,11 @@
       "alignCenter": "Center",
       "alignEnd": "Right",
       "openEditMode": "Open",
-      "chooseImage": "Choose image"
+      "chooseImage": "Choose image",
+      "edgeOnly": {
+        "maximized": "Maximized",
+        "always": "Always"
+      }
     },
     "sync": {
       "devices": {

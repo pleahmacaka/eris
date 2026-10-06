@@ -88,6 +88,7 @@ export const index: SearchEntry[] = [
   entry("dock", "iconSize", "icons"),
   entry("dock", "autoHide", "reveal slide"),
   entry("dock", "hideDelay", "delay speed fast slow timeout"),
+  entry("dock", "edgeOnly", "edge bottom sensitive maximized click reveal"),
   entry("dock", "hideAnimation", "slide fade motion"),
   entry("dock", "hideGather", "gather logo pill shrink motion"),
   entry("dock", "gatherHideMs", "duration speed gather logo hide animation"),

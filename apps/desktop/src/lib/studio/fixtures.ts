@@ -237,6 +237,7 @@ export const fixtures: Record<string, (args: Args) => unknown> = {
   bluetooth_devices: () => ["WH-1000XM5"],
   input_language: () => input,
   notify_icons: () => trayIcons,
+  dock_maximized: () => false,
   notices_list: () => notices,
   notices_unseen: () => notices.length,
   clipboard_history: () => clips,

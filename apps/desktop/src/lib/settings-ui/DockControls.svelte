@@ -417,6 +417,22 @@
     </Row>
 
     <Row
+      label={$t("settings.rows.edgeOnly")}
+      hint={$t("settings.hints.edgeOnly")}
+      onreset={resetRow("dockEdgeOnly")}
+    >
+      <Segmented
+        label={$t("settings.rows.edgeOnly")}
+        bind:value={device.dockEdgeOnly}
+        options={[
+          { value: "never", label: $t("common.off") },
+          { value: "maximized", label: $t("settings.dock.edgeOnly.maximized") },
+          { value: "always", label: $t("settings.dock.edgeOnly.always") },
+        ]}
+      />
+    </Row>
+
+    <Row
       label={$t("settings.rows.hideAnimation")}
       hint={$t("settings.hints.hideAnimation")}
       onreset={resetRow("dockHideAnimation")}

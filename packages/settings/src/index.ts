@@ -6,6 +6,7 @@ import { load } from "@tauri-apps/plugin-store"
 
 export type DockStyle = "windows" | "mac"
 export type DockEdge = "bottom" | "top"
+export type DockEdgeOnly = "never" | "maximized" | "always"
 export type DockAlign = "start" | "center"
 export type DockSide = "left" | "right"
 export type ClockAlign = "start" | "center" | "end"
@@ -71,6 +72,7 @@ export type DeviceSettings = {
   dockIconSize: number
   dockAutoHide: boolean
   dockFullscreenReveal: boolean
+  dockEdgeOnly: DockEdgeOnly
   dockHideAnimation: boolean
   dockHideGather: boolean
   dockHideDelay: number
@@ -375,6 +377,7 @@ export const defaultDevice: DeviceSettings = {
   dockIconSize: 24,
   dockAutoHide: false,
   dockFullscreenReveal: true,
+  dockEdgeOnly: "never",
   dockHideAnimation: true,
   dockHideGather: true,
   dockHideDelay: 1080,
