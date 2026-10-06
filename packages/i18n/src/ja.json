@@ -50,8 +50,8 @@
         "blurb": "すべてのウィンドウのテーマ、色、表面を調整します"
       },
       "calendar": {
-        "label": "カレンダーとタスク",
-        "blurb": "週の始まり、祝日、タスクリストを設定します"
+        "label": "カレンダー",
+        "blurb": "週の始まり、祝日、予定のタグを設定します"
       },
       "sync": {
         "label": "同期",
@@ -76,6 +76,10 @@
       "account": {
         "label": "アカウント",
         "blurb": "一度ログインすると、すべての Eris アプリで同じアカウントを使用します。"
+      },
+      "note": {
+        "label": "Note",
+        "blurb": "ArixLab Note とカレンダー、スタイル、ページ参照を連携します"
       }
     },
     "groups": {
@@ -90,7 +94,7 @@
       },
       "backup": {
         "title": "バックアップ",
-        "description": "設定、プリセット、タスク、予定を 1 つの JSON ファイルでエクスポートまたはインポートします"
+        "description": "設定、プリセット、予定を 1 つの JSON ファイルでエクスポートまたはインポートします"
       },
       "dock": "ドック",
       "results": "結果",
@@ -99,7 +103,6 @@
         "description": "プリセットを選び、下の項目を変更するとカスタムプリセットになります"
       },
       "calendar": "カレンダー",
-      "todo": "タスク",
       "storedData": {
         "title": "保存データ",
         "description": "Eris がこのデバイスに保存しているもの"
@@ -134,6 +137,10 @@
       "windowBackgrounds": {
         "title": "ウィンドウ別の背景",
         "description": "ウィンドウごとに背景を指定します"
+      },
+      "note": {
+        "title": "Note 連携",
+        "description": "この PC の Note と連携します。Eris の同期や Note の同期とは別です"
       }
     },
     "rows": {
@@ -172,8 +179,6 @@
       "weekStartsOn": "週の開始日",
       "weekNumbers": "週番号",
       "defaultReminder": "既定のリマインダー",
-      "showCompleted": "完了済みを表示",
-      "sortBy": "並べ替え",
       "storedData": "保存データ",
       "dataFolder": "データフォルダー",
       "iconCache": "アイコンキャッシュ",
@@ -261,7 +266,15 @@
       "settingsBackground": "設定",
       "noticesBackground": "通知",
       "filesBackground": "Eris Files",
-      "terminalBackground": "Eris Terminal"
+      "terminalBackground": "Eris Terminal",
+      "noteStatus": "状態",
+      "noteLink": "Note 連携",
+      "note": {
+        "calendar": "カレンダー",
+        "style": "スタイル",
+        "references": "ページ参照",
+        "preview": "プレビュー"
+      }
     },
     "hints": {
       "deviceName": "同期した他のデバイスに表示される名前です",
@@ -275,13 +288,12 @@
       "shortcut": "クリックしてからキーの組み合わせを押してください。",
       "openWindows": "実行中のウィンドウに名前で切り替えます。",
       "commands": "ロック、スリープ、ごみ箱を空にするなどを実行できます。",
-      "todos": "検索ボックスから直接タスクを追加できます。",
+      "todos": "検索ボックスから完了チェック付きの予定を直接追加できます。",
       "calculator": "式を入力すると計算します。",
       "webSearch": "他に一致するものがない検索語に使うエンジンです。",
       "terminal": "ターミナル コマンドで開くアプリです。",
       "weekNumbers": "月表示に週番号を表示します。",
       "defaultReminder": "予定の開始前に通知します。",
-      "showCompleted": "完了した項目をリストに残します。",
       "mode": "ダーク、ライト、Windows の設定から選びます",
       "background": "すべてのウィンドウの背景に使う表面です",
       "followAccent": "Windows 設定のアクセントカラーをテーマに使います",
@@ -296,7 +308,7 @@
       "dockOpacity": "ドックの不透明度を調整します",
       "density": "リストとボタンの内側の余白を調整します",
       "motion": "背景の動きと画面の切り替え効果を使います",
-      "dataFolder": "設定、タスク、予定、アイコンキャッシュが保存されたフォルダーを開きます",
+      "dataFolder": "設定、予定、アイコンキャッシュが保存されたフォルダーを開きます",
       "iconCache": "キャッシュしたアプリアイコンを削除し、アイコンは必要なときに再生成されます",
       "resetAppearance": "外観を既定のプリセットに戻します",
       "resetAll": "デバイス名、同期、保存データ以外のすべての設定を元に戻します",
@@ -371,7 +383,15 @@
       "islandGap": "ドックのアイランド同士の距離です。",
       "dockIcon": "ランチャーボタンと非表示時のロゴに使う画像です。",
       "gatherHideMs": "ドックがロゴにまとまって消えるまでの時間です。",
-      "gatherShowMs": "ドックがロゴから再び広がるまでの時間です。"
+      "gatherShowMs": "ドックがロゴから再び広がるまでの時間です。",
+      "noteStatus": "Note をインストールすると連携できます",
+      "noteLink": "この PC の Note と下の項目をやり取りします",
+      "note": {
+        "calendar": "Eris と Note の予定を互いに反映します",
+        "style": "Note が Eris の外観設定に従います",
+        "references": "予定のメモで [[ と入力すると Note のページを探してリンクします",
+        "preview": "ページリンクにカーソルを合わせると左に Note の内容を表示します"
+      }
     },
     "options": {
       "win": "Win キー",
@@ -381,9 +401,6 @@
       "cmd": "コマンド プロンプト",
       "monday": "月曜日",
       "sunday": "日曜日",
-      "manual": "手動",
-      "due": "期限",
-      "priority": "優先度",
       "dark": "ダーク",
       "light": "ライト",
       "system": "システム",
@@ -451,8 +468,6 @@
       "switchTabs": "タブを切り替え",
       "moveDay": "選択した日を移動",
       "addEvent": "その日に予定を追加",
-      "renameTodo": "タスクの名前を変更",
-      "saveEvent": "予定を保存",
       "closePanel": "パネルを閉じる",
       "nextStep": "次のセットアップ手順",
       "closeWindow": "このウィンドウを閉じる",
@@ -504,11 +519,10 @@
       "escCancels": "Esc でキャンセル"
     },
     "advanced": {
-      "todos": "タスク",
       "events": "予定",
       "presets": "プリセット",
       "resetAllTitle": "すべての設定をリセットしますか?",
-      "resetAllBody": "すべての設定が既定値に戻ります。タスク、予定、プリセット、同期の接続は残ります。"
+      "resetAllBody": "すべての設定が既定値に戻ります。予定、プリセット、同期の接続は残ります。"
     },
     "dock": {
       "styles": {
@@ -617,6 +631,14 @@
       "title": "テーマの適用",
       "body": "外観をコミュニティテーマ「{name}」に切り替えます。",
       "apply": "適用"
+    },
+    "note": {
+      "states": {
+        "missing": "未インストール",
+        "waiting": "接続待ち",
+        "linked": "接続済み"
+      },
+      "open": "Note を開く"
     }
   },
   "launcher": {
@@ -736,7 +758,7 @@
     },
     "todo": {
       "add": "タスクを追加: {title}",
-      "saves": "タスクリストに保存"
+      "saves": "完了チェック付きの予定としてカレンダーに保存"
     },
     "web": {
       "search": "「{query}」をウェブで検索"
@@ -892,7 +914,6 @@
     "untitled": "無題",
     "title": "タイトル",
     "events": "予定",
-    "todos": "タスク",
     "errors": {
       "startRequired": "開始日を入力してください。",
       "endRequired": "終了日を入力してください。",
@@ -904,14 +925,11 @@
       "evening": "こんばんは"
     },
     "summary": {
-      "events": "{count, plural, other {予定#件}}",
-      "todosDue": "{count, plural, other {期限のタスク#件}}"
+      "events": "{count, plural, other {予定#件}}"
     },
-    "searchPlaceholder": "タスクと予定を検索",
     "clearSearch": "検索をクリア",
     "calendarAria": "カレンダー",
     "cardsAria": "パネルのカード",
-    "todoAria": "タスク",
     "notesAria": "メモ",
     "due": "期限",
     "nothingDue": "期限のタスクなし",
@@ -981,7 +999,15 @@
         "next": "次の平日に移動",
         "previous": "前の平日に移動"
       },
-      "movedFrom": "{date}から移動"
+      "movedFrom": "{date}から移動",
+      "addField": "項目を追加",
+      "addNotes": "メモを追加",
+      "fields": {
+        "reminder": "通知",
+        "tags": "タグ",
+        "parent": "親の予定",
+        "task": "完了チェック"
+      }
     },
     "ics": {
       "options": "カレンダーのオプション",
@@ -1008,26 +1034,6 @@
       "bodyAria": "メモの本文",
       "select": "メモを選択してください"
     },
-    "quickAdd": {
-      "todo": "タスクを追加",
-      "auto": "タスクを追加、/ で予定",
-      "eventBadge": "予定",
-      "todoBadge": "タスク"
-    },
-    "todo": {
-      "overdue": "期限切れ",
-      "upcoming": "今後",
-      "noDate": "日付なし",
-      "markDone": "完了にする",
-      "markNotDone": "未完了に戻す",
-      "titleAria": "タスクのタイトル",
-      "editHint": "ダブルクリックで編集",
-      "delete": "タスクを削除",
-      "allDone": "すべて完了",
-      "completed": "完了済み",
-      "clearCompleted": "完了済みをクリア",
-      "count": "{count, plural, other {残りのタスク #件}}"
-    },
     "notifications": {
       "title": "通知",
       "empty": "通知なし",
@@ -1037,8 +1043,7 @@
       "focusAssist": "集中モード",
       "settings": "通知の設定",
       "windowsCenter": "Windows の通知センター",
-      "toggle": "通知を表示",
-      "back": "タスクに戻る"
+      "toggle": "通知を表示"
     },
     "day": {
       "title": "{date}の予定",
@@ -1070,6 +1075,11 @@
       "one": "この予定のみ",
       "following": "この予定以降",
       "all": "すべての予定"
+    },
+    "task": {
+      "label": "完了チェック",
+      "done": "完了にする",
+      "undo": "未完了に戻す"
     }
   },
   "files": {
@@ -1129,8 +1139,8 @@
         "text": "Windows タスクバーの代わりになるバーに、ピン留めしたアプリと実行中のアプリを表示します。"
       },
       "calendar": {
-        "title": "カレンダーとタスク",
-        "text": "時計をクリックするだけで、今日の予定とタスクリストが開きます。"
+        "title": "カレンダー",
+        "text": "時計をクリックするだけで、今日の予定が開きます。"
       }
     },
     "features": {
@@ -1168,7 +1178,7 @@
       },
       "clock": {
         "title": "時計をクリック",
-        "text": "カレンダーとタスクリストが表示されます。"
+        "text": "カレンダーが表示されます。"
       }
     },
     "done": {

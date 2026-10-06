@@ -18,7 +18,6 @@
   }: { profile: Profile; device: DeviceSettings } = $props()
 
   const resetCalendar = reset(() => profile.calendar, defaultProfile.calendar)
-  const resetTodo = reset(() => profile.todo, defaultProfile.todo)
 
   const reminders = [0, 5, 10, 15, 30, 60]
 
@@ -116,32 +115,5 @@
     <div class="flex flex-col gap-2 px-4 py-3">
       <EventTagsControls bind:tags={profile.calendar.tags} />
     </div>
-  </Section>
-
-  <Section title={$t("settings.groups.todo")}>
-    <Row
-      label={$t("settings.rows.showCompleted")}
-      hint={$t("settings.hints.showCompleted")}
-      onreset={resetTodo("showCompleted")}
-    >
-      <input
-        type="checkbox"
-        class="toggle toggle-primary"
-        aria-label={$t("settings.rows.showCompleted")}
-        bind:checked={profile.todo.showCompleted}
-      />
-    </Row>
-
-    <Row label={$t("settings.rows.sortBy")} onreset={resetTodo("sortBy")}>
-      <Segmented
-        label={$t("settings.rows.sortBy")}
-        bind:value={profile.todo.sortBy}
-        options={[
-          { value: "manual", label: $t("settings.options.manual") },
-          { value: "due", label: $t("settings.options.due") },
-          { value: "priority", label: $t("settings.options.priority") },
-        ]}
-      />
-    </Row>
   </Section>
 </fieldset>

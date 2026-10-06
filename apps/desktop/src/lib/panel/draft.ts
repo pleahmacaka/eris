@@ -35,6 +35,7 @@ export type Draft = {
   reminder: number | null
   tags: string[]
   parent: string | null
+  task: boolean
 }
 
 const DAY = 86_400_000
@@ -86,6 +87,7 @@ export const draftFrom = (
     reminder: event ? event.reminderMinutes : reminder,
     tags: event?.tags ?? [],
     parent: event ? (event.parentId ?? null) : seed.parent,
+    task: event?.task ?? false,
   }
 }
 
@@ -156,6 +158,7 @@ export const eventFrom = (
     recurrence: draft.recurrence,
     tags: draft.tags,
     parentId: draft.parent,
+    task: draft.task || undefined,
     shift:
       shiftable(draft.recurrence) && draft.shift !== "none"
         ? draft.shift

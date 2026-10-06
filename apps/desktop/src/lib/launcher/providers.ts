@@ -1,4 +1,4 @@
-import { dueLabel, quickTodo } from "@eris/data"
+import { dueLabel, eventFromTodo, quickTodo } from "@eris/data"
 import { currentLocale, tr } from "@eris/i18n"
 import type { Result } from "@eris/launcher-core"
 import {
@@ -9,7 +9,7 @@ import {
   plainNumber,
 } from "@eris/launcher-core"
 import type { WebSearchEngine } from "@eris/settings"
-import { todos } from "$lib/data"
+import { events } from "$lib/data"
 import { toggleDockPin } from "../dock/dock.svelte"
 import {
   type AppEntry,
@@ -237,13 +237,7 @@ export const todoResult = (text: string): Result | null => {
     return null
   }
 
-  const chips = [
-    ...(todo.due ? [dueLabel(todo)] : []),
-    ...(todo.priority
-      ? [tr("launcher.chips.priority", { level: todo.priority })]
-      : []),
-    ...todo.tags.map(tag => `#${tag}`),
-  ]
+  const chips = todo.due ? [dueLabel(todo)] : []
 
   return {
     id: "todo",
@@ -253,7 +247,7 @@ export const todoResult = (text: string): Result | null => {
     icon: "lucide:list-plus",
     chips,
     action: async () => {
-      await todos.put(todo)
+      await events.put(eventFromTodo(todo, new Date(), Date.now()))
     },
     secondaryActions: [],
     score: 2000,

@@ -3,7 +3,7 @@
   import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart"
   import { tick, untrack } from "svelte"
   import { getCurrentWindow, Window } from "@tauri-apps/api/window"
-  import { live, scheduleReminders, events } from "$lib/data"
+  import { events, live, migrateTodos, scheduleReminders } from "$lib/data"
   import { ensureDevice } from "$lib/device"
   import { DockBar, DockLayout, dockAwake, previewHover, startDock } from "$lib/dock"
   import { watchEdit } from "$lib/edit"
@@ -16,7 +16,7 @@
     onProfile,
     type Profile,
   } from "@eris/settings"
-  import { startAutoSync } from "$lib/sync"
+  import { startAutoSync, startNoteLink } from "$lib/sync"
   import { announceUpdate } from "$lib/updates"
   import { t } from "svelte-i18n"
 
@@ -100,6 +100,7 @@
       layout.device = d
       ready = true
     })
+    migrateTodos().catch(() => undefined)
     native
       .dockMaximized()
       .then(maximized => {
@@ -179,6 +180,7 @@
       }),
     ]
     const stopSync = startAutoSync()
+    const stopNoteLink = startNoteLink()
     const stopDock = startDock()
     const stopTimers = startTimerWatch()
     const stopEditWatch = watchEdit()
@@ -188,6 +190,7 @@
 
     return () => {
       stopSync()
+      stopNoteLink()
       stopDock()
       stopTimers()
       stopEditWatch()

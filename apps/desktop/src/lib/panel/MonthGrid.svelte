@@ -3,7 +3,12 @@
   import { t } from "svelte-i18n"
   import { currentLocale } from "@eris/i18n"
   import { eventSpan, eventTime, longDay } from "$lib/calendar"
-  import { type CalendarEvent, dateKey, splitCitations } from "$lib/data"
+  import {
+    type CalendarEvent,
+    dateKey,
+    isDone,
+    splitCitations,
+  } from "$lib/data"
   import { colorMeta, toColor } from "./colors"
   import type { Panel } from "./panel.svelte"
 
@@ -244,7 +249,9 @@
             {#if !event.allDay}
               <span class={["size-1.5 shrink-0 rounded-full", meta.chip]}></span>
             {/if}
-            <span class="truncate">{event.title}</span>
+            <span class={["truncate", isDone(event) && "line-through opacity-60"]}>
+              {event.title}
+            </span>
           </button>
         {/each}
 
@@ -278,7 +285,14 @@
   >
     <div class="flex min-w-0 items-center gap-2">
       <span class={["size-2 shrink-0 rounded-full", meta.chip]}></span>
-      <span class="truncate text-sm font-semibold">{preview.event.title}</span>
+      <span
+        class={[
+          "truncate text-sm font-semibold",
+          isDone(preview.event) && "text-base-content/60 line-through",
+        ]}
+      >
+        {preview.event.title}
+      </span>
     </div>
 
     <div class="flex items-center gap-2 text-2xs tabular-nums text-base-content/65">

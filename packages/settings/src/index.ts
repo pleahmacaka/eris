@@ -52,6 +52,14 @@ export type TraySlot =
   | "settings"
   | "desktop"
 
+export type NoteLink = {
+  enabled: boolean
+  calendar: boolean
+  style: boolean
+  references: boolean
+  preview: boolean
+}
+
 export type SyncSettings = {
   enabled: boolean
   intervalMinutes: number
@@ -126,6 +134,7 @@ export type DeviceSettings = {
   trayHidden: string[]
   traySlots: TraySlot[]
   sync: SyncSettings
+  note: NoteLink
   studio: boolean
 }
 
@@ -476,6 +485,13 @@ export const defaultDevice: DeviceSettings = {
     "desktop",
   ],
   sync: defaultSync,
+  note: {
+    enabled: true,
+    calendar: true,
+    style: true,
+    references: true,
+    preview: true,
+  },
   studio: false,
 }
 
@@ -551,6 +567,7 @@ export const loadDevice = async (): Promise<DeviceSettings> => {
         saved?.sync?.intervalMinutes ?? defaultSync.intervalMinutes,
       collections: { ...defaultSync.collections, ...saved?.sync?.collections },
     },
+    note: { ...defaultDevice.note, ...saved?.note },
   }
 }
 

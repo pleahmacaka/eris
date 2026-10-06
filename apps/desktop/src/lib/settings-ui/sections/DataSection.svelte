@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { live, events, presets, todos } from "$lib/data"
+  import { live, events, presets } from "$lib/data"
   import { clearIconCache } from "$lib/native/apps"
   import { openDataFolder } from "$lib/native/system"
   import {
@@ -19,18 +19,15 @@
     profile = $bindable(),
   }: { device: DeviceSettings; profile: Profile } = $props()
 
-  const todoList = live(todos)
   const eventList = live(events)
   const presetList = live(presets)
 
   $effect(() => () => {
-    todoList.stop()
     eventList.stop()
     presetList.stop()
   })
 
   const counts = $derived([
-    { label: $t("settings.advanced.todos"), value: todoList.items.length },
     { label: $t("settings.advanced.events"), value: eventList.items.length },
     { label: $t("settings.advanced.presets"), value: presetList.items.length },
   ])

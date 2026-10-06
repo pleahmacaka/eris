@@ -39,17 +39,19 @@ export const editOccurrence = async (
   const series = await seriesOf(occurrence)
 
   if (!series) {
-    return
+    return null
   }
 
-  await events.apply(
-    editInSeries(
-      series,
-      occurrence,
-      draft,
-      scope,
-      await events.all(),
-      Date.now(),
-    ),
+  const change = editInSeries(
+    series,
+    occurrence,
+    draft,
+    scope,
+    await events.all(),
+    Date.now(),
   )
+
+  await events.apply(change)
+
+  return change.edited
 }

@@ -50,8 +50,8 @@
         "blurb": "모든 창의 테마, 색, 표면을 조정합니다."
       },
       "calendar": {
-        "label": "캘린더 및 할 일",
-        "blurb": "주 시작 요일, 공휴일, 할 일 목록을 설정합니다."
+        "label": "캘린더",
+        "blurb": "주 시작 요일, 공휴일, 일정 태그를 설정합니다."
       },
       "sync": {
         "label": "동기화",
@@ -76,6 +76,10 @@
       "account": {
         "label": "계정",
         "blurb": "한 번 로그인하면 모든 Eris 앱에서 같은 계정을 사용합니다."
+      },
+      "note": {
+        "label": "Note",
+        "blurb": "ArixLab Note와 캘린더, 스타일, 페이지 참조를 연결합니다."
       }
     },
     "groups": {
@@ -90,7 +94,7 @@
       },
       "backup": {
         "title": "백업",
-        "description": "설정, 프리셋, 할 일, 일정을 JSON 파일 하나로 내보내거나 가져옵니다."
+        "description": "설정, 프리셋, 일정을 JSON 파일 하나로 내보내거나 가져옵니다."
       },
       "dock": "독",
       "results": "결과",
@@ -99,7 +103,6 @@
         "description": "프리셋을 고른 뒤 아래 항목을 변경하면 사용자 지정 프리셋이 됩니다."
       },
       "calendar": "캘린더",
-      "todo": "할 일",
       "storedData": {
         "title": "저장된 데이터",
         "description": "Eris가 이 장치에 보관하는 항목의 수입니다."
@@ -134,6 +137,10 @@
       "windowBackgrounds": {
         "title": "창별 배경",
         "description": "창마다 다른 배경을 지정합니다."
+      },
+      "note": {
+        "title": "Note 연동",
+        "description": "이 PC에 설치된 Note와 연결합니다. Eris 동기화와 Note 동기화와는 별개입니다."
       }
     },
     "rows": {
@@ -172,8 +179,6 @@
       "weekStartsOn": "주 시작 요일",
       "weekNumbers": "주 번호",
       "defaultReminder": "기본 알림",
-      "showCompleted": "완료 항목 표시",
-      "sortBy": "정렬 기준",
       "storedData": "저장된 데이터",
       "dataFolder": "데이터 폴더",
       "iconCache": "아이콘 캐시",
@@ -261,7 +266,15 @@
       "settingsBackground": "설정",
       "noticesBackground": "알림",
       "filesBackground": "Eris Files",
-      "terminalBackground": "Eris Terminal"
+      "terminalBackground": "Eris Terminal",
+      "noteStatus": "상태",
+      "noteLink": "Note 연동",
+      "note": {
+        "calendar": "캘린더",
+        "style": "스타일",
+        "references": "페이지 참조",
+        "preview": "미리보기"
+      }
     },
     "hints": {
       "deviceName": "동기화한 다른 장치에 표시되는 이름입니다.",
@@ -275,13 +288,12 @@
       "shortcut": "입력란을 선택한 뒤 원하는 키 조합을 입력하면 저장됩니다.",
       "openWindows": "실행 중인 창을 검색 결과에 포함합니다.",
       "commands": "잠금, 절전, 휴지통 비우기 같은 시스템 명령을 결과에 포함합니다.",
-      "todos": "검색창에서 바로 할 일을 추가합니다.",
+      "todos": "검색창에서 바로 완료 체크 일정을 추가합니다.",
       "calculator": "수식을 입력하면 결과를 바로 계산합니다.",
       "webSearch": "일치하는 결과가 없을 때 사용할 검색 엔진입니다.",
       "terminal": "터미널 명령으로 실행할 앱입니다.",
       "weekNumbers": "월 그리드 왼쪽에 주 번호를 표시합니다.",
       "defaultReminder": "새 일정에 기본으로 적용되는 알림 시점입니다.",
-      "showCompleted": "완료한 할 일을 목록 아래에 계속 표시합니다.",
       "mode": "창의 밝기 모드입니다.",
       "background": "모든 창 배경에 적용되는 표면입니다.",
       "followAccent": "Windows 설정의 강조색을 테마에 사용합니다.",
@@ -296,7 +308,7 @@
       "dockOpacity": "독의 불투명도를 조절합니다.",
       "density": "목록과 버튼의 내부 간격을 조절합니다.",
       "motion": "배경 움직임과 화면 전환 효과를 사용합니다.",
-      "dataFolder": "설정, 할 일, 일정, 아이콘 캐시가 저장된 폴더를 엽니다.",
+      "dataFolder": "설정, 일정, 아이콘 캐시가 저장된 폴더를 엽니다.",
       "iconCache": "캐시된 앱 아이콘을 삭제하며, 아이콘은 필요할 때 재생성됩니다.",
       "resetAppearance": "모양 설정을 기본 프리셋으로 되돌립니다.",
       "resetAll": "장치 이름, 동기화, 저장된 데이터를 제외한 모든 설정을 되돌립니다.",
@@ -371,7 +383,15 @@
       "islandGap": "독 아일랜드 사이의 거리입니다.",
       "dockIcon": "런처 버튼과 숨김 로고에 사용할 이미지입니다.",
       "gatherHideMs": "독이 로고로 모여 사라지는 데 걸리는 시간입니다.",
-      "gatherShowMs": "독이 로고에서 다시 펼쳐지는 데 걸리는 시간입니다."
+      "gatherShowMs": "독이 로고에서 다시 펼쳐지는 데 걸리는 시간입니다.",
+      "noteStatus": "Note를 설치하면 연결할 수 있습니다.",
+      "noteLink": "이 PC의 Note와 아래 항목을 주고받습니다.",
+      "note": {
+        "calendar": "Eris와 Note의 일정을 서로 반영합니다.",
+        "style": "Note가 Eris의 모양 설정을 따릅니다.",
+        "references": "일정 메모에서 [[를 입력하면 Note 페이지를 찾아 링크합니다.",
+        "preview": "페이지 링크에 커서를 올리면 왼쪽에 Note 내용을 표시합니다."
+      }
     },
     "options": {
       "win": "Win 키",
@@ -381,9 +401,6 @@
       "cmd": "명령 프롬프트",
       "monday": "월요일",
       "sunday": "일요일",
-      "manual": "수동",
-      "due": "마감일",
-      "priority": "우선순위",
       "dark": "다크",
       "light": "라이트",
       "system": "시스템",
@@ -451,8 +468,6 @@
       "switchTabs": "탭 전환",
       "moveDay": "선택한 날짜 이동",
       "addEvent": "해당 날짜에 일정 추가",
-      "renameTodo": "할 일 이름 변경",
-      "saveEvent": "일정 저장",
       "closePanel": "패널 닫기",
       "nextStep": "다음 설정 단계",
       "closeWindow": "이 창 닫기",
@@ -504,11 +519,10 @@
       "escCancels": "Esc로 취소"
     },
     "advanced": {
-      "todos": "할 일",
       "events": "일정",
       "presets": "프리셋",
       "resetAllTitle": "모든 설정을 초기화할까요?",
-      "resetAllBody": "모든 설정이 기본값으로 돌아갑니다. 할 일, 일정, 프리셋, 동기화 연결은 유지됩니다."
+      "resetAllBody": "모든 설정이 기본값으로 돌아갑니다. 일정, 프리셋, 동기화 연결은 유지됩니다."
     },
     "dock": {
       "styles": {
@@ -617,6 +631,14 @@
       "title": "테마 적용",
       "body": "커뮤니티 테마 \"{name}\"의 모양 설정을 적용합니다.",
       "apply": "적용"
+    },
+    "note": {
+      "states": {
+        "missing": "미설치",
+        "waiting": "연결 대기",
+        "linked": "연결됨"
+      },
+      "open": "Note 열기"
     }
   },
   "launcher": {
@@ -736,7 +758,7 @@
     },
     "todo": {
       "add": "할 일 추가: {title}",
-      "saves": "할 일 목록에 저장됩니다"
+      "saves": "캘린더에 완료 체크 일정으로 저장됩니다"
     },
     "web": {
       "search": "웹에서 \"{query}\" 검색"
@@ -892,7 +914,6 @@
     "untitled": "제목 없음",
     "title": "제목",
     "events": "일정",
-    "todos": "할 일",
     "errors": {
       "startRequired": "시작 날짜가 필요합니다",
       "endRequired": "종료 날짜가 필요합니다",
@@ -904,14 +925,11 @@
       "evening": "좋은 저녁입니다"
     },
     "summary": {
-      "events": "{count, plural, other {일정 #개}}",
-      "todosDue": "{count, plural, other {마감 할 일 #개}}"
+      "events": "{count, plural, other {일정 #개}}"
     },
-    "searchPlaceholder": "할 일과 일정 검색",
     "clearSearch": "검색어 삭제",
     "calendarAria": "캘린더",
     "cardsAria": "패널 카드",
-    "todoAria": "할 일",
     "notesAria": "메모",
     "due": "마감",
     "nothingDue": "마감 항목 없음",
@@ -981,7 +999,15 @@
         "next": "다음 평일로 이동",
         "previous": "이전 평일로 이동"
       },
-      "movedFrom": "{date}에서 이동"
+      "movedFrom": "{date}에서 이동",
+      "addField": "항목 추가",
+      "addNotes": "메모 추가",
+      "fields": {
+        "reminder": "알림",
+        "tags": "태그",
+        "parent": "상위 일정",
+        "task": "완료 체크"
+      }
     },
     "ics": {
       "options": "캘린더 옵션",
@@ -1008,26 +1034,6 @@
       "bodyAria": "메모 본문",
       "select": "메모를 선택하세요"
     },
-    "quickAdd": {
-      "todo": "할 일 추가",
-      "auto": "할 일 추가, 일정은 /",
-      "eventBadge": "일정",
-      "todoBadge": "할 일"
-    },
-    "todo": {
-      "overdue": "기한 지남",
-      "upcoming": "예정",
-      "noDate": "날짜 없음",
-      "markDone": "완료로 표시",
-      "markNotDone": "미완료로 표시",
-      "titleAria": "할 일 제목",
-      "editHint": "두 번 클릭해 편집",
-      "delete": "할 일 삭제",
-      "allDone": "모두 완료",
-      "completed": "완료됨",
-      "clearCompleted": "완료 항목 삭제",
-      "count": "{count, plural, other {할 일 #개 남음}}"
-    },
     "notifications": {
       "title": "알림",
       "empty": "알림 없음",
@@ -1037,8 +1043,7 @@
       "focusAssist": "집중 지원",
       "settings": "알림 설정",
       "windowsCenter": "Windows 알림 센터",
-      "toggle": "알림 표시",
-      "back": "할 일로 돌아가기"
+      "toggle": "알림 표시"
     },
     "day": {
       "title": "{date} 일정",
@@ -1070,6 +1075,11 @@
       "one": "이 일정만",
       "following": "이 일정 및 이후 일정",
       "all": "모든 일정"
+    },
+    "task": {
+      "label": "완료 체크",
+      "done": "완료로 표시",
+      "undo": "미완료로 표시"
     }
   },
   "files": {
@@ -1129,8 +1139,8 @@
         "text": "Windows 작업 표시줄을 대체하는 막대에 고정된 앱과 실행 중인 앱을 표시합니다."
       },
       "calendar": {
-        "title": "캘린더 및 할 일",
-        "text": "시계를 한 번 클릭하면 오늘 하루, 일정, 할 일 목록이 열립니다."
+        "title": "캘린더",
+        "text": "시계를 한 번 클릭하면 오늘 하루와 일정이 열립니다."
       }
     },
     "features": {
@@ -1168,7 +1178,7 @@
       },
       "clock": {
         "title": "시계 클릭",
-        "text": "캘린더와 할 일 목록이 펼쳐집니다."
+        "text": "캘린더가 펼쳐집니다."
       }
     },
     "done": {

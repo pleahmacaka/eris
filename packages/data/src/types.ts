@@ -12,6 +12,7 @@ export type Todo = {
   due: string | null
   tags: string[]
   order: number
+  migrated?: boolean
   createdAt: number
   updatedAt: number
 }
@@ -48,6 +49,8 @@ export type CalendarEvent = {
   shift?: Shift
   seriesId?: string | null
   originalDate?: string | null
+  task?: boolean
+  done?: string[]
   createdAt: number
   updatedAt: number
 }

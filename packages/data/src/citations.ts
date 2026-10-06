@@ -1,4 +1,4 @@
-import { NOTE_LINK, notePathOf } from "@eris/bridge"
+import { NOTE_LINK, notePathOf, noteUrl } from "@eris/bridge"
 
 export type Citation = {
   title: string
@@ -61,3 +61,6 @@ export const splitCitations = (text: string): NotesPart[] => {
 
   return parts.filter(part => part !== "")
 }
+
+export const citationOf = (title: string, path: string) =>
+  `[${title}](${noteUrl(path)})`

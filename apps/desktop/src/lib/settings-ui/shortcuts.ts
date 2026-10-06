@@ -67,8 +67,6 @@ export const shortcuts = (
         },
         { keys: [key("arrows")], action: t("settings.shortcuts.moveDay") },
         { keys: ["Enter"], action: t("settings.shortcuts.addEvent") },
-        { keys: ["F2"], action: t("settings.shortcuts.renameTodo") },
-        { keys: ["Ctrl", "Enter"], action: t("settings.shortcuts.saveEvent") },
         { keys: ["Esc"], action: t("settings.shortcuts.closePanel") },
       ],
     },

@@ -34,6 +34,7 @@
     ExperimentalSection,
     GeneralSection,
     LauncherSection,
+    NoteSection,
     SettingsNav,
     SyncPanel,
     TraySection,
@@ -403,6 +404,8 @@
             <AppearanceSection bind:profile />
           {:else if section === "calendar"}
             <CalendarSection bind:profile bind:device />
+          {:else if section === "note"}
+            <NoteSection bind:device />
           {:else if section === "sync"}
             <SyncPanel bind:device />
           {:else if section === "account"}

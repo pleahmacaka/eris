@@ -1,6 +1,7 @@
 import {
   type CalendarEvent,
   type HolidayCheck,
+  isDone,
   parseLocal,
   upcoming,
 } from "@eris/data"
@@ -47,7 +48,11 @@ const check = async (
     const at = remindAt(e)
 
     return (
-      at !== null && at > since && at <= now && !fired.has(`${e.id}@${e.start}`)
+      at !== null &&
+      at > since &&
+      at <= now &&
+      !isDone(e) &&
+      !fired.has(`${e.id}@${e.start}`)
     )
   })
 

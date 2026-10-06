@@ -8,6 +8,7 @@
     isPreset,
     isRecord,
     isTodo,
+    migrateTodos,
     notes,
     presets,
     saveProfileSynced,
@@ -131,6 +132,8 @@
       await notes.put(item)
       count += 1
     }
+
+    await migrateTodos()
 
     return { count, skipped }
   }
