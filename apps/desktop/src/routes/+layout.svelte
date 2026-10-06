@@ -1,6 +1,6 @@
 <script lang="ts">
   import { addCollection } from "@iconify/svelte"
-  import favicon from "$lib/assets/favicon.svg"
+  import { logoSvg } from "@eris/ui/logo"
   import { lucideSubset } from "$lib/icons"
   import { setupI18n } from "@eris/i18n"
   import {
@@ -26,6 +26,8 @@
   let { children } = $props()
 
   addCollection(lucideSubset)
+
+  const favicon = `data:image/svg+xml,${encodeURIComponent(logoSvg())}`
 
   const appWindow = getCurrentWindow()
   const windowLabel = appWindow.label as WindowLabel
@@ -82,7 +84,7 @@
   })
 </script>
 
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
+<svelte:head><link rel="icon" type="image/svg+xml" href={favicon} /></svelte:head>
 
 <div class="siri-shell">
   <Aura />
