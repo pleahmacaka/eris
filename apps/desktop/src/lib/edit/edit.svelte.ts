@@ -3,6 +3,17 @@ import * as native from "$lib/native"
 
 export const editing = $state({ on: false, open: null as string | null })
 
+export const reorder = $state({
+  id: null as string | null,
+  over: null as string | null,
+  after: false,
+})
+
+export const clearReorder = () => {
+  reorder.id = null
+  reorder.over = null
+}
+
 export const startEdit = () => native.editMode(true).catch(() => undefined)
 
 export const stopEdit = () => native.editMode(false).catch(() => undefined)

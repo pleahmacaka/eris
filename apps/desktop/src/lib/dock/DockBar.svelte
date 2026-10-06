@@ -186,6 +186,8 @@
             align="start"
             class={sideClass}
             onmenu={layout.claimFor(`spot-${widget.id}`)}
+            dragKey={widget.id}
+            ondropped={layout.moveWidgetTo}
           >
             {#snippet options()}
               {@render widgetMove(widget, at)}
@@ -206,6 +208,8 @@
             placement={layout.spotPlacement}
             class={layout.centered ? "" : "flex-1"}
             onmenu={layout.claimFor(`spot-${widget.id}`)}
+            dragKey={widget.id}
+            ondropped={layout.moveWidgetTo}
           >
             {#snippet options()}
               {@render widgetMove(widget, at)}
@@ -239,6 +243,8 @@
             align="end"
             class={sideClass}
             onmenu={layout.claimFor(`spot-${widget.id}`)}
+            dragKey={widget.id}
+            ondropped={layout.moveWidgetTo}
           >
             {#snippet options()}
               {@render widgetMove(widget, at)}

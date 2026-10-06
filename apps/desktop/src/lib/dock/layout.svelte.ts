@@ -274,6 +274,29 @@ export class DockLayout {
     this.setWidgets(widgets)
   }
 
+  moveWidgetTo = (fromId: string, toId: string, after: boolean) => {
+    if (fromId === toId) {
+      return
+    }
+
+    const widgets = [...this.device.dockWidgets]
+    const from = widgets.findIndex(widget => widget.id === fromId)
+
+    if (from < 0) {
+      return
+    }
+
+    const [moved] = widgets.splice(from, 1)
+    const target = widgets.findIndex(widget => widget.id === toId)
+
+    if (target < 0) {
+      return
+    }
+
+    widgets.splice(after ? target + 1 : target, 0, moved)
+    this.setWidgets(widgets)
+  }
+
   removeWidget = (id: string) => {
     this.setWidgets(
       this.device.dockWidgets.filter(
