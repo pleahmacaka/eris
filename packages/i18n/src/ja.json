@@ -1291,7 +1291,8 @@
       "mute": "ミュート",
       "unmute": "ミュート解除",
       "output": "出力デバイス",
-      "noDevices": "デバイスなし"
+      "noDevices": "デバイスなし",
+      "settings": "サウンド設定"
     },
     "claude": {
       "unmeasured": "Claude の使用量は未計測",
