@@ -63,15 +63,6 @@
       </button>
 
       <button
-        class={["btn btn-xs btn-ghost", kind === "todo" && "btn-active"]}
-        aria-pressed={kind === "todo"}
-        onclick={panel.showTodos}
-      >
-        <Icon icon="lucide:list-checks" class="size-3.5" />
-        {$t("panel.todos")}
-      </button>
-
-      <button
         class={["btn btn-xs btn-ghost", kind === "notes" && "btn-active"]}
         aria-pressed={kind === "notes"}
         onclick={panel.showNotes}

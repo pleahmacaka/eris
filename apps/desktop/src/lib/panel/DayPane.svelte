@@ -3,7 +3,7 @@
   import { t } from "svelte-i18n"
   import { currentLocale } from "@eris/i18n"
   import { clock, shortDay, tagLabel, tagsOf } from "$lib/calendar"
-  import { type CalendarEvent, openEnded, parseLocal } from "$lib/data"
+  import { type CalendarEvent, isDone, openEnded, parseLocal } from "$lib/data"
   import { colorMeta, toColor } from "./colors"
   import type { Panel } from "./panel.svelte"
 
@@ -85,6 +85,7 @@
           {@const meta = colorMeta[toColor(event.color)]}
           {@const parent = panel.parentOf(event)?.title}
           {@const labels = labelsOf(event)}
+          {@const done = isDone(event)}
           <li class="group relative">
             <button
               type="button"
@@ -112,11 +113,20 @@
                 {/if}
               </span>
 
-              <span class={["mt-1.5 size-2 shrink-0 rounded-full", meta.chip]}
-              ></span>
+              {#if event.task}
+                <span class="size-4 shrink-0"></span>
+              {:else}
+                <span class={["mt-1.5 size-2 shrink-0 rounded-full", meta.chip]}
+                ></span>
+              {/if}
 
               <span class="flex min-w-0 flex-1 flex-col">
-                <span class="line-clamp-2 text-sm font-medium break-words">
+                <span
+                  class={[
+                    "line-clamp-2 text-sm font-medium break-words",
+                    done && "text-base-content/50 line-through",
+                  ]}
+                >
                   {event.title}
                 </span>
 
@@ -152,6 +162,16 @@
                 {/if}
               </span>
             </button>
+
+            {#if event.task}
+              <input
+                type="checkbox"
+                class="checkbox checkbox-primary checkbox-xs absolute top-2 left-17.5"
+                checked={done}
+                aria-label={$t(done ? "panel.task.undo" : "panel.task.done")}
+                onchange={() => panel.toggleDone(event)}
+              />
+            {/if}
 
             <button
               type="button"

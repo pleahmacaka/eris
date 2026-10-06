@@ -269,6 +269,24 @@ export const occurrences = (
   return found
 }
 
+// recurring occurrences are keyed by their series date, which a holiday shift never moves
+export const occurrenceKey = (event: Occurrence) =>
+  event.seriesDate ?? dateKey(parseLocal(event.start))
+
+export const isDone = (event: Occurrence) =>
+  event.task === true && (event.done ?? []).includes(occurrenceKey(event))
+
+export const withDone = (
+  stored: CalendarEvent,
+  key: string,
+  done: boolean,
+  stamp: number,
+): CalendarEvent => {
+  const rest = (stored.done ?? []).filter(day => day !== key)
+
+  return { ...stored, done: done ? [...rest, key] : rest, updatedAt: stamp }
+}
+
 export const occurrenceAt = (
   event: CalendarEvent,
   seriesDate: string,
@@ -440,31 +458,26 @@ export const editInSeries = (
   scope: Scope,
   all: CalendarEvent[],
   stamp: number,
-): SeriesChange => {
+): SeriesChange & { edited: CalendarEvent } => {
   const seriesDate = occurrence.seriesDate ?? firstDate(series)
   const shiftDays = dayDelta(occurrence.start, draft.start)
 
   if (scope === "one") {
     const { put } = removeFromSeries(series, seriesDate, "one", all, stamp)
-
-    return {
-      put: [
-        ...put,
-        {
-          ...draft,
-          id: crypto.randomUUID(),
-          recurrence: "none",
-          shift: undefined,
-          exdates: undefined,
-          until: undefined,
-          seriesId: series.id,
-          originalDate: seriesDate,
-          createdAt: stamp,
-          updatedAt: stamp,
-        },
-      ],
-      remove: [],
+    const edited: CalendarEvent = {
+      ...draft,
+      id: crypto.randomUUID(),
+      recurrence: "none",
+      shift: undefined,
+      exdates: undefined,
+      until: undefined,
+      seriesId: series.id,
+      originalDate: seriesDate,
+      createdAt: stamp,
+      updatedAt: stamp,
     }
+
+    return { put: [...put, edited], remove: [], edited }
   }
 
   const following = scope === "following" && seriesDate > firstDate(series)
@@ -497,6 +510,7 @@ export const editInSeries = (
       })),
     ],
     remove: [],
+    edited: moved,
   }
 }
 

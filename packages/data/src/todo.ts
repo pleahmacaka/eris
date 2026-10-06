@@ -12,7 +12,7 @@ import {
   type Time,
   timeMinutes,
 } from "./calendar"
-import type { Priority, Todo } from "./types"
+import type { CalendarEvent, Priority, Todo } from "./types"
 
 const PRIORITY_TOKENS: Record<string, Priority> = { "!1": 1, "!2": 2, "!3": 3 }
 const NO_DUE = Number.MAX_SAFE_INTEGER
@@ -96,6 +96,38 @@ export const quickTodo = (text: string, now = new Date()): Todo | null => {
     tags: parsed.tags ?? [],
     order: stamp,
     createdAt: stamp,
+    updatedAt: stamp,
+  }
+}
+
+// todos now live on as checkable calendar events; a stable id lets every synced device convert the same todo into the same event
+export const eventFromTodo = (
+  todo: Todo,
+  today: Date,
+  stamp: number,
+): CalendarEvent => {
+  const timed = todo.due?.includes("T") ?? false
+  const day = todo.due
+    ? parseLocal(todo.due)
+    : todo.done && todo.doneAt
+      ? new Date(todo.doneAt)
+      : today
+  const date = dateKey(day)
+  const start = timed && todo.due ? todo.due : date
+
+  return {
+    id: `todo-${todo.id}`,
+    title: todo.title,
+    notes: todo.notes,
+    start,
+    end: start,
+    allDay: !timed,
+    color: null,
+    reminderMinutes: null,
+    recurrence: "none",
+    task: true,
+    ...(todo.done ? { done: [date] } : {}),
+    createdAt: todo.createdAt,
     updatedAt: stamp,
   }
 }

@@ -25,32 +25,28 @@ import {
   events,
   eventsByDay,
   eventsOn,
+  isDone,
   live,
   monthGrid,
   newId,
   notes,
   type Occurrence,
   occurrenceAt,
+  occurrenceKey,
   parseLocal,
-  quickTodo,
   removeOccurrence,
   type Scope,
-  sortNotes,
-  sortTodos,
   startOfDay,
-  type Todo,
-  todos,
-  toggled,
   updateProfileSynced,
+  withDone,
 } from "$lib/data"
 import { ensureDevice } from "$lib/device"
 import * as native from "$lib/native"
 
 export type View =
   | { kind: "day" }
-  | { kind: "todo" }
   | { kind: "notes" }
-  | { kind: "event"; id: string; date: string | null; editing: boolean }
+  | { kind: "event"; id: string; date: string | null }
   | { kind: "new"; day: Date; span: number; parent: string | null }
 
 export type ScopeMode = "edit" | "delete"
@@ -58,7 +54,6 @@ export type ScopeMode = "edit" | "delete"
 type Asking = { mode: ScopeMode; answer: (scope: Scope | null) => void }
 
 const GRID_DAYS = 42
-const COMPACT_TODOS = 3
 
 const byStart = (a: CalendarEvent, b: CalendarEvent) =>
   parseLocal(a.start).getTime() - parseLocal(b.start).getTime()
@@ -81,8 +76,6 @@ export class Panel {
   asking = $state<Asking | null>(null)
 
   eventLive = live(events)
-
-  todoLive = live(todos)
 
   noteLive = live(notes)
 
@@ -162,16 +155,6 @@ export class Panel {
 
   detailOpen = $derived(this.view.kind === "new" || this.openEvent !== null)
 
-  compactTodos = $derived(
-    sortTodos(
-      this.todoLive.items,
-      this.profile.todo.sortBy,
-      this.profile.todo.showCompleted,
-    ).slice(0, COMPACT_TODOS),
-  )
-
-  latestNote = $derived(sortNotes(this.noteLive.items)[0] ?? null)
-
   eventsOn = (day: Date) => this.byDay.get(dateKey(day)) ?? []
 
   holidayFor = (day: Date) =>
@@ -241,12 +224,37 @@ export class Panel {
       date:
         event.seriesDate ??
         (event.recurrence === "none" ? null : dateKey(parseLocal(event.start))),
-      editing: false,
     })
 
-  edit = () => {
-    if (this.view.kind === "event") {
-      this.go({ ...this.view, editing: true })
+  // a field edit keeps the detail open; a series split hands the occurrence a new record
+  private reveal = (event: CalendarEvent) =>
+    this.go({
+      kind: "event",
+      id: event.id,
+      date:
+        event.recurrence === "none" ? null : dateKey(parseLocal(event.start)),
+    })
+
+  createEvent = async (next: CalendarEvent) => {
+    await events.put(next)
+    this.reveal(next)
+  }
+
+  commitEvent = async (
+    occurrence: Occurrence,
+    next: CalendarEvent,
+    scope: Scope | null,
+  ) => {
+    if (!occurrence.seriesDate || !scope) {
+      await events.put(next)
+
+      return
+    }
+
+    const edited = await editOccurrence(occurrence, next, scope)
+
+    if (edited) {
+      this.reveal({ ...edited, start: next.start })
     }
   }
 
@@ -267,8 +275,6 @@ export class Panel {
       parent: null,
     })
   }
-
-  showTodos = () => this.go({ kind: "todo" })
 
   showNotes = () => this.go({ kind: "notes" })
 
@@ -300,22 +306,6 @@ export class Panel {
     this.close()
   }
 
-  saveEvent = async (occurrence: Occurrence | null, next: CalendarEvent) => {
-    if (occurrence?.seriesDate) {
-      const scope = await this.askScope("edit")
-
-      if (!scope) {
-        return
-      }
-
-      await editOccurrence(occurrence, next, scope)
-    } else {
-      await events.put(next)
-    }
-
-    this.close()
-  }
-
   createTag = (name: string) => {
     const tag = { id: newId(), name, hideWhileSharing: false }
 
@@ -328,16 +318,14 @@ export class Panel {
     return tag.id
   }
 
-  addTodo = async (text: string) => {
-    const todo = quickTodo(text)
+  toggleDone = async (event: Occurrence) => {
+    const stored = await events.get(event.id)
 
-    if (todo) {
-      await todos.put(todo)
+    if (stored) {
+      await events.put(
+        withDone(stored, occurrenceKey(event), !isDone(event), Date.now()),
+      )
     }
-  }
-
-  toggleTodo = async (todo: Todo) => {
-    await todos.put(toggled((await todos.get(todo.id)) ?? todo))
   }
 
   start = () => {
@@ -374,7 +362,6 @@ export class Panel {
       }
 
       this.eventLive.stop()
-      this.todoLive.stop()
       this.noteLive.stop()
     }
   }

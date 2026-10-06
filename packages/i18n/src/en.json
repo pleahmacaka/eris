@@ -50,8 +50,8 @@
         "blurb": "Theme, color, and surfaces for every window"
       },
       "calendar": {
-        "label": "Calendar & todo",
-        "blurb": "Week start, holidays, and the todo list"
+        "label": "Calendar",
+        "blurb": "Week start, holidays, and event tags"
       },
       "sync": {
         "label": "Sync",
@@ -76,6 +76,10 @@
       "account": {
         "label": "Account",
         "blurb": "Sign in once to use the same Eris account in every Eris app."
+      },
+      "note": {
+        "label": "Note",
+        "blurb": "Connect ArixLab Note for calendar, style, and page references"
       }
     },
     "groups": {
@@ -90,7 +94,7 @@
       },
       "backup": {
         "title": "Backup",
-        "description": "Export or import settings, presets, todos, and events as one JSON file"
+        "description": "Export or import settings, presets, and events as one JSON file"
       },
       "dock": "Dock",
       "results": "Results",
@@ -99,7 +103,6 @@
         "description": "Pick a preset, then change anything below to make it your own"
       },
       "calendar": "Calendar",
-      "todo": "Todo",
       "storedData": {
         "title": "Stored data",
         "description": "What Eris keeps on this device"
@@ -134,6 +137,10 @@
       "windowBackgrounds": {
         "title": "Per-window backgrounds",
         "description": "Give each window its own background"
+      },
+      "note": {
+        "title": "Note link",
+        "description": "Connect the Note installed on this PC, separate from Eris sync and Note sync"
       }
     },
     "rows": {
@@ -172,8 +179,6 @@
       "weekStartsOn": "Week starts on",
       "weekNumbers": "Week numbers",
       "defaultReminder": "Default reminder",
-      "showCompleted": "Show completed",
-      "sortBy": "Sort by",
       "storedData": "Stored data",
       "dataFolder": "Data folder",
       "iconCache": "Icon cache",
@@ -261,7 +266,15 @@
       "settingsBackground": "Settings",
       "noticesBackground": "Notifications",
       "filesBackground": "Eris Files",
-      "terminalBackground": "Eris Terminal"
+      "terminalBackground": "Eris Terminal",
+      "noteStatus": "Status",
+      "noteLink": "Link Note",
+      "note": {
+        "calendar": "Calendar",
+        "style": "Style",
+        "references": "Page references",
+        "preview": "Preview"
+      }
     },
     "hints": {
       "deviceName": "The name other synced devices see",
@@ -275,13 +288,12 @@
       "shortcut": "Click, then press the combination",
       "openWindows": "Switch to running windows by name",
       "commands": "Lock, sleep, empty the recycle bin, and more",
-      "todos": "Add a todo straight from the search box",
+      "todos": "Add a checkable event straight from the search box",
       "calculator": "Type an expression to evaluate it",
       "webSearch": "Engine for queries nothing else matches",
       "terminal": "App opened by the Terminal command.",
       "weekNumbers": "Show week numbers in the month grid",
       "defaultReminder": "Before an event starts",
-      "showCompleted": "Keep done items in the list",
       "mode": "Dark, light, or follow Windows",
       "background": "The surface behind every window",
       "followAccent": "Use the accent color from Windows settings",
@@ -296,7 +308,7 @@
       "dockOpacity": "How opaque the dock is",
       "density": "Spacing inside lists and buttons",
       "motion": "Background movement and transitions",
-      "dataFolder": "Open the folder that holds settings, todos, events, and cached icons",
+      "dataFolder": "Open the folder that holds settings, events, and cached icons",
       "iconCache": "Delete cached app icons; they are rebuilt when needed",
       "resetAppearance": "Return appearance to the default preset",
       "resetAll": "Reset every setting except device name, sync, and stored data",
@@ -371,7 +383,15 @@
       "islandGap": "Space between the dock islands.",
       "dockIcon": "Image for the launcher button and the hide logo.",
       "gatherHideMs": "How long the dock takes to gather into the logo and leave.",
-      "gatherShowMs": "How long the dock takes to unfold from the logo."
+      "gatherShowMs": "How long the dock takes to unfold from the logo.",
+      "noteStatus": "Install Note to connect it",
+      "noteLink": "Share the items below with Note on this PC",
+      "note": {
+        "calendar": "Keep events in step between Eris and Note",
+        "style": "Note follows the Eris appearance",
+        "references": "Type [[ in event notes to find and link a Note page",
+        "preview": "Hover a page link to show the note on the left"
+      }
     },
     "options": {
       "win": "Win key",
@@ -381,9 +401,6 @@
       "cmd": "Command Prompt",
       "monday": "Monday",
       "sunday": "Sunday",
-      "manual": "Manual",
-      "due": "Due date",
-      "priority": "Priority",
       "dark": "Dark",
       "light": "Light",
       "system": "System",
@@ -451,8 +468,6 @@
       "switchTabs": "Switch tabs",
       "moveDay": "Move the selected day",
       "addEvent": "Add an event on that day",
-      "renameTodo": "Rename the todo",
-      "saveEvent": "Save the event",
       "closePanel": "Close the panel",
       "nextStep": "Next setup step",
       "closeWindow": "Close this window",
@@ -504,11 +519,10 @@
       "escCancels": "Esc cancels"
     },
     "advanced": {
-      "todos": "Todos",
       "events": "Events",
       "presets": "Presets",
       "resetAllTitle": "Reset all settings?",
-      "resetAllBody": "Every setting goes back to its default. Todos, events, presets, and the sync connection stay."
+      "resetAllBody": "Every setting goes back to its default. Events, presets, and the sync connection stay."
     },
     "dock": {
       "styles": {
@@ -617,6 +631,14 @@
       "title": "Apply theme",
       "body": "Switches your appearance to the community theme \"{name}\".",
       "apply": "Apply"
+    },
+    "note": {
+      "states": {
+        "missing": "Not installed",
+        "waiting": "Waiting for Note",
+        "linked": "Connected"
+      },
+      "open": "Open Note"
     }
   },
   "launcher": {
@@ -736,7 +758,7 @@
     },
     "todo": {
       "add": "Add todo: {title}",
-      "saves": "Saves to your todo list"
+      "saves": "Saves to your calendar as a checkable event"
     },
     "web": {
       "search": "Search the web for \"{query}\""
@@ -892,7 +914,6 @@
     "untitled": "Untitled",
     "title": "Title",
     "events": "Events",
-    "todos": "Todos",
     "errors": {
       "startRequired": "Start date required",
       "endRequired": "End date required",
@@ -904,14 +925,11 @@
       "evening": "Good evening"
     },
     "summary": {
-      "events": "{count, plural, one {# event} other {# events}}",
-      "todosDue": "{count, plural, one {# todo due} other {# todos due}}"
+      "events": "{count, plural, one {# event} other {# events}}"
     },
-    "searchPlaceholder": "Search todos and events",
     "clearSearch": "Clear search",
     "calendarAria": "Calendar",
     "cardsAria": "Panel cards",
-    "todoAria": "Todo",
     "notesAria": "Notes",
     "due": "Due",
     "nothingDue": "Nothing due",
@@ -981,7 +999,15 @@
         "next": "Move to the next weekday",
         "previous": "Move to the previous weekday"
       },
-      "movedFrom": "Moved from {date}"
+      "movedFrom": "Moved from {date}",
+      "addField": "Add field",
+      "addNotes": "Add notes",
+      "fields": {
+        "reminder": "Reminder",
+        "tags": "Tags",
+        "parent": "Parent event",
+        "task": "Checkable"
+      }
     },
     "ics": {
       "options": "Calendar options",
@@ -1008,26 +1034,6 @@
       "bodyAria": "Note body",
       "select": "Select a note"
     },
-    "quickAdd": {
-      "todo": "Add a todo",
-      "auto": "Add a todo, / for an event",
-      "eventBadge": "Event",
-      "todoBadge": "Todo"
-    },
-    "todo": {
-      "overdue": "Overdue",
-      "upcoming": "Upcoming",
-      "noDate": "No date",
-      "markDone": "Mark as done",
-      "markNotDone": "Mark as not done",
-      "titleAria": "Todo title",
-      "editHint": "Double-click to edit",
-      "delete": "Delete todo",
-      "allDone": "All done",
-      "completed": "Completed",
-      "clearCompleted": "Clear completed",
-      "count": "{count, plural, one {# todo left} other {# todos left}}"
-    },
     "notifications": {
       "title": "Notifications",
       "empty": "No notifications",
@@ -1037,8 +1043,7 @@
       "focusAssist": "Focus assist",
       "settings": "Notification settings",
       "windowsCenter": "Windows notification center",
-      "toggle": "Show notifications",
-      "back": "Back to todos"
+      "toggle": "Show notifications"
     },
     "day": {
       "title": "Events on {date}",
@@ -1070,6 +1075,11 @@
       "one": "This event",
       "following": "This and following events",
       "all": "All events"
+    },
+    "task": {
+      "label": "Checkable",
+      "done": "Mark done",
+      "undo": "Mark not done"
     }
   },
   "files": {
@@ -1129,8 +1139,8 @@
         "text": "Pinned and running apps on a bar that replaces the Windows taskbar."
       },
       "calendar": {
-        "title": "Calendar and todos",
-        "text": "One click on the clock opens your day, your events, and your list."
+        "title": "Calendar",
+        "text": "One click on the clock opens your day and your events."
       }
     },
     "features": {
@@ -1168,7 +1178,7 @@
       },
       "clock": {
         "title": "Click the clock",
-        "text": "The calendar and your todo list slide out."
+        "text": "The calendar slides out."
       }
     },
     "done": {

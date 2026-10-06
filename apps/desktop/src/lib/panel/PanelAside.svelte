@@ -1,12 +1,13 @@
 <script lang="ts">
+  import { Aura } from "@eris/ui"
   import DayPane from "./DayPane.svelte"
   import EventDetail from "./EventDetail.svelte"
   import NotesPane from "./NotesPane.svelte"
   import type { Panel } from "./panel.svelte"
   import ScopeSheet from "./ScopeSheet.svelte"
-  import TodoPane from "./TodoPane.svelte"
 
-  const { panel }: { panel: Panel } = $props()
+  const { panel, compact = false }: { panel: Panel; compact?: boolean } =
+    $props()
 
   const view = $derived(panel.view)
 
@@ -15,17 +16,10 @@
   )
 </script>
 
-<aside class="panel-surface flex min-h-0 flex-col">
-  {#if view.kind === "todo"}
-    <div class="pane">
-      <TodoPane
-        items={panel.todoLive.items}
-        sortBy={panel.profile.todo.sortBy}
-        showCompleted={panel.profile.todo.showCompleted}
-        back={panel.close}
-      />
-    </div>
-  {:else if view.kind === "notes"}
+<aside class="panel-surface flex min-h-0 w-full flex-col">
+  <Aura />
+
+  {#if view.kind === "notes" && !compact}
     <div class="pane">
       <NotesPane items={panel.noteLive.items} back={panel.close} />
     </div>

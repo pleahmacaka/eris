@@ -5,6 +5,7 @@ export type SectionId =
   | "tray"
   | "launcher"
   | "calendar"
+  | "note"
   | "sync"
   | "account"
   | "data"
@@ -34,6 +35,7 @@ export const sections: NavSection[] = [
   { id: "tray", icon: "lucide:blocks", group: "features" },
   { id: "launcher", icon: "lucide:search", group: "features" },
   { id: "calendar", icon: "lucide:calendar-check", group: "features" },
+  { id: "note", icon: "lucide:notebook-pen", group: "features" },
   { id: "sync", icon: "lucide:refresh-cw", group: "system" },
   { id: "account", icon: "lucide:circle-user", group: "system" },
   { id: "data", icon: "lucide:database", group: "system" },
@@ -177,7 +179,7 @@ export const index: SearchEntry[] = [
   entry("launcher", "showKeymap", "keyboard hints shortcuts"),
   entry("launcher", "openWindows", "switch running"),
   entry("launcher", "commands", "lock sleep recycle bin power"),
-  entry("launcher", "todos", "quick add task"),
+  entry("launcher", "todos", "quick add task checkable event calendar"),
   entry("launcher", "calculator", "math expression"),
   entry("launcher", "webSearch", "google duckduckgo bing naver engine"),
   entry("launcher", "terminal", "cmd powershell pwsh wt console shell"),
@@ -193,19 +195,24 @@ export const index: SearchEntry[] = [
     "eventTags",
     "tags labels work personal private screen share",
   ),
-  entry("calendar", "showCompleted", "done todo"),
   entry("calendar", "sortBy", "order manual due priority"),
 
   entry("sync", "enableSync", "background"),
   entry("sync", "showSyncStatus", "dock dot indicator clock tray"),
   entry("sync", "interval", "minutes frequency"),
-  entry("sync", "collections", "todos events presets profile"),
+  entry("note", "noteStatus", "note arixlab vault installed"),
+  entry("note", "noteLink", "note arixlab link connect"),
+  entry("note", "note.calendar", "note calendar events sync"),
+  entry("note", "note.style", "note style theme appearance"),
+  entry("note", "note.references", "note page link citation reference"),
+  entry("note", "note.preview", "note preview hover"),
+  entry("sync", "collections", "events presets profile notes"),
   entry("sync", "pairDevice", "pairing code invite peer"),
   entry("sync", "joinDevice", "pairing code connect peer"),
   entry("sync", "unlinkDevice", "disconnect leave unpair peer"),
 
   entry("data", "backup", "export import json file restore"),
-  entry("data", "storedData", "counts todos events presets"),
+  entry("data", "storedData", "counts events presets"),
   entry(
     "data",
     "dataFolder",

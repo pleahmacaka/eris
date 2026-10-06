@@ -1,4 +1,10 @@
-import type { CalendarEvent, Note, Preset, Todo } from "@eris/data"
+import {
+  type CalendarEvent,
+  eventFromTodo,
+  type Note,
+  type Preset,
+  type Todo,
+} from "@eris/data"
 import {
   loadDevice,
   loadProfile,
@@ -211,6 +217,28 @@ export const presets = collection<Preset>("presets")
 export const notes = collection<Note>("notes")
 
 export const newId = () => crypto.randomUUID()
+
+// the todo store and its sync stay so paired devices on older versions keep working; the flag syncs so no device converts twice
+export const migrateTodos = async () => {
+  const pending = (await todos.all()).filter(todo => !todo.migrated)
+
+  if (pending.length === 0) {
+    return
+  }
+
+  const stamp = Date.now()
+  const today = new Date()
+  const existing = new Set((await events.all()).map(event => event.id))
+  const created = pending
+    .map(todo => eventFromTodo(todo, today, stamp))
+    .filter(event => !existing.has(event.id))
+
+  await events.apply({ put: created, remove: [] })
+  await todos.apply({
+    put: pending.map(todo => ({ ...todo, migrated: true, updatedAt: stamp })),
+    remove: [],
+  })
+}
 
 const stampProfile = async () => {
   const db = await store()

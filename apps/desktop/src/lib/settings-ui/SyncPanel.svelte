@@ -49,9 +49,12 @@
 
   const collectionLabel = (name: SyncedCollection) => $t(`settings.sync.collections.${name}`)
 
+  // todos still sync for older paired devices, but nothing here shows them anymore
+  const shownCollections = syncedCollections.filter(name => name !== "todos")
+
   const collectionList = $derived(
     new Intl.ListFormat($locale ?? "en").format(
-      syncedCollections.map(name => collectionLabel(name).toLowerCase()),
+      shownCollections.map(name => collectionLabel(name).toLowerCase()),
     ),
   )
 
@@ -311,7 +314,7 @@
       onreset={resetSync("collections")}
     >
       <div class="flex flex-wrap gap-2">
-        {#each syncedCollections as name (name)}
+        {#each shownCollections as name (name)}
           <label
             class="flex cursor-pointer items-center gap-2 rounded-field border border-base-content/10 bg-base-100/40 px-3 py-1.5 text-sm"
           >

@@ -38,7 +38,7 @@ const DEBOUNCE = 1_000
 const message = (error: unknown) =>
   error instanceof Error ? error.message : String(error)
 
-const conformed = (record: SyncRecord): SyncRecord | null => {
+export const conformed = (record: SyncRecord): SyncRecord | null => {
   const { data } = record
 
   if (record.deleted) {

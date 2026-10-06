@@ -1,18 +1,26 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import type { NoteLink } from "@eris/settings"
   import { t } from "svelte-i18n"
   import { type Citation, splitCitations } from "$lib/data"
   import { noteLinkable, notePreview, openUrl } from "$lib/native"
 
-  const EXCERPT_LINES = 8
+  const EXCERPT_LINES = 12
+  const GAP = 8
+  const WIDTH = 288
+  const HEIGHT = 240
 
-  let { text }: { text: string } = $props()
+  type Hover = { citation: Citation; right: number; top: number }
+
+  let { text, link }: { text: string; link: NoteLink } = $props()
 
   let linkable = $state(false)
-  let opened = $state<Citation | null>(null)
+  let hover = $state<Hover | null>(null)
   let previews = $state<Record<string, string | null>>({})
 
   const parts = $derived(splitCitations(text))
+
+  const references = $derived(linkable && link.enabled && link.references)
 
   $effect(() => {
     noteLinkable()
@@ -46,39 +54,43 @@
       .catch(() => (previews[citation.path] = ""))
   }
 
-  const excerpt = (citation: Citation) => {
-    const preview = previews[citation.path]
-
-    if (!preview) {
-      return citation.title
-    }
-
-    return preview
+  const excerpt = (preview: string) =>
+    preview
       .split("\n")
       .filter(line => line.trim() !== "")
       .slice(0, EXCERPT_LINES)
       .join("\n")
-  }
 
-  const toggle = (citation: Citation) => {
+  const show = (e: Event, citation: Citation) => {
+    if (!link.preview) {
+      return
+    }
+
+    const chip = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    const aside = (e.currentTarget as HTMLElement).closest("aside")?.getBoundingClientRect()
+
+    const floor = aside?.top ?? GAP
+    const ceiling = (aside?.bottom ?? innerHeight - GAP) - HEIGHT
+
     load(citation)
-    opened = opened?.url === citation.url ? null : citation
+    hover = {
+      citation,
+      right: innerWidth - (aside?.left ?? chip.left) + GAP,
+      top: Math.max(floor, Math.min(chip.top, ceiling)),
+    }
   }
 </script>
 
 {#snippet chip(part: Citation)}
-  {#if linkable}
+  {#if references}
     <button
       type="button"
-      class={[
-        "badge badge-sm gap-1 align-baseline",
-        opened?.url === part.url ? "badge-primary" : "badge-soft badge-primary",
-      ]}
-      title={excerpt(part)}
-      aria-expanded={opened?.url === part.url}
-      onmouseenter={() => load(part)}
-      onfocus={() => load(part)}
-      onclick={() => toggle(part)}
+      class="badge badge-sm badge-soft badge-primary gap-1 align-baseline"
+      onmouseenter={e => show(e, part)}
+      onmouseleave={() => (hover = null)}
+      onfocus={e => show(e, part)}
+      onblur={() => (hover = null)}
+      onclick={() => openUrl(part.url).catch(() => undefined)}
     >
       <Icon icon="lucide:file-text" class="size-3" />
       {part.title}
@@ -92,38 +104,28 @@
   {#each parts as part, index (index)}{#if typeof part === "string"}{part}{:else}{@render chip(part)}{/if}{/each}
 </p>
 
-{#if opened}
-  {@const preview = previews[opened.path]}
+{#if hover}
+  {@const preview = previews[hover.citation.path]}
 
-  <section class="mt-2 flex flex-col gap-2 rounded-box border border-base-content/10 bg-base-200/60 p-3">
+  <section
+    role="tooltip"
+    class="eris-card pointer-events-none fixed z-50 flex flex-col gap-2 overflow-hidden p-3"
+    style:right="{hover.right}px"
+    style:top="{hover.top}px"
+    style:width="{WIDTH}px"
+    style:max-height="{HEIGHT}px"
+  >
     <header class="flex items-center gap-2">
       <Icon icon="lucide:file-text" class="size-4 shrink-0 text-primary" />
 
-      <h4 class="min-w-0 grow truncate text-sm font-semibold">{opened.title}</h4>
-
-      <button
-        type="button"
-        class="btn btn-soft btn-primary btn-xs"
-        onclick={() => opened && openUrl(opened.url).catch(() => undefined)}
-      >
-        {$t("panel.event.openInNote")}
-      </button>
-
-      <button
-        type="button"
-        class="btn btn-ghost btn-square btn-xs"
-        aria-label={$t("common.close")}
-        onclick={() => (opened = null)}
-      >
-        <Icon icon="lucide:x" class="size-3.5" />
-      </button>
+      <h4 class="min-w-0 grow truncate text-sm font-semibold">{hover.citation.title}</h4>
     </header>
 
     {#if preview === null}
       <span class="loading loading-dots loading-sm text-base-content/50"></span>
     {:else if preview}
-      <p class="max-h-48 overflow-y-auto text-xs leading-relaxed whitespace-pre-line break-words text-base-content/75 select-text">
-        {preview}
+      <p class="text-xs leading-relaxed whitespace-pre-line break-words text-base-content/75">
+        {excerpt(preview)}
       </p>
     {:else}
       <p class="text-xs text-base-content/50">{$t("panel.event.previewMissing")}</p>
