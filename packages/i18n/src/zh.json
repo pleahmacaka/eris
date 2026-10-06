@@ -597,18 +597,22 @@
         "unlinked": "已断开连接",
         "noPeers": "没有可连接的设备",
         "joined": "已连接",
-        "copied": "已复制配对码"
+        "copied": "已复制配对码",
+        "removed": "已移除设备"
       },
       "confirm": {
         "unlinkTitle": "断开此设备？",
-        "unlinkBody": "此设备将停止与其他设备同步。本地数据会保留。"
+        "unlinkBody": "此设备将停止与其他设备同步。本地数据会保留。",
+        "removeTitle": "移除 {name}?",
+        "removeBody": "所有设备都会移除它,配对码也会更换。旧配对码将失效。"
       },
       "description": "让{collections}在各设备间保持一致。",
       "neverSeen": "暂无在线记录",
       "createCode": "创建配对码",
       "joinWithCode": "用配对码连接",
       "copyCode": "复制配对码",
-      "codePlaceholder": "配对码"
+      "codePlaceholder": "配对码",
+      "remove": "移除"
     },
     "backup": {
       "exportJson": "导出 JSON",

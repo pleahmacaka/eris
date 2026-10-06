@@ -597,18 +597,22 @@
         "unlinked": "Disconnected",
         "noPeers": "No paired device is reachable",
         "joined": "Connected",
-        "copied": "Code copied"
+        "copied": "Code copied",
+        "removed": "Device removed"
       },
       "confirm": {
         "unlinkTitle": "Disconnect this device?",
-        "unlinkBody": "This device stops syncing with the others. Local data stays."
+        "unlinkBody": "This device stops syncing with the others. Local data stays.",
+        "removeTitle": "Remove {name}?",
+        "removeBody": "Every device drops it and the pairing code changes. Old pairing codes stop working."
       },
       "description": "Keeps {collections} in step across devices.",
       "neverSeen": "Not seen yet",
       "createCode": "Create pairing code",
       "joinWithCode": "Connect with code",
       "copyCode": "Copy code",
-      "codePlaceholder": "Pairing code"
+      "codePlaceholder": "Pairing code",
+      "remove": "Remove"
     },
     "backup": {
       "exportJson": "Export JSON",

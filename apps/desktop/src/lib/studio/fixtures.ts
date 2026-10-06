@@ -194,7 +194,12 @@ const usage = (): ClaudeUsage => ({
   },
 })
 
-const p2p: P2pStatus = { nodeId: "studio", paired: false, peers: [] }
+const p2p: P2pStatus = {
+  nodeId: "studio",
+  paired: false,
+  peers: [],
+  removable: [],
+}
 
 const HOME_DIR = "C:\\Users\\Studio"
 
@@ -391,4 +396,5 @@ export const silent = new Set([
   "p2p_join",
   "p2p_leave",
   "p2p_publish",
+  "p2p_remove",
 ])

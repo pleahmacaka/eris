@@ -13,6 +13,8 @@
     p2pInvite,
     p2pJoin,
     p2pLeave,
+    type P2pPeer,
+    p2pRemove,
     p2pStatus,
   } from "$lib/native"
   import { refreshPairing, syncNow, syncStatus } from "$lib/sync"
@@ -69,10 +71,13 @@
   let busy = $state(false)
   let syncing = $state(false)
   let confirmLeave = $state(false)
+  let removing = $state<P2pPeer | null>(null)
+  let confirmRemove = $state(false)
   let now = $state(Date.now())
 
   const paired = $derived(pairing?.paired ?? false)
   const peers = $derived(pairing?.peers ?? [])
+  const removable = $derived(new Set(pairing?.removable ?? []))
 
   const panelState = $derived.by((): PanelState => {
     if (!device.sync.enabled) {
@@ -184,6 +189,13 @@
       code = ""
       await settle()
       toast($t("settings.sync.toasts.unlinked"), "success")
+    })
+
+  const remove = (peer: P2pPeer) =>
+    act(async () => {
+      await p2pRemove(peer.nodeId)
+      await settle()
+      toast($t("settings.sync.toasts.removed"), "success")
     })
 
   const copy = () =>
@@ -354,6 +366,21 @@
               : $t("settings.sync.seen", { values: { when: relative(peer.lastSeen) } })}
           </span>
         </div>
+
+        {#if removable.has(peer.nodeId)}
+          <button
+            type="button"
+            class="btn btn-ghost btn-square btn-xs ml-auto hover:text-error"
+            aria-label={$t("settings.sync.remove")}
+            disabled={busy}
+            onclick={() => {
+              removing = peer
+              confirmRemove = true
+            }}
+          >
+            <Icon icon="lucide:trash-2" class="size-3.5" />
+          </button>
+        {/if}
       </div>
     {/each}
   {/if}
@@ -425,6 +452,16 @@
   body={$t("settings.sync.confirm.unlinkBody")}
   action={$t("settings.sync.unlink")}
   onconfirm={leave}
+/>
+
+<Confirm
+  bind:open={confirmRemove}
+  title={$t("settings.sync.confirm.removeTitle", {
+    values: { name: removing?.name || removing?.nodeId.slice(0, 8) || "" },
+  })}
+  body={$t("settings.sync.confirm.removeBody")}
+  action={$t("settings.sync.remove")}
+  onconfirm={() => removing && remove(removing)}
 />
 </fieldset>
 </div>
