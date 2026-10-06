@@ -53,6 +53,8 @@
     label={$t("edit.spots.spacer")}
     placement={layout.spotPlacement}
     onmenu={claim}
+    dragKey={widget.id}
+    ondropped={layout.moveWidgetTo}
   >
     {#snippet options()}
       <label class="flex flex-col gap-1">

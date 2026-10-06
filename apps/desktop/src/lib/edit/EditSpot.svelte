@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Snippet } from "svelte"
   import type { MenuBox } from "../dock/layout.svelte"
-  import { editing } from "./edit.svelte"
+  import { clearReorder, editing, reorder } from "./edit.svelte"
 
   type Props = {
     id: string
@@ -12,6 +12,8 @@
     align?: "start" | "center" | "end"
     class?: string
     onmenu?: (rect: MenuBox | null) => void
+    dragKey?: string
+    ondropped?: (from: string, to: string, after: boolean) => void
   }
 
   let {
@@ -23,6 +25,8 @@
     align = "center",
     class: klass = "",
     onmenu,
+    dragKey,
+    ondropped,
   }: Props = $props()
 
   const ALIGN = {
@@ -35,6 +39,49 @@
   let root = $state<HTMLElement>()
 
   const open = $derived(editing.on && editing.open === id)
+
+  const dropping = $derived(
+    !!dragKey && reorder.over === dragKey && reorder.id !== dragKey,
+  )
+
+  const onDragStart = (e: DragEvent) => {
+    if (!dragKey) {
+      return
+    }
+
+    reorder.id = dragKey
+    editing.open = null
+
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = "move"
+    }
+  }
+
+  const onDragOver = (e: DragEvent) => {
+    if (!dragKey || !reorder.id || reorder.id === dragKey) {
+      return
+    }
+
+    e.preventDefault()
+
+    const box = (e.currentTarget as HTMLElement).getBoundingClientRect()
+
+    reorder.after = e.clientX > box.left + box.width / 2
+    reorder.over = dragKey
+  }
+
+  const onDrop = (e: DragEvent) => {
+    e.preventDefault()
+
+    const from = reorder.id
+    const after = reorder.after
+
+    clearReorder()
+
+    if (dragKey && from && from !== dragKey) {
+      ondropped?.(from, dragKey, after)
+    }
+  }
 
   const toggle = () => {
     editing.open = open ? null : id
@@ -65,7 +112,14 @@
 
 <svelte:window onmousedown={onwindowdown} />
 
-<div bind:this={root} class={["relative flex min-w-0 items-center", klass]}>
+<div
+  bind:this={root}
+  class={[
+    "relative flex min-w-0 items-center",
+    !!dragKey && reorder.id === dragKey && "opacity-50",
+    klass,
+  ]}
+>
   {@render children()}
 
   {#if editing.on}
@@ -78,8 +132,22 @@
       aria-label={label}
       aria-haspopup="dialog"
       aria-expanded={open}
+      draggable={!!dragKey}
+      ondragstart={onDragStart}
+      ondragover={onDragOver}
+      ondrop={onDrop}
+      ondragend={clearReorder}
       onclick={toggle}
     >
+      {#if dropping}
+        <span
+          class={[
+            "absolute -top-1 -bottom-1 w-1 rounded-full bg-primary shadow-md",
+            reorder.after ? "-right-1.5" : "-left-1.5",
+          ]}
+        ></span>
+      {/if}
+
       <span
         class={[
           "badge badge-primary badge-xs absolute left-1/2 -translate-x-1/2 whitespace-nowrap",
