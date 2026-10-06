@@ -31,6 +31,8 @@ mod places;
 mod preview;
 mod privacy;
 mod share;
+
+pub use share::endpoint_id;
 #[cfg(windows)]
 mod thumbs;
 #[cfg(windows)]
@@ -48,6 +50,7 @@ pub struct Host {
     pub marker: Option<&'static str>,
     pub app_name: &'static str,
     pub prog_prefix: &'static str,
+    pub peers: Option<fn(&AppHandle) -> Vec<(String, String)>>,
 }
 
 pub const STANDALONE: Host = Host {
@@ -56,6 +59,7 @@ pub const STANDALONE: Host = Host {
     marker: None,
     app_name: "Eris Files",
     prog_prefix: "ErisFiles",
+    peers: None,
 };
 
 // the share identity and paired devices must survive moving between the standalone app and Eris
@@ -190,6 +194,11 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             share::commands::share_cancel,
             share::commands::share_dismiss,
             share::commands::share_qr,
+            share::commands::share_browse,
+            share::commands::share_browse_fetch,
+            share::commands::share_browse_answer,
+            share::commands::share_browse_revoke,
+            share::commands::share_browse_scope,
             share::commands::sync_check,
             share::commands::sync_create,
             share::commands::sync_accept,

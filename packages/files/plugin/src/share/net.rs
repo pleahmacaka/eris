@@ -181,7 +181,12 @@ impl Node {
         let remote = connection.remote_id();
         let (mut send, mut recv) = connection.accept_bi().await.map_err(fail)?;
         let request = wire::read(&mut recv, REQUEST_LIMIT).await?;
-        let reply = self.answer(remote, request);
+
+        let reply = match request {
+            Request::Browse { path } => self.browsed(remote, path).await,
+            Request::Fetch { path } => self.fetched(remote, path).await,
+            request => self.answer(remote, request),
+        };
 
         wire::write(&mut send, &reply).await
     }
@@ -197,11 +202,15 @@ impl Node {
             Request::SyncIndex { sync } => self.index_reply(&remote, sync),
             Request::SyncChanged { sync } => self.wake_sync(&remote, sync),
             Request::Evict { device } => self.evicted(remote, &device),
-            Request::Unknown => Reply::Denied,
+            Request::Browse { .. } | Request::Fetch { .. } | Request::Unknown => Reply::Denied,
         }
     }
 
     fn may_serve(&self, peer: &EndpointId, request: &GetRequest) -> bool {
+        if request.ranges.is_blob() && self.gate.lock().unwrap().holds(peer, &request.hash) {
+            return true;
+        }
+
         let saved = self.lock();
 
         let shared = saved

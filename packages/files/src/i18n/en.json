@@ -417,6 +417,36 @@
     "joined": "Device paired.",
     "confirmRemove": "Remove {name}?",
     "removeEverywhere": "Your other devices remove it too, as long as it was added after this device.",
-    "removeHere": "Only this device disconnects from it."
+    "removeHere": "Only this device disconnects from it.",
+    "browse": "Browse files",
+    "browseRequest": "{name} asks to browse files",
+    "allowOnce": "Allow once",
+    "allowAlways": "Always allow",
+    "deny": "Deny",
+    "syncDevices": "Eris sync devices",
+    "browseScope": "Browsing scope",
+    "scopes": {
+      "drives": "All drives",
+      "home": "User folders",
+      "folders": "Chosen folders"
+    },
+    "noFolders": "No folders chosen",
+    "addFolder": "Add folder",
+    "removeFolder": "Remove folder",
+    "allowed": "Always allowed",
+    "revoke": "Revoke"
+  },
+  "remote": {
+    "location": "Location",
+    "close": "Close",
+    "empty": "No items",
+    "saved": "Saved to Downloads",
+    "failed": "Could not open the file",
+    "waitingHint": "Allow the request on the other device.",
+    "states": {
+      "waiting": "Waiting for approval",
+      "denied": "Browsing denied",
+      "failed": "Connection failed"
+    }
   }
 }

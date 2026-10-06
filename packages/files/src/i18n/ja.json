@@ -417,6 +417,36 @@
     "joined": "デバイスを接続しました。",
     "confirmRemove": "{name} を削除しますか?",
     "removeEverywhere": "このデバイスより後に追加されたデバイスなら、ほかのデバイスからも削除されます。",
-    "removeHere": "このデバイスでだけ接続を解除します。"
+    "removeHere": "このデバイスでだけ接続を解除します。",
+    "browse": "ファイルを閲覧",
+    "browseRequest": "{name} からのファイル閲覧リクエスト",
+    "allowOnce": "今回だけ許可",
+    "allowAlways": "常に許可",
+    "deny": "拒否",
+    "syncDevices": "Eris 同期デバイス",
+    "browseScope": "閲覧範囲",
+    "scopes": {
+      "drives": "すべてのドライブ",
+      "home": "ユーザーフォルダー",
+      "folders": "選択したフォルダー"
+    },
+    "noFolders": "選択したフォルダーなし",
+    "addFolder": "フォルダーを追加",
+    "removeFolder": "フォルダーを削除",
+    "allowed": "常に許可したデバイス",
+    "revoke": "許可を解除"
+  },
+  "remote": {
+    "location": "場所",
+    "close": "閉じる",
+    "empty": "項目なし",
+    "saved": "ダウンロードフォルダーに保存しました",
+    "failed": "ファイルを開けません",
+    "waitingHint": "相手のデバイスでリクエストを許可してください。",
+    "states": {
+      "waiting": "許可待ち",
+      "denied": "閲覧拒否",
+      "failed": "接続失敗"
+    }
   }
 }

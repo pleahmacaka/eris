@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-share-browse-revoke"
+description = "Enables the share_browse_revoke command without any pre-configured scope."
+commands.allow = ["share_browse_revoke"]
+
+[[permission]]
+identifier = "deny-share-browse-revoke"
+description = "Denies the share_browse_revoke command without any pre-configured scope."
+commands.deny = ["share_browse_revoke"]

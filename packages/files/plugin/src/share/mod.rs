@@ -1,3 +1,4 @@
+mod browse;
 pub mod commands;
 mod incoming;
 mod net;
@@ -41,6 +42,7 @@ struct Node {
     net: OnceCell<Net>,
     slots: Mutex<HashMap<Uuid, Slot>>,
     sync_hashes: Mutex<HashMap<Uuid, HashSet<Hash>>>,
+    gate: Mutex<browse::Gate>,
     _lock: File,
 }
 
@@ -96,6 +98,10 @@ impl Node {
             });
         }
     }
+}
+
+pub fn endpoint_id(app: &AppHandle) -> Option<String> {
+    node(app).ok().map(|node| node.id.to_string())
 }
 
 pub fn start(app: &AppHandle) {

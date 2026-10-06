@@ -183,6 +183,8 @@ impl Node {
     }
 
     async fn forget_device(self: &Arc<Self>, id: EndpointId) -> Result<()> {
+        self.gate.lock().unwrap().forget(&id);
+
         let (orphaned, received) = self.update(|saved| {
             let received: Vec<Uuid> = saved
                 .inbox
@@ -192,6 +194,7 @@ impl Node {
                 .collect();
 
             saved.devices.retain(|device| device.id != id);
+            saved.browse.always.retain(|device| *device != id);
             saved.sync_invites.retain(|invite| invite.from != id);
             saved.inbox.retain(|entry| entry.from != id);
 

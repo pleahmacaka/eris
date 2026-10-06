@@ -32,6 +32,8 @@ pub struct Peer {
     last_seen: Option<u64>,
     #[serde(default)]
     first_seen: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    files: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -499,6 +501,7 @@ impl Node {
             name: saved.name.clone(),
             last_seen: None,
             first_seen: None,
+            files: FILES.get().cloned(),
         });
 
         Exchange {
@@ -606,15 +609,18 @@ impl Node {
                             name: peer.name.clone(),
                             last_seen: None,
                             first_seen: Some(now()),
+                            files: None,
                         });
 
                         saved.peers.len() - 1
                     }
                 };
 
+                // only a peer itself can say which Files node is its own
                 if id == remote {
                     saved.peers[index].name = peer.name;
                     saved.peers[index].last_seen = Some(now());
+                    saved.peers[index].files = peer.files;
                 }
             }
 
@@ -705,6 +711,29 @@ async fn read<T: DeserializeOwned>(recv: &mut RecvStream, limit: usize) -> Resul
 }
 
 static NODE: OnceLock<Arc<Node>> = OnceLock::new();
+static FILES: OnceLock<String> = OnceLock::new();
+
+pub fn set_files(id: String) {
+    let _ = FILES.set(id);
+}
+
+pub fn members(app: &AppHandle) -> Vec<(String, String)> {
+    let Ok(node) = node(app) else {
+        return Vec::new();
+    };
+
+    let saved = node.lock();
+
+    if saved.chain.is_none() {
+        return Vec::new();
+    }
+
+    saved
+        .peers
+        .iter()
+        .filter_map(|peer| Some((peer.files.clone()?, peer.name.clone())))
+        .collect()
+}
 
 fn node(app: &AppHandle) -> Result<&'static Arc<Node>, String> {
     if let Some(node) = NODE.get() {
