@@ -2,8 +2,10 @@
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
   import type { Explorer } from "../../store/explorer.svelte"
+  import { prefs } from "../../store/prefs.svelte"
   import { terminal } from "../../store/terminal.svelte"
   import AddressBar from "./AddressBar.svelte"
+  import CommandBar from "./CommandBar.svelte"
   import CommandButton from "./CommandButton.svelte"
 
   let { explorer }: { explorer: Explorer } = $props()
@@ -38,7 +40,12 @@
   export const editAddress = () => address?.edit()
 </script>
 
-<div class="flex shrink-0 items-center gap-1 px-2 py-1.5">
+<div
+  class={[
+    "flex shrink-0 items-center gap-1 px-2 py-1.5",
+    prefs.compactToolbar && "border-b border-base-content/10",
+  ]}
+>
   <CommandButton id="back" {explorer} />
 
   <CommandButton id="forward" {explorer} />
@@ -90,4 +97,8 @@
   </label>
 
   <CommandButton id="terminal" {explorer} pressed={terminal.open} />
+
+  {#if prefs.compactToolbar}
+    <CommandBar {explorer} compact />
+  {/if}
 </div>

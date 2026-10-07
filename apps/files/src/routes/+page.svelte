@@ -1,10 +1,5 @@
 <script lang="ts">
-  import { Explorer, prefs } from "@eris/files"
-  import { ThemeRows } from "@eris/ui"
+  import { Explorer } from "@eris/files"
 </script>
 
-<Explorer>
-  {#snippet theme()}
-    <ThemeRows {prefs} />
-  {/snippet}
-</Explorer>
+<Explorer standalone />

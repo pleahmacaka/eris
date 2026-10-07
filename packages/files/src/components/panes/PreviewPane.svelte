@@ -1,5 +1,6 @@
 <script lang="ts">
   import { currentLocale } from "@eris/i18n"
+  import { Splitter } from "@eris/ui"
   import { t } from "svelte-i18n"
   import ItemIcon from "../items/ItemIcon.svelte"
   import ZoomImage from "./ZoomImage.svelte"
@@ -8,6 +9,7 @@
   import { type FileKind, kindOf } from "../../filetypes"
   import { isVirtual, parentOf } from "../../locations"
   import { allowPreview, assetUrl, previewText } from "../../native"
+  import { prefs } from "../../store/prefs.svelte"
   import { confirmPrivate } from "../../store/privacy.svelte"
 
   type Kind = Exclude<FileKind, "model">
@@ -97,11 +99,21 @@
   )
 </script>
 
+<Splitter
+  resize={{
+    axis: "x",
+    invert: true,
+    min: 14,
+    max: 40,
+    get: () => prefs.previewWidth,
+    set: width => (prefs.previewWidth = width),
+  }}
+  onreset={() => (prefs.previewWidth = 20)}
+/>
+
 <aside
-  class={[
-    "flex w-80 shrink-0 flex-col gap-3 overflow-hidden",
-    "border-l border-base-content/10 p-3",
-  ]}
+  class="flex shrink-0 flex-col gap-3 overflow-hidden p-3"
+  style:width="{prefs.previewWidth}rem"
 >
   {#if !item}
     <div

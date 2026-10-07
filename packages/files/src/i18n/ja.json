@@ -215,7 +215,33 @@
       "version": "バージョン",
       "windowsDefaults": "Windows の既定のアプリ",
       "windowsDefaultsHint": "3D モデルを開くアプリは Windows の設定で選択してください。",
-      "account": "アカウント"
+      "account": "アカウント",
+      "compactToolbar": "ツールバーを折りたたむ",
+      "compactToolbarHint": "プレビューともっと見るをアドレスバーの横に移します。",
+      "pages": {
+        "general": "一般",
+        "appearance": "外観",
+        "sidebar": "サイドバー",
+        "defaultApp": "既定のアプリ",
+        "terminal": "ターミナル",
+        "transcribe": "文字起こし",
+        "devices": "デバイス",
+        "account": "アカウント",
+        "about": "情報"
+      },
+      "display": "表示",
+      "toolbar": "ツールバー",
+      "rerunSetup": "セットアップをやり直す",
+      "rerunSetupHint": "最初の設定画面をもう一度開きます。",
+      "run": "実行",
+      "reset": "設定をリセット",
+      "resetHint": "Files の設定を既定値に戻します。",
+      "resetAction": "リセット",
+      "resetTitle": "設定をリセットしますか?",
+      "resetBody": "表示、サイドバー、外観の設定が既定値に戻ります。",
+      "appearanceHosted": "Eris の外観設定に従います。",
+      "previewPane": "プレビューウィンドウ",
+      "previewPaneHint": "選択したファイルを右側でプレビューします。"
     },
     "sidebar": {
       "title": "サイドバー",
@@ -229,7 +255,7 @@
         "folders": "ライブラリ フォルダー",
         "drives": "PC のドライブ",
         "network": "ネットワーク",
-        "linux": "Linux",
+        "linux": "WSL",
         "shared": "共有",
         "recycleBin": "ごみ箱"
       }
@@ -258,7 +284,7 @@
       "folders": "フォルダー",
       "drives": "デバイスとドライブ",
       "network": "ネットワークの場所",
-      "linux": "Linux"
+      "linux": "WSL"
     },
     "privacy": {
       "title": "画面共有中",
@@ -275,6 +301,58 @@
       "compressEach": "それぞれ ZIP に圧縮",
       "working": "圧縮処理中",
       "done": "圧縮処理完了"
+    },
+    "setup": {
+      "title": "Eris Files のセットアップ",
+      "steps": {
+        "welcome": "はじめに",
+        "look": "外観",
+        "layout": "画面構成",
+        "integrate": "連携",
+        "done": "完了"
+      },
+      "start": "はじめる",
+      "finish": "Eris Files を開始",
+      "welcome": {
+        "title": "Eris Files へようこそ",
+        "tagline": "いくつか選ぶだけですぐに使えます。",
+        "tabs": "タブとプレビュー",
+        "tabsText": "フォルダーをタブで開き、ファイルをすぐにプレビューします。",
+        "share": "デバイス間の共有",
+        "shareText": "近くのデバイスとすぐにファイルをやり取りします。",
+        "terminal": "内蔵ターミナル",
+        "terminalText": "表示中のフォルダーでターミナルを開きます。"
+      },
+      "look": {
+        "title": "外観",
+        "blurb": "選ぶとすぐにウィンドウに反映されます。"
+      },
+      "layout": {
+        "title": "画面構成",
+        "blurb": "使い方に合わせて配置を選んでください。",
+        "full": "ツールバーを表示",
+        "fullText": "すべてのコマンドボタンを表示します。",
+        "compact": "ツールバーを折りたたむ",
+        "compactText": "アドレスバーだけを残して広く使います。"
+      },
+      "integrate": {
+        "title": "Windows との連携",
+        "blurb": "フォルダーを Eris Files で開くか選んでください。"
+      },
+      "done": {
+        "title": "準備ができました",
+        "blurb": "設定からいつでも変更できます。",
+        "look": "外観",
+        "toolbar": "ツールバー",
+        "preview": "プレビューウィンドウ",
+        "defaultApp": "既定のファイルマネージャー",
+        "linked": "Eris スタイル",
+        "custom": "カスタム",
+        "full": "表示",
+        "compact": "折りたたみ",
+        "on": "使用",
+        "off": "使用しない"
+      }
     }
   },
   "terminal": {

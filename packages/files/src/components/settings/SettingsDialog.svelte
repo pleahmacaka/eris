@@ -1,27 +1,60 @@
 <script lang="ts">
   import { DesktopAccount } from "@eris/auth/tauri"
   import { getVersion } from "@tauri-apps/api/app"
-  import { Row, Section, toast } from "@eris/ui"
-  import type { Snippet } from "svelte"
+  import {
+    Confirm,
+    type PrefsPage,
+    PrefsWindow,
+    Row,
+    Section,
+    StandaloneTheme,
+  } from "@eris/ui"
   import { locale, t } from "svelte-i18n"
   import TranscribeSettings from "../audio/TranscribeSettings.svelte"
   import DeviceSettings from "../share/DeviceSettings.svelte"
   import TerminalSettings from "../terminal/TerminalSettings.svelte"
+  import DefaultAppRows from "./DefaultAppRows.svelte"
   import SidebarSettings from "./SidebarSettings.svelte"
-  import {
-    type DefaultApp,
-    defaultAppStatus,
-    openDefaultApps,
-    setDefaultApp,
-  } from "../../native"
-  import { prefs } from "../../store/prefs.svelte"
+  import type { Explorer } from "../../store/explorer.svelte"
+  import { prefs, resetPrefs } from "../../store/prefs.svelte"
 
-  let { open = $bindable(false), theme }: { open?: boolean; theme?: Snippet } =
-    $props()
+  type Toggle =
+    | "showHidden"
+    | "showExtensions"
+    | "preview"
+    | "selectionInMore"
+    | "compactToolbar"
+
+  let {
+    open = $bindable(false),
+    standalone = false,
+    explorer,
+  }: { open?: boolean; standalone?: boolean; explorer: Explorer } = $props()
+
+  const PAGES: [string, string][] = [
+    ["general", "lucide:settings-2"],
+    ["appearance", "lucide:palette"],
+    ["sidebar", "lucide:panel-left"],
+    ["defaultApp", "lucide:folder-check"],
+    ["terminal", "lucide:square-terminal"],
+    ["transcribe", "lucide:audio-lines"],
+    ["devices", "lucide:share-2"],
+    ["account", "lucide:circle-user-round"],
+    ["about", "lucide:info"],
+  ]
 
   let dialog = $state<HTMLDialogElement>()
-  let handler = $state<DefaultApp>({ supported: false, enabled: false })
+  let page = $state("general")
   let version = $state("")
+  let resetting = $state(false)
+
+  const pages = $derived<PrefsPage[]>(
+    PAGES.map(([id, icon]) => ({
+      id,
+      icon,
+      label: $t(`explorer.settings.pages.${id}`),
+    })),
+  )
 
   $effect(() => {
     if (!dialog) {
@@ -30,124 +63,129 @@
 
     if (open && !dialog.open) {
       dialog.showModal()
-      defaultAppStatus().then(status => (handler = status))
       getVersion().then(value => (version = value))
     } else if (!open && dialog.open) {
       dialog.close()
     }
   })
 
-  const toggleDefault = async (toggle: HTMLInputElement) => {
-    try {
-      handler = await setDefaultApp(toggle.checked)
-    } catch {
-      toast($t("explorer.settings.defaultAppUnavailable"), "error")
-    }
-
-    toggle.checked = handler.enabled
+  const rerunSetup = () => {
+    open = false
+    explorer.setupOpen = true
   }
 </script>
 
+{#snippet switchRow(key: Toggle, label: string, hint?: string)}
+  <Row {label} {hint}>
+    <input
+      type="checkbox"
+      class="toggle toggle-primary"
+      aria-label={label}
+      bind:checked={prefs[key]}
+    />
+  </Row>
+{/snippet}
+
 <dialog bind:this={dialog} class="modal" onclose={() => (open = false)}>
   <div
-    class={[
-      "modal-box flex max-h-4/5 max-w-lg flex-col gap-4 overflow-hidden border border-base-content/10",
-      "bg-base-100",
-    ]}
+    class="modal-box h-[min(44rem,90vh)] w-[min(64rem,94vw)] max-w-none overflow-hidden border border-base-content/10 bg-base-100 p-0"
   >
-    <h3 class="text-base font-semibold">{$t("explorer.settings.title")}</h3>
+    <PrefsWindow
+      title={$t("explorer.settings.title")}
+      {pages}
+      bind:page
+      onclose={() => (open = false)}
+    >
+      {#if page === "general"}
+        <Section title={$t("explorer.settings.display")}>
+          {@render switchRow("showHidden", $t("explorer.settings.showHidden"))}
+          {@render switchRow("showExtensions", $t("explorer.settings.showExtensions"))}
+          {@render switchRow(
+            "preview",
+            $t("explorer.settings.previewPane"),
+            $t("explorer.settings.previewPaneHint"),
+          )}
+        </Section>
 
-    <div class="-mx-6 flex min-h-0 flex-col gap-4 overflow-y-auto px-6">
-      <Section title={$t("explorer.settings.general")}>
-        <Row label={$t("explorer.settings.showHidden")}>
-          <input
-            type="checkbox"
-            class="toggle toggle-sm toggle-primary"
-            bind:checked={prefs.showHidden}
-          />
-        </Row>
+        <Section title={$t("explorer.settings.toolbar")}>
+          {@render switchRow(
+            "compactToolbar",
+            $t("explorer.settings.compactToolbar"),
+            $t("explorer.settings.compactToolbarHint"),
+          )}
+          {@render switchRow("selectionInMore", $t("explorer.settings.selectionInMore"))}
+        </Section>
+      {:else if page === "appearance"}
+        {#if standalone}
+          <StandaloneTheme {prefs} />
+        {:else}
+          <Section title={$t("explorer.settings.pages.appearance")}>
+            <Row label={$t("explorer.settings.appearanceHosted")}>
+              <span></span>
+            </Row>
+          </Section>
+        {/if}
+      {:else if page === "sidebar"}
+        <SidebarSettings />
+      {:else if page === "defaultApp"}
+        <Section title={$t("explorer.settings.defaultApp")}>
+          <DefaultAppRows />
+        </Section>
+      {:else if page === "terminal"}
+        <TerminalSettings />
+      {:else if page === "transcribe"}
+        <TranscribeSettings />
+      {:else if page === "devices"}
+        <DeviceSettings />
+      {:else if page === "account"}
+        <Section title={$t("explorer.settings.account")}>
+          <div class="px-4 py-4">
+            <DesktopAccount lang={$locale} />
+          </div>
+        </Section>
+      {:else}
+        <Section title="Eris Files">
+          <Row label={$t("explorer.settings.version")} value={version}>
+            <span></span>
+          </Row>
 
-        <Row label={$t("explorer.settings.showExtensions")}>
-          <input
-            type="checkbox"
-            class="toggle toggle-sm toggle-primary"
-            bind:checked={prefs.showExtensions}
-          />
-        </Row>
+          {#if standalone}
+            <Row
+              label={$t("explorer.settings.rerunSetup")}
+              hint={$t("explorer.settings.rerunSetupHint")}
+            >
+              <button type="button" class="btn btn-soft btn-sm" onclick={rerunSetup}>
+                {$t("explorer.settings.run")}
+              </button>
+            </Row>
+          {/if}
 
-        <Row label={$t("explorer.settings.selectionInMore")}>
-          <input
-            type="checkbox"
-            class="toggle toggle-sm toggle-primary"
-            bind:checked={prefs.selectionInMore}
-          />
-        </Row>
-      </Section>
-
-      <Section title={$t("explorer.settings.defaultApp")}>
-        <Row
-          label={$t("explorer.settings.defaultAppLabel")}
-          hint={handler.supported
-            ? $t("explorer.settings.defaultAppHint")
-            : $t("explorer.settings.defaultAppUnavailable")}
-        >
-          <input
-            type="checkbox"
-            class="toggle toggle-sm toggle-primary"
-            checked={handler.enabled}
-            onchange={e => toggleDefault(e.currentTarget)}
-          />
-        </Row>
-
-        <Row
-          label={$t("explorer.settings.windowsDefaults")}
-          hint={$t("explorer.settings.windowsDefaultsHint")}
-        >
-          <button
-            type="button"
-            class="btn btn-soft btn-sm"
-            disabled={!handler.supported}
-            onclick={() =>
-              openDefaultApps().catch(() =>
-                toast($t("explorer.settings.defaultAppUnavailable"), "error"),
-              )}
+          <Row
+            label={$t("explorer.settings.reset")}
+            hint={$t("explorer.settings.resetHint")}
           >
-            {$t("common.open")}
-          </button>
-        </Row>
-      </Section>
-
-      <SidebarSettings />
-
-      <TranscribeSettings />
-
-      <TerminalSettings />
-
-      <DeviceSettings />
-
-      <Section title={$t("explorer.settings.account")}>
-        <div class="px-4 py-4">
-          <DesktopAccount lang={$locale} />
-        </div>
-      </Section>
-
-      <Section title={$t("explorer.settings.theme")}>
-        {@render theme?.()}
-
-        <Row label={$t("explorer.settings.version")} value={version}>
-          <span></span>
-        </Row>
-      </Section>
-    </div>
-
-    <div class="modal-action mt-0">
-      <button type="button" class="btn btn-sm" onclick={() => (open = false)}>
-        {$t("common.close")}
-      </button>
-    </div>
+            <button
+              type="button"
+              class="btn btn-soft btn-error btn-sm"
+              onclick={() => (resetting = true)}
+            >
+              {$t("explorer.settings.resetAction")}
+            </button>
+          </Row>
+        </Section>
+      {/if}
+    </PrefsWindow>
   </div>
 
   <form method="dialog" class="modal-backdrop">
     <button type="submit">{$t("common.close")}</button>
   </form>
 </dialog>
+
+<Confirm
+  bind:open={resetting}
+  title={$t("explorer.settings.resetTitle")}
+  body={$t("explorer.settings.resetBody")}
+  action={$t("explorer.settings.resetAction")}
+  onconfirm={resetPrefs}
+/>

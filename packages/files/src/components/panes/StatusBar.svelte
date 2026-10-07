@@ -22,7 +22,7 @@
   )
 
   const folders = $derived(
-    explorer.filesystem && explorer.selected.length > 1
+    explorer.filesystem
       ? explorer.selected
           .filter(item => item.dir)
           .map(item => item.path)

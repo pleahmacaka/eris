@@ -1,4 +1,5 @@
-import type { ThemeMode } from "@eris/settings"
+import { type Appearance, standaloneLook, type ThemeMode } from "@eris/settings"
+import { cloneDeep } from "es-toolkit"
 import type { ExpiryPreset } from "../components/share/expiry"
 import { known, persisted } from "./persisted.svelte"
 
@@ -45,10 +46,14 @@ export type Prefs = {
   showExtensions: boolean
   preview: boolean
   selectionInMore: boolean
+  compactToolbar: boolean
   navWidth: number
+  previewWidth: number
   columns: Record<SortKey, number>
   followEris: boolean
   mode: ThemeMode
+  look: Appearance
+  setupDone: boolean
   shareExpiry: ExpiryPreset
   sidebar: Sidebar
   driveNames: Record<string, string>
@@ -115,10 +120,14 @@ const defaults: Prefs = {
   showExtensions: false,
   preview: false,
   selectionInMore: false,
+  compactToolbar: false,
   navWidth: 15,
+  previewWidth: 20,
   columns: { name: 20, modified: 10, kind: 10, size: 6 },
   followEris: true,
   mode: "system",
+  look: standaloneLook,
+  setupDone: false,
   shareExpiry: "day",
   sidebar: { hidden: [], hiddenPaths: [], order: [] },
   driveNames: {},
@@ -136,4 +145,14 @@ export const prefs = persisted(KEY, defaults, saved => ({
   folders: folders(saved.folders),
   columns: { ...defaults.columns, ...saved.columns },
   sidebar: { ...defaults.sidebar, ...saved.sidebar },
+  look: {
+    ...standaloneLook,
+    mode: saved.mode ?? standaloneLook.mode,
+    ...saved.look,
+  },
+  setupDone: saved.setupDone ?? !fresh,
 }))
+
+export const resetPrefs = () => {
+  Object.assign(prefs, cloneDeep(defaults), { setupDone: true })
+}

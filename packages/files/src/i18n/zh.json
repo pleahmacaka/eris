@@ -215,7 +215,33 @@
       "version": "版本",
       "windowsDefaults": "Windows 默认应用",
       "windowsDefaultsHint": "请在 Windows 设置中选择打开 3D 模型的应用。",
-      "account": "账号"
+      "account": "账号",
+      "compactToolbar": "折叠工具栏",
+      "compactToolbarHint": "将预览和查看更多移到地址栏旁。",
+      "pages": {
+        "general": "常规",
+        "appearance": "外观",
+        "sidebar": "侧边栏",
+        "defaultApp": "默认应用",
+        "terminal": "终端",
+        "transcribe": "转写",
+        "devices": "设备",
+        "account": "账户",
+        "about": "关于"
+      },
+      "display": "显示",
+      "toolbar": "工具栏",
+      "rerunSetup": "重新运行设置向导",
+      "rerunSetupHint": "再次打开首次设置界面。",
+      "run": "运行",
+      "reset": "重置设置",
+      "resetHint": "将 Files 设置恢复为默认值。",
+      "resetAction": "重置",
+      "resetTitle": "要重置设置吗?",
+      "resetBody": "视图、侧边栏和外观设置将恢复为默认值。",
+      "appearanceHosted": "跟随 Eris 中的外观设置。",
+      "previewPane": "预览窗格",
+      "previewPaneHint": "在右侧预览所选文件。"
     },
     "sidebar": {
       "title": "侧边栏",
@@ -229,7 +255,7 @@
         "folders": "库文件夹",
         "drives": "此电脑驱动器",
         "network": "网络",
-        "linux": "Linux",
+        "linux": "WSL",
         "shared": "共享",
         "recycleBin": "回收站"
       }
@@ -258,7 +284,7 @@
       "folders": "文件夹",
       "drives": "设备和驱动器",
       "network": "网络位置",
-      "linux": "Linux"
+      "linux": "WSL"
     },
     "privacy": {
       "title": "正在共享屏幕",
@@ -275,6 +301,58 @@
       "compressEach": "分别压缩为 ZIP",
       "working": "压缩任务进行中",
       "done": "压缩任务完成"
+    },
+    "setup": {
+      "title": "Eris Files 设置",
+      "steps": {
+        "welcome": "开始",
+        "look": "外观",
+        "layout": "布局",
+        "integrate": "集成",
+        "done": "完成"
+      },
+      "start": "开始使用",
+      "finish": "启动 Eris Files",
+      "welcome": {
+        "title": "欢迎使用 Eris Files",
+        "tagline": "选择几项即可开始使用。",
+        "tabs": "标签页与预览",
+        "tabsText": "用标签页打开文件夹并即时预览文件。",
+        "share": "设备间共享",
+        "shareText": "立即与附近的设备收发文件。",
+        "terminal": "内置终端",
+        "terminalText": "在当前文件夹中打开终端。"
+      },
+      "look": {
+        "title": "外观",
+        "blurb": "选择后会立即应用到窗口。"
+      },
+      "layout": {
+        "title": "布局",
+        "blurb": "选择适合你使用习惯的布局。",
+        "full": "展开工具栏",
+        "fullText": "显示所有命令按钮。",
+        "compact": "折叠工具栏",
+        "compactText": "只保留地址栏，空间更宽敞。"
+      },
+      "integrate": {
+        "title": "与 Windows 集成",
+        "blurb": "选择是否用 Eris Files 打开文件夹。"
+      },
+      "done": {
+        "title": "一切就绪",
+        "blurb": "之后可随时在设置中更改。",
+        "look": "外观",
+        "toolbar": "工具栏",
+        "preview": "预览窗格",
+        "defaultApp": "默认文件管理器",
+        "linked": "Eris 风格",
+        "custom": "自定义",
+        "full": "展开",
+        "compact": "折叠",
+        "on": "开启",
+        "off": "关闭"
+      }
     }
   },
   "terminal": {
