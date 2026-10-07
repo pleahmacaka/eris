@@ -328,7 +328,7 @@ fn show_now(app: &AppHandle, label: &str) {
     };
 
     let _ = match label {
-        "main" | "settings" | "onboarding" | "studio" => center_on_cursor_monitor(&window),
+        "main" | "settings" | "note" | "onboarding" | "studio" => center_on_cursor_monitor(&window),
         "panel" => dock_panel(app, &window),
         "notices" => match anchor_of(label) {
             Some(anchor) => anchor_panel(&window, anchor),

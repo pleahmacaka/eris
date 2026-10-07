@@ -31,10 +31,12 @@
   },
   "dependencies": {
     "@eris/auth": "workspace:*",
+    "@eris/bridge": "workspace:*",
     "@eris/data": "workspace:*",
     "@eris/files": "workspace:*",
     "@eris/i18n": "workspace:*",
     "@eris/launcher-core": "workspace:*",
+    "@eris/markdown": "workspace:*",
     "@eris/settings": "workspace:*",
     "@eris/sync": "workspace:*",
     "@eris/terminal": "workspace:*",

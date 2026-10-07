@@ -22,6 +22,7 @@
     onWindowShown,
     type WindowLabel,
   } from "$lib/native"
+  import "@eris/markdown/markdown.css"
   import "./layout.css"
 
   let { children } = $props()

@@ -14,6 +14,7 @@ export type WindowLabel =
   | "taskbar"
   | "topbar"
   | "settings"
+  | "note"
   | "panel"
   | "notices"
   | "onboarding"
