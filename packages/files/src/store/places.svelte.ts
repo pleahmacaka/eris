@@ -1,4 +1,5 @@
 import { tr } from "@eris/i18n"
+import { Effect } from "effect"
 import {
   HOME,
   isDriveRoot,
@@ -89,32 +90,38 @@ export const placeName = (
   return drive ? driveName(drive, translate) : null
 }
 
-export const refreshPlaces = async () => {
-  await Promise.all([
-    knownFolders()
-      .then(found => {
-        places.known = found
-      })
-      .catch(() => undefined),
-    drives()
-      .then(found => {
-        places.drives = found
-      })
-      .catch(() => undefined),
-    listShell(HOME)
-      .then(quick => {
-        places.pinned = quick.entries.filter(entry => entry.dir)
-      })
-      .catch(() => undefined),
-    networkPlaces()
-      .then(found => {
-        places.network = found
-      })
-      .catch(() => undefined),
-    wslDistros()
-      .then(found => {
-        places.linux = found
-      })
-      .catch(() => undefined),
-  ])
-}
+const PLACE_WAIT = "3 seconds"
+
+const source = <T>(load: () => Promise<T>, apply: (found: T) => void) =>
+  Effect.tryPromise(load).pipe(
+    Effect.timeout(PLACE_WAIT),
+    Effect.tap(found => Effect.sync(() => apply(found))),
+    Effect.ignore,
+  )
+
+export const refreshPlaces = () =>
+  Effect.runPromise(
+    Effect.all(
+      [
+        source(knownFolders, found => {
+          places.known = found
+        }),
+        source(drives, found => {
+          places.drives = found
+        }),
+        source(
+          () => listShell(HOME),
+          quick => {
+            places.pinned = quick.entries.filter(entry => entry.dir)
+          },
+        ),
+        source(networkPlaces, found => {
+          places.network = found
+        }),
+        source(wslDistros, found => {
+          places.linux = found
+        }),
+      ],
+      { concurrency: "unbounded", discard: true },
+    ),
+  )

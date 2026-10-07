@@ -3,7 +3,7 @@
   import { untrack } from "svelte"
   import { t } from "svelte-i18n"
   import { displayName, type Item } from "../../items"
-  import { rootRem, track } from "../../pointer"
+  import { rootRem, track } from "@eris/ui"
   import type { Explorer } from "../../store/explorer.svelte"
   import { openMenu } from "../../store/menus"
   import { prefs, SORT_KEYS, VIEWS } from "../../store/prefs.svelte"

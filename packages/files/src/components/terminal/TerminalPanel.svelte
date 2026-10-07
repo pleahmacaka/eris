@@ -3,7 +3,7 @@
   import { Terminal } from "@eris/terminal"
   import { t } from "svelte-i18n"
   import { baseName } from "../../locations"
-  import { resizeHandle } from "../../pointer"
+  import { Splitter } from "@eris/ui"
   import type { Explorer } from "../../store/explorer.svelte"
   import {
     shellFor,
@@ -21,23 +21,23 @@
   const restart = () =>
     startTerminal(explorer.filesystem ? explorer.tab.location : null)
 
-  const resizeWidth = resizeHandle({
+  const resizeWidth = {
     axis: "x",
     invert: true,
     min: 16,
     max: 60,
     get: () => terminalPrefs.width,
-    set: width => (terminalPrefs.width = width),
-  })
+    set: (width: number) => (terminalPrefs.width = width),
+  } as const
 
-  const resizeHeight = resizeHandle({
+  const resizeHeight = {
     axis: "y",
     invert: true,
     min: 6,
     max: 40,
     get: () => terminalPrefs.height,
-    set: height => (terminalPrefs.height = height),
-  })
+    set: (height: number) => (terminalPrefs.height = height),
+  } as const
 </script>
 
 {#if terminal.session > 0}
@@ -51,18 +51,10 @@
     style:height={side ? undefined : `${terminalPrefs.height}rem`}
     style:width={side ? `${terminalPrefs.width}rem` : undefined}
   >
-    <div
-      role="separator"
-      aria-orientation={side ? "vertical" : "horizontal"}
-      aria-label={$t("terminal.resize")}
-      class={[
-        "shrink-0 transition-colors hover:bg-primary/30",
-        side
-          ? "w-1 cursor-col-resize border-l border-base-content/10"
-          : "h-1 cursor-row-resize border-t border-base-content/10",
-      ]}
-      onpointerdown={side ? resizeWidth : resizeHeight}
-    ></div>
+    <Splitter
+      resize={side ? resizeWidth : resizeHeight}
+      label={$t("terminal.resize")}
+    />
 
     <div class="flex min-h-0 min-w-0 grow flex-col">
       <header class="flex h-8 shrink-0 items-center gap-2 px-3 select-none">
