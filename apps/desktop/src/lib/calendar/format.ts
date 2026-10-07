@@ -26,6 +26,18 @@ export const longDay = (day: Date) =>
     weekday: "long",
   })
 
+export const dateLabel = (day: Date, today: Date) =>
+  day.toLocaleDateString(currentLocale(), {
+    year: day.getFullYear() === today.getFullYear() ? undefined : "numeric",
+    month: "long",
+    day: "numeric",
+  })
+
+export const dayPeriod = (hour: number) =>
+  new Intl.DateTimeFormat(currentLocale(), { hour: "numeric", hour12: true })
+    .formatToParts(new Date(2000, 0, 1, hour))
+    .find(part => part.type === "dayPeriod")?.value ?? ""
+
 export const eventSpan = (event: CalendarEvent, allDayLabel: string) => {
   const start = parseLocal(event.start)
   const end = parseLocal(event.end)

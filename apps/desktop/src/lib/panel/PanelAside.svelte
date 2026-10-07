@@ -1,7 +1,6 @@
 <script lang="ts">
   import { Aura } from "@eris/ui"
   import DayPane from "./DayPane.svelte"
-  import EventDetail from "./EventDetail.svelte"
   import NotesPane from "./NotesPane.svelte"
   import type { Panel } from "./panel.svelte"
   import ScopeSheet from "./ScopeSheet.svelte"
@@ -10,10 +9,6 @@
     $props()
 
   const view = $derived(panel.view)
-
-  const detailKey = $derived(
-    view.kind === "event" ? `${view.id}@${view.date}` : view,
-  )
 </script>
 
 <aside class="panel-surface flex min-h-0 w-full flex-col">
@@ -23,19 +18,13 @@
     <div class="pane">
       <NotesPane items={panel.noteLive.items} back={panel.close} />
     </div>
-  {:else if panel.detailOpen && compact}
-    {#key detailKey}
-      <div class="pane">
-        <EventDetail {panel} />
-      </div>
-    {/key}
   {:else}
     <div class="pane">
       <DayPane {panel} />
     </div>
   {/if}
 
-  {#if panel.asking}
+  {#if panel.asking && !panel.detailOpen}
     <ScopeSheet
       mode={panel.asking.mode}
       scoped={panel.asking.scoped}

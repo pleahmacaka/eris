@@ -32,6 +32,7 @@ export class Morph {
     return () => {
       observer.disconnect()
       this.cards.delete(node)
+      this.fit()
     }
   }
 
@@ -98,7 +99,13 @@ export class Morph {
     }
   }
 
-  reset = async () => {
+  reset = async (full = false) => {
+    if (full) {
+      await this.expand()
+
+      return
+    }
+
     this.expanded = false
     await tick()
     this.fit()

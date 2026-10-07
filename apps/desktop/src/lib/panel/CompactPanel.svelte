@@ -5,7 +5,7 @@
   import { t } from "svelte-i18n"
   import { longDay } from "$lib/calendar"
   import { dateKey, isDone } from "$lib/data"
-  import { colorMeta, toColor } from "./colors"
+  import { colorMeta } from "./colors"
   import type { Morph } from "./morph.svelte"
   import type { Panel } from "./panel.svelte"
   import PanelAside from "./PanelAside.svelte"
@@ -127,7 +127,7 @@
                   <span
                     class={[
                       "size-1.5 rounded-full",
-                      colorMeta[toColor(event.color)].chip,
+                      colorMeta[panel.colorOf(event.tags)].chip,
                       isDone(event) && "opacity-30",
                     ]}
                   ></span>

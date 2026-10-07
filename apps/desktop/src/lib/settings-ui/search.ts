@@ -190,11 +190,7 @@ export const index: SearchEntry[] = [
   entry("calendar", "holidayRegion", "country holidays public region"),
   entry("calendar", "weekNumbers", "grid"),
   entry("calendar", "defaultReminder", "notification minutes alert"),
-  entry(
-    "calendar",
-    "eventTags",
-    "tags labels work personal private screen share",
-  ),
+  entry("calendar", "panelStart", "compact full expand size open"),
   entry("calendar", "sortBy", "order manual due priority"),
 
   entry("sync", "enableSync", "background"),
