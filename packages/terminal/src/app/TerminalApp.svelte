@@ -1,5 +1,4 @@
 <script lang="ts">
-  import type { Snippet } from "svelte"
   import { shells } from "../pty"
   import { isSplit, neighbor } from "./layout"
   import PaneArea from "./PaneArea.svelte"
@@ -15,7 +14,7 @@
   import TitleBar from "./TitleBar.svelte"
   import { newWindow, takeIntent } from "./windows"
 
-  let { theme }: { theme?: Snippet } = $props()
+  let { standalone = false }: { standalone?: boolean } = $props()
 
   const fallback = $derived(
     session.shells.find(shell => shell.id === prefs.shell)?.id ??
@@ -127,4 +126,4 @@
   <PaneArea />
 </div>
 
-<SettingsDialog {fallback} {theme} />
+<SettingsDialog {fallback} {standalone} />

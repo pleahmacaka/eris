@@ -1,10 +1,5 @@
 <script lang="ts">
-  import { prefs, TerminalApp } from "@eris/terminal"
-  import { ThemeRows } from "@eris/ui"
+  import { TerminalApp } from "@eris/terminal"
 </script>
 
-<TerminalApp>
-  {#snippet theme()}
-    <ThemeRows {prefs} />
-  {/snippet}
-</TerminalApp>
+<TerminalApp standalone />
