@@ -20,7 +20,7 @@
     tag?: RowTag
     stacked?: boolean
     onreset?: () => void
-    children: Snippet
+    children?: Snippet
   } = $props()
 </script>
 
@@ -72,7 +72,9 @@
     {/if}
   </div>
 
-  <div class={["shrink-0", stacked && "w-full"]}>
-    {@render children()}
-  </div>
+  {#if children}
+    <div class={["shrink-0", stacked && "w-full"]}>
+      {@render children()}
+    </div>
+  {/if}
 </div>

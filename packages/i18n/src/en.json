@@ -51,7 +51,7 @@
       },
       "calendar": {
         "label": "Calendar",
-        "blurb": "Week start, holidays, and event tags"
+        "blurb": "Opening size, week start, and holidays"
       },
       "sync": {
         "label": "Sync",
@@ -133,7 +133,6 @@
       "claude": "Claude usage",
       "syncGeneral": "General",
       "erisFiles": "Eris Files",
-      "eventTags": "Event tags",
       "windowBackgrounds": {
         "title": "Per-window backgrounds",
         "description": "Give each window its own background"
@@ -141,7 +140,8 @@
       "note": {
         "title": "Note link",
         "description": "Connect the Note installed on this PC, separate from Eris sync and Note sync"
-      }
+      },
+      "linkedStyle": "Eris link"
     },
     "rows": {
       "deviceName": "Device name",
@@ -249,11 +249,6 @@
       "erisFiles": "Eris Files",
       "filesDefault": "Default file manager",
       "filesDefaultApps": "Windows default apps",
-      "eventTags": "Event tags",
-      "tagName": "Tag name",
-      "hideWhileSharing": "Hide while sharing",
-      "deleteTag": "Delete tag",
-      "addTag": "Add tag",
       "followEris": "Follow Eris style",
       "hideGather": "Gather into logo",
       "dockIslands": "Widget islands",
@@ -274,7 +269,9 @@
         "style": "Style",
         "references": "Page references",
         "preview": "Preview"
-      }
+      },
+      "panelStart": "Opening size",
+      "font": "Font"
     },
     "hints": {
       "deviceName": "The name other synced devices see",
@@ -375,7 +372,6 @@
       "filesDefault": "Open folders, file locations and Win+E in Eris Files",
       "filesDefaultApps": "Choose the app for 3D models in Windows Settings.",
       "filesMissing": "Eris Files is not installed",
-      "eventTags": "When screen sharing is detected, events with a hidden tag are hidden.",
       "followEris": "Uses the look set in Eris.",
       "erisMissing": "Eris is not installed.",
       "hideGather": "Gathers the dock into a round logo at the center before it leaves. Off slides it to the edge.",
@@ -391,7 +387,9 @@
         "style": "Note follows the Eris appearance",
         "references": "Type [[ in event notes to find and link a Note page",
         "preview": "Hover a page link to show the note on the left"
-      }
+      },
+      "panelStart": "Size the calendar opens at.",
+      "font": "For any other font, type its installed name."
     },
     "options": {
       "win": "Win key",
@@ -413,7 +411,9 @@
       "deg": "{value} deg",
       "runSetup": "Run setup",
       "inherit": "Same as windows",
-      "openStudio": "Open studio"
+      "openStudio": "Open studio",
+      "systemFont": "System font",
+      "customFont": "Custom"
     },
     "featurePresets": {
       "all": {
@@ -509,7 +509,8 @@
       "presetName": "Preset name",
       "deletePreset": "Delete preset {name}",
       "customPreset": "Custom",
-      "forkedFrom": "Forked from {name}"
+      "forkedFrom": "Forked from {name}",
+      "fontName": "Font name"
     },
     "hotkey": {
       "addModifier": "Add a modifier such as Ctrl or Alt",
@@ -945,7 +946,10 @@
       "success": "Success",
       "warning": "Warning",
       "error": "Error",
-      "info": "Info"
+      "info": "Info",
+      "violet": "Violet",
+      "pink": "Pink",
+      "gray": "Gray"
     },
     "calendar": {
       "month": "Month",
@@ -1006,13 +1010,21 @@
       },
       "movedFrom": "Moved from {date}",
       "addField": "Add field",
-      "addNotes": "Add notes",
       "fields": {
         "reminder": "Reminder",
         "tags": "Tags",
         "parent": "Parent event",
         "task": "Checkable"
-      }
+      },
+      "every": {
+        "daily": "Every day",
+        "weekdays": "Weekdays",
+        "weekly": "Every {date}",
+        "monthly": "Monthly on day {date}",
+        "yearly": "Every year on {date}"
+      },
+      "writeNotes": "Write a note",
+      "noteEmpty": "Empty note"
     },
     "ics": {
       "options": "Calendar options",
@@ -1052,13 +1064,11 @@
     },
     "day": {
       "title": "Events on {date}",
-      "count": "{count, plural, one {# event} other {# events}}",
       "empty": "No events",
       "add": "Add event"
     },
     "detail": {
-      "date": "Date",
-      "time": "Time"
+      "date": "Date"
     },
     "header": {
       "today": "Today {date}"
@@ -1067,7 +1077,14 @@
     "tags": {
       "todo": "To-do",
       "personal": "Personal",
-      "work": "Work"
+      "work": "Work",
+      "search": "Search or create a tag",
+      "create": "Create {name}",
+      "edit": "Edit tag",
+      "name": "Tag name",
+      "hide": "Hide while sharing",
+      "delete": "Delete tag",
+      "confirmDelete": "Delete this tag?"
     },
     "sharing": "Screen sharing",
     "sharingHint": "Events with hidden tags are hidden while sharing.",
@@ -1086,6 +1103,10 @@
       "label": "Checkable",
       "done": "Mark done",
       "undo": "Mark not done"
+    },
+    "clock": {
+      "hour": "{hour} {period}",
+      "minute": "{hour}:{padded} {period}"
     }
   },
   "files": {
