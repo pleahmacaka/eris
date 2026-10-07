@@ -2,17 +2,18 @@ use std::fmt::Write;
 
 use tauri::AppHandle;
 use tokio::sync::oneshot;
-use windows::core::{HSTRING, PWSTR};
+use windows::core::{Interface, HSTRING, PWSTR};
 use windows::Win32::Foundation::HWND;
 use windows::Win32::System::Com::{
-    CoInitializeEx, CoTaskMemAlloc, CoTaskMemFree, CoUninitialize, COINIT_APARTMENTTHREADED,
+    CoCreateInstance, CoInitializeEx, CoTaskMemAlloc, CoTaskMemFree, CoUninitialize, IPersistFile,
+    CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED, STGM_READ,
 };
 use windows::Win32::System::SystemServices::{SFGAO_FOLDER, SFGAO_STREAM};
 use windows::Win32::UI::Shell::Common::ITEMIDLIST;
 use windows::Win32::UI::Shell::{
-    BHID_LinkTargetItem, ILGetSize, IShellItem, IShellItemArray, SHCreateItemFromIDList,
-    SHCreateShellItemArrayFromIDLists, SHGetIDListFromObject, SHParseDisplayName,
-    SHSimpleIDListFromPath, SIGDN,
+    BHID_LinkTargetItem, ILGetSize, IShellItem, IShellItemArray, IShellLinkW,
+    SHCreateItemFromIDList, SHCreateShellItemArrayFromIDLists, SHGetIDListFromObject,
+    SHParseDisplayName, SHSimpleIDListFromPath, ShellLink, SIGDN,
 };
 
 use crate::error::{Error, Result};
@@ -88,6 +89,21 @@ pub fn link_target(key: &str) -> Option<IShellItem> {
     let link = item(key).ok()?;
 
     unsafe { link.BindToHandler(None, &BHID_LinkTargetItem) }.ok()
+}
+
+// binding the target item reaches the share and stalls until SMB gives up; the stored ID list does not
+pub fn stored_link_target(path: &str) -> Option<IShellItem> {
+    let link: IShellLinkW =
+        unsafe { CoCreateInstance(&ShellLink, None, CLSCTX_INPROC_SERVER) }.ok()?;
+
+    unsafe {
+        link.cast::<IPersistFile>()
+            .ok()?
+            .Load(&HSTRING::from(path), STGM_READ)
+    }
+    .ok()?;
+
+    Pidl(unsafe { link.GetIDList() }.ok()?).item().ok()
 }
 
 pub fn take(raw: PWSTR) -> String {

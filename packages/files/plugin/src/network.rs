@@ -125,7 +125,7 @@ pub fn remembered() -> Vec<(char, String)> {
 }
 
 fn link_target(link: &Path) -> Option<String> {
-    let target = com::link_target(&link.to_string_lossy())?;
+    let target = com::stored_link_target(&link.to_string_lossy())?;
     let path = com::display(&target, SIGDN_DESKTOPABSOLUTEPARSING);
 
     (!path.is_empty()).then_some(path)

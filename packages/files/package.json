@@ -26,6 +26,8 @@
     "@tauri-apps/plugin-barcode-scanner": "^2.5.1",
     "@tauri-apps/plugin-clipboard-manager": "^2.4.1",
     "@tauri-apps/plugin-dialog": "^2.7.3",
+    "effect": "^4.0.1",
+    "es-toolkit": "^1.52.0",
     "svelte-i18n": "^4.0.1"
   },
   "devDependencies": {

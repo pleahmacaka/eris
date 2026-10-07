@@ -8,7 +8,7 @@
     THIS_PC,
   } from "../../locations"
   import type { Drive, KnownId } from "../../native"
-  import { resizeHandle, rootRem, track } from "../../pointer"
+  import { rootRem, Splitter, track } from "@eris/ui"
   import type { Explorer } from "../../store/explorer.svelte"
   import { openPlaceMenu, type Place } from "../../store/menus"
   import { driveName, places } from "../../store/places.svelte"
@@ -223,13 +223,13 @@
     )
   }
 
-  const resize = resizeHandle({
+  const resize = {
     axis: "x",
     min: NAV_MIN,
     max: NAV_MAX,
     get: () => prefs.navWidth,
-    set: width => (prefs.navWidth = width),
-  })
+    set: (width: number) => (prefs.navWidth = width),
+  } as const
 </script>
 
 {#snippet marker(bottom: boolean)}
@@ -292,14 +292,4 @@
   {/each}
 </aside>
 
-<div
-  role="separator"
-  aria-orientation="vertical"
-  class="group -mx-1 flex w-2 shrink-0 cursor-col-resize justify-center"
-  onpointerdown={resize}
-  ondblclick={fit}
->
-  <div
-    class="h-full w-px bg-base-content/10 transition-colors group-hover:w-0.5 group-hover:bg-primary/50"
-  ></div>
-</div>
+<Splitter {resize} onreset={fit} />

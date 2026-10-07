@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 use std::sync::{mpsc, Mutex};
 use std::time::{Duration, Instant};
@@ -82,9 +82,11 @@ pub async fn known_folders() -> Result<Vec<Known>> {
     Ok(found.await?)
 }
 
-const NETWORK_WAIT: Duration = Duration::from_millis(800);
+const PROBE_WAIT: Duration = Duration::from_millis(400);
 
 static PROBING: Mutex<BTreeSet<char>> = Mutex::new(BTreeSet::new());
+
+static LAST_SEEN: Mutex<BTreeMap<char, Volume>> = Mutex::new(BTreeMap::new());
 
 fn root_of(letter: char) -> String {
     format!("{letter}:\\")
@@ -134,7 +136,7 @@ fn offline(letter: char, remote: String) -> Drive {
 
 type Volume = (String, u64, u64);
 
-// a dead network share can hang its probe for minutes, so one stuck probe per letter is the cap
+// a dead share or a spun-down disk can hang its probe for minutes, so one stuck probe per letter is the cap
 fn probe(letter: char) -> Option<mpsc::Receiver<Volume>> {
     if !PROBING.lock().unwrap().insert(letter) {
         return None;
@@ -145,6 +147,7 @@ fn probe(letter: char) -> Option<mpsc::Receiver<Volume>> {
     std::thread::spawn(move || {
         let found = volume(&root_of(letter));
 
+        LAST_SEEN.lock().unwrap().insert(letter, found.clone());
         PROBING.lock().unwrap().remove(&letter);
 
         let _ = sender.send(found);
@@ -159,58 +162,48 @@ fn list_drives() -> Vec<Drive> {
         .filter(|index| mask & (1 << index) != 0)
         .map(|index| char::from(b'A' + index));
 
-    let mut local = Vec::new();
+    let mut found = Vec::new();
     let mut pending = Vec::new();
 
     for letter in letters {
-        let root = root_of(letter);
+        let Some(kind) = kind_of(&root_of(letter)) else {
+            continue;
+        };
 
-        match kind_of(&root) {
-            Some("network") => {
-                let mapping = network::mapping(letter);
-                let remote = mapping
-                    .as_ref()
-                    .map(|m| m.remote.clone())
-                    .unwrap_or_default();
+        if kind != "network" {
+            pending.push((letter, kind, String::new(), probe(letter)));
+            continue;
+        }
 
-                if mapping.is_some_and(|m| !m.connected) {
-                    local.push(offline(letter, remote));
-                } else {
-                    pending.push((letter, remote, probe(letter)));
-                }
-            }
-            Some(kind) => {
-                let (label, free, total) = volume(&root);
+        let mapping = network::mapping(letter);
+        let remote = mapping
+            .as_ref()
+            .map(|m| m.remote.clone())
+            .unwrap_or_default();
 
-                local.push(Drive {
-                    path: root,
-                    label,
-                    kind,
-                    free,
-                    total,
-                    remote: String::new(),
-                    connected: true,
-                });
-            }
-            None => {}
+        if mapping.is_some_and(|m| !m.connected) {
+            found.push(offline(letter, remote));
+        } else {
+            pending.push((letter, kind, remote, probe(letter)));
         }
     }
 
-    let deadline = Instant::now() + NETWORK_WAIT;
+    let deadline = Instant::now() + PROBE_WAIT;
 
-    for (letter, remote, receiver) in pending {
+    for (letter, kind, remote, receiver) in pending {
         let (label, free, total) = receiver
             .and_then(|receiver| {
                 receiver
                     .recv_timeout(deadline.saturating_duration_since(Instant::now()))
                     .ok()
             })
+            .or_else(|| LAST_SEEN.lock().unwrap().get(&letter).cloned())
             .unwrap_or_default();
 
-        local.push(Drive {
+        found.push(Drive {
             path: root_of(letter),
             label,
-            kind: "network",
+            kind,
             free,
             total,
             remote,
@@ -219,14 +212,14 @@ fn list_drives() -> Vec<Drive> {
     }
 
     for (letter, remote) in network::remembered() {
-        if !local.iter().any(|drive| drive.path == root_of(letter)) {
-            local.push(offline(letter, remote));
+        if !found.iter().any(|drive| drive.path == root_of(letter)) {
+            found.push(offline(letter, remote));
         }
     }
 
-    local.sort_by(|a, b| a.path.cmp(&b.path));
+    found.sort_by(|a, b| a.path.cmp(&b.path));
 
-    local
+    found
 }
 
 #[tauri::command]

@@ -44,9 +44,7 @@ type Loaded = {
 
 type OpenOptions = { record?: boolean; select?: string | null; keep?: boolean }
 
-const loadThisPc = async (): Promise<Item[]> => {
-  await refreshPlaces()
-
+const thisPcItems = (): Item[] => {
   const folders = places.known
     .filter(known => known.id !== "home")
     .map(known =>
@@ -75,6 +73,8 @@ const loadThisPc = async (): Promise<Item[]> => {
 
   return [...folders, ...disks, ...network, ...linux]
 }
+
+const placesKnown = () => places.known.length > 0 || places.drives.length > 0
 
 const reconnect = async (location: string) => {
   if (location[1] !== ":") {
@@ -111,7 +111,13 @@ const load = async (location: string, useCache: boolean): Promise<Loaded> => {
   const plain = { shellName: "", items: [], kind, cached: false }
 
   if (sameLocation(location, THIS_PC)) {
-    return { ...plain, location: THIS_PC, items: await loadThisPc() }
+    const cached = useCache && placesKnown()
+
+    if (!cached) {
+      await refreshPlaces()
+    }
+
+    return { ...plain, location: THIS_PC, items: thisPcItems(), cached }
   }
 
   if (kind === "shared") {

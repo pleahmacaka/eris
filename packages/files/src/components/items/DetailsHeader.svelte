@@ -2,7 +2,7 @@
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
   import type { Item } from "../../items"
-  import { resizeHandle, rootRem } from "../../pointer"
+  import { resizeHandle, rootRem } from "@eris/ui"
   import type { Explorer } from "../../store/explorer.svelte"
   import { prefs, SORT_KEYS, type SortKey } from "../../store/prefs.svelte"
   import { cellText } from "./cells"
