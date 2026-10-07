@@ -1,5 +1,4 @@
 <script lang="ts">
-  import type { Snippet } from "svelte"
   import { HOME } from "../locations"
   import { explorerSettings, type Intent, takeIntent } from "../native"
   import { Explorer } from "../store/explorer.svelte"
@@ -7,7 +6,7 @@
   import { firstRun, prefs } from "../store/prefs.svelte"
   import ExplorerWindow from "./ExplorerWindow.svelte"
 
-  let { theme }: { theme?: Snippet } = $props()
+  let { standalone = false }: { standalone?: boolean } = $props()
 
   if (firstRun()) {
     explorerSettings()
@@ -22,9 +21,15 @@
 
   const ready = takeIntent()
     .catch((): Intent => ({ path: null, select: null }))
-    .then(intent => new Explorer(intent.path ?? HOME, intent.select))
+    .then(intent => {
+      const explorer = new Explorer(intent.path ?? HOME, intent.select)
+
+      explorer.setupOpen = standalone && !prefs.setupDone
+
+      return explorer
+    })
 </script>
 
 {#await ready then explorer}
-  <ExplorerWindow {explorer} {theme} />
+  <ExplorerWindow {explorer} {standalone} />
 {/await}

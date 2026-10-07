@@ -19,7 +19,8 @@
   import { THIS_PC } from "../../locations"
   import CommandButton from "./CommandButton.svelte"
 
-  let { explorer }: { explorer: Explorer } = $props()
+  let { explorer, compact = false }: { explorer: Explorer; compact?: boolean } =
+    $props()
 
   const MENU = [
     "dropdown-content menu z-30 mt-1 w-60 gap-0.5 rounded-box border",
@@ -32,7 +33,9 @@
 
   const OTHERS: CommandId[] = ["properties", "newWindow", "shared", "settings"]
 
-  const more = $derived(prefs.selectionInMore ? [SELECTION, OTHERS] : [OTHERS])
+  const more = $derived(
+    prefs.selectionInMore || compact ? [SELECTION, OTHERS] : [OTHERS],
+  )
 
   const folder = $derived(explorer.folder)
 
@@ -81,163 +84,7 @@
   <li class="mx-1 my-1 border-t border-base-content/10" role="separator"></li>
 {/snippet}
 
-<div
-  class={[
-    "flex shrink-0 items-center gap-0.5 border-b border-base-content/10",
-    "px-2 pb-1.5",
-  ]}
->
-  {#if explorer.inBin}
-    <CommandButton id="emptyBin" {explorer} text />
-
-    <CommandButton id="restore" {explorer} text />
-  {:else}
-    <CommandButton id="newFolder" {explorer} text />
-  {/if}
-
-  <div class="mx-1 h-5 border-l border-base-content/10"></div>
-
-  {#each EDIT as id (id)}
-    <CommandButton {id} {explorer} />
-  {/each}
-
-  <div class="mx-1 h-5 border-l border-base-content/10"></div>
-
-  <div class="dropdown">
-    <div
-      tabindex={explorer.arrangeable ? 0 : -1}
-      role="button"
-      aria-disabled={!explorer.arrangeable}
-      class={[
-        "btn btn-ghost btn-sm gap-2",
-        !explorer.arrangeable && "btn-disabled",
-      ]}
-    >
-      <Icon icon="lucide:arrow-up-down" class="size-4" />
-      {$t("explorer.commands.sort")}
-      <Icon icon="lucide:chevron-down" class="size-3.5 opacity-60" />
-    </div>
-
-    <ul tabindex="-1" class={MENU}>
-      {#each SORT_KEYS as key (key)}
-        {@render option(
-          $t(`explorer.sort.${key}`),
-          () => explorer.setSort(key, folder.ascending),
-          { active: folder.sort === key },
-        )}
-      {/each}
-
-      {@render separator()}
-
-      {@render option(
-        $t("explorer.sort.ascending"),
-        () => explorer.setSort(folder.sort, true),
-        { icon: "lucide:arrow-up-narrow-wide", active: folder.ascending },
-      )}
-
-      {@render option(
-        $t("explorer.sort.descending"),
-        () => explorer.setSort(folder.sort, false),
-        { icon: "lucide:arrow-down-wide-narrow", active: !folder.ascending },
-      )}
-
-      {@render separator()}
-
-      <li class="menu-title">{$t("explorer.groups.title")}</li>
-
-      {#each GROUP_KEYS as key (key)}
-        {@render option(
-          $t(`explorer.groups.by.${key}`),
-          () => explorer.setGroup(key),
-          { active: explorer.group === key },
-        )}
-      {/each}
-    </ul>
-  </div>
-
-  <div class="dropdown">
-    <div tabindex="0" role="button" class="btn btn-ghost btn-sm gap-2">
-      <Icon icon={VIEW_ICONS[explorer.view]} class="size-4" />
-      {$t("explorer.commands.view")}
-      <Icon icon="lucide:chevron-down" class="size-3.5 opacity-60" />
-    </div>
-
-    <ul tabindex="-1" class={MENU}>
-      {#each VIEWS as view (view)}
-        {@render option(
-          $t(`explorer.views.${view}`),
-          () => explorer.setView(view),
-          {
-            icon: VIEW_ICONS[view],
-            hint: hintOf(`view.${view}`),
-            active: explorer.view === view,
-            disabled: !explorer.arrangeable,
-          },
-        )}
-      {/each}
-
-      {@render separator()}
-
-      <li class={[!explorer.arrangeable && "menu-disabled"]}>
-        <label class="flex cursor-pointer items-center gap-2">
-          <input
-            type="checkbox"
-            class="checkbox checkbox-xs"
-            checked={explorer.group === "modified"}
-            disabled={!explorer.arrangeable}
-            onchange={() => explorer.toggleDateGroups()}
-          />
-          {$t("explorer.views.dateGroups")}
-        </label>
-      </li>
-
-      <li class={[!explorer.arrangeable && "menu-disabled"]}>
-        <label class="flex cursor-pointer items-center gap-2">
-          <input
-            type="checkbox"
-            class="checkbox checkbox-xs"
-            checked={!!explorer.own}
-            disabled={!explorer.arrangeable}
-            onchange={() => explorer.toggleFolderOnly()}
-          />
-          {$t("explorer.views.folderOnly")}
-        </label>
-      </li>
-
-      <li>
-        <label class="flex cursor-pointer items-center gap-2">
-          <input
-            type="checkbox"
-            class="checkbox checkbox-xs"
-            bind:checked={prefs.showHidden}
-          />
-          {$t("explorer.views.hidden")}
-        </label>
-      </li>
-
-      <li>
-        <label class="flex cursor-pointer items-center gap-2">
-          <input
-            type="checkbox"
-            class="checkbox checkbox-xs"
-            bind:checked={prefs.showExtensions}
-          />
-          {$t("explorer.views.extensions")}
-        </label>
-      </li>
-    </ul>
-  </div>
-
-  <div class="grow"></div>
-
-  {#if !prefs.selectionInMore}
-    {#each SELECTION as id (id)}
-      <CommandButton {id} {explorer} />
-    {/each}
-  {/if}
-
-  <CommandButton id="preview" {explorer} text pressed={prefs.preview} />
-
+{#snippet moreMenu()}
   <div class="dropdown dropdown-end">
     <div
       tabindex="0"
@@ -272,4 +119,170 @@
       {/each}
     </ul>
   </div>
-</div>
+{/snippet}
+
+{#if compact}
+  <CommandButton id="preview" {explorer} pressed={prefs.preview} />
+
+  {@render moreMenu()}
+{:else}
+  <div
+    class={[
+      "flex shrink-0 items-center gap-0.5 border-b border-base-content/10",
+      "px-2 pb-1.5",
+    ]}
+  >
+    {#if explorer.inBin}
+      <CommandButton id="emptyBin" {explorer} text />
+
+      <CommandButton id="restore" {explorer} text />
+    {:else}
+      <CommandButton id="newFolder" {explorer} text />
+    {/if}
+
+    <div class="mx-1 h-5 border-l border-base-content/10"></div>
+
+    {#each EDIT as id (id)}
+      <CommandButton {id} {explorer} />
+    {/each}
+
+    <div class="mx-1 h-5 border-l border-base-content/10"></div>
+
+    <div class="dropdown">
+      <div
+        tabindex={explorer.arrangeable ? 0 : -1}
+        role="button"
+        aria-disabled={!explorer.arrangeable}
+        class={[
+          "btn btn-ghost btn-sm gap-2",
+          !explorer.arrangeable && "btn-disabled",
+        ]}
+      >
+        <Icon icon="lucide:arrow-up-down" class="size-4" />
+        {$t("explorer.commands.sort")}
+        <Icon icon="lucide:chevron-down" class="size-3.5 opacity-60" />
+      </div>
+
+      <ul tabindex="-1" class={MENU}>
+        {#each SORT_KEYS as key (key)}
+          {@render option(
+            $t(`explorer.sort.${key}`),
+            () => explorer.setSort(key, folder.ascending),
+            { active: folder.sort === key },
+          )}
+        {/each}
+
+        {@render separator()}
+
+        {@render option(
+          $t("explorer.sort.ascending"),
+          () => explorer.setSort(folder.sort, true),
+          { icon: "lucide:arrow-up-narrow-wide", active: folder.ascending },
+        )}
+
+        {@render option(
+          $t("explorer.sort.descending"),
+          () => explorer.setSort(folder.sort, false),
+          { icon: "lucide:arrow-down-wide-narrow", active: !folder.ascending },
+        )}
+
+        {@render separator()}
+
+        <li class="menu-title">{$t("explorer.groups.title")}</li>
+
+        {#each GROUP_KEYS as key (key)}
+          {@render option(
+            $t(`explorer.groups.by.${key}`),
+            () => explorer.setGroup(key),
+            { active: explorer.group === key },
+          )}
+        {/each}
+      </ul>
+    </div>
+
+    <div class="dropdown">
+      <div tabindex="0" role="button" class="btn btn-ghost btn-sm gap-2">
+        <Icon icon={VIEW_ICONS[explorer.view]} class="size-4" />
+        {$t("explorer.commands.view")}
+        <Icon icon="lucide:chevron-down" class="size-3.5 opacity-60" />
+      </div>
+
+      <ul tabindex="-1" class={MENU}>
+        {#each VIEWS as view (view)}
+          {@render option(
+            $t(`explorer.views.${view}`),
+            () => explorer.setView(view),
+            {
+              icon: VIEW_ICONS[view],
+              hint: hintOf(`view.${view}`),
+              active: explorer.view === view,
+              disabled: !explorer.arrangeable,
+            },
+          )}
+        {/each}
+
+        {@render separator()}
+
+        <li class={[!explorer.arrangeable && "menu-disabled"]}>
+          <label class="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              class="checkbox checkbox-xs"
+              checked={explorer.group === "modified"}
+              disabled={!explorer.arrangeable}
+              onchange={() => explorer.toggleDateGroups()}
+            />
+            {$t("explorer.views.dateGroups")}
+          </label>
+        </li>
+
+        <li class={[!explorer.arrangeable && "menu-disabled"]}>
+          <label class="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              class="checkbox checkbox-xs"
+              checked={!!explorer.own}
+              disabled={!explorer.arrangeable}
+              onchange={() => explorer.toggleFolderOnly()}
+            />
+            {$t("explorer.views.folderOnly")}
+          </label>
+        </li>
+
+        <li>
+          <label class="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              class="checkbox checkbox-xs"
+              bind:checked={prefs.showHidden}
+            />
+            {$t("explorer.views.hidden")}
+          </label>
+        </li>
+
+        <li>
+          <label class="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              class="checkbox checkbox-xs"
+              bind:checked={prefs.showExtensions}
+            />
+            {$t("explorer.views.extensions")}
+          </label>
+        </li>
+      </ul>
+    </div>
+
+    <div class="grow"></div>
+
+    {#if !prefs.selectionInMore}
+      {#each SELECTION as id (id)}
+        <CommandButton {id} {explorer} />
+      {/each}
+    {/if}
+
+    <CommandButton id="preview" {explorer} pressed={prefs.preview} />
+
+    {@render moreMenu()}
+  </div>
+{/if}

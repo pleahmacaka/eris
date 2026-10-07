@@ -2,7 +2,6 @@
   import { contextMenu } from "@eris/ui"
   import { getCurrentWebview } from "@tauri-apps/api/webview"
   import { getCurrentWindow } from "@tauri-apps/api/window"
-  import type { Snippet } from "svelte"
   import { t } from "svelte-i18n"
   import { isAudio } from "../filetypes"
   import { isVirtual, parentOf } from "../locations"
@@ -16,6 +15,7 @@
   import PreviewPane from "./panes/PreviewPane.svelte"
   import StatusBar from "./panes/StatusBar.svelte"
   import SettingsDialog from "./settings/SettingsDialog.svelte"
+  import SetupDialog from "./setup/SetupDialog.svelte"
   import SharedView from "./share/SharedView.svelte"
   import ShareHost from "./share/ShareHost.svelte"
   import NavPane from "./sidebar/NavPane.svelte"
@@ -25,7 +25,8 @@
   import PrivacyPrompt from "./window/PrivacyPrompt.svelte"
   import TitleBar from "./window/TitleBar.svelte"
 
-  let { explorer, theme }: { explorer: Explorer; theme?: Snippet } = $props()
+  let { explorer, standalone = false }: { explorer: Explorer; standalone?: boolean } =
+    $props()
 
   const current = getCurrentWindow()
 
@@ -38,7 +39,8 @@
     explorer.selected.length === 1 ? explorer.selected[0] : null,
   )
 
-  const busy = () => contextMenu.request !== null || explorer.settingsOpen
+  const busy = () =>
+    contextMenu.request !== null || explorer.settingsOpen || explorer.setupOpen
 
   const keyboardMenu = () => {
     const focus = tab.focus
@@ -221,7 +223,9 @@
   <div class="flex min-h-0 grow flex-col bg-base-100/70">
     <NavBar bind:this={nav} {explorer} />
 
-    <CommandBar {explorer} />
+    {#if !prefs.compactToolbar}
+      <CommandBar {explorer} />
+    {/if}
 
     <div
       class={[
@@ -259,7 +263,11 @@
   </div>
 </div>
 
-<SettingsDialog bind:open={explorer.settingsOpen} {theme} />
+<SettingsDialog bind:open={explorer.settingsOpen} {standalone} {explorer} />
+
+{#if explorer.setupOpen}
+  <SetupDialog {explorer} />
+{/if}
 
 <PrivacyPrompt />
 

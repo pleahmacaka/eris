@@ -90,6 +90,8 @@ export class Explorer {
 
   settingsOpen = $state(false)
 
+  setupOpen = $state(false)
+
   dropKey = $state<string | null>(null)
 
   arrangeable = $derived(!(this.tab.location === THIS_PC && !this.tab.results))

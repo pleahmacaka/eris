@@ -215,7 +215,33 @@
       "version": "Version",
       "windowsDefaults": "Windows default apps",
       "windowsDefaultsHint": "Choose the app for 3D models in Windows Settings.",
-      "account": "Account"
+      "account": "Account",
+      "compactToolbar": "Collapse toolbar",
+      "compactToolbarHint": "Moves Preview and See more next to the address bar.",
+      "pages": {
+        "general": "General",
+        "appearance": "Appearance",
+        "sidebar": "Sidebar",
+        "defaultApp": "Default app",
+        "terminal": "Terminal",
+        "transcribe": "Transcription",
+        "devices": "Devices",
+        "account": "Account",
+        "about": "About"
+      },
+      "display": "Display",
+      "toolbar": "Toolbar",
+      "rerunSetup": "Run setup again",
+      "rerunSetupHint": "Opens the first-run setup again.",
+      "run": "Run",
+      "reset": "Reset settings",
+      "resetHint": "Returns Files settings to their defaults.",
+      "resetAction": "Reset",
+      "resetTitle": "Reset settings?",
+      "resetBody": "View, sidebar and appearance settings return to their defaults.",
+      "appearanceHosted": "Follows the appearance set in Eris.",
+      "previewPane": "Preview pane",
+      "previewPaneHint": "Previews the selected file on the right."
     },
     "sidebar": {
       "title": "Sidebar",
@@ -229,7 +255,7 @@
         "folders": "Library folders",
         "drives": "This PC drives",
         "network": "Network",
-        "linux": "Linux",
+        "linux": "WSL",
         "shared": "Shared",
         "recycleBin": "Recycle Bin"
       }
@@ -258,7 +284,7 @@
       "folders": "Folders",
       "drives": "Devices and drives",
       "network": "Network locations",
-      "linux": "Linux"
+      "linux": "WSL"
     },
     "privacy": {
       "title": "Screen is being shared",
@@ -275,6 +301,58 @@
       "compressEach": "Compress each to ZIP",
       "working": "Archive task running",
       "done": "Archive task complete"
+    },
+    "setup": {
+      "title": "Eris Files setup",
+      "steps": {
+        "welcome": "Welcome",
+        "look": "Appearance",
+        "layout": "Layout",
+        "integrate": "Windows",
+        "done": "Done"
+      },
+      "start": "Get started",
+      "finish": "Start Eris Files",
+      "welcome": {
+        "title": "Welcome to Eris Files",
+        "tagline": "Pick a few things and you are ready to go.",
+        "tabs": "Tabs and preview",
+        "tabsText": "Open folders in tabs and preview files instantly.",
+        "share": "Share between devices",
+        "shareText": "Send files to nearby devices right away.",
+        "terminal": "Built-in terminal",
+        "terminalText": "Open a terminal in the folder you are viewing."
+      },
+      "look": {
+        "title": "Appearance",
+        "blurb": "Changes apply to the window as you pick."
+      },
+      "layout": {
+        "title": "Layout",
+        "blurb": "Pick the arrangement that fits how you work.",
+        "full": "Full toolbar",
+        "fullText": "Shows every command button.",
+        "compact": "Collapsed toolbar",
+        "compactText": "Keeps only the address bar for more room."
+      },
+      "integrate": {
+        "title": "Windows integration",
+        "blurb": "Choose whether folders open in Eris Files."
+      },
+      "done": {
+        "title": "You are all set",
+        "blurb": "You can change any of this in Settings.",
+        "look": "Appearance",
+        "toolbar": "Toolbar",
+        "preview": "Preview pane",
+        "defaultApp": "Default file manager",
+        "linked": "Eris style",
+        "custom": "Custom",
+        "full": "Full",
+        "compact": "Collapsed",
+        "on": "On",
+        "off": "Off"
+      }
     }
   },
   "terminal": {

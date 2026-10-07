@@ -215,7 +215,33 @@
       "version": "버전",
       "windowsDefaults": "Windows 기본 앱",
       "windowsDefaultsHint": "3D 모델을 여는 앱은 Windows 설정에서 지정하세요.",
-      "account": "계정"
+      "account": "계정",
+      "compactToolbar": "도구 상자 접기",
+      "compactToolbarHint": "미리 보기와 더 보기를 주소 줄로 옮깁니다.",
+      "pages": {
+        "general": "일반",
+        "appearance": "모양",
+        "sidebar": "사이드바",
+        "defaultApp": "기본 앱",
+        "terminal": "터미널",
+        "transcribe": "받아쓰기",
+        "devices": "기기",
+        "account": "계정",
+        "about": "정보"
+      },
+      "display": "표시",
+      "toolbar": "도구 상자",
+      "rerunSetup": "셋업 다시 실행",
+      "rerunSetupHint": "처음 설정 화면을 다시 엽니다.",
+      "run": "실행",
+      "reset": "설정 초기화",
+      "resetHint": "Files 설정을 기본값으로 되돌립니다.",
+      "resetAction": "초기화",
+      "resetTitle": "설정을 초기화할까요?",
+      "resetBody": "보기, 사이드바, 모양 설정이 기본값으로 돌아갑니다.",
+      "appearanceHosted": "Eris 설정의 모양을 따릅니다.",
+      "previewPane": "미리 보기 창",
+      "previewPaneHint": "선택한 파일을 오른쪽에서 미리 봅니다."
     },
     "sidebar": {
       "title": "사이드바",
@@ -229,7 +255,7 @@
         "folders": "라이브러리 폴더",
         "drives": "내 PC 드라이브",
         "network": "네트워크",
-        "linux": "Linux",
+        "linux": "WSL",
         "shared": "공유",
         "recycleBin": "휴지통"
       }
@@ -258,7 +284,7 @@
       "folders": "폴더",
       "drives": "장치 및 드라이브",
       "network": "네트워크 위치",
-      "linux": "Linux"
+      "linux": "WSL"
     },
     "privacy": {
       "title": "화면 공유 중",
@@ -275,6 +301,58 @@
       "compressEach": "각각 ZIP으로 압축",
       "working": "압축 작업 중",
       "done": "압축 작업 완료"
+    },
+    "setup": {
+      "title": "Eris Files 설정",
+      "steps": {
+        "welcome": "시작",
+        "look": "모양",
+        "layout": "화면 구성",
+        "integrate": "연결",
+        "done": "완료"
+      },
+      "start": "시작하기",
+      "finish": "Eris Files 시작",
+      "welcome": {
+        "title": "Eris Files에 오신 것을 환영합니다",
+        "tagline": "몇 가지만 고르면 바로 쓸 수 있습니다.",
+        "tabs": "탭과 미리 보기",
+        "tabsText": "여러 폴더를 탭으로 열고 파일을 바로 미리 봅니다.",
+        "share": "기기 간 공유",
+        "shareText": "가까운 기기와 파일을 바로 주고받습니다.",
+        "terminal": "내장 터미널",
+        "terminalText": "보고 있는 폴더에서 바로 터미널을 엽니다."
+      },
+      "look": {
+        "title": "모양",
+        "blurb": "고르는 즉시 창에 적용됩니다."
+      },
+      "layout": {
+        "title": "화면 구성",
+        "blurb": "자주 쓰는 방식에 맞게 배치를 고르세요.",
+        "full": "도구 상자 펼침",
+        "fullText": "명령 버튼을 모두 표시합니다.",
+        "compact": "도구 상자 접기",
+        "compactText": "주소 줄만 남겨 화면을 넓게 씁니다."
+      },
+      "integrate": {
+        "title": "Windows와 연결",
+        "blurb": "폴더를 열 때 Eris Files를 쓸지 고르세요."
+      },
+      "done": {
+        "title": "준비되었습니다",
+        "blurb": "설정에서 언제든 바꿀 수 있습니다.",
+        "look": "모양",
+        "toolbar": "도구 상자",
+        "preview": "미리 보기 창",
+        "defaultApp": "기본 파일 관리자",
+        "linked": "Eris 스타일",
+        "custom": "사용자 지정",
+        "full": "펼침",
+        "compact": "접힘",
+        "on": "사용",
+        "off": "사용 안 함"
+      }
     }
   },
   "terminal": {
