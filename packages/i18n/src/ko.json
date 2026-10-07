@@ -51,7 +51,7 @@
       },
       "calendar": {
         "label": "캘린더",
-        "blurb": "주 시작 요일, 공휴일, 일정 태그를 설정합니다."
+        "blurb": "시작 크기, 주 시작 요일, 공휴일을 설정합니다."
       },
       "sync": {
         "label": "동기화",
@@ -133,7 +133,6 @@
       "claude": "Claude 사용량",
       "syncGeneral": "기본",
       "erisFiles": "Eris Files",
-      "eventTags": "일정 태그",
       "windowBackgrounds": {
         "title": "창별 배경",
         "description": "창마다 다른 배경을 지정합니다."
@@ -141,7 +140,8 @@
       "note": {
         "title": "Note 연동",
         "description": "이 PC에 설치된 Note와 연결합니다. Eris 동기화와 Note 동기화와는 별개입니다."
-      }
+      },
+      "linkedStyle": "Eris 연동"
     },
     "rows": {
       "deviceName": "장치 이름",
@@ -249,11 +249,6 @@
       "erisFiles": "Eris Files",
       "filesDefault": "기본 파일 관리자",
       "filesDefaultApps": "Windows 기본 앱",
-      "eventTags": "일정 태그",
-      "tagName": "태그 이름",
-      "hideWhileSharing": "공유 중 숨김",
-      "deleteTag": "태그 삭제",
-      "addTag": "태그 추가",
       "followEris": "Eris 스타일 사용",
       "hideGather": "로고로 모으기",
       "dockIslands": "위젯 아일랜드",
@@ -274,7 +269,9 @@
         "style": "스타일",
         "references": "페이지 참조",
         "preview": "미리보기"
-      }
+      },
+      "panelStart": "시작 크기",
+      "font": "글꼴"
     },
     "hints": {
       "deviceName": "동기화한 다른 장치에 표시되는 이름입니다.",
@@ -375,7 +372,6 @@
       "filesDefault": "폴더 열기, 파일 위치 열기, Win+E를 Eris Files로 엽니다.",
       "filesDefaultApps": "3D 모델을 여는 앱은 Windows 설정에서 지정하세요.",
       "filesMissing": "Eris Files가 설치되어 있지 않습니다.",
-      "eventTags": "화면 공유가 감지되면 숨김 태그가 지정된 일정을 숨깁니다.",
       "followEris": "Eris의 모양 설정을 따릅니다.",
       "erisMissing": "Eris가 설치되어 있지 않습니다.",
       "hideGather": "독을 가운데 둥근 로고로 모은 뒤 내보냅니다. 끄면 가장자리로 밀어 숨깁니다.",
@@ -391,7 +387,9 @@
         "style": "Note가 Eris의 모양 설정을 따릅니다.",
         "references": "일정 메모에서 [[를 입력하면 Note 페이지를 찾아 링크합니다.",
         "preview": "페이지 링크에 커서를 올리면 왼쪽에 Note 내용을 표시합니다."
-      }
+      },
+      "panelStart": "캘린더를 열 때 처음 보이는 크기입니다.",
+      "font": "목록에 없는 글꼴은 설치된 이름을 직접 입력하세요."
     },
     "options": {
       "win": "Win 키",
@@ -413,7 +411,9 @@
       "deg": "{value}도",
       "runSetup": "설정 실행",
       "inherit": "창과 동일",
-      "openStudio": "Studio 열기"
+      "openStudio": "Studio 열기",
+      "systemFont": "시스템 글꼴",
+      "customFont": "직접 입력"
     },
     "featurePresets": {
       "all": {
@@ -509,7 +509,8 @@
       "presetName": "프리셋 이름",
       "deletePreset": "{name} 프리셋 삭제",
       "customPreset": "사용자 지정",
-      "forkedFrom": "{name}에서 변경됨"
+      "forkedFrom": "{name}에서 변경됨",
+      "fontName": "글꼴 이름"
     },
     "hotkey": {
       "addModifier": "Ctrl, Alt 같은 보조키를 추가하세요",
@@ -945,7 +946,10 @@
       "success": "성공",
       "warning": "경고",
       "error": "오류",
-      "info": "정보"
+      "info": "정보",
+      "violet": "보라",
+      "pink": "분홍",
+      "gray": "회색"
     },
     "calendar": {
       "month": "월",
@@ -1006,13 +1010,21 @@
       },
       "movedFrom": "{date}에서 이동",
       "addField": "항목 추가",
-      "addNotes": "메모 추가",
       "fields": {
         "reminder": "알림",
         "tags": "태그",
         "parent": "상위 일정",
         "task": "완료 체크"
-      }
+      },
+      "every": {
+        "daily": "매일",
+        "weekdays": "평일",
+        "weekly": "매주 {date}",
+        "monthly": "매월 {date}",
+        "yearly": "매년 {date}"
+      },
+      "writeNotes": "메모 입력",
+      "noteEmpty": "내용 없음"
     },
     "ics": {
       "options": "캘린더 옵션",
@@ -1052,13 +1064,11 @@
     },
     "day": {
       "title": "{date} 일정",
-      "count": "{count, plural, other {일정 #개}}",
       "empty": "일정 없음",
       "add": "새 일정 추가"
     },
     "detail": {
-      "date": "날짜",
-      "time": "시간"
+      "date": "날짜"
     },
     "header": {
       "today": "오늘 {date}"
@@ -1067,7 +1077,14 @@
     "tags": {
       "todo": "할 일",
       "personal": "개인",
-      "work": "업무"
+      "work": "업무",
+      "search": "태그 검색 또는 생성",
+      "create": "{name} 생성",
+      "edit": "태그 편집",
+      "name": "태그 이름",
+      "hide": "공유 중 숨김",
+      "delete": "태그 삭제",
+      "confirmDelete": "태그를 삭제할까요?"
     },
     "sharing": "화면 공유 중",
     "sharingHint": "숨김 태그가 지정된 일정은 화면 공유 중에 표시하지 않습니다.",
@@ -1086,6 +1103,10 @@
       "label": "완료 체크",
       "done": "완료로 표시",
       "undo": "미완료로 표시"
+    },
+    "clock": {
+      "hour": "{period} {hour}시",
+      "minute": "{period} {hour}시 {minute}분"
     }
   },
   "files": {

@@ -51,7 +51,7 @@
       },
       "calendar": {
         "label": "カレンダー",
-        "blurb": "週の始まり、祝日、予定のタグを設定します"
+        "blurb": "開くときのサイズ、週の始まり、祝日を設定します"
       },
       "sync": {
         "label": "同期",
@@ -133,7 +133,6 @@
       "claude": "Claude 使用量",
       "syncGeneral": "基本",
       "erisFiles": "Eris Files",
-      "eventTags": "予定のタグ",
       "windowBackgrounds": {
         "title": "ウィンドウ別の背景",
         "description": "ウィンドウごとに背景を指定します"
@@ -141,7 +140,8 @@
       "note": {
         "title": "Note 連携",
         "description": "この PC の Note と連携します。Eris の同期や Note の同期とは別です"
-      }
+      },
+      "linkedStyle": "Eris 連携"
     },
     "rows": {
       "deviceName": "デバイス名",
@@ -249,11 +249,6 @@
       "erisFiles": "Eris Files",
       "filesDefault": "既定のファイルマネージャー",
       "filesDefaultApps": "Windows の既定のアプリ",
-      "eventTags": "予定のタグ",
-      "tagName": "タグ名",
-      "hideWhileSharing": "共有中は非表示",
-      "deleteTag": "タグを削除",
-      "addTag": "タグを追加",
       "followEris": "Eris のスタイルを使用",
       "hideGather": "ロゴにまとめる",
       "dockIslands": "ウィジェットアイランド",
@@ -274,7 +269,9 @@
         "style": "スタイル",
         "references": "ページ参照",
         "preview": "プレビュー"
-      }
+      },
+      "panelStart": "開くときのサイズ",
+      "font": "フォント"
     },
     "hints": {
       "deviceName": "同期した他のデバイスに表示される名前です",
@@ -375,7 +372,6 @@
       "filesDefault": "フォルダー、ファイルの場所、Win+E を Eris Files で開きます",
       "filesDefaultApps": "3D モデルを開くアプリは Windows の設定で選択してください。",
       "filesMissing": "Eris Files がインストールされていません",
-      "eventTags": "画面共有を検出すると、非表示タグの予定を隠します。",
       "followEris": "Eris の外観設定に従います。",
       "erisMissing": "Eris がインストールされていません。",
       "hideGather": "ドックを中央の丸いロゴにまとめてから送り出します。オフにすると端へスライドします。",
@@ -391,7 +387,9 @@
         "style": "Note が Eris の外観設定に従います",
         "references": "予定のメモで [[ と入力すると Note のページを探してリンクします",
         "preview": "ページリンクにカーソルを合わせると左に Note の内容を表示します"
-      }
+      },
+      "panelStart": "カレンダーを開いたときに最初に表示されるサイズです。",
+      "font": "一覧にないフォントは、インストール済みの名前を入力してください。"
     },
     "options": {
       "win": "Win キー",
@@ -413,7 +411,9 @@
       "deg": "{value} deg",
       "runSetup": "セットアップを実行",
       "inherit": "ウィンドウと同じ",
-      "openStudio": "Studio を開く"
+      "openStudio": "Studio を開く",
+      "systemFont": "システムフォント",
+      "customFont": "直接入力"
     },
     "featurePresets": {
       "all": {
@@ -509,7 +509,8 @@
       "presetName": "プリセット名",
       "deletePreset": "プリセット {name} を削除",
       "customPreset": "カスタム",
-      "forkedFrom": "{name} から変更"
+      "forkedFrom": "{name} から変更",
+      "fontName": "フォント名"
     },
     "hotkey": {
       "addModifier": "Ctrl や Alt などの修飾キーを追加してください",
@@ -945,7 +946,10 @@
       "success": "成功",
       "warning": "警告",
       "error": "エラー",
-      "info": "情報"
+      "info": "情報",
+      "violet": "紫",
+      "pink": "ピンク",
+      "gray": "グレー"
     },
     "calendar": {
       "month": "月",
@@ -1006,13 +1010,21 @@
       },
       "movedFrom": "{date}から移動",
       "addField": "項目を追加",
-      "addNotes": "メモを追加",
       "fields": {
         "reminder": "通知",
         "tags": "タグ",
         "parent": "親の予定",
         "task": "完了チェック"
-      }
+      },
+      "every": {
+        "daily": "毎日",
+        "weekdays": "平日",
+        "weekly": "毎週{date}",
+        "monthly": "毎月{date}",
+        "yearly": "毎年{date}"
+      },
+      "writeNotes": "メモを入力",
+      "noteEmpty": "内容なし"
     },
     "ics": {
       "options": "カレンダーのオプション",
@@ -1052,13 +1064,11 @@
     },
     "day": {
       "title": "{date}の予定",
-      "count": "{count, plural, other {#件の予定}}",
       "empty": "予定なし",
       "add": "予定を追加"
     },
     "detail": {
-      "date": "日付",
-      "time": "時刻"
+      "date": "日付"
     },
     "header": {
       "today": "今日 {date}"
@@ -1067,7 +1077,14 @@
     "tags": {
       "todo": "ToDo",
       "personal": "個人",
-      "work": "仕事"
+      "work": "仕事",
+      "search": "タグを検索または作成",
+      "create": "{name} を作成",
+      "edit": "タグを編集",
+      "name": "タグ名",
+      "hide": "共有中は非表示",
+      "delete": "タグを削除",
+      "confirmDelete": "このタグを削除しますか?"
     },
     "sharing": "画面共有中",
     "sharingHint": "非表示タグの予定は画面共有中に表示しません。",
@@ -1086,6 +1103,10 @@
       "label": "完了チェック",
       "done": "完了にする",
       "undo": "未完了に戻す"
+    },
+    "clock": {
+      "hour": "{period}{hour}時",
+      "minute": "{period}{hour}時{minute}分"
     }
   },
   "files": {

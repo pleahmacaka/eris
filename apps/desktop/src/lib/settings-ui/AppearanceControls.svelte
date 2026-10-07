@@ -11,7 +11,7 @@
   } from "@eris/settings"
   import { allPresets, CUSTOM, sameAppearance } from "./presets"
   import { reset as resetField } from "./reset"
-  import { Row, Section, Segmented } from "@eris/ui"
+  import { AppearanceRows, Row, Section, Segmented } from "@eris/ui"
   import { toast } from "@eris/ui"
   import { t } from "svelte-i18n"
 
@@ -20,18 +20,7 @@
     part = "theme",
   }: { profile: Profile; part?: "theme" | "dock" } = $props()
 
-  type NumberKey =
-    | "accentSpread"
-    | "vividness"
-    | "texture"
-    | "radius"
-    | "blur"
-    | "fontScale"
-    | "surfaceOpacity"
-    | "dockOpacity"
-    | "dockBlur"
-    | "dockRadius"
-    | "dockTint"
+  type NumberKey = "dockOpacity" | "dockBlur" | "dockRadius" | "dockTint"
 
   type Slider = {
     key: NumberKey
@@ -46,22 +35,6 @@
 
   const percent = (v: number) => `${Math.round(v * 100)}%`
   const times = (v: number) => `${v.toFixed(2)}x`
-
-  const colorSliders: Slider[] = [
-    { key: "accentSpread", row: "colorSpread", min: 0, max: 120, step: 1, format: v => `${v}°` },
-    { key: "vividness", row: "vividness", min: 0, max: 0.25, step: 0.01, format: v => percent(v / 0.25) },
-  ]
-
-  const surfaceSliders: Slider[] = [
-    { key: "surfaceOpacity", row: "windowOpacity", min: 0.6, max: 1, step: 0.02, format: percent },
-    { key: "blur", row: "blur", min: 0, max: 2, step: 0.05, format: times },
-    { key: "texture", row: "texture", min: 0, max: 1, step: 0.05, format: percent },
-    { key: "radius", row: "cornerRadius", min: 0, max: 2, step: 0.05, format: times },
-  ]
-
-  const typeSliders: Slider[] = [
-    { key: "fontScale", row: "fontSize", min: 0.85, max: 1.25, step: 0.05, format: percent },
-  ]
 
   const dockSliders: Slider[] = [
     { key: "dockOpacity", row: "dockOpacity", min: 0.6, max: 1, step: 0.02, format: percent },
@@ -146,9 +119,7 @@
 {#snippet slider(s: Slider)}
   <Row
     label={$t(`settings.rows.${s.row}`)}
-    hint={s.key === "blur" && profile.appearance.background === "glass"
-      ? $t("settings.hints.blurGlass")
-      : $t(`settings.hints.${s.row}`)}
+    hint={$t(`settings.hints.${s.row}`)}
     value={s.format(profile.appearance[s.key])}
     stacked
     onreset={resetRow(s.key)}
@@ -203,88 +174,12 @@
     />
   </Row>
 {:else}
-  <Section title={$t("settings.groups.color")}>
-    <Row
-      label={$t("settings.rows.mode")}
-      hint={$t("settings.hints.mode")}
-      onreset={resetRow("mode")}
-    >
-      <Segmented
-        label={$t("settings.rows.mode")}
-        bind:value={profile.appearance.mode}
-        onchange={markCustom}
-        options={[
-          { value: "dark", label: $t("settings.options.dark"), icon: "lucide:moon" },
-          { value: "light", label: $t("settings.options.light"), icon: "lucide:sun" },
-          { value: "system", label: $t("settings.options.system"), icon: "lucide:monitor" },
-        ]}
-      />
-    </Row>
-
-    <Row
-      label={$t("settings.rows.followAccent")}
-      hint={$t("settings.hints.followAccent")}
-      onreset={resetRow("useSystemAccent")}
-    >
-      <input
-        type="checkbox"
-        class="toggle toggle-primary"
-        aria-label={$t("settings.rows.followAccent")}
-        bind:checked={profile.appearance.useSystemAccent}
-        onchange={markCustom}
-      />
-    </Row>
-
-    <Row
-      label={$t("settings.rows.accentHue")}
-      hint={profile.appearance.useSystemAccent
-        ? $t("settings.appearance.followingAccent")
-        : $t("settings.appearance.baseColor")}
-      value="{profile.appearance.accentHue}°"
-      stacked
-      onreset={resetRow("accentHue")}
-    >
-      <input
-        type="range"
-        class="hue w-full"
-        min="0"
-        max="360"
-        step="1"
-        aria-label={$t("settings.rows.accentHue")}
-        style="--hue: {profile.appearance.accentHue}"
-        disabled={profile.appearance.useSystemAccent}
-        bind:value={profile.appearance.accentHue}
-        oninput={markCustom}
-      />
-    </Row>
-
-    {#each colorSliders as s (s.key)}
-      {@render slider(s)}
-    {/each}
-  </Section>
-
-  <Section title={$t("settings.groups.surface")}>
-    <Row
-      label={$t("settings.rows.background")}
-      hint={$t("settings.hints.background")}
-      onreset={resetRow("background")}
-    >
-      <Segmented
-        label={$t("settings.rows.background")}
-        bind:value={profile.appearance.background}
-        onchange={markCustom}
-        options={[
-          { value: "solid", label: $t("settings.options.solid") },
-          { value: "aura", label: $t("settings.options.aura") },
-          { value: "glass", label: $t("settings.options.glass") },
-        ]}
-      />
-    </Row>
-
-    {#each surfaceSliders as s (s.key)}
-      {@render slider(s)}
-    {/each}
-  </Section>
+  <AppearanceRows
+    bind:appearance={profile.appearance}
+    groups={["color", "surface"]}
+    onchange={markCustom}
+    onreset={key => resetRow(key)()}
+  />
 
   <Section
     title={$t("settings.groups.windowBackgrounds.title")}
@@ -306,41 +201,12 @@
     {/each}
   </Section>
 
-  <Section title={$t("settings.groups.typeMotion")}>
-    {#each typeSliders as s (s.key)}
-      {@render slider(s)}
-    {/each}
-
-    <Row
-      label={$t("settings.rows.density")}
-      hint={$t("settings.hints.density")}
-      onreset={resetRow("density")}
-    >
-      <Segmented
-        label={$t("settings.rows.density")}
-        bind:value={profile.appearance.density}
-        onchange={markCustom}
-        options={[
-          { value: "cozy", label: $t("settings.options.cozy") },
-          { value: "compact", label: $t("settings.options.compact") },
-        ]}
-      />
-    </Row>
-
-    <Row
-      label={$t("settings.rows.motion")}
-      hint={$t("settings.hints.motion")}
-      onreset={resetRow("motion")}
-    >
-      <input
-        type="checkbox"
-        class="toggle toggle-primary"
-        aria-label={$t("settings.rows.motion")}
-        bind:checked={profile.appearance.motion}
-        onchange={markCustom}
-      />
-    </Row>
-  </Section>
+  <AppearanceRows
+    bind:appearance={profile.appearance}
+    groups={["type"]}
+    onchange={markCustom}
+    onreset={key => resetRow(key)()}
+  />
 
   <div class="flex flex-wrap items-center justify-end gap-2">
     <button
@@ -405,44 +271,3 @@
     <button type="submit">close</button>
   </form>
 </dialog>
-
-<style>
-  .hue {
-    appearance: none;
-    height: 0.75rem;
-    border-radius: 9999px;
-    background: linear-gradient(
-      to right,
-      oklch(70% 0.15 0),
-      oklch(70% 0.15 60),
-      oklch(70% 0.15 120),
-      oklch(70% 0.15 180),
-      oklch(70% 0.15 240),
-      oklch(70% 0.15 300),
-      oklch(70% 0.15 360)
-    );
-    outline: none;
-    transition: opacity 120ms;
-  }
-
-  .hue:disabled {
-    opacity: 0.35;
-  }
-
-  .hue::-webkit-slider-thumb {
-    appearance: none;
-    width: 1.125rem;
-    height: 1.125rem;
-    border-radius: 50%;
-    background: oklch(70% 0.15 var(--hue));
-    border: 2px solid var(--color-base-100);
-    box-shadow: 0 0 0 1px
-      color-mix(in oklch, var(--color-base-content) 25%, transparent);
-    cursor: pointer;
-  }
-
-  .hue:focus-visible::-webkit-slider-thumb {
-    box-shadow: 0 0 0 3px
-      color-mix(in oklch, var(--color-primary) 50%, transparent);
-  }
-</style>

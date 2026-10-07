@@ -36,7 +36,12 @@ export type DockWidget = {
 export type WebSearchEngine = "google" | "duckduckgo" | "bing" | "naver"
 export type TerminalApp = "auto" | "eris" | "wt" | "pwsh" | "powershell" | "cmd"
 export type TodoSort = "manual" | "due" | "priority"
-export type EventTag = { id: string; name: string; hideWhileSharing: boolean }
+export type EventTag = {
+  id: string
+  name: string
+  hideWhileSharing: boolean
+  color?: string
+}
 export type TraySlot =
   | "taskview"
   | "claude"
@@ -92,6 +97,7 @@ export type DeviceSettings = {
   dockDesktop: boolean
   topBar: boolean
   panelPosition: "left" | "center" | "right"
+  panelStart: "compact" | "full"
   dockSeparators: boolean
   clockAlign: ClockAlign
   editMode: boolean
@@ -148,6 +154,7 @@ export type Appearance = {
   texture: number
   radius: number
   blur: number
+  font: string
   fontScale: number
   surfaceOpacity: number
   dockOpacity: number
@@ -200,6 +207,7 @@ export const defaultAppearance: Appearance = {
   texture: 0,
   radius: 0.65,
   blur: 1,
+  font: "",
   fontScale: 1,
   surfaceOpacity: 1,
   dockOpacity: 1,
@@ -425,6 +433,7 @@ export const defaultDevice: DeviceSettings = {
   dockDesktop: false,
   topBar: false,
   panelPosition: "right",
+  panelStart: "compact",
   dockSeparators: true,
   clockAlign: "end",
   editMode: false,
@@ -668,7 +677,11 @@ export const onProfile = (handler: (value: Profile) => void) =>
 
 export type ErisStyle = { linked: boolean; profile: Partial<Profile> | null }
 
-export type ThemePrefs = { followEris: boolean; mode: ThemeMode }
+export type ThemePrefs = {
+  followEris: boolean
+  mode: ThemeMode
+  look?: Partial<Appearance>
+}
 
 export const standaloneAppearance = (
   style: ErisStyle,
@@ -676,7 +689,28 @@ export const standaloneAppearance = (
 ): Appearance =>
   style.linked && prefs.followEris
     ? withProfileDefaults(style.profile).appearance
-    : { ...defaultAppearance, mode: prefs.mode }
+    : { ...defaultAppearance, mode: prefs.mode, ...prefs.look }
+
+export const standaloneLook: Appearance = {
+  ...defaultAppearance,
+  mode: "system",
+}
+
+export const SYSTEM_FONT = "system"
+
+const DEFAULT_FONTS = `"Pretendard Variable", Pretendard, system-ui, sans-serif`
+
+const fontStack = (font: string | undefined) => {
+  const name = (font ?? "").replaceAll('"', "").trim()
+
+  if (!name) {
+    return null
+  }
+
+  return name === SYSTEM_FONT
+    ? `system-ui, "Segoe UI Variable Text", "Segoe UI", sans-serif`
+    : `"${name}", ${DEFAULT_FONTS}`
+}
 
 export const systemAccentHue = async () => {
   const hex = await invoke<string | null>("system_accent")
@@ -787,6 +821,16 @@ export const applyAppearance = async (
 
   for (const [name, value] of Object.entries(vars)) {
     root.style.setProperty(name, String(value))
+  }
+
+  const fonts = fontStack(a.font)
+
+  for (const name of ["--font-sans", "--font-mono"]) {
+    if (fonts) {
+      root.style.setProperty(name, fonts)
+    } else {
+      root.style.removeProperty(name)
+    }
   }
 
   if (root.dataset.surface === "window") {

@@ -51,7 +51,7 @@
       },
       "calendar": {
         "label": "日历",
-        "blurb": "设置每周起始日、节假日和日程标签"
+        "blurb": "设置打开大小、每周起始日和节假日"
       },
       "sync": {
         "label": "同步",
@@ -133,7 +133,6 @@
       "claude": "Claude 用量",
       "syncGeneral": "基本",
       "erisFiles": "Eris Files",
-      "eventTags": "日程标签",
       "windowBackgrounds": {
         "title": "按窗口设置背景",
         "description": "为每个窗口指定不同的背景"
@@ -141,7 +140,8 @@
       "note": {
         "title": "Note 连接",
         "description": "连接本机安装的 Note,与 Eris 同步和 Note 同步相互独立"
-      }
+      },
+      "linkedStyle": "Eris 联动"
     },
     "rows": {
       "deviceName": "设备名称",
@@ -249,11 +249,6 @@
       "erisFiles": "Eris Files",
       "filesDefault": "默认文件管理器",
       "filesDefaultApps": "Windows 默认应用",
-      "eventTags": "日程标签",
-      "tagName": "标签名称",
-      "hideWhileSharing": "共享时隐藏",
-      "deleteTag": "删除标签",
-      "addTag": "添加标签",
       "followEris": "使用 Eris 样式",
       "hideGather": "收拢为标志",
       "dockIslands": "小组件岛",
@@ -274,7 +269,9 @@
         "style": "样式",
         "references": "页面引用",
         "preview": "预览"
-      }
+      },
+      "panelStart": "打开时的大小",
+      "font": "字体"
     },
     "hints": {
       "deviceName": "其他已同步设备上显示的名称",
@@ -375,7 +372,6 @@
       "filesDefault": "使用 Eris Files 打开文件夹、文件位置和 Win+E",
       "filesDefaultApps": "请在 Windows 设置中选择打开 3D 模型的应用。",
       "filesMissing": "未安装 Eris Files",
-      "eventTags": "检测到屏幕共享时，隐藏带隐藏标签的日程。",
       "followEris": "跟随 Eris 的外观设置。",
       "erisMissing": "未安装 Eris。",
       "hideGather": "先将程序坞收拢为中间的圆形标志再移出。关闭后直接滑向边缘。",
@@ -391,7 +387,9 @@
         "style": "Note 跟随 Eris 的外观设置",
         "references": "在日程备注中输入 [[ 即可查找并链接 Note 页面",
         "preview": "将光标悬停在页面链接上时,在左侧显示 Note 内容"
-      }
+      },
+      "panelStart": "打开日历时最初显示的大小。",
+      "font": "其他字体请直接输入已安装的字体名称。"
     },
     "options": {
       "win": "Win 键",
@@ -413,7 +411,9 @@
       "deg": "{value} 度",
       "runSetup": "运行向导",
       "inherit": "与窗口相同",
-      "openStudio": "打开 Studio"
+      "openStudio": "打开 Studio",
+      "systemFont": "系统字体",
+      "customFont": "自定义"
     },
     "featurePresets": {
       "all": {
@@ -509,7 +509,8 @@
       "presetName": "预设名称",
       "deletePreset": "删除预设 {name}",
       "customPreset": "自定义",
-      "forkedFrom": "已从 {name} 修改"
+      "forkedFrom": "已从 {name} 修改",
+      "fontName": "字体名称"
     },
     "hotkey": {
       "addModifier": "请添加 Ctrl 或 Alt 等修饰键",
@@ -945,7 +946,10 @@
       "success": "成功",
       "warning": "警告",
       "error": "错误",
-      "info": "信息"
+      "info": "信息",
+      "violet": "紫色",
+      "pink": "粉色",
+      "gray": "灰色"
     },
     "calendar": {
       "month": "月",
@@ -1006,13 +1010,21 @@
       },
       "movedFrom": "从{date}移来",
       "addField": "添加项目",
-      "addNotes": "添加备注",
       "fields": {
         "reminder": "提醒",
         "tags": "标签",
         "parent": "上级日程",
         "task": "可勾选完成"
-      }
+      },
+      "every": {
+        "daily": "每天",
+        "weekdays": "工作日",
+        "weekly": "每{date}",
+        "monthly": "每月{date}",
+        "yearly": "每年{date}"
+      },
+      "writeNotes": "输入备注",
+      "noteEmpty": "无内容"
     },
     "ics": {
       "options": "日历选项",
@@ -1052,13 +1064,11 @@
     },
     "day": {
       "title": "{date}的日程",
-      "count": "{count, plural, other {# 个日程}}",
       "empty": "无日程",
       "add": "添加日程"
     },
     "detail": {
-      "date": "日期",
-      "time": "时间"
+      "date": "日期"
     },
     "header": {
       "today": "今天 {date}"
@@ -1067,7 +1077,14 @@
     "tags": {
       "todo": "待办",
       "personal": "个人",
-      "work": "工作"
+      "work": "工作",
+      "search": "搜索或创建标签",
+      "create": "创建 {name}",
+      "edit": "编辑标签",
+      "name": "标签名称",
+      "hide": "共享时隐藏",
+      "delete": "删除标签",
+      "confirmDelete": "要删除此标签吗?"
     },
     "sharing": "正在共享屏幕",
     "sharingHint": "共享屏幕时不显示带隐藏标签的日程。",
@@ -1086,6 +1103,10 @@
       "label": "可勾选完成",
       "done": "标记为完成",
       "undo": "标记为未完成"
+    },
+    "clock": {
+      "hour": "{period}{hour}点",
+      "minute": "{period}{hour}点{minute}分"
     }
   },
   "files": {
