@@ -2,13 +2,13 @@
   import {
     type DeviceSettings,
     type Profile,
+    defaultDevice,
     defaultProfile,
   } from "@eris/settings"
   import { Row, Section, Segmented } from "@eris/ui"
   import { currentLocale } from "@eris/i18n"
   import { regions } from "$lib/calendar"
   import { t } from "svelte-i18n"
-  import EventTagsControls from "../EventTagsControls.svelte"
   import FeatureGate from "../FeatureGate.svelte"
   import { reset } from "../reset"
 
@@ -18,6 +18,8 @@
   }: { profile: Profile; device: DeviceSettings } = $props()
 
   const resetCalendar = reset(() => profile.calendar, defaultProfile.calendar)
+
+  const resetDevice = reset(() => device, defaultDevice)
 
   const reminders = [0, 5, 10, 15, 30, 60]
 
@@ -44,6 +46,21 @@
   disabled={!device.features.calendar}
 >
   <Section title={$t("settings.groups.calendar")}>
+    <Row
+      label={$t("settings.rows.panelStart")}
+      hint={$t("settings.hints.panelStart")}
+      onreset={resetDevice("panelStart")}
+    >
+      <Segmented
+        label={$t("settings.rows.panelStart")}
+        bind:value={device.panelStart}
+        options={[
+          { value: "compact", label: $t("panel.collapse") },
+          { value: "full", label: $t("panel.expand") },
+        ]}
+      />
+    </Row>
+
     <Row
       label={$t("settings.rows.weekStartsOn")}
       onreset={resetCalendar("weekStartsOn")}
@@ -106,14 +123,5 @@
         {/each}
       </select>
     </Row>
-  </Section>
-
-  <Section
-    title={$t("settings.groups.eventTags")}
-    description={$t("settings.hints.eventTags")}
-  >
-    <div class="flex flex-col gap-2 px-4 py-3">
-      <EventTagsControls bind:tags={profile.calendar.tags} />
-    </div>
   </Section>
 </fieldset>

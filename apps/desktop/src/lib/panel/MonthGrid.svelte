@@ -9,7 +9,7 @@
     isDone,
     splitCitations,
   } from "$lib/data"
-  import { colorMeta, toColor } from "./colors"
+  import { colorMeta } from "./colors"
   import type { Panel } from "./panel.svelte"
 
   const { panel }: { panel: Panel } = $props()
@@ -222,7 +222,7 @@
         </div>
 
         {#each dayEvents.slice(0, shown) as event (event.id + event.start)}
-          {@const meta = colorMeta[toColor(event.color)]}
+          {@const meta = colorMeta[panel.colorOf(event.tags)]}
           {@const label = `${eventTime(event, $t("panel.allDay"))} ${event.title}`}
           <button
             type="button"
@@ -271,7 +271,7 @@
 </div>
 
 {#if preview}
-  {@const meta = colorMeta[toColor(preview.event.color)]}
+  {@const meta = colorMeta[panel.colorOf(preview.event.tags)]}
   {@const lines = noteLines(preview.event.notes)}
 
   <div

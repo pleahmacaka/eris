@@ -35,6 +35,7 @@
   let showDetail = $state(false)
   let detailClosing = $state(false)
   let widened = false
+  let resizing = Promise.resolve()
   let closeTimer: ReturnType<typeof setTimeout> | null = null
 
   const detailKey = $derived(
@@ -43,7 +44,15 @@
       : "new",
   )
 
-  const widen = async () => {
+  const queue = (step: () => Promise<void>) => {
+    resizing = resizing.then(step).catch(() => undefined)
+  }
+
+  const widen = () => queue(async () => {
+    if (widened) {
+      return
+    }
+
     const scale = await appWindow.scaleFactor()
     const pos = await appWindow.outerPosition()
     const size = await appWindow.outerSize()
@@ -66,9 +75,9 @@
 
     await appWindow.setSize(new PhysicalSize(size.width + add, size.height))
     widened = true
-  }
+  })
 
-  const unwiden = async () => {
+  const unwiden = () => queue(async () => {
     if (!widened) {
       return
     }
@@ -85,7 +94,7 @@
     if (detailSide === "left") {
       await appWindow.setPosition(new PhysicalPosition(pos.x + add, pos.y))
     }
-  }
+  })
 
   const isPicker = (el: Element | null) =>
     el instanceof HTMLSelectElement ||
@@ -120,7 +129,7 @@
       panel.asking.answer(null)
     } else if (panel.detailOpen) {
       panel.close()
-    } else if (morph.expanded && panel.calendarOn) {
+    } else if (morph.expanded && panel.calendarOn && panel.device.panelStart === "compact") {
       collapse()
     } else {
       hide()
@@ -138,6 +147,7 @@
       if (closeTimer) {
         clearTimeout(closeTimer)
         closeTimer = null
+        detailClosing = false
       }
 
       if (!showDetail) {
@@ -151,6 +161,7 @@
         showDetail = false
         detailClosing = false
         closeTimer = null
+        panel.kept = null
         unwiden()
       }, 200)
     }
@@ -182,7 +193,7 @@
         focusLanded = false
         shownAt = Date.now()
         panel.reset()
-        morph.reset()
+        morph.reset(panel.device.panelStart === "full")
       }),
     ]
 
@@ -196,7 +207,13 @@
   })
 </script>
 
-<svelte:window {onkeydown} />
+<svelte:window {onkeydown} onresize={morph.fit} />
+
+{#snippet detailBody()}
+  {#key detailKey}
+    <EventDetail {panel} />
+  {/key}
+{/snippet}
 
 {#if !panel.calendarOn}
   <main class="panel-surface flex h-full min-h-0 flex-col">
@@ -227,8 +244,8 @@
 {:else}
   <div
     class={[
-      "compact absolute flex",
-      panel.anchorTop ? "top-0" : "bottom-0",
+      "compact absolute flex gap-3",
+      panel.anchorTop ? "top-0 items-start" : "bottom-0 items-end",
       panel.device.panelPosition === "left"
         ? "left-0"
         : panel.device.panelPosition === "center"
@@ -239,6 +256,20 @@
     inert={morph.expanded}
   >
     <CompactPanel {panel} {morph} />
+
+    {#if showDetail && !morph.expanded}
+      <section
+        {@attach morph.card}
+        class={[
+          "detail panel-surface flex h-[38rem] max-h-screen w-[22rem] flex-col",
+          detailSide === "left" ? "order-first from-left" : "from-right",
+          detailClosing && "closing",
+        ]}
+        inert={detailClosing}
+      >
+        {@render detailBody()}
+      </section>
+    {/if}
   </div>
 
   <div
@@ -266,19 +297,19 @@
       <PanelAside {panel} />
     </div>
 
-    {#if showDetail}
-      <section
+    {#if showDetail && morph.expanded}
+      <div
         class={[
-          "detail panel-surface absolute top-0 bottom-0 flex w-[22rem] min-h-0 flex-col",
+          "detail absolute top-0 bottom-0 flex w-[22rem]",
           detailSide === "left" ? "left-0 from-left" : "right-0 from-right",
           detailClosing && "closing",
         ]}
         inert={detailClosing}
       >
-        {#key detailKey}
-          <EventDetail {panel} />
-        {/key}
-      </section>
+        <section class="panel-surface flex min-h-0 w-full flex-col">
+          {@render detailBody()}
+        </section>
+      </div>
     {/if}
   </div>
 {/if}

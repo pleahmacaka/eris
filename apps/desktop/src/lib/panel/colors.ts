@@ -4,6 +4,9 @@ export const eventColors = [
   "warning",
   "success",
   "error",
+  "violet",
+  "pink",
+  "gray",
 ] as const
 
 export type EventColor = (typeof eventColors)[number]
@@ -37,13 +40,22 @@ export const colorMeta: Record<
     block: "bg-error/15 hover:bg-error/25",
     label: "panel.colors.error",
   },
+  violet: {
+    chip: "bg-violet-400",
+    block: "bg-violet-400/15 hover:bg-violet-400/25",
+    label: "panel.colors.violet",
+  },
+  pink: {
+    chip: "bg-pink-400",
+    block: "bg-pink-400/15 hover:bg-pink-400/25",
+    label: "panel.colors.pink",
+  },
+  gray: {
+    chip: "bg-zinc-400",
+    block: "bg-zinc-400/15 hover:bg-zinc-400/25",
+    label: "panel.colors.gray",
+  },
 }
 
-// older events stored raw css values like var(--color-success)
-export const toColor = (value: string | null): EventColor => {
-  const raw = value?.match(/^var\(--color-(.+)\)$/)?.[1] ?? value
-
-  return (eventColors as readonly string[]).includes(raw ?? "")
-    ? (raw as EventColor)
-    : "primary"
-}
+export const toColor = (value: string | null | undefined): EventColor =>
+  eventColors.find(color => color === value) ?? "primary"

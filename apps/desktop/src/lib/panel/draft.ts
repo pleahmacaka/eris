@@ -16,7 +16,6 @@ import {
   timeMinutes,
   withoutToken,
 } from "$lib/data"
-import { type EventColor, toColor } from "./colors"
 
 export type Seed = { day: Date; span: number; parent: string | null }
 
@@ -29,7 +28,6 @@ export type Draft = {
   end: string
   hasEnd: boolean
   days: number
-  color: EventColor
   recurrence: Recurrence
   shift: Shift | "none"
   reminder: number | null
@@ -81,7 +79,6 @@ export const draftFrom = (
     end: timed ? clockOf(event.end) : DEFAULT_END,
     hasEnd: !event || !openEnded(event),
     days: event ? keptDays(event) : seed.span,
-    color: toColor(event?.color ?? null),
     recurrence: event?.recurrence ?? "none",
     shift: event?.shift ?? "none",
     reminder: event ? event.reminderMinutes : reminder,
@@ -153,7 +150,7 @@ export const eventFrom = (
     allDay: draft.allDay,
     start: draft.allDay ? dateKey(day) : dateTimeKey(start),
     end: draft.allDay ? dateKey(addDays(day, draft.days)) : dateTimeKey(end),
-    color: draft.color === "primary" ? null : `var(--color-${draft.color})`,
+    color: stored?.color ?? null,
     reminderMinutes: draft.reminder,
     recurrence: draft.recurrence,
     tags: draft.tags,

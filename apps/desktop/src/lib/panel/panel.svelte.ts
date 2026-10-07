@@ -3,6 +3,7 @@ import {
   type DeviceSettings,
   defaultDevice,
   defaultProfile,
+  type EventTag,
   loadProfile,
   onDevice,
   onProfile,
@@ -42,6 +43,8 @@ import {
 } from "$lib/data"
 import { ensureDevice } from "$lib/device"
 import * as native from "$lib/native"
+import { eventColors, toColor } from "./colors"
+import type { Draft } from "./draft"
 
 export type View =
   | { kind: "day" }
@@ -78,6 +81,8 @@ export class Panel {
   view = $state<View>({ kind: "day" })
 
   asking = $state<Asking | null>(null)
+
+  kept: { key: string; draft: Draft } | null = null
 
   eventLive = live(events)
 
@@ -197,6 +202,7 @@ export class Panel {
 
   go = (view: View) => {
     this.asking?.answer(null)
+    this.kept = null
     this.view = view
   }
 
@@ -248,9 +254,22 @@ export class Panel {
         event.recurrence === "none" ? null : dateKey(parseLocal(event.start)),
     })
 
+  private creating = false
+
+  // the compact and expanded details can both commit one draft while the first write is in flight
   createEvent = async (next: CalendarEvent) => {
-    await events.put(next)
-    this.reveal(next)
+    if (this.creating) {
+      return
+    }
+
+    this.creating = true
+
+    try {
+      await events.put(next)
+      this.reveal(next)
+    } finally {
+      this.creating = false
+    }
   }
 
   commitEvent = async (
@@ -353,17 +372,42 @@ export class Panel {
     this.close()
   }
 
-  createTag = (name: string) => {
-    const tag = { id: newId(), name, hideWhileSharing: false }
+  colorOf = (tagIds: string[] | undefined) =>
+    toColor(
+      this.profile.calendar.tags.find(
+        tag => tag.color && (tagIds ?? []).includes(tag.id),
+      )?.color,
+    )
 
-    this.profile.calendar.tags = [...this.profile.calendar.tags, tag]
+  private editTags = (edit: (tags: EventTag[]) => EventTag[]) => {
+    this.profile.calendar.tags = edit(this.profile.calendar.tags)
     updateProfileSynced(p => ({
       ...p,
-      calendar: { ...p.calendar, tags: [...p.calendar.tags, tag] },
+      calendar: { ...p.calendar, tags: edit(p.calendar.tags) },
     }))
+  }
+
+  createTag = (name: string) => {
+    const count = this.profile.calendar.tags.length
+    const tag = {
+      id: newId(),
+      name,
+      hideWhileSharing: false,
+      color: eventColors[count % eventColors.length],
+    }
+
+    this.editTags(tags => [...tags, tag])
 
     return tag.id
   }
+
+  updateTag = (id: string, patch: Partial<EventTag>) =>
+    this.editTags(tags =>
+      tags.map(tag => (tag.id === id ? { ...tag, ...patch } : tag)),
+    )
+
+  removeTag = (id: string) =>
+    this.editTags(tags => tags.filter(tag => tag.id !== id))
 
   toggleDone = async (event: Occurrence) => {
     const stored = await events.get(event.id)

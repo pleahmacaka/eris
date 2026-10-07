@@ -1,4 +1,12 @@
-export { clock, eventSpan, eventTime, longDay, shortDay } from "./format"
+export {
+  clock,
+  dateLabel,
+  dayPeriod,
+  eventSpan,
+  eventTime,
+  longDay,
+  shortDay,
+} from "./format"
 export {
   blueSaturday,
   holidayCheck,
