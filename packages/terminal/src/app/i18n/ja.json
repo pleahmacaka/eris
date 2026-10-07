@@ -4,7 +4,13 @@
       "new": "新しいタブ",
       "close": "タブを閉じる",
       "list": "タブ",
-      "shells": "シェル"
+      "shells": "シェル",
+      "detach": "グループから外す",
+      "ungroup": "グループを解除",
+      "rename": "名前を変更",
+      "workspace": "workspace",
+      "closePane": "ターミナルを閉じる",
+      "group": "{name} グループ"
     },
     "window": {
       "minimize": "最小化",
@@ -22,7 +28,15 @@
       "fontSize": "フォントサイズ",
       "theme": "テーマ",
       "version": "バージョン",
-      "account": "アカウント"
+      "account": "アカウント",
+      "appearance": "外観",
+      "about": "情報",
+      "reset": "設定をリセット",
+      "resetHint": "ターミナルの設定を既定値に戻します。",
+      "resetAction": "リセット",
+      "resetTitle": "設定をリセットしますか?",
+      "resetBody": "シェル、フォント、外観の設定が既定値に戻ります。",
+      "appearanceHosted": "Eris の外観設定に従います。"
     },
     "panes": {
       "sync": "入力の同期",

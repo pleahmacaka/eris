@@ -17,6 +17,7 @@ export type Tab = {
   root: Layout
   focus: number
   sync: boolean
+  name?: string
 }
 
 export const session = $state({
@@ -36,8 +37,13 @@ const newPane = (shell: string, cwd: string | null = null): Pane => ({
   title: shellName(shell),
 })
 
-export const titleOf = (tab: Tab) =>
-  panesOf(tab.root).find(pane => pane.id === tab.focus)?.title ?? ""
+export const paneLabel = (pane: Pane) => pane.name || pane.title
+
+export const titleOf = (tab: Tab) => {
+  const pane = panesOf(tab.root).find(entry => entry.id === tab.focus)
+
+  return pane ? paneLabel(pane) : ""
+}
 
 export const tabOf = (paneId: number) =>
   session.tabs.find(tab => panesOf(tab.root).some(pane => pane.id === paneId))
@@ -47,6 +53,44 @@ export const openTab = (shell: string, cwd: string | null = null) => {
 
   session.tabs.push({ id: newId(), root: pane, focus: pane.id, sync: false })
   session.active = session.tabs.length - 1
+}
+
+const insertTab = (index: number, pane: Pane) => {
+  session.tabs.splice(index, 0, {
+    id: newId(),
+    root: pane,
+    focus: pane.id,
+    sync: false,
+  })
+}
+
+export const detachPane = (paneId: number) => {
+  const tab = tabOf(paneId)
+  const pane = tab && panesOf(tab.root).find(entry => entry.id === paneId)
+  const left = tab && remove(tab.root, paneId)
+
+  if (!tab || !pane || !left) {
+    return
+  }
+
+  const index = session.tabs.indexOf(tab)
+
+  tab.root = left
+
+  if (tab.focus === paneId) {
+    tab.focus = panesOf(left)[0].id
+  }
+
+  insertTab(index + 1, pane)
+  session.active = index + 1
+}
+
+export const ungroup = (tab: Tab) => {
+  for (const pane of panesOf(tab.root).slice(1).reverse()) {
+    detachPane(pane.id)
+  }
+
+  session.active = session.tabs.indexOf(tab)
 }
 
 export const closeTab = (index: number) => {

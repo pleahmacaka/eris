@@ -4,7 +4,13 @@
       "new": "New tab",
       "close": "Close tab",
       "list": "Tabs",
-      "shells": "Shells"
+      "shells": "Shells",
+      "detach": "Remove from group",
+      "ungroup": "Ungroup",
+      "rename": "Rename",
+      "workspace": "workspace",
+      "closePane": "Close terminal",
+      "group": "{name} group"
     },
     "window": {
       "minimize": "Minimize",
@@ -22,7 +28,15 @@
       "fontSize": "Font size",
       "theme": "Theme",
       "version": "Version",
-      "account": "Account"
+      "account": "Account",
+      "appearance": "Appearance",
+      "about": "About",
+      "reset": "Reset settings",
+      "resetHint": "Returns terminal settings to their defaults.",
+      "resetAction": "Reset",
+      "resetTitle": "Reset settings?",
+      "resetBody": "Shell, font and appearance settings return to their defaults.",
+      "appearanceHosted": "Follows the appearance set in Eris."
     },
     "panes": {
       "sync": "Input sync",
