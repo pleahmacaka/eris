@@ -22,18 +22,30 @@
 
   $effect(() => {
     ensureDevice()
-      .then(d => (launcher.device = d))
+      .then(d => {
+        launcher.device = d
+      })
       .catch(() => undefined)
-    loadFrecency().then(() => (launcher.usage += 1))
-    loadProfile().then(p => (launcher.profile = p))
+    loadFrecency().then(() => {
+      launcher.usage += 1
+    })
+    loadProfile().then(p => {
+      launcher.profile = p
+    })
     launcher.refresh()
 
-    const stopTimers = subscribeTimers(items => (launcher.timers = items))
+    const stopTimers = subscribeTimers(items => {
+      launcher.timers = items
+    })
     const stopEditWatch = watchEdit()
 
     const stops = [
-      onProfile(p => (launcher.profile = p)),
-      onDevice(d => (launcher.device = d)),
+      onProfile(p => {
+        launcher.profile = p
+      }),
+      onDevice(d => {
+        launcher.device = d
+      }),
       onWindowShown("main", () => {
         launcher.setQuery("")
         launcher.usage += 1

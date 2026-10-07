@@ -48,7 +48,9 @@
             ? "border-primary/60 bg-primary/10 ring-1 ring-primary/40"
             : "border-base-content/10 bg-base-100/40 hover:bg-base-content/5",
         ]}
-        onclick={() => (device.features = { ...preset.features })}
+        onclick={() => {
+          device.features = { ...preset.features }
+        }}
       >
         <Icon icon={preset.icon} class="mt-0.5 size-5 shrink-0 text-primary" />
 
