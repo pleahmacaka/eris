@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.3.8](https://github.com/pleahmacaka/eris/compare/0.3.7...0.3.8) (2026-10-07)
+
+
+### Features
+
+* **calendar:** confirm deletes, drag-order all-day events, detail beside list ([3d92cde](https://github.com/pleahmacaka/eris/commit/3d92cde81724dc74f6234e162c55ec4d96c8829f))
+* **calendar:** render notes as markdown with note previews ([f572748](https://github.com/pleahmacaka/eris/commit/f5727484566b7493603f40378b1f4ddf0553c779))
+* **calendar:** rework event details and the day list ([d10d936](https://github.com/pleahmacaka/eris/commit/d10d936cac3c90d78135a791d2e6d68309f50f0b))
+* **dock:** widen icon and height ranges for high-dpi displays ([8541c1b](https://github.com/pleahmacaka/eris/commit/8541c1bf341609685754332049139c1c20d3a338))
+* **edit:** drag dock widgets to reorder and gather panel settings ([8a96cac](https://github.com/pleahmacaka/eris/commit/8a96cacb318d1d4d8576274d753baa89c029ea22))
+* **files:** add setup, rebuild settings, collapse toolbar ([68fd6bf](https://github.com/pleahmacaka/eris/commit/68fd6bf20dd90c8df0ff6f610c032843685c806e))
+* **terminal:** group merged terminals into named tabs ([57ecc48](https://github.com/pleahmacaka/eris/commit/57ecc481916a6d78943453c01c56a765c11c6209))
+* **terminal:** move settings onto the shared window ([dfcd789](https://github.com/pleahmacaka/eris/commit/dfcd7892a5c3cbef6de5d2bd2a6d8d7d1e47be63))
+* **ui:** share settings window, setup and theme rows ([8dd8d98](https://github.com/pleahmacaka/eris/commit/8dd8d9867a0ad788c62700c191ea03e656c2ee5a))
+
+
+### Bug Fixes
+
+* **desktop:** avoid stale proxied assignments ([8af90b9](https://github.com/pleahmacaka/eris/commit/8af90b9125e23dcf344018a7b5a0d784e6b163c8))
+* **desktop:** raise windows without injecting the alt key ([a21ffd1](https://github.com/pleahmacaka/eris/commit/a21ffd1e24fa1e0fd43e5f16a491fe59f2c0b5f0))
+* **files:** restore splitters and show this pc instantly ([05bcbe9](https://github.com/pleahmacaka/eris/commit/05bcbe904431f5578d1388b4409e157bdd0a58cd))
+
 ## [0.3.7](https://github.com/pleahmacaka/eris/compare/0.3.6...0.3.7) (2026-10-06)
 
 
