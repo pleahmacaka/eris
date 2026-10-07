@@ -3,6 +3,7 @@ export type Pane = {
   shell: string
   cwd: string | null
   title: string
+  name?: string
 }
 
 export type Split = {

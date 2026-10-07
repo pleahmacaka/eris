@@ -4,7 +4,13 @@
       "new": "새 탭",
       "close": "탭 닫기",
       "list": "탭",
-      "shells": "셸"
+      "shells": "셸",
+      "detach": "그룹에서 분리",
+      "ungroup": "그룹 해제",
+      "rename": "이름 바꾸기",
+      "workspace": "workspace",
+      "closePane": "터미널 닫기",
+      "group": "{name} 그룹"
     },
     "window": {
       "minimize": "최소화",
@@ -22,7 +28,15 @@
       "fontSize": "글꼴 크기",
       "theme": "테마",
       "version": "버전",
-      "account": "계정"
+      "account": "계정",
+      "appearance": "모양",
+      "about": "정보",
+      "reset": "설정 초기화",
+      "resetHint": "터미널 설정을 기본값으로 되돌립니다.",
+      "resetAction": "초기화",
+      "resetTitle": "설정을 초기화할까요?",
+      "resetBody": "셸, 글꼴, 모양 설정이 기본값으로 돌아갑니다.",
+      "appearanceHosted": "Eris 설정의 모양을 따릅니다."
     },
     "panes": {
       "sync": "입력 동기화",

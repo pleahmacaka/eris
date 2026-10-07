@@ -4,7 +4,13 @@
       "new": "新建标签页",
       "close": "关闭标签页",
       "list": "标签页",
-      "shells": "Shell"
+      "shells": "Shell",
+      "detach": "移出分组",
+      "ungroup": "取消分组",
+      "rename": "重命名",
+      "workspace": "workspace",
+      "closePane": "关闭终端",
+      "group": "{name} 分组"
     },
     "window": {
       "minimize": "最小化",
@@ -22,7 +28,15 @@
       "fontSize": "字号",
       "theme": "主题",
       "version": "版本",
-      "account": "账号"
+      "account": "账号",
+      "appearance": "外观",
+      "about": "关于",
+      "reset": "重置设置",
+      "resetHint": "将终端设置恢复为默认值。",
+      "resetAction": "重置",
+      "resetTitle": "要重置设置吗?",
+      "resetBody": "Shell、字体和外观设置将恢复为默认值。",
+      "appearanceHosted": "跟随 Eris 中的外观设置。"
     },
     "panes": {
       "sync": "输入同步",
