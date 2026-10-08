@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.10](https://github.com/pleahmacaka/eris/compare/0.3.9...0.3.10) (2026-10-08)
+
+
+### Features
+
+* **files:** preview hwp, office documents, folders and archives ([645f519](https://github.com/pleahmacaka/eris/commit/645f5190d905b6ce28c8f6e86defb60afeb9a477))
+
 ## [0.3.9](https://github.com/pleahmacaka/eris/compare/0.3.8...0.3.9) (2026-10-08)
 
 
