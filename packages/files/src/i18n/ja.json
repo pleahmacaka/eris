@@ -192,14 +192,17 @@
       "missing": "場所が見つかりません",
       "notReady": "デバイスの準備ができていません",
       "noPreview": "プレビューなし",
-      "selectToPreview": "プレビューするファイルを選択してください。"
+      "selectToPreview": "プレビューするファイルを選択してください。",
+      "unreachable": "ネットワークの場所に接続できません",
+      "reconnect": "再接続"
     },
     "errors": {
       "denied": "アクセス拒否",
       "missing": "場所が見つかりません",
       "notReady": "デバイスの準備ができていません",
       "password": "パスワード付きの圧縮ファイル",
-      "unsupported": "未対応の形式"
+      "unsupported": "未対応の形式",
+      "unreachable": "ネットワークの場所に接続できません"
     },
     "settings": {
       "title": "設定",
@@ -353,15 +356,17 @@
         "on": "使用",
         "off": "使用しない"
       }
+    },
+    "drop": {
+      "move": "移動",
+      "copy": "コピー",
+      "items": "{count} 個の項目"
     }
   },
   "terminal": {
     "title": "ターミナル",
     "toggle": "ターミナル (Ctrl+`)",
-    "new": "新しいターミナル",
-    "kill": "ターミナルを終了",
     "close": "パネルを閉じる",
-    "exited": "セッション終了",
     "resize": "サイズ変更",
     "settings": {
       "position": "パネルの位置",
@@ -370,7 +375,10 @@
       "shell": "既定のシェル",
       "font": "フォント",
       "fontHint": "フォント名を入力してください。"
-    }
+    },
+    "popOut": "Eris Terminal で開く",
+    "toSide": "右側へ移動",
+    "toBottom": "下へ移動"
   },
   "share": {
     "action": "共有",

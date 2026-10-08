@@ -4,7 +4,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::io::BufReader;
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
-use std::path::{Component, Path, PathBuf, MAIN_SEPARATOR};
+use std::path::{Component, Path, PathBuf, MAIN_SEPARATOR, MAIN_SEPARATOR_STR};
 use std::process::{Command, Stdio};
 
 use chrono::{Local, NaiveDate, NaiveDateTime, TimeZone};
@@ -203,7 +203,7 @@ fn dos_millis(stamp: DosDateTime) -> u64 {
 }
 
 fn inner(name: &str) -> String {
-    let joined = name.replace(['/', '\\'], &MAIN_SEPARATOR.to_string());
+    let joined = name.replace(['/', '\\'], MAIN_SEPARATOR_STR);
 
     joined
         .trim_start_matches(&format!(".{MAIN_SEPARATOR}"))
@@ -389,7 +389,12 @@ fn perform(job: Job, items: &[PathBuf]) -> Result<Vec<String>> {
         }
         Job::CompressEach => items
             .iter()
-            .map(|item| compress(unique(parent(item)?, &stem(item), "zip"), &[item.clone()]))
+            .map(|item| {
+                compress(
+                    unique(parent(item)?, &stem(item), "zip"),
+                    std::slice::from_ref(item),
+                )
+            })
             .collect(),
         Job::ExtractHere | Job::ExtractAuto | Job::ExtractNamed => {
             for archive in items {

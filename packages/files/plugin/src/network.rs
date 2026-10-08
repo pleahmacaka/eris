@@ -20,6 +20,7 @@ use crate::{com, places};
 pub struct NetworkPlace {
     name: String,
     path: String,
+    entry: String,
 }
 
 pub struct Mapping {
@@ -146,6 +147,7 @@ fn shortcut(entry: &Path) -> Option<NetworkPlace> {
     Some(NetworkPlace {
         name: entry.file_stem()?.to_string_lossy().to_string(),
         path: link_target(&link)?,
+        entry: entry.to_string_lossy().to_string(),
     })
 }
 

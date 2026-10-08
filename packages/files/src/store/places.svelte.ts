@@ -10,6 +10,7 @@ import {
   WINDOWS,
 } from "../locations"
 import {
+  type Distro,
   type Drive,
   drives,
   type Known,
@@ -27,7 +28,7 @@ export const places = $state<{
   drives: Drive[]
   pinned: ShellEntry[]
   network: NetworkPlace[]
-  linux: NetworkPlace[]
+  linux: Distro[]
 }>({ known: [], drives: [], pinned: [], network: [], linux: [] })
 
 const shareName = (remote: string) => {

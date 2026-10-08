@@ -51,6 +51,8 @@ mod watch;
 pub(crate) const IDENTIFIER: &str = "com.arixlab.eris.files";
 const SCHEME: &str = "eris-files://";
 
+pub type PeerList = fn(&AppHandle) -> Vec<(String, String)>;
+
 #[derive(Clone, Copy)]
 pub struct Host {
     pub main_route: &'static str,
@@ -58,7 +60,7 @@ pub struct Host {
     pub marker: Option<&'static str>,
     pub app_name: &'static str,
     pub prog_prefix: &'static str,
-    pub peers: Option<fn(&AppHandle) -> Vec<(String, String)>>,
+    pub peers: Option<PeerList>,
 }
 
 pub const STANDALONE: Host = Host {

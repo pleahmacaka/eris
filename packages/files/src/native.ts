@@ -57,7 +57,9 @@ export type Drive = {
   connected: boolean
 }
 
-export type NetworkPlace = { name: string; path: string }
+export type Distro = { name: string; path: string }
+
+export type NetworkPlace = Distro & { entry: string }
 
 export type Resolved = { path: string; select: string | null; file: boolean }
 
@@ -133,7 +135,7 @@ export const knownFolders = () => call<Known[]>("known_folders")
 
 export const drives = () => call<Drive[]>("drives")
 
-export const wslDistros = () => call<NetworkPlace[]>("wsl_distros")
+export const wslDistros = () => call<Distro[]>("wsl_distros")
 
 export const listArchive = (path: string) =>
   call<ArchiveListing>("list_archive", { path })

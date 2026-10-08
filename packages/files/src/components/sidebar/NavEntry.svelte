@@ -2,6 +2,7 @@
   import Icon from "@iconify/svelte"
   import type { Snippet } from "svelte"
   import { prefetchOnHover } from "../../store/prefetch"
+  import { middleClick } from "../middleClick"
   import ItemIcon from "../items/ItemIcon.svelte"
 
   let {
@@ -34,6 +35,7 @@
   title={label}
   data-drop-path={location}
   {@attach prefetchOnHover(location)}
+  {@attach middleClick(onaux)}
   class={[
     "flex w-full cursor-pointer flex-col gap-1 rounded-field py-1.5 pr-2",
     "text-left text-sm transition-colors",
@@ -42,11 +44,6 @@
   ]}
   onclick={onopen}
   onpointerdown={onpress}
-  onauxclick={e => {
-    if (e.button === 1) {
-      onaux()
-    }
-  }}
   oncontextmenu={onmenu}
 >
   <span class="flex min-w-0 items-center gap-2">

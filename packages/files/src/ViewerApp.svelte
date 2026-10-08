@@ -1,6 +1,5 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { ModelViewer, viewerLocale } from "@eris/model-viewer"
   import { locale, t } from "svelte-i18n"
   import WindowControls from "./components/window/WindowControls.svelte"
   import { baseName } from "./locations"
@@ -47,12 +46,14 @@
 
   <main class="relative min-h-0 grow bg-base-100/70">
     {#if model}
-      <ModelViewer
-        objUrl={model.objUrl}
-        mtlUrl={model.mtlUrl}
-        title={model.name}
-        locale={viewerLocale($locale ?? "")}
-      />
+      {#await import("@eris/model-viewer") then { ModelViewer, viewerLocale }}
+        <ModelViewer
+          objUrl={model.objUrl}
+          mtlUrl={model.mtlUrl}
+          title={model.name}
+          locale={viewerLocale($locale ?? "")}
+        />
+      {/await}
     {:else}
       <div
         class={[

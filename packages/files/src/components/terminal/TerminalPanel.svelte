@@ -1,25 +1,37 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { Terminal } from "@eris/terminal"
-  import { t } from "svelte-i18n"
-  import { baseName } from "../../locations"
-  import { Splitter } from "@eris/ui"
-  import type { Explorer } from "../../store/explorer.svelte"
   import {
-    shellFor,
-    startTerminal,
-    terminal,
-    terminalPrefs,
-  } from "../../store/terminal.svelte"
+    defaultShell,
+    PaneArea,
+    popOut,
+    session,
+    sessionShortcut,
+    setHost,
+    TabStrip,
+  } from "@eris/terminal"
+  import { t } from "svelte-i18n"
+  import { Splitter } from "@eris/ui"
+  import { fail, type Explorer } from "../../store/explorer.svelte"
+  import { terminal, terminalPrefs } from "../../store/terminal.svelte"
 
   let { explorer }: { explorer: Explorer } = $props()
 
-  let pane = $state<Terminal>()
+  const side = $derived(
+    (terminal.position ?? terminalPrefs.position) === "side",
+  )
 
-  const side = $derived(terminalPrefs.position === "side")
+  setHost({
+    shell: () => defaultShell(terminalPrefs.shell),
+    cwd: () => (explorer.filesystem ? explorer.tab.location : null),
+    empty: () => (terminal.open = false),
+  })
 
-  const restart = () =>
-    startTerminal(explorer.filesystem ? explorer.tab.location : null)
+  const onkeydowncapture = (e: KeyboardEvent) => {
+    if (sessionShortcut(e)) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+  }
 
   const resizeWidth = {
     axis: "x",
@@ -40,7 +52,7 @@
   } as const
 </script>
 
-{#if terminal.session > 0}
+{#if session.tabs.length > 0}
   <section
     aria-label={$t("terminal.title")}
     class={[
@@ -50,6 +62,7 @@
     ]}
     style:height={side ? undefined : `${terminalPrefs.height}rem`}
     style:width={side ? `${terminalPrefs.width}rem` : undefined}
+    {onkeydowncapture}
   >
     <Splitter
       resize={side ? resizeWidth : resizeHeight}
@@ -57,72 +70,50 @@
     />
 
     <div class="flex min-h-0 min-w-0 grow flex-col">
-      <header class="flex h-8 shrink-0 items-center gap-2 px-3 select-none">
-        <Icon icon="lucide:square-terminal" class="size-4 shrink-0" />
-
-        <span class="text-sm font-medium">{$t("terminal.title")}</span>
-
-        {#if terminal.cwd}
-          <span class="min-w-0 truncate text-xs text-base-content/60">
-            {baseName(terminal.cwd)}
-          </span>
-        {/if}
+      <header class="flex h-9 shrink-0 items-stretch bg-base-300/60 select-none">
+        <TabStrip />
 
         <div class="grow"></div>
 
         <button
           type="button"
-          class="btn btn-ghost btn-square btn-xs"
-          aria-label={$t("terminal.new")}
-          title={$t("terminal.new")}
-          onclick={restart}
+          class="btn btn-ghost h-full rounded-none border-0 px-3"
+          aria-label={$t(side ? "terminal.toBottom" : "terminal.toSide")}
+          title={$t(side ? "terminal.toBottom" : "terminal.toSide")}
+          onclick={() => (terminal.position = side ? "bottom" : "side")}
         >
-          <Icon icon="lucide:plus" class="size-3.5" />
+          <Icon
+            icon={side ? "lucide:panel-bottom" : "lucide:panel-right"}
+            class="size-4"
+          />
         </button>
 
         <button
           type="button"
-          class="btn btn-ghost btn-square btn-xs"
-          aria-label={$t("terminal.kill")}
-          title={$t("terminal.kill")}
-          disabled={terminal.exited}
-          onclick={() => pane?.kill()}
+          class="btn btn-ghost h-full rounded-none border-0 px-3"
+          aria-label={$t("terminal.popOut")}
+          title={$t("terminal.popOut")}
+          onclick={() => popOut().catch(fail)}
         >
-          <Icon icon="lucide:trash-2" class="size-3.5" />
+          <Icon icon="lucide:square-arrow-out-up-right" class="size-4" />
         </button>
 
         <button
           type="button"
-          class="btn btn-ghost btn-square btn-xs"
+          class="btn btn-ghost h-full rounded-none border-0 px-3"
           aria-label={$t("terminal.close")}
           title={$t("terminal.close")}
           onclick={() => (terminal.open = false)}
         >
-          <Icon icon="lucide:x" class="size-3.5" />
+          <Icon icon="lucide:x" class="size-4" />
         </button>
       </header>
 
-      <div class="relative min-h-0 grow px-3 pb-1.5">
-        {#if terminal.exited}
-          <div
-            class="flex size-full items-center justify-center text-sm text-base-content/60"
-          >
-            {$t("terminal.exited")}
-          </div>
-        {:else}
-          {#key terminal.session}
-            <Terminal
-              bind:this={pane}
-              shell={shellFor()}
-              cwd={terminal.cwd}
-              fontFamily={terminalPrefs.fontFamily}
-              fontSize={13}
-              active={terminal.open}
-              onexit={() => (terminal.exited = true)}
-            />
-          {/key}
-        {/if}
-      </div>
+      <PaneArea
+        fontFamily={terminalPrefs.fontFamily}
+        fontSize={13}
+        visible={terminal.open}
+      />
     </div>
   </section>
 {/if}

@@ -192,14 +192,17 @@
       "missing": "위치 없음",
       "notReady": "장치 준비 안 됨",
       "noPreview": "미리 보기 없음",
-      "selectToPreview": "미리 볼 파일을 선택하세요."
+      "selectToPreview": "미리 볼 파일을 선택하세요.",
+      "unreachable": "네트워크 위치 연결 안 됨",
+      "reconnect": "재연결"
     },
     "errors": {
       "denied": "접근 권한 없음",
       "missing": "위치 없음",
       "notReady": "장치 준비 안 됨",
       "password": "암호가 설정된 압축 파일",
-      "unsupported": "지원하지 않는 형식"
+      "unsupported": "지원하지 않는 형식",
+      "unreachable": "네트워크 위치 연결 안 됨"
     },
     "settings": {
       "title": "설정",
@@ -353,15 +356,17 @@
         "on": "사용",
         "off": "사용 안 함"
       }
+    },
+    "drop": {
+      "move": "이동",
+      "copy": "복사",
+      "items": "{count}개 항목"
     }
   },
   "terminal": {
     "title": "터미널",
     "toggle": "터미널 (Ctrl+`)",
-    "new": "새 터미널",
-    "kill": "터미널 종료",
     "close": "패널 닫기",
-    "exited": "세션 종료",
     "resize": "크기 조절",
     "settings": {
       "position": "패널 위치",
@@ -370,7 +375,10 @@
       "shell": "기본 셸",
       "font": "글꼴",
       "fontHint": "글꼴 이름을 입력하세요."
-    }
+    },
+    "popOut": "Eris Terminal에서 열기",
+    "toSide": "오른쪽으로 이동",
+    "toBottom": "아래로 이동"
   },
   "share": {
     "action": "공유",

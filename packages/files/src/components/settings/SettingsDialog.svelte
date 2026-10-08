@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { DesktopAccount } from "@eris/auth/tauri"
   import { getVersion } from "@tauri-apps/api/app"
   import {
     Confirm,
@@ -140,7 +139,9 @@
       {:else if page === "account"}
         <Section title={$t("explorer.settings.account")}>
           <div class="px-4 py-4">
-            <DesktopAccount lang={$locale} />
+            {#await import("@eris/auth/tauri") then { DesktopAccount }}
+              <DesktopAccount lang={$locale} />
+            {/await}
           </div>
         </Section>
       {:else}

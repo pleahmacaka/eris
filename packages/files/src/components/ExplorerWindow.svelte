@@ -22,6 +22,7 @@
   import TerminalPanel from "./terminal/TerminalPanel.svelte"
   import CommandBar from "./toolbar/CommandBar.svelte"
   import NavBar from "./toolbar/NavBar.svelte"
+  import DropHint from "./window/DropHint.svelte"
   import PrivacyPrompt from "./window/PrivacyPrompt.svelte"
   import TitleBar from "./window/TitleBar.svelte"
 
@@ -161,6 +162,8 @@
     }
   }
 
+  let dragged: string[] = []
+
   const folderAt = (position: { x: number; y: number }) => {
     const scale = window.devicePixelRatio
     const zone = document
@@ -192,8 +195,13 @@
 
         if (payload.type === "leave") {
           explorer.dropKey = null
+          explorer.dropHint = null
 
           return
+        }
+
+        if (payload.type === "enter") {
+          dragged = payload.paths
         }
 
         const target = folderAt(payload.position)
@@ -202,7 +210,21 @@
 
         if (payload.type === "drop") {
           explorer.dropKey = null
+          explorer.dropHint = null
           explorer.drop(payload.paths, target)
+
+          return
+        }
+
+        const plan = explorer.dropPlan(dragged, target)
+        const scale = window.devicePixelRatio
+
+        explorer.dropHint = plan && {
+          x: payload.position.x / scale,
+          y: payload.position.y / scale,
+          into: plan.into,
+          move: plan.move,
+          count: plan.changed.length,
         }
       }),
     ]
@@ -262,6 +284,8 @@
     <StatusBar {explorer} />
   </div>
 </div>
+
+<DropHint {explorer} />
 
 <SettingsDialog bind:open={explorer.settingsOpen} {standalone} {explorer} />
 

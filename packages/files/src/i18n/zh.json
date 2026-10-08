@@ -192,14 +192,17 @@
       "missing": "找不到位置",
       "notReady": "设备未就绪",
       "noPreview": "无预览",
-      "selectToPreview": "选择要预览的文件。"
+      "selectToPreview": "选择要预览的文件。",
+      "unreachable": "无法连接网络位置",
+      "reconnect": "重新连接"
     },
     "errors": {
       "denied": "拒绝访问",
       "missing": "找不到位置",
       "notReady": "设备未就绪",
       "password": "受密码保护的压缩文件",
-      "unsupported": "不支持的格式"
+      "unsupported": "不支持的格式",
+      "unreachable": "无法连接网络位置"
     },
     "settings": {
       "title": "设置",
@@ -353,15 +356,17 @@
         "on": "开启",
         "off": "关闭"
       }
+    },
+    "drop": {
+      "move": "移动",
+      "copy": "复制",
+      "items": "{count} 个项目"
     }
   },
   "terminal": {
     "title": "终端",
     "toggle": "终端 (Ctrl+`)",
-    "new": "新建终端",
-    "kill": "终止终端",
     "close": "关闭面板",
-    "exited": "会话已结束",
     "resize": "调整大小",
     "settings": {
       "position": "面板位置",
@@ -370,7 +375,10 @@
       "shell": "默认 Shell",
       "font": "字体",
       "fontHint": "请输入字体名称。"
-    }
+    },
+    "popOut": "在 Eris Terminal 中打开",
+    "toSide": "移到右侧",
+    "toBottom": "移到底部"
   },
   "share": {
     "action": "共享",

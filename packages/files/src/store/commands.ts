@@ -125,8 +125,7 @@ const BASE = {
     label: "explorer.commands.rename",
     icon: "lucide:pencil",
     keys: ["F2"],
-    enabled: x =>
-      x.selected.length === 1 && (x.filesystem || !!x.selected[0].drive),
+    enabled: x => x.selected.length === 1 && x.renamable(x.selected[0]),
     run: x => x.rename(),
   },
   delete: {
@@ -214,7 +213,7 @@ const BASE = {
     label: "terminal.title",
     icon: "lucide:square-terminal",
     captureKeys: ["Ctrl+Backquote"],
-    run: x => toggleTerminal(x.filesystem ? x.tab.location : null),
+    run: () => toggleTerminal(),
   },
 } satisfies Record<string, Command>
 

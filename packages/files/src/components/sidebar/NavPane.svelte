@@ -43,7 +43,9 @@
   const GROUPS: SidebarSection[][] = [
     ["home", "pinned"],
     ["folders"],
-    ["drives", "network", "linux"],
+    ["drives"],
+    ["network"],
+    ["linux"],
     ["shared", "recycleBin"],
   ]
 
@@ -123,7 +125,6 @@
         location: place.path,
         section: "network",
         hide: "path",
-        nested: sectionShown("drives"),
       })),
     linux: places.linux
       .filter(distro => pathShown(distro.path))
@@ -132,7 +133,6 @@
         location: distro.path,
         section: "linux",
         hide: "path",
-        nested: sectionShown("drives"),
       })),
     shared: [
       {
@@ -266,7 +266,7 @@
           nested={entry.nested}
           active={sameLocation(entry.location, location)}
           onopen={() => open(entry.location)}
-          onaux={() => explorer.newTab(entry.location)}
+          onaux={() => explorer.openInTab(entry.location)}
           onmenu={e => openPlaceMenu(explorer, e, entry)}
           onpress={entry.pin === undefined ? undefined : reorder(entry.pin)}
         >

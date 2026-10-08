@@ -215,6 +215,10 @@
   }
 
   const press = (item: Item, e: PointerEvent) => {
+    if (e.button === 1) {
+      return
+    }
+
     const keep =
       e.button === 0 &&
       !e.ctrlKey &&
@@ -465,6 +469,17 @@
       {:else if tab.error}
         <Icon icon="lucide:circle-alert" class="size-6" />
         {$t(`explorer.states.${tab.error}`, { default: tab.error })}
+
+        {#if tab.error === "unreachable" || tab.error === "notReady"}
+          <button
+            type="button"
+            class="btn btn-sm pointer-events-auto mt-1"
+            onclick={() => tab.refresh()}
+          >
+            <Icon icon="lucide:refresh-cw" class="size-3.5" />
+            {$t("explorer.states.reconnect")}
+          </button>
+        {/if}
       {:else if tab.results}
         {$t("explorer.states.noResults")}
       {:else}

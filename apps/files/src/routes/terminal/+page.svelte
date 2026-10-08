@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { registerTerminalMessages, TerminalApp } from "@eris/terminal"
-
-  registerTerminalMessages()
+  import { TerminalApp } from "@eris/terminal"
 </script>
 
 <TerminalApp />

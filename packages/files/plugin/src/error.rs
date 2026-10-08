@@ -1,12 +1,29 @@
 use serde::{Serialize, Serializer};
 #[cfg(windows)]
 use windows::Win32::Foundation::{
-    ERROR_ACCESS_DENIED, ERROR_CANCELLED, ERROR_DIRECTORY, ERROR_FILE_NOT_FOUND,
-    ERROR_INVALID_NAME, ERROR_NOT_READY, ERROR_PATH_NOT_FOUND, WIN32_ERROR,
+    ERROR_ACCESS_DENIED, ERROR_BAD_NETPATH, ERROR_BAD_NET_NAME, ERROR_CANCELLED,
+    ERROR_CONNECTION_UNAVAIL, ERROR_DIRECTORY, ERROR_FILE_NOT_FOUND, ERROR_HOST_UNREACHABLE,
+    ERROR_INVALID_NAME, ERROR_NETNAME_DELETED, ERROR_NETWORK_UNREACHABLE, ERROR_NOT_CONNECTED,
+    ERROR_NOT_READY, ERROR_NO_NET_OR_BAD_PATH, ERROR_PATH_NOT_FOUND, ERROR_SEM_TIMEOUT,
+    ERROR_UNEXP_NET_ERR, WIN32_ERROR,
 };
 
 #[cfg(windows)]
 const USER_CANCELLED: windows::core::HRESULT = windows::core::HRESULT(0x8027_0000_u32 as i32);
+
+#[cfg(windows)]
+const OFFLINE: [WIN32_ERROR; 10] = [
+    ERROR_BAD_NETPATH,
+    ERROR_BAD_NET_NAME,
+    ERROR_NETNAME_DELETED,
+    ERROR_NETWORK_UNREACHABLE,
+    ERROR_HOST_UNREACHABLE,
+    ERROR_SEM_TIMEOUT,
+    ERROR_UNEXP_NET_ERR,
+    ERROR_CONNECTION_UNAVAIL,
+    ERROR_NO_NET_OR_BAD_PATH,
+    ERROR_NOT_CONNECTED,
+];
 
 #[derive(Debug)]
 pub enum Error {
@@ -99,6 +116,10 @@ impl From<windows::core::Error> for Error {
             return Error::NotReady;
         }
 
+        if OFFLINE.into_iter().any(is) {
+            return Error::Unreachable;
+        }
+
         if [
             ERROR_FILE_NOT_FOUND,
             ERROR_PATH_NOT_FOUND,
@@ -124,6 +145,13 @@ impl From<WIN32_ERROR> for Error {
 
 impl From<std::io::Error> for Error {
     fn from(error: std::io::Error) -> Self {
+        #[cfg(windows)]
+        if let Some(code) = error.raw_os_error() {
+            if OFFLINE.into_iter().any(|known| known.0 == code as u32) {
+                return Error::Unreachable;
+            }
+        }
+
         match error.kind() {
             std::io::ErrorKind::NotFound => Error::Missing,
             std::io::ErrorKind::PermissionDenied => Error::Denied,

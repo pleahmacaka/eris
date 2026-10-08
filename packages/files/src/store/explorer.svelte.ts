@@ -94,6 +94,14 @@ export class Explorer {
 
   dropKey = $state<string | null>(null)
 
+  dropHint = $state<{
+    x: number
+    y: number
+    into: string
+    move: boolean
+    count: number
+  } | null>(null)
+
   arrangeable = $derived(!(this.tab.location === THIS_PC && !this.tab.results))
 
   own = $derived(prefs.folderViews[groupKeyOf(this.tab.location)])
@@ -317,11 +325,11 @@ export class Explorer {
     }
   }
 
-  async drop(paths: string[], target: string | null = null) {
+  dropPlan(paths: string[], target: string | null = null) {
     const into = target ?? (this.filesystem ? this.tab.location : null)
 
     if (!into || !paths.length) {
-      return
+      return null
     }
 
     const inside = (path: string) =>
@@ -333,13 +341,20 @@ export class Explorer {
       ? sources.filter(path => !sameLocation(parentOf(path) ?? "", into))
       : sources
 
-    if (!changed.length) {
+    return changed.length ? { into, move, changed } : null
+  }
+
+  async drop(paths: string[], target: string | null = null) {
+    const plan = this.dropPlan(paths, target)
+
+    if (!plan) {
       return
     }
 
-    await (move ? native.moveItems : native.copyItems)(changed, into).catch(
-      fail,
-    )
+    await (plan.move ? native.moveItems : native.copyItems)(
+      plan.changed,
+      plan.into,
+    ).catch(fail)
     await this.tab.refresh()
   }
 
@@ -353,13 +368,23 @@ export class Explorer {
     }
   }
 
+  renamable = (item: Item) =>
+    this.filesystem ||
+    !!item.drive ||
+    places.network.some(place => sameLocation(place.path, item.path))
+
   rename() {
     const target = this.focused ?? this.selected[0]
 
-    if (target && (this.filesystem || target.drive)) {
+    if (target && this.renamable(target)) {
       this.tab.select([target.key])
       this.tab.renaming = target.key
     }
+  }
+
+  async renamePlace(location: string) {
+    await this.tab.open(THIS_PC, { select: location })
+    this.rename()
   }
 
   async commitRename(item: Item, draft: string) {
@@ -368,6 +393,24 @@ export class Explorer {
     if (item.drive) {
       tab.renaming = null
       nameDrive(item.drive, draft)
+
+      return tab.refresh()
+    }
+
+    const place = places.network.find(entry =>
+      sameLocation(entry.path, item.path),
+    )
+
+    if (place) {
+      tab.renaming = null
+
+      const name = draft.trim()
+      const link = place.entry.toLowerCase().endsWith(".lnk") ? ".lnk" : ""
+
+      if (name && name !== place.name) {
+        await native.renameItem(place.entry, `${name}${link}`).catch(fail)
+        await refreshPlaces()
+      }
 
       return tab.refresh()
     }

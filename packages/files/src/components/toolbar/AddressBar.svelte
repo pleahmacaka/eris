@@ -178,10 +178,15 @@
 <div
   bind:clientWidth={barWidth}
   class={[
-    "relative flex h-8 min-w-0 grow items-center rounded-field border",
+    "relative isolate flex h-8 min-w-0 grow items-center rounded-field border",
     "border-base-content/10 bg-base-content/5 text-sm",
   ]}
+  aria-busy={tab.loading || tab.searching}
 >
+  {#if tab.loading || tab.searching}
+    <span class="busy pointer-events-none absolute inset-y-0 left-0 -z-10 rounded-field bg-primary/15"></span>
+  {/if}
+
   {#if editing}
     <input
       bind:this={field}
@@ -273,3 +278,27 @@
     ></button>
   {/if}
 </div>
+
+<style>
+  .busy {
+    animation:
+      busy-show 160ms ease-out 200ms both,
+      busy-fill 12s cubic-bezier(0.1, 0.7, 0.3, 1) 200ms both;
+  }
+
+  @keyframes busy-show {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes busy-fill {
+    from {
+      width: 0%;
+    }
+
+    to {
+      width: 92%;
+    }
+  }
+</style>

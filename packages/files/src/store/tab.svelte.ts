@@ -11,15 +11,18 @@ import {
 } from "../items"
 import {
   HOME,
+  isUnc,
   isVirtual,
   normalize,
   parentOf,
+  pathKey,
   SHARED,
   sameLocation,
   THIS_PC,
 } from "../locations"
 import {
   cancelSearch,
+  type Listing,
   listDir,
   listShell,
   randomToken,
@@ -95,6 +98,49 @@ const reconnect = async (location: string) => {
   }
 }
 
+const NETWORK_WAIT = 8000
+
+const onNetwork = (location: string) =>
+  isUnc(location) ||
+  places.drives.some(
+    drive =>
+      drive.kind === "network" &&
+      sameLocation(drive.path, location.slice(0, 3)),
+  )
+
+const late = new Map<string, Promise<Listing>>()
+
+const whenLate = (location: string, apply: () => boolean) => {
+  const key = pathKey(normalize(location))
+
+  late.get(key)?.then(
+    () => apply() || late.delete(key),
+    () => undefined,
+  )
+}
+
+// an unreachable SMB share stalls the listing for the OS timeout, so the tab stops waiting but keeps the request
+const listOnline = (location: string) => {
+  if (!onNetwork(location)) {
+    return listDir(location)
+  }
+
+  const key = pathKey(location)
+  const listing = late.get(key) ?? listDir(location)
+
+  late.delete(key)
+
+  return new Promise<Listing>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      late.set(key, listing)
+      listing.catch(() => late.delete(key))
+      reject("unreachable")
+    }, NETWORK_WAIT)
+
+    listing.then(resolve, reject).finally(() => clearTimeout(timer))
+  })
+}
+
 const kindOf = (location: string): TabKind =>
   location === SHARED
     ? "shared"
@@ -159,7 +205,7 @@ const load = async (location: string, useCache: boolean): Promise<Loaded> => {
   }
 
   const prefetched = useCache ? takePrefetched(location) : null
-  const listing = await (prefetched ?? listDir(normalize(location)))
+  const listing = await (prefetched ?? listOnline(normalize(location)))
 
   return {
     ...plain,
@@ -281,6 +327,16 @@ export class Tab {
       this.#record(this.location, options.record ?? true)
       this.#unwatch()
       this.select([])
+      whenLate(location, () => {
+        const waiting =
+          this.error === "unreachable" && sameLocation(this.location, location)
+
+        if (waiting) {
+          this.refresh()
+        }
+
+        return waiting
+      })
     } finally {
       if (sequence === this.#sequence) {
         this.loading = false

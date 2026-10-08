@@ -397,6 +397,12 @@ const placeMenu = (x: Explorer, place: Place): MenuItem[] => {
     },
     "separator",
     !SINGLE.includes(location) && !isVirtual(location) && pinItem(x, location),
+    (section === "network" ||
+      (section === "drives" && location !== THIS_PC)) && {
+      label: command("rename"),
+      icon: "lucide:pencil",
+      action: () => x.renamePlace(location),
+    },
     hide && {
       label: tr("explorer.sidebar.hide"),
       icon: "lucide:eye-off",

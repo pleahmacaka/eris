@@ -8,6 +8,7 @@
   import { openMenu } from "../../store/menus"
   import { driveLabel } from "../../store/places.svelte"
   import { prefetchOnHover } from "../../store/prefetch"
+  import { middleClick } from "../middleClick"
   import { prefs, SORT_KEYS } from "../../store/prefs.svelte"
   import { cellText, kindText } from "./cells"
   import ItemIcon from "./ItemIcon.svelte"
@@ -75,6 +76,7 @@
   tabindex="-1"
   data-key={item.key}
   {@attach prefetchOnHover(item.dir ? item.path : null)}
+  {@attach item.dir && middleClick(() => explorer.openInTab(item.path))}
   aria-selected={selected}
   title={view === "details" ? undefined : item.name}
   class={[

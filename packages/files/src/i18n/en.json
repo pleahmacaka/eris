@@ -192,14 +192,17 @@
       "missing": "Location not found",
       "notReady": "Device not ready",
       "noPreview": "No preview",
-      "selectToPreview": "Select a file to preview."
+      "selectToPreview": "Select a file to preview.",
+      "unreachable": "Network location unavailable",
+      "reconnect": "Reconnect"
     },
     "errors": {
       "denied": "Access denied",
       "missing": "Location not found",
       "notReady": "Device not ready",
       "password": "Password-protected archive",
-      "unsupported": "Unsupported format"
+      "unsupported": "Unsupported format",
+      "unreachable": "Network location unavailable"
     },
     "settings": {
       "title": "Settings",
@@ -353,15 +356,17 @@
         "on": "On",
         "off": "Off"
       }
+    },
+    "drop": {
+      "move": "Move",
+      "copy": "Copy",
+      "items": "{count} items"
     }
   },
   "terminal": {
     "title": "Terminal",
     "toggle": "Terminal (Ctrl+`)",
-    "new": "New terminal",
-    "kill": "Kill terminal",
     "close": "Close panel",
-    "exited": "Session ended",
     "resize": "Resize",
     "settings": {
       "position": "Panel position",
@@ -370,7 +375,10 @@
       "shell": "Default shell",
       "font": "Font",
       "fontHint": "Enter a font family name."
-    }
+    },
+    "popOut": "Open in Eris Terminal",
+    "toSide": "Move to right side",
+    "toBottom": "Move to bottom"
   },
   "share": {
     "action": "Share",
