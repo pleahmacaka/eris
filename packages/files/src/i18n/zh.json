@@ -196,6 +196,12 @@
       "unreachable": "无法连接网络位置",
       "reconnect": "重新连接"
     },
+    "peek": {
+        "items": "{count} 个项目",
+        "more": "另外 {count} 个",
+        "archive": "压缩包内 {count} 个项目",
+        "documentFailed": "无法打开文档"
+    },
     "errors": {
       "denied": "拒绝访问",
       "missing": "找不到位置",

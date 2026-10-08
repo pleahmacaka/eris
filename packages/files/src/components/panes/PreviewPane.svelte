@@ -2,23 +2,35 @@
   import { currentLocale } from "@eris/i18n"
   import { Splitter } from "@eris/ui"
   import { t } from "svelte-i18n"
+  import { docKind } from "@eris/doc-preview"
   import ItemIcon from "../items/ItemIcon.svelte"
+  import DocumentPeek from "./DocumentPeek.svelte"
+  import FolderPeek from "./FolderPeek.svelte"
   import ZoomImage from "./ZoomImage.svelte"
   import { formatBytes, formatDate } from "../../format"
-  import type { Item } from "../../items"
+  import { fromArchive, fromListing, type Item, packedEntry } from "../../items"
   import { type FileKind, kindOf } from "../../filetypes"
   import { isVirtual, parentOf } from "../../locations"
-  import { allowPreview, assetUrl, previewText } from "../../native"
+  import {
+    allowPreview,
+    assetUrl,
+    extractEntry,
+    listArchive,
+    listDir,
+    previewText,
+  } from "../../native"
+  import { isArchive } from "../../store/archive.svelte"
   import { prefs } from "../../store/prefs.svelte"
   import { confirmPrivate } from "../../store/privacy.svelte"
 
-  type Kind = Exclude<FileKind, "model">
+  type Kind = Exclude<FileKind, "model"> | "document" | "folder" | "archive"
 
   type Shown = {
     key: string
     kind: Kind | null
     url: string
     text: string
+    children: Item[]
   }
 
   let { item }: { item: Item | null } = $props()
@@ -26,38 +38,63 @@
   let shown = $state<Shown | null>(null)
 
   const previewKind = (target: Item): Kind | null => {
+    if (docKind(target.name)) {
+      return "document"
+    }
+
     const kind = kindOf(target.name)
 
     return kind === "model" ? "text" : kind
   }
 
-  const load = async (target: Item): Promise<Shown> => {
-    const kind = previewKind(target)
-    const blank = { key: target.key, kind: null, url: "", text: "" }
+  const children = async (target: Item) => {
+    if (target.packed) {
+      const listing = await listArchive(target.packed)
 
-    if (!kind) {
-      return blank
+      return fromArchive(target.path, target.packed, packedEntry(target), listing)
     }
+
+    if (target.dir) {
+      return fromListing(await listDir(target.path))
+    }
+
+    return fromArchive(target.path, target.path, "", await listArchive(target.path))
+  }
+
+  const load = async (target: Item): Promise<Shown> => {
+    const blank = { key: target.key, kind: null, url: "", text: "", children: [] }
 
     if (!(await confirmPrivate(target.path, parentOf(target.path) ?? ""))) {
       return blank
     }
 
+    if (target.dir || (!target.packed && isArchive(target.name))) {
+      return { ...blank, kind: target.dir ? "folder" : "archive", children: await children(target) }
+    }
+
+    const kind = previewKind(target)
+
+    if (!kind) {
+      return blank
+    }
+
+    const path = target.packed ? await extractEntry(target.packed, packedEntry(target)) : target.path
+
     if (kind === "text") {
-      const text = await previewText(target.path).catch(() => "")
+      const text = await previewText(path).catch(() => "")
 
       return text ? { ...blank, kind, text } : blank
     }
 
-    await allowPreview(target.path)
+    await allowPreview(path)
 
-    return { ...blank, kind, url: assetUrl(target.path) }
+    return { ...blank, kind, url: assetUrl(path) }
   }
 
   $effect(() => {
     const target = item
 
-    if (!target || target.dir || target.packed || isVirtual(target.path)) {
+    if (!target || isVirtual(target.path)) {
       shown = null
 
       return
@@ -66,7 +103,7 @@
     let live = true
 
     load(target)
-      .catch(() => ({ key: target.key, kind: null, url: "", text: "" }))
+      .catch(() => ({ key: target.key, kind: null, url: "", text: "", children: [] }))
       .then(next => {
         if (live) {
           shown = next
@@ -131,7 +168,16 @@
         "rounded-box bg-base-content/5",
       ]}
     >
-      {#if current?.kind === "image"}
+      {#if current?.kind === "folder" || current?.kind === "archive"}
+        <FolderPeek
+          items={current.children}
+          label={$t(current.kind === "folder" ? "explorer.peek.items" : "explorer.peek.archive", {
+            values: { count: current.children.length },
+          })}
+        />
+      {:else if current?.kind === "document"}
+        <DocumentPeek url={current.url} name={item.name} />
+      {:else if current?.kind === "image"}
         {#key current.url}
           <ZoomImage src={current.url} alt={item.name} />
         {/key}

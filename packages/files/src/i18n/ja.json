@@ -196,6 +196,12 @@
       "unreachable": "ネットワークの場所に接続できません",
       "reconnect": "再接続"
     },
+    "peek": {
+        "items": "{count}個の項目",
+        "more": "ほか{count}個",
+        "archive": "アーカイブ内の項目 {count}個",
+        "documentFailed": "文書を開けません"
+    },
     "errors": {
       "denied": "アクセス拒否",
       "missing": "場所が見つかりません",

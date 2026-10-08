@@ -1,0 +1,26 @@
+{
+  "name": "@eris/doc-preview",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "check": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@e965/xlsx": "^0.20.3",
+    "@rhwp/core": "^0.8.7",
+    "docx-preview": "^0.4.1",
+    "jszip": "^3.10.2"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.2",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16"
+  }
+}

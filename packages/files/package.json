@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@eris/auth": "workspace:*",
+    "@eris/doc-preview": "workspace:*",
     "@eris/i18n": "workspace:*",
     "@eris/model-viewer": "workspace:*",
     "@eris/settings": "workspace:*",

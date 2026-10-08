@@ -196,6 +196,12 @@
       "unreachable": "네트워크 위치 연결 안 됨",
       "reconnect": "재연결"
     },
+    "peek": {
+        "items": "항목 {count}개",
+        "more": "외 {count}개",
+        "archive": "압축 파일 항목 {count}개",
+        "documentFailed": "문서를 열 수 없음"
+    },
     "errors": {
       "denied": "접근 권한 없음",
       "missing": "위치 없음",

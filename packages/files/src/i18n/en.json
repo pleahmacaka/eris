@@ -196,6 +196,12 @@
       "unreachable": "Network location unavailable",
       "reconnect": "Reconnect"
     },
+    "peek": {
+        "items": "{count} items",
+        "more": "+{count} more",
+        "archive": "{count} items in archive",
+        "documentFailed": "Cannot open document"
+    },
     "errors": {
       "denied": "Access denied",
       "missing": "Location not found",
