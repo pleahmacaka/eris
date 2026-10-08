@@ -45,6 +45,8 @@
     themeFromLink,
   } from "$lib/settings-ui"
   import { Confirm, Logo, Toasts } from "@eris/ui"
+  import { Ssgoi } from "@ssgoi/svelte"
+  import { swapConfig } from "$lib/motion"
   import { toast } from "@eris/ui"
   import { applyAppearance } from "$lib/theme"
   import { t } from "svelte-i18n"
@@ -84,7 +86,9 @@
   }
 
   const groupElements = () => [
-    ...(scroller?.querySelectorAll<HTMLElement>("section[data-group]") ?? []),
+    ...(scroller
+      ?.querySelector(`[data-ssgoi-transition="/settings/${section}"]`)
+      ?.querySelectorAll<HTMLElement>("section[data-group]") ?? []),
   ]
 
   const collectGroups = () => {
@@ -356,68 +360,74 @@
 
     <div
       bind:this={scroller}
-      class="min-h-0 grow overflow-y-auto px-5 pb-6"
+      class="relative min-h-0 grow overflow-y-auto px-5 pb-6"
       onscroll={spyGroup}
     >
       {#if ready}
-        <div class="mb-3">
-          <h2 class="text-xl font-semibold tracking-tight">
-            {$t(`settings.sections.${section}.label`)}
-          </h2>
+        <Ssgoi config={swapConfig}>
+          {#key section}
+            <div data-ssgoi-transition="/settings/{section}">
+              <div class="mb-3">
+                <h2 class="text-xl font-semibold tracking-tight">
+                  {$t(`settings.sections.${section}.label`)}
+                </h2>
 
-          <p class="text-sm text-base-content/60">{$t(`settings.sections.${section}.blurb`)}</p>
-        </div>
+                <p class="text-sm text-base-content/60">{$t(`settings.sections.${section}.blurb`)}</p>
+              </div>
 
-        {#if groups.length > 1}
-          <nav
-            aria-label={$t("settings.tocAria")}
-            class="sticky top-0 z-10 -mx-5 mb-3 flex flex-wrap gap-1.5 border-b border-base-content/10 bg-base-100/90 px-5 py-2 backdrop-blur-md"
-          >
-            {#each groups as group (group)}
-              {@const active = activeGroup === group}
+              {#if groups.length > 1}
+                <nav
+                  aria-label={$t("settings.tocAria")}
+                  class="sticky top-0 z-10 -mx-5 mb-3 flex flex-wrap gap-1.5 border-b border-base-content/10 bg-base-100/90 px-5 py-2 backdrop-blur-md"
+                >
+                  {#each groups as group (group)}
+                    {@const active = activeGroup === group}
 
-              <button
-                type="button"
-                class={[
-                  "btn btn-xs rounded-full font-medium",
-                  active ? "btn-primary" : "btn-ghost bg-base-content/5",
-                ]}
-                aria-current={active ? "true" : undefined}
-                onclick={() => jumpGroup(group)}
-              >
-                {group}
-              </button>
-            {/each}
-          </nav>
-        {/if}
+                    <button
+                      type="button"
+                      class={[
+                        "btn btn-xs rounded-full font-medium",
+                        active ? "btn-primary" : "btn-ghost bg-base-content/5",
+                      ]}
+                      aria-current={active ? "true" : undefined}
+                      onclick={() => jumpGroup(group)}
+                    >
+                      {group}
+                    </button>
+                  {/each}
+                </nav>
+              {/if}
 
-        <div class="flex flex-col gap-4">
-          {#if section === "general"}
-            <GeneralSection bind:device onreset={resetOnboarding} />
-          {:else if section === "dock"}
-            <DockSection bind:device bind:profile />
-          {:else if section === "tray"}
-            <TraySection bind:device />
-          {:else if section === "launcher"}
-            <LauncherSection bind:profile bind:device />
-          {:else if section === "appearance"}
-            <AppearanceSection bind:profile />
-          {:else if section === "calendar"}
-            <CalendarSection bind:profile bind:device />
-          {:else if section === "note"}
-            <NoteSection bind:device />
-          {:else if section === "sync"}
-            <SyncPanel bind:device />
-          {:else if section === "account"}
-            <AccountSection />
-          {:else if section === "data"}
-            <DataSection bind:device bind:profile />
-          {:else if section === "about"}
-            <AboutSection />
-          {:else if section === "experimental"}
-            <ExperimentalSection bind:device />
-          {/if}
-        </div>
+              <div class="flex flex-col gap-4">
+                {#if section === "general"}
+                  <GeneralSection bind:device onreset={resetOnboarding} />
+                {:else if section === "dock"}
+                  <DockSection bind:device bind:profile />
+                {:else if section === "tray"}
+                  <TraySection bind:device />
+                {:else if section === "launcher"}
+                  <LauncherSection bind:profile bind:device />
+                {:else if section === "appearance"}
+                  <AppearanceSection bind:profile />
+                {:else if section === "calendar"}
+                  <CalendarSection bind:profile bind:device />
+                {:else if section === "note"}
+                  <NoteSection bind:device />
+                {:else if section === "sync"}
+                  <SyncPanel bind:device />
+                {:else if section === "account"}
+                  <AccountSection />
+                {:else if section === "data"}
+                  <DataSection bind:device bind:profile />
+                {:else if section === "about"}
+                  <AboutSection />
+                {:else if section === "experimental"}
+                  <ExperimentalSection bind:device />
+                {/if}
+              </div>
+            </div>
+          {/key}
+        </Ssgoi>
       {:else}
         <div class="flex h-full items-center justify-center">
           <span class="loading loading-spinner loading-md text-primary"></span>

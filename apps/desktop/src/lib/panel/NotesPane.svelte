@@ -166,7 +166,7 @@
   })
 </script>
 
-<div class="flex h-full min-h-0 flex-col">
+<div class="flex h-full min-h-0 flex-col select-text">
   <header
     class="flex min-h-14 items-center gap-2 border-b border-base-300 px-3 py-3"
   >

@@ -3,10 +3,9 @@
   import { untrack } from "svelte"
   import { t } from "svelte-i18n"
   import { currentLocale } from "@eris/i18n"
-  import { dateLabel, dayPeriod, eventSpan, shortDay, tagLabel } from "$lib/calendar"
+  import { dateLabel, dayPeriod, tagLabel } from "$lib/calendar"
   import {
     addDays,
-    citationOf,
     events,
     isDone,
     type Occurrence,
@@ -14,6 +13,8 @@
     RECURRENCES,
     type Scope,
     SHIFTS,
+    setNotesSync,
+    shareOccurrenceNotes,
     shiftable,
   } from "$lib/data"
   import { colorMeta } from "./colors"
@@ -25,13 +26,14 @@
     isValid,
     type Seed,
   } from "./draft"
-  import { type NotePage, notePages } from "$lib/native"
+  import MemoEditor from "./MemoEditor.svelte"
   import NoteText from "./NoteText.svelte"
   import type { Panel } from "./panel.svelte"
+  import RelationField from "./RelationField.svelte"
   import ScopeSheet from "./ScopeSheet.svelte"
   import TagPicker from "./TagPicker.svelte"
 
-  type Field = "date" | "repeat" | "reminder" | "tags" | "parent" | "task" | "add"
+  type Field = "date" | "repeat" | "reminder" | "tags" | "task" | "add"
 
   const { panel }: { panel: Panel } = $props()
 
@@ -60,14 +62,13 @@
   let open = $state<Field | null>(null)
   let writingNotes = $state(false)
   let scope: Scope | null = null
-  let reference = $state<{ from: number; to: number } | null>(null)
-  let pages = $state<NotePage[]>([])
-  let picked = $state(0)
-  let lookup: ReturnType<typeof setTimeout> | undefined
-
-  const LOOKUP_DELAY = 120
-
   const referencing = $derived(panel.device.note.enabled && panel.device.note.references)
+
+  $effect(() => {
+    const idle = requestIdleCallback(() => import("@eris/live-editor"))
+
+    return () => cancelIdleCallback(idle)
+  })
 
   $effect(() => {
     const current = event
@@ -111,23 +112,12 @@
     panel.profile.calendar.tags.filter(tag => draft.tags.includes(tag.id)),
   )
 
-  const parent = $derived(event ? panel.parentOf(event) : undefined)
-
-  const children = $derived(event && !event.parentId ? panel.childrenOf(event) : [])
-
   const locked = $derived(event !== null && panel.hasChildren(event))
-
-  const parentChoices = $derived(
-    panel.shown
-      .filter(e => e.id !== event?.id && panel.isRoot(e))
-      .sort((a, b) => parseLocal(b.start).getTime() - parseLocal(a.start).getTime()),
-  )
 
   const optional = $derived<Field[]>(
     [
       draft.reminder === null && "reminder",
       draft.tags.length === 0 && "tags",
-      draft.parent === null && !locked && "parent",
       !draft.task && "task",
     ].filter((field): field is Field => field !== false),
   )
@@ -206,12 +196,12 @@
     return lastDay ? `${start} – ${lastDay} ${spoken(draft.end)}` : `${start} – ${spoken(draft.end)}`
   })
 
-  const unchanged = () =>
+  const matchesEvent = (next: Draft) =>
     event !== null &&
-    JSON.stringify(draftFrom(event, seed, reminderDefault())) === JSON.stringify(draft)
+    JSON.stringify(draftFrom(event, seed, reminderDefault())) === JSON.stringify(next)
 
   const commit = async () => {
-    if (!isValid(draft) || unchanged()) {
+    if (!isValid(draft) || matchesEvent(draft)) {
       return
     }
 
@@ -219,6 +209,12 @@
       if (view.kind === "new") {
         await panel.createEvent(eventFrom(draft, undefined, Date.now()))
       }
+
+      return
+    }
+
+    if (event.seriesDate && event.notesSync && matchesEvent({ ...draft, notes: event.notes })) {
+      await shareOccurrenceNotes(event, draft.notes)
 
       return
     }
@@ -264,68 +260,6 @@
   const titleKey = (e: KeyboardEvent & { currentTarget: HTMLInputElement }) => {
     if (e.key === "Enter") {
       e.currentTarget.blur()
-    }
-  }
-
-  const findReference = (area: HTMLTextAreaElement) => {
-    const caret = area.selectionStart
-    const before = area.value.slice(0, caret)
-    const from = before.lastIndexOf("[[")
-    const query = from < 0 ? "" : before.slice(from + 2)
-
-    clearTimeout(lookup)
-
-    if (!referencing || from < 0 || query.includes("]") || query.includes("\n")) {
-      reference = null
-      pages = []
-
-      return
-    }
-
-    reference = { from, to: caret }
-    lookup = setTimeout(() => {
-      notePages(query)
-        .then(found => {
-          pages = found
-          picked = 0
-        })
-        .catch(() => (pages = []))
-    }, LOOKUP_DELAY)
-  }
-
-  const insertReference = (area: HTMLTextAreaElement, page: NotePage) => {
-    if (!reference) {
-      return
-    }
-
-    const link = citationOf(page.title, page.path)
-    const next = draft.notes.slice(0, reference.from) + link + draft.notes.slice(reference.to)
-    const caret = reference.from + link.length
-
-    draft = { ...draft, notes: next }
-    area.value = next
-    area.setSelectionRange(caret, caret)
-    reference = null
-    pages = []
-  }
-
-  // the panel closes the detail on Escape, so the suggestion list keeps its keys
-  const notesKey = (e: KeyboardEvent & { currentTarget: HTMLTextAreaElement }) => {
-    if (!reference || pages.length === 0) {
-      return
-    }
-
-    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-      e.preventDefault()
-      picked = (picked + (e.key === "ArrowDown" ? 1 : pages.length - 1)) % pages.length
-    } else if (e.key === "Enter" || e.key === "Tab") {
-      e.preventDefault()
-      insertReference(e.currentTarget, pages[picked])
-    } else if (e.key === "Escape") {
-      e.preventDefault()
-      e.stopPropagation()
-      reference = null
-      pages = []
     }
   }
 
@@ -402,26 +336,37 @@
       onchange={e => e.currentTarget.value && change({ date: e.currentTarget.value })}
     />
 
-    <label class="flex cursor-pointer items-center justify-between">
-      {$t("panel.allDay")}
-      <input
-        type="checkbox"
-        class="toggle toggle-primary toggle-sm"
-        checked={draft.allDay}
-        onchange={e => change({ allDay: e.currentTarget.checked })}
-      />
-    </label>
-
-    {#if !draft.allDay}
+    {#if draft.allDay}
+      <button
+        type="button"
+        class="btn btn-ghost btn-xs justify-start"
+        onclick={() => change({ allDay: false })}
+      >
+        <Icon icon="lucide:plus" class="size-3.5" />
+        {$t("panel.event.addTime")}
+      </button>
+    {:else}
       <div class="flex items-center gap-2">
-        <input
-          type="time"
-          class="time-field input input-sm min-w-0 flex-1 cursor-pointer tabular-nums"
-          aria-label={$t("panel.event.start")}
-          value={draft.start}
-          onclick={pickTime}
-          onchange={e => e.currentTarget.value && change({ start: e.currentTarget.value })}
-        />
+        <label class="input input-sm min-w-0 flex-1 gap-0 pr-1">
+          <input
+            type="time"
+            class="time-field min-w-0 grow cursor-pointer tabular-nums"
+            aria-label={$t("panel.event.start")}
+            value={draft.start}
+            onclick={pickTime}
+            onchange={e => e.currentTarget.value && change({ start: e.currentTarget.value })}
+          />
+
+          <button
+            type="button"
+            class="btn btn-ghost btn-circle btn-xs shrink-0 text-base-content/60"
+            aria-label={$t("panel.event.removeTime")}
+            title={$t("panel.event.removeTime")}
+            onclick={() => change({ allDay: true })}
+          >
+            <Icon icon="lucide:x" class="size-3.5" />
+          </button>
+        </label>
 
         {#if draft.hasEnd}
           <span class="text-base-content/50">–</span>
@@ -502,17 +447,6 @@
       {panel}
       bind:selected={() => draft.tags, next => change({ tags: next })}
     />
-  {:else if field === "parent"}
-    <select
-      class="select select-sm w-full"
-      value={draft.parent}
-      onchange={e => change({ parent: e.currentTarget.value || null })}
-    >
-      <option value="">{$t("common.none")}</option>
-      {#each parentChoices as option (option.id)}
-        <option value={option.id}>{option.title}, {shortDay(parseLocal(option.start))}</option>
-      {/each}
-    </select>
   {:else if field === "task"}
     <label class="flex cursor-pointer items-center justify-between">
       {$t("panel.task.label")}
@@ -526,7 +460,7 @@
   {/if}
 {/snippet}
 
-<div class="flex h-full min-h-0 flex-col">
+<div class="flex h-full min-h-0 flex-col select-text">
   <header class="flex min-h-14 items-center gap-2 border-b border-base-300 px-3 py-3">
     <button
       type="button"
@@ -613,13 +547,6 @@
         </div>
       {/if}
 
-      {#if draft.parent !== null || open === "parent"}
-        <div class="flex gap-3">
-          {@render label($t("panel.event.parent"))}
-          {@render value("parent", () => parent?.title ?? $t("common.none"))}
-        </div>
-      {/if}
-
       {#if draft.task}
         <div class="flex gap-3">
           {@render label($t("panel.task.label"))}
@@ -650,108 +577,43 @@
       {/if}
     </dl>
 
-    {#if event && !event.parentId}
-      <div class="mt-5 flex flex-col gap-1.5 border-t border-base-300 pt-4">
-        <span class="text-2xs font-medium text-base-content/60">
-          {$t("panel.event.children")}
-        </span>
-
-        {#if children.length > 0}
-          <ul class="-mx-2 flex flex-col">
-            {#each children as child (child.id)}
-              <li>
-                <button
-                  type="button"
-                  class="flex w-full cursor-pointer items-start gap-2.5 rounded-field px-2 py-1.5 text-left transition-colors duration-120 hover:bg-base-content/5"
-                  onclick={() => panel.show(child)}
-                >
-                  <span
-                    class={["mt-1.5 size-2 shrink-0 rounded-full", colorMeta[panel.colorOf(child.tags)].chip]}
-                  ></span>
-                  <span class="flex min-w-0 flex-1 flex-col">
-                    <span class={["text-sm font-medium break-words", isDone(child) && "line-through opacity-60"]}>
-                      {child.title}
-                    </span>
-                    <span class="text-2xs tabular-nums text-base-content/60">
-                      {shortDay(parseLocal(child.start))}
-                      {eventSpan(child, $t("panel.allDay"))}
-                    </span>
-                  </span>
-                </button>
-              </li>
-            {/each}
-          </ul>
-        {/if}
-
-        <button
-          type="button"
-          class="btn btn-ghost btn-sm justify-start"
-          onclick={() => panel.startChild(event)}
-        >
-          <Icon icon="lucide:plus" class="size-3.5" />
-          {$t("panel.event.addChild")}
-        </button>
-      </div>
-    {/if}
+    <RelationField
+      {panel}
+      {event}
+      parent={draft.parent}
+      {locked}
+      onparent={id => change({ parent: id })}
+    />
 
     <div class="mt-5 flex flex-col gap-1.5 border-t border-base-300 pt-4">
       <span class="text-2xs font-medium text-base-content/60">
         {$t("panel.event.notes")}
       </span>
 
+      {#if event?.seriesDate}
+        {@const occurrence = event}
+        <label class="flex cursor-pointer items-center gap-1.5 text-2xs text-base-content/45">
+          {$t(occurrence.notesSync ? "panel.event.notesSync.all" : "panel.event.notesSync.ask")}
+          <span class="ml-auto text-base-content/60">{$t("panel.event.notesSync.label")}</span>
+          <input
+            type="checkbox"
+            class="toggle toggle-primary toggle-xs"
+            checked={occurrence.notesSync ?? false}
+            onchange={e => setNotesSync(occurrence, e.currentTarget.checked)}
+          />
+        </label>
+      {/if}
+
       {#if writingNotes}
-        <div class="relative">
-          <textarea
-            class={[
-              "-mx-2 block w-[calc(100%+1rem)] resize-none rounded-field bg-base-content/6 px-2 py-1",
-              "text-sm outline-none [field-sizing:content] placeholder:text-base-content/45",
-            ]}
-            rows="1"
-            placeholder={$t("panel.event.writeNotes")}
-            value={draft.notes}
-            {@attach node => node.focus()}
-            oninput={e => {
-              draft.notes = e.currentTarget.value
-              findReference(e.currentTarget)
-            }}
-            onkeydown={notesKey}
-            onblur={() => {
-              writingNotes = false
-              reference = null
-              pages = []
-              commit()
-            }}
-          ></textarea>
-
-          {#if reference && pages.length > 0}
-            <ul class="eris-card absolute top-full left-0 z-30 mt-1 flex w-full flex-col p-1 text-sm">
-              {#each pages as page, index (page.path)}
-                <li>
-                  <button
-                    type="button"
-                    class={[
-                      "flex w-full min-w-0 items-center gap-2 rounded-field px-2 py-1.5 text-left",
-                      index === picked ? "bg-base-content/8" : "hover:bg-base-content/6",
-                    ]}
-                    onmousedown={e => {
-                      e.preventDefault()
-
-                      const area = e.currentTarget.closest("div")?.querySelector("textarea")
-
-                      if (area) {
-                        insertReference(area, page)
-                      }
-                    }}
-                  >
-                    <Icon icon="lucide:file-text" class="size-3.5 shrink-0 text-primary" />
-                    <span class="min-w-0 truncate">{page.title}</span>
-                    <span class="ml-auto min-w-0 truncate text-2xs text-base-content/45">{page.path}</span>
-                  </button>
-                </li>
-              {/each}
-            </ul>
-          {/if}
-        </div>
+        <MemoEditor
+          text={draft.notes}
+          references={referencing}
+          onchange={notes => (draft.notes = notes)}
+          onblur={() => {
+            writingNotes = false
+            commit()
+          }}
+        />
       {:else}
         <div
           role="button"

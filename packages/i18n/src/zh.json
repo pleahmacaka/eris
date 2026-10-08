@@ -1024,7 +1024,27 @@
         "yearly": "每年{date}"
       },
       "writeNotes": "输入备注",
-      "noteEmpty": "无内容"
+      "noteEmpty": "无内容",
+      "notesSync": {
+        "label": "同步",
+        "all": "应用于所有日程",
+        "ask": "保存时选择应用范围"
+      },
+      "addTime": "添加时间",
+      "removeTime": "移除时间",
+      "blocks": {
+        "text": "正文",
+        "h1": "标题 1",
+        "h2": "标题 2",
+        "h3": "标题 3",
+        "todo": "待办",
+        "bullet": "项目符号列表",
+        "number": "编号列表",
+        "quote": "引用",
+        "code": "代码块",
+        "divider": "分隔线",
+        "date": "今天的日期"
+      }
     },
     "ics": {
       "options": "日历选项",
@@ -1107,7 +1127,28 @@
     "clock": {
       "hour": "{period}{hour}点",
       "minute": "{period}{hour}点{minute}分"
-    }
+    },
+    "group": {
+      "title": "分组",
+      "leave": "取消分组"
+    },
+    "hiddenCount": "已隐藏 {count} 项",
+    "relation": {
+      "title": "关系",
+      "add": "添加关系",
+      "parent": "上级",
+      "child": "下级",
+      "group": "分组",
+      "remove": "解除关系",
+      "search": "搜索日程",
+      "empty": "无日程",
+      "actions": {
+        "parent": "设置上级日程",
+        "child": "添加下级日程",
+        "group": "合并为分组"
+      }
+    },
+    "hideAgain": "重新隐藏 {count} 项"
   },
   "files": {
     "forward": "前进",

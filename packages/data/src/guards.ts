@@ -77,7 +77,9 @@ export const isCalendarEvent = (value: unknown): value is CalendarEvent =>
   optionalText(value.originalDate) &&
   (value.task === undefined || isBoolean(value.task)) &&
   (value.done === undefined ||
-    (Array.isArray(value.done) && value.done.every(isString)))
+    (Array.isArray(value.done) && value.done.every(isString))) &&
+  (value.notesSync === undefined || isBoolean(value.notesSync)) &&
+  optionalText(value.group)
 
 export const isNote = (value: unknown): value is Note =>
   isRecord(value) &&

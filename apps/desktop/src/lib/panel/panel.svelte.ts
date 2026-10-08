@@ -14,6 +14,7 @@ import {
   hiddenWhileSharing,
   holidayCheck,
   holidaysOn,
+  loadHolidays,
   regionOf,
   restDayOf,
 } from "$lib/calendar"
@@ -26,6 +27,7 @@ import {
   events,
   eventsByDay,
   eventsOn,
+  inSeries,
   isDone,
   live,
   monthGrid,
@@ -43,7 +45,7 @@ import {
 } from "$lib/data"
 import { ensureDevice } from "$lib/device"
 import * as native from "$lib/native"
-import { eventColors, toColor } from "./colors"
+import { colorMeta, eventColors, toColor } from "./colors"
 import type { Draft } from "./draft"
 
 export type View =
@@ -80,6 +82,10 @@ export class Panel {
 
   view = $state<View>({ kind: "day" })
 
+  rangeEnd = $state<Date | null>(null)
+
+  drag = $state<{ from: Date; to: Date } | null>(null)
+
   asking = $state<Asking | null>(null)
 
   kept: { key: string; draft: Draft } | null = null
@@ -114,23 +120,48 @@ export class Panel {
     }),
   )
 
-  shown = $derived.by(() => {
+  revealedDays = $state<string[]>([])
+
+  private concealed = $derived.by(() => {
     if (!this.sharing) {
-      return this.eventLive.items
+      return []
     }
 
     const hidden = hiddenWhileSharing(this.profile.calendar.tags)
 
-    return this.eventLive.items.filter(e => !hidden(e))
+    return this.eventLive.items.filter(hidden)
   })
 
-  concealedCount = $derived(this.eventLive.items.length - this.shown.length)
+  shown = $derived(
+    this.concealed.length === 0
+      ? this.eventLive.items
+      : this.eventLive.items.filter(e => !this.concealed.includes(e)),
+  )
+
+  hiddenOn = (day: Date) =>
+    this.concealed.length === 0
+      ? []
+      : eventsOn(this.concealed, day, this.isHoliday)
+
+  isRevealed = (day: Date) => this.revealedDays.includes(dateKey(day))
+
+  toggleReveal = (day: Date) => {
+    const key = dateKey(day)
+
+    this.revealedDays = this.revealedDays.includes(key)
+      ? this.revealedDays.filter(entry => entry !== key)
+      : [...this.revealedDays, key]
+  }
 
   region = $derived(regionOf(this.profile.calendar))
 
-  isHoliday = $derived(holidayCheck(this.profile.calendar))
+  holidaysReady = $state(false)
 
-  restDay = $derived(restDayOf(this.region))
+  isHoliday = $derived(
+    this.holidaysReady ? holidayCheck(this.profile.calendar) : () => false,
+  )
+
+  restDay = $derived(this.holidaysReady ? restDayOf(this.region) : 0)
 
   saturdayBlue = $derived(blueSaturday(this.region))
 
@@ -149,11 +180,80 @@ export class Panel {
 
   dayEvents = $derived(this.orderedDay(this.selected))
 
-  range = $derived(
-    this.view.kind === "new" && this.view.span > 0
-      ? ([this.view.day, addDays(this.view.day, this.view.span)] as const)
-      : null,
-  )
+  range = $derived.by(() => {
+    if (this.drag) {
+      const { from, to } = this.drag
+
+      return from <= to ? [from, to] : [to, from]
+    }
+
+    return this.rangeEnd ? [this.selected, this.rangeEnd] : null
+  })
+
+  daySections = $derived.by(() => {
+    const end = this.rangeEnd
+
+    if (!end) {
+      return [{ day: this.selected, events: this.dayEvents }]
+    }
+
+    const seen = new Set<string>()
+    const length = dayDelta(dateKey(this.selected), dateKey(end)) + 1
+
+    return Array.from({ length }, (_, index) => {
+      const day = addDays(this.selected, index)
+      const events = this.orderedDay(day).filter(e => {
+        const fresh = !seen.has(e.id + e.start)
+
+        seen.add(e.id + e.start)
+
+        return fresh
+      })
+
+      return { day, events }
+    })
+  })
+
+  inRange = (day: Date) =>
+    this.range !== null && day >= this.range[0] && day <= this.range[1]
+
+  rangeTone = (day: Date) => {
+    const range = this.range
+
+    if (!range || day < range[0] || day > range[1]) {
+      return null
+    }
+
+    const column = (day.getDay() - this.profile.calendar.weekStartsOn + 7) % 7
+    const first = column === 0 || dateKey(day) === dateKey(range[0])
+    const last = column === 6 || dateKey(day) === dateKey(range[1])
+
+    return [
+      "bg-primary/15",
+      !first && "-ml-0.5 rounded-l-none",
+      !last && "-mr-0.5 rounded-r-none",
+    ]
+  }
+
+  beginDrag = (day: Date) => {
+    this.drag = { from: day, to: day }
+  }
+
+  extendDrag = (day: Date) => {
+    if (this.drag) {
+      this.drag = { ...this.drag, to: day }
+    }
+  }
+
+  endDrag = () => {
+    const range = this.drag && this.range
+
+    this.drag = null
+
+    if (range && dateKey(range[0]) !== dateKey(range[1])) {
+      this.startRange(range[0], range[1])
+    }
+  }
 
   openEvent = $derived.by((): Occurrence | null => {
     const view = this.view
@@ -162,7 +262,7 @@ export class Panel {
       return null
     }
 
-    const found = this.shown.find(e => e.id === view.id)
+    const found = this.eventLive.items.find(e => e.id === view.id)
 
     if (!found || found.recurrence === "none" || !view.date) {
       return found ?? null
@@ -176,7 +276,9 @@ export class Panel {
   eventsOn = (day: Date) => this.byDay.get(dateKey(day)) ?? []
 
   holidayFor = (day: Date) =>
-    holidaysOn(day, this.region, currentLocale().split("-")[0])
+    this.holidaysReady
+      ? holidaysOn(day, this.region, currentLocale().split("-")[0])
+      : []
 
   weekdayTone = (day: Date) =>
     day.getDay() === this.restDay
@@ -219,6 +321,7 @@ export class Panel {
   jumpToday = () => {
     this.cursor = startOfDay(this.now)
     this.selected = startOfDay(this.now)
+    this.rangeEnd = null
     this.close()
   }
 
@@ -229,6 +332,7 @@ export class Panel {
 
   pick = (day: Date) => {
     this.selected = day
+    this.rangeEnd = null
     this.close()
 
     if (day.getMonth() !== this.cursor.getMonth()) {
@@ -291,15 +395,24 @@ export class Panel {
   }
 
   startNew = () =>
-    this.go({ kind: "new", day: this.selected, span: 0, parent: null })
+    this.go({
+      kind: "new",
+      day: this.selected,
+      span: this.rangeEnd
+        ? dayDelta(dateKey(this.selected), dateKey(this.rangeEnd))
+        : 0,
+      parent: null,
+    })
 
   startChild = (parent: CalendarEvent) => {
     this.selected = startOfDay(parseLocal(parent.start))
+    this.rangeEnd = null
     this.go({ kind: "new", day: this.selected, span: 0, parent: parent.id })
   }
 
   startRange = (start: Date, end: Date) => {
     this.selected = start
+    this.rangeEnd = end
     this.go({
       kind: "new",
       day: start,
@@ -308,7 +421,33 @@ export class Panel {
     })
   }
 
-  showNotes = () => this.go({ kind: "notes" })
+  showNotes = () =>
+    this.go(this.view.kind === "notes" ? { kind: "day" } : { kind: "notes" })
+
+  groupWith = async (moved: Occurrence, target: Occurrence) => {
+    const group = target.group ?? moved.group ?? newId()
+    const stored = await Promise.all([
+      events.get(moved.id),
+      events.get(target.id),
+    ])
+    const stamp = Date.now()
+
+    await events.apply({
+      put: stored.flatMap(e => (e ? [{ ...e, group, updatedAt: stamp }] : [])),
+      remove: [],
+    })
+  }
+
+  ungroup = async (event: Occurrence) => {
+    const stored = await events.get(event.id)
+
+    if (stored) {
+      await events.put({ ...stored, group: null, updatedAt: Date.now() })
+    }
+  }
+
+  groupOf = (event: CalendarEvent) =>
+    event.group ? this.shown.filter(e => e.group === event.group) : []
 
   askScope = (mode: ScopeMode, scoped = true) =>
     new Promise<Scope | null>(resolve => {
@@ -379,6 +518,12 @@ export class Panel {
       )?.color,
     )
 
+  dotTone = (event: CalendarEvent) => {
+    const meta = colorMeta[this.colorOf(event.tags)]
+
+    return inSeries(event) ? ["border", meta.ring] : meta.chip
+  }
+
   private editTags = (edit: (tags: EventTag[]) => EventTag[]) => {
     this.profile.calendar.tags = edit(this.profile.calendar.tags)
     updateProfileSynced(p => ({
@@ -420,6 +565,7 @@ export class Panel {
   }
 
   start = () => {
+    loadHolidays().then(() => (this.holidaysReady = true))
     ensureDevice()
       .then(d => {
         this.device = d
@@ -438,6 +584,10 @@ export class Panel {
       }),
       native.watchScreenShare(value => {
         this.sharing = value
+
+        if (!value) {
+          this.revealedDays = []
+        }
       }),
     ]
 

@@ -1,5 +1,6 @@
 import { NOTE_SCHEME, notePathOf } from "@eris/bridge"
 import { katex } from "@mdit/plugin-katex"
+import { tasklist } from "@mdit/plugin-tasklist"
 import katexEngine from "katex"
 import markdownit, { type MarkdownIt, type StateInline } from "markdown-it"
 import { parseLinks } from "./links"
@@ -92,6 +93,7 @@ const build = (html: boolean) =>
     .use(wikilinks)
     .use(katex, { throwOnError: false, mathFence: true })
     .use(noteLinks)
+    .use(tasklist, { label: false })
 
 const safe = build(false)
 const trusted = build(true)

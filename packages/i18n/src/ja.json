@@ -1024,7 +1024,27 @@
         "yearly": "毎年{date}"
       },
       "writeNotes": "メモを入力",
-      "noteEmpty": "内容なし"
+      "noteEmpty": "内容なし",
+      "notesSync": {
+        "label": "同期",
+        "all": "すべての予定に適用",
+        "ask": "保存時に適用範囲を選択"
+      },
+      "addTime": "時刻を追加",
+      "removeTime": "時刻を削除",
+      "blocks": {
+        "text": "テキスト",
+        "h1": "見出し1",
+        "h2": "見出し2",
+        "h3": "見出し3",
+        "todo": "ToDo",
+        "bullet": "箇条書き",
+        "number": "番号付きリスト",
+        "quote": "引用",
+        "code": "コードブロック",
+        "divider": "区切り線",
+        "date": "今日の日付"
+      }
     },
     "ics": {
       "options": "カレンダーのオプション",
@@ -1107,7 +1127,28 @@
     "clock": {
       "hour": "{period}{hour}時",
       "minute": "{period}{hour}時{minute}分"
-    }
+    },
+    "group": {
+      "title": "グループ",
+      "leave": "グループ解除"
+    },
+    "hiddenCount": "{count}件を非表示",
+    "relation": {
+      "title": "関係",
+      "add": "関係を追加",
+      "parent": "親",
+      "child": "子",
+      "group": "グループ",
+      "remove": "関係を解除",
+      "search": "予定を検索",
+      "empty": "予定なし",
+      "actions": {
+        "parent": "親の予定を指定",
+        "child": "子の予定を追加",
+        "group": "グループにまとめる"
+      }
+    },
+    "hideAgain": "{count}件を再び非表示"
   },
   "files": {
     "forward": "進む",

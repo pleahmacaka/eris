@@ -16,6 +16,7 @@
   "dependencies": {
     "@eris/bridge": "workspace:*",
     "@mdit/plugin-katex": "^1.1.3",
+    "@mdit/plugin-tasklist": "^1.1.3",
     "katex": "^0.18.9",
     "markdown-it": "^15.0.2"
   },

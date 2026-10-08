@@ -4,6 +4,7 @@ import {
   type Occurrence,
   removeFromSeries,
   type Scope,
+  shareNotes,
 } from "@eris/data"
 import { events } from "./store"
 
@@ -29,6 +30,27 @@ export const removeOccurrence = async (
       Date.now(),
     ),
   )
+}
+
+export const shareOccurrenceNotes = async (
+  occurrence: Occurrence,
+  notes: string,
+) => {
+  const series = await seriesOf(occurrence)
+
+  if (series) {
+    await events.apply(
+      shareNotes(series, notes, await events.all(), Date.now()),
+    )
+  }
+}
+
+export const setNotesSync = async (occurrence: Occurrence, on: boolean) => {
+  const series = await seriesOf(occurrence)
+
+  if (series) {
+    await events.put({ ...series, notesSync: on, updatedAt: Date.now() })
+  }
 }
 
 export const editOccurrence = async (

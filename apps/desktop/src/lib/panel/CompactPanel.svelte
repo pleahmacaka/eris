@@ -5,7 +5,6 @@
   import { t } from "svelte-i18n"
   import { longDay } from "$lib/calendar"
   import { dateKey, isDone } from "$lib/data"
-  import { colorMeta } from "./colors"
   import type { Morph } from "./morph.svelte"
   import type { Panel } from "./panel.svelte"
   import PanelAside from "./PanelAside.svelte"
@@ -24,6 +23,8 @@
 
   const selectedKey = $derived(dateKey(panel.selected))
 </script>
+
+<svelte:window onpointerup={panel.endDrag} onblur={panel.endDrag} />
 
 <div class="grid w-[48rem] grid-cols-12 gap-3">
   <section
@@ -44,6 +45,7 @@
       </div>
 
       <div class="flex shrink-0 items-center gap-1">
+
         <div class="join">
           <button
             class="join-item btn btn-xs btn-ghost btn-square"
@@ -65,6 +67,15 @@
             <Icon icon="lucide:chevron-right" class="size-3.5" />
           </button>
         </div>
+
+        <button
+          class={["btn btn-ghost btn-square btn-xs", panel.view.kind === "notes" && "btn-active"]}
+          aria-label={$t("panel.notesAria")}
+          aria-pressed={panel.view.kind === "notes"}
+          onclick={panel.showNotes}
+        >
+          <Icon icon="lucide:sticky-note" class="size-3.5" />
+        </button>
 
         <button
           class="btn btn-ghost btn-square btn-xs"
@@ -104,12 +115,17 @@
                 "outline-none transition-colors duration-120",
                 "focus-visible:ring-2 focus-visible:ring-primary/50",
                 outside && "*:opacity-40",
-                isSelected ? "bg-base-content/8" : "hover:bg-base-content/5",
+                panel.rangeTone(day),
+                isSelected
+                  ? "bg-base-content/8"
+                  : !panel.inRange(day) && "hover:bg-base-content/5",
               ]}
               aria-current={isToday ? "date" : undefined}
               aria-pressed={isSelected}
               aria-label={[longDay(day), ...panel.holidayFor(day)].join(", ")}
               onclick={() => panel.pick(day)}
+              onpointerdown={e => e.button === 0 && panel.beginDrag(day)}
+              onpointerenter={() => panel.extendDrag(day)}
             >
               <span
                 class={[
@@ -127,7 +143,7 @@
                   <span
                     class={[
                       "size-1.5 rounded-full",
-                      colorMeta[panel.colorOf(event.tags)].chip,
+                      panel.dotTone(event),
                       isDone(event) && "opacity-30",
                     ]}
                   ></span>
@@ -142,7 +158,7 @@
 
   <div {@attach morph.card} class="relative col-span-5">
     <div class="absolute inset-0 flex">
-      <PanelAside {panel} compact />
+      <PanelAside {panel} />
     </div>
   </div>
 </div>

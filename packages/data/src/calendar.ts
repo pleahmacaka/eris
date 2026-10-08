@@ -287,6 +287,9 @@ export const withDone = (
   return { ...stored, done: done ? [...rest, key] : rest, updatedAt: stamp }
 }
 
+export const inSeries = (event: CalendarEvent) =>
+  event.recurrence !== "none" || !!event.seriesId
+
 export const occurrenceAt = (
   event: CalendarEvent,
   seriesDate: string,
@@ -411,6 +414,20 @@ const cut = (
   later: childrenOf(all, series.id).filter(
     event => (event.originalDate ?? "") >= seriesDate,
   ),
+})
+
+export const shareNotes = (
+  series: CalendarEvent,
+  notes: string,
+  all: CalendarEvent[],
+  stamp: number,
+): SeriesChange => ({
+  put: [series, ...childrenOf(all, series.id)].map(event => ({
+    ...event,
+    notes,
+    updatedAt: stamp,
+  })),
+  remove: [],
 })
 
 export const removeFromSeries = (

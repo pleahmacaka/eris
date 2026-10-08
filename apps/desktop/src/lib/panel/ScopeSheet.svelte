@@ -18,7 +18,7 @@
 </script>
 
 <div
-  class="absolute inset-0 z-20 flex items-end bg-base-100/70 p-3 backdrop-blur-sm"
+  class="absolute inset-0 z-20 flex items-center justify-center rounded-box bg-black/45 p-4 backdrop-blur-[2px]"
   role="presentation"
   onpointerdown={e => {
     if (e.target === e.currentTarget) {
@@ -31,11 +31,11 @@
     aria-modal="true"
     aria-label={$t(`panel.scope.${mode}`)}
     class={[
-      "flex w-full flex-col gap-1 rounded-box border border-base-content/10",
-      "bg-base-100 p-2 shadow-2xl",
+      "flex w-full max-w-72 flex-col gap-1.5 rounded-box border border-base-content/15",
+      "bg-base-200 p-3 shadow-2xl",
     ]}
   >
-    <h3 class="px-2 pt-1 pb-1.5 text-sm font-semibold">
+    <h3 class="px-1 pb-1.5 text-sm font-semibold">
       {$t(scoped ? `panel.scope.${mode}` : "panel.scope.confirm")}
     </h3>
 
@@ -44,8 +44,8 @@
         <button
           type="button"
           class={[
-            "btn btn-ghost btn-sm justify-start",
-            mode === "delete" && "text-error",
+            "btn btn-sm btn-block justify-start border-base-content/10 bg-base-content/5",
+            mode === "delete" && "text-error hover:bg-error/15",
           ]}
           onclick={() => choose(scope)}
         >
@@ -55,14 +55,14 @@
     {:else}
       <button
         type="button"
-        class="btn btn-ghost btn-sm justify-start text-error"
+        class="btn btn-error btn-sm btn-block"
         onclick={() => choose("one")}
       >
         {$t("common.delete")}
       </button>
     {/if}
 
-    <button type="button" class="btn btn-sm mt-1" onclick={cancel}>
+    <button type="button" class="btn btn-ghost btn-sm btn-block" onclick={cancel}>
       {$t("common.cancel")}
     </button>
   </div>

@@ -67,6 +67,7 @@ pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
         windowing::toggle_window,
         windowing::open_with_intent,
         windowing::take_intent,
+        windowing::window_ready,
         windowing::set_window_region,
         features::set_features,
         features::suspend_shell,

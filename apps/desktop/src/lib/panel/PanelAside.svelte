@@ -1,28 +1,39 @@
 <script lang="ts">
   import { Aura } from "@eris/ui"
+  import { Ssgoi } from "@ssgoi/svelte"
+  import { swapConfig } from "$lib/motion"
   import DayPane from "./DayPane.svelte"
+  import EventDetail from "./EventDetail.svelte"
   import NotesPane from "./NotesPane.svelte"
   import type { Panel } from "./panel.svelte"
   import ScopeSheet from "./ScopeSheet.svelte"
 
-  const { panel, compact = false }: { panel: Panel; compact?: boolean } =
-    $props()
+  const { panel }: { panel: Panel } = $props()
 
   const view = $derived(panel.view)
 </script>
 
-<aside class="panel-surface flex min-h-0 w-full flex-col">
+<aside class="panel-surface relative flex min-h-0 w-full flex-col">
   <Aura />
 
-  {#if view.kind === "notes" && !compact}
-    <div class="pane">
-      <NotesPane items={panel.noteLive.items} back={panel.close} />
-    </div>
-  {:else}
-    <div class="pane">
-      <DayPane {panel} />
-    </div>
-  {/if}
+  <Ssgoi config={swapConfig}>
+    {#if panel.detailOpen}
+      {@const key = view.kind === "event" ? `${view.id}@${view.date}` : "new"}
+      {#key key}
+        <div class="pane" data-ssgoi-transition="/event/{key}">
+          <EventDetail {panel} />
+        </div>
+      {/key}
+    {:else if view.kind === "notes"}
+      <div class="pane" data-ssgoi-transition="/notes">
+        <NotesPane items={panel.noteLive.items} back={panel.close} />
+      </div>
+    {:else}
+      <div class="pane" data-ssgoi-transition="/day">
+        <DayPane {panel} />
+      </div>
+    {/if}
+  </Ssgoi>
 
   {#if panel.asking && !panel.detailOpen}
     <ScopeSheet
@@ -36,17 +47,9 @@
 
 <style>
   .pane {
+    position: absolute;
+    inset: 0;
     display: flex;
-    min-height: 0;
-    flex: 1;
     flex-direction: column;
-    animation: pane-in 140ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  @keyframes pane-in {
-    from {
-      opacity: 0;
-      transform: translateY(0.25rem);
-    }
   }
 </style>

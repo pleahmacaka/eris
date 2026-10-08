@@ -23,48 +23,13 @@
 
   type Preview = { event: CalendarEvent; left: number; top: number }
 
-  let anchor = $state<Date | null>(null)
-  let reach = $state<Date | null>(null)
   let preview = $state<Preview | null>(null)
   let previewTimer: ReturnType<typeof setTimeout> | undefined
 
-  const ordered = (from: Date | null, to: Date | null) => {
-    if (!from || !to) {
-      return null
-    }
-
-    return from <= to ? [from, to] : [to, from]
-  }
-
-  const dragged = $derived(ordered(anchor, reach))
-
-  const range = $derived(dragged ?? panel.range)
-
-  const inRange = (day: Date) =>
-    range !== null && day >= range[0] && day <= range[1]
-
   const startDrag = (e: PointerEvent, day: Date) => {
-    if (e.button !== 0 || (e.target as Element).closest("button")) {
-      return
+    if (e.button === 0 && !(e.target as Element).closest("button")) {
+      panel.beginDrag(day)
     }
-
-    anchor = day
-    reach = day
-  }
-
-  const extendDrag = (day: Date) => {
-    if (anchor) {
-      reach = day
-    }
-  }
-
-  const endDrag = () => {
-    if (dragged && dateKey(dragged[0]) !== dateKey(dragged[1])) {
-      panel.startRange(dragged[0], dragged[1])
-    }
-
-    anchor = null
-    reach = null
   }
 
   const showPreview = (e: Event, event: CalendarEvent) => {
@@ -150,7 +115,7 @@
   {/each}
 </div>
 
-<svelte:window onpointerup={endDrag} onblur={endDrag} />
+<svelte:window onpointerup={panel.endDrag} onblur={panel.endDrag} />
 
 <div
   class="grid min-h-0 flex-1 grid-cols-7 grid-rows-6 gap-1 select-none"
@@ -185,15 +150,15 @@
           "focus-visible:outline-2 focus-visible:-outline-offset-2",
           "focus-visible:outline-primary",
           outside && "*:opacity-40",
-          inRange(day) && "bg-primary/15",
+          panel.rangeTone(day),
           isSelected
             ? "bg-base-content/8"
-            : !inRange(day) && "hover:bg-base-content/5",
+            : !panel.inRange(day) && "hover:bg-base-content/5",
         ]}
         onclick={() => panel.pick(day)}
         onkeydown={e => onKey(e, day)}
         onpointerdown={e => startDrag(e, day)}
-        onpointerenter={() => extendDrag(day)}
+        onpointerenter={() => panel.extendDrag(day)}
       >
         <div class="flex min-w-0 items-center gap-1">
           <span
@@ -247,7 +212,7 @@
             }}
           >
             {#if !event.allDay}
-              <span class={["size-1.5 shrink-0 rounded-full", meta.chip]}></span>
+              <span class={["size-1.5 shrink-0 rounded-full", panel.dotTone(event)]}></span>
             {/if}
             <span class={["truncate", isDone(event) && "line-through opacity-60"]}>
               {event.title}

@@ -47,6 +47,17 @@
   list-style: decimal;
 }
 
+.markdown ul.task-list-container {
+  list-style: none;
+  padding-left: 0.2em;
+}
+
+.markdown .task-list-item-checkbox {
+  margin-right: 0.4em;
+  vertical-align: -0.1em;
+  accent-color: var(--color-primary);
+}
+
 .markdown blockquote {
   border-left: 0.2em solid color-mix(in oklch, var(--color-base-content) 20%, transparent);
   padding-left: 0.8em;

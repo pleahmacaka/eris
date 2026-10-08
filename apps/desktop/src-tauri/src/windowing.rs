@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::{LazyLock, Mutex};
 use std::time::{Duration, Instant};
 
@@ -10,9 +10,18 @@ use crate::{appbar, desktop};
 const BLUR_TOGGLE_GUARD: Duration = Duration::from_millis(250);
 const SHOW_SETTLE: Duration = Duration::from_millis(400);
 const FADE_OUT: Duration = Duration::from_millis(140);
+const READY_FALLBACK: Duration = Duration::from_millis(1500);
+const LAZY_KEEP: Duration = Duration::from_secs(120);
+const BUILD_RETRY: Duration = Duration::from_millis(120);
 
 static BLUR_HIDDEN_AT: Mutex<Option<Instant>> = Mutex::new(None);
 static FADES: LazyLock<Mutex<HashMap<String, u64>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+static RETIRING: LazyLock<Mutex<HashMap<String, u64>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
+
+// a freshly built transparent window shows nothing until its page mounts, so it waits for the page's ready call
+static UNPAINTED: LazyLock<Mutex<HashSet<String>>> = LazyLock::new(|| Mutex::new(HashSet::new()));
+static AWAITING: LazyLock<Mutex<HashSet<String>>> = LazyLock::new(|| Mutex::new(HashSet::new()));
 
 // an emit can land before a lazy window's page exists, so open requests carry a pull-based intent instead
 static PENDING_INTENT: LazyLock<Mutex<HashMap<String, String>>> =
@@ -133,10 +142,24 @@ pub fn show(app: &AppHandle, label: &str) {
     let label = label.to_string();
 
     std::thread::spawn(move || {
-        if window_for(&app, &label).is_some() {
-            on_main(&app, &label, show_now);
+        for _ in 0..3 {
+            if window_for(&app, &label).is_some() {
+                on_main(&app, &label, show_now);
+
+                return;
+            }
+
+            std::thread::sleep(BUILD_RETRY);
         }
     });
+}
+
+#[tauri::command]
+pub fn window_ready(window: WebviewWindow) {
+    let label = window.label().to_string();
+
+    UNPAINTED.lock().unwrap().remove(&label);
+    on_main(window.app_handle(), &label, present_awaited);
 }
 
 pub fn hide(app: &AppHandle, label: &str) {
@@ -201,7 +224,6 @@ pub fn conceal_hidden(app: &AppHandle) {
     }
 }
 
-// lazy windows are rebuilt from config on the next show, so closing them frees their renderer
 fn conceal(window: &WebviewWindow) {
     let label = window.label().to_string();
     let app = window.app_handle().clone();
@@ -235,14 +257,39 @@ fn conceal(window: &WebviewWindow) {
         }
 
         let _ = app.run_on_main_thread(move || {
-            if lazy(window.app_handle(), &label) {
-                let _ = window.destroy();
-            } else {
-                let _ = window.hide();
-                set_webview_visible(&window, false);
-            }
+            let _ = window.hide();
+            set_webview_visible(&window, false);
+            let _ = window.app_handle().emit("window-hidden", label.clone());
 
-            let _ = window.app_handle().emit("window-hidden", label);
+            if lazy(window.app_handle(), &label) {
+                retire(window);
+            }
+        });
+    });
+}
+
+// lazy windows stay warm for a while after hiding, then close to free their renderer
+fn retire(window: WebviewWindow) {
+    let label = window.label().to_string();
+    let gen = {
+        let mut retiring = RETIRING.lock().unwrap();
+        let gen = retiring.get(&label).copied().unwrap_or(0) + 1;
+        retiring.insert(label.clone(), gen);
+        gen
+    };
+
+    std::thread::spawn(move || {
+        std::thread::sleep(LAZY_KEEP);
+
+        let app = window.app_handle().clone();
+
+        let _ = app.run_on_main_thread(move || {
+            let mut retiring = RETIRING.lock().unwrap();
+
+            if retiring.get(&label) == Some(&gen) && !window.is_visible().unwrap_or(true) {
+                retiring.remove(&label);
+                let _ = window.destroy();
+            }
         });
     });
 }
@@ -275,11 +322,16 @@ pub(crate) fn window_for(app: &AppHandle, label: &str) -> Option<WebviewWindow> 
         builder
     };
 
-    builder.build().ok()
+    let window = builder.build().ok()?;
+
+    UNPAINTED.lock().unwrap().insert(label.to_string());
+
+    Some(window)
 }
 
 fn reveal(window: &WebviewWindow) {
     cancel_fade(window.label());
+    RETIRING.lock().unwrap().remove(window.label());
     set_webview_visible(window, true);
     let _ = window.show();
 }
@@ -324,6 +376,8 @@ fn on_main(app: &AppHandle, label: &str, action: fn(&AppHandle, &str)) {
 
 fn show_now(app: &AppHandle, label: &str) {
     let Some(window) = app.get_webview_window(label) else {
+        show(app, label);
+
         return;
     };
 
@@ -337,16 +391,45 @@ fn show_now(app: &AppHandle, label: &str) {
         _ => Ok(()),
     };
 
-    reveal(&window);
+    if UNPAINTED.lock().unwrap().contains(label) {
+        AWAITING.lock().unwrap().insert(label.to_string());
+
+        let app = app.clone();
+        let label = label.to_string();
+
+        std::thread::spawn(move || {
+            std::thread::sleep(READY_FALLBACK);
+            UNPAINTED.lock().unwrap().remove(&label);
+            on_main(&app, &label, present_awaited);
+        });
+
+        return;
+    }
+
+    present(app, &window, label);
+}
+
+fn present_awaited(app: &AppHandle, label: &str) {
+    if UNPAINTED.lock().unwrap().contains(label) || !AWAITING.lock().unwrap().remove(label) {
+        return;
+    }
+
+    if let Some(window) = app.get_webview_window(label) {
+        present(app, &window, label);
+    }
+}
+
+fn present(app: &AppHandle, window: &WebviewWindow, label: &str) {
+    reveal(window);
 
     if !matches!(label, "taskbar" | "topbar") {
         let _ = window.set_focus();
-        desktop::force_foreground(&window);
+        desktop::force_foreground(window);
     }
 
     // transient panels must not linger when the focus grab silently failed
     if matches!(label, "panel" | "notices") {
-        hide_on_blur(&window);
+        hide_on_blur(window);
     }
 
     let _ = app.emit("window-shown", label);
@@ -438,9 +521,7 @@ fn dock_panel(app: &AppHandle, window: &WebviewWindow) -> tauri::Result<()> {
         None => screen_bottom - gap - height,
     };
 
-    let x = x
-        .min(screen_right - gap - width)
-        .max(monitor.position().x + gap);
+    // the window is wider than its visible cards, so on a narrow screen it hangs off the far edge instead of shifting them
     let y = y
         .min(screen_bottom - gap - height)
         .max(monitor.position().y + gap);

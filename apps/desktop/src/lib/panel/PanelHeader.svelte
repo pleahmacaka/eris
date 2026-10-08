@@ -24,15 +24,6 @@
   </div>
 
   <div class="flex shrink-0 items-center gap-2">
-    {#if panel.concealedCount > 0}
-      <span
-        class="badge badge-sm badge-soft badge-warning gap-1"
-        title={$t("panel.sharingHint")}
-      >
-        <Icon icon="lucide:eye-off" class="size-3" />
-        {$t("panel.sharing")}
-      </span>
-    {/if}
 
     <div class="join">
       <button

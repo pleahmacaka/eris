@@ -1024,7 +1024,27 @@
         "yearly": "매년 {date}"
       },
       "writeNotes": "메모 입력",
-      "noteEmpty": "내용 없음"
+      "noteEmpty": "내용 없음",
+      "notesSync": {
+        "label": "동기화",
+        "all": "모든 일정에 적용",
+        "ask": "저장 시 적용 범위 선택"
+      },
+      "addTime": "시간 추가",
+      "removeTime": "시간 제거",
+      "blocks": {
+        "text": "본문",
+        "h1": "제목 1",
+        "h2": "제목 2",
+        "h3": "제목 3",
+        "todo": "할 일",
+        "bullet": "글머리 기호",
+        "number": "번호 목록",
+        "quote": "인용",
+        "code": "코드 블록",
+        "divider": "구분선",
+        "date": "오늘 날짜"
+      }
     },
     "ics": {
       "options": "캘린더 옵션",
@@ -1107,7 +1127,28 @@
     "clock": {
       "hour": "{period} {hour}시",
       "minute": "{period} {hour}시 {minute}분"
-    }
+    },
+    "group": {
+      "title": "그룹",
+      "leave": "그룹 해제"
+    },
+    "hiddenCount": "{count}개 숨겨짐",
+    "relation": {
+      "title": "관계",
+      "add": "관계 추가",
+      "parent": "상위",
+      "child": "하위",
+      "group": "그룹",
+      "remove": "관계 해제",
+      "search": "일정 검색",
+      "empty": "일정 없음",
+      "actions": {
+        "parent": "상위 일정 지정",
+        "child": "하위 일정 추가",
+        "group": "그룹으로 묶기"
+      }
+    },
+    "hideAgain": "{count}개 다시 숨기기"
   },
   "files": {
     "forward": "앞으로",

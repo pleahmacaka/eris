@@ -1,6 +1,5 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { renderMarkdown, withoutFrontmatter } from "@eris/markdown"
   import type { NoteLink } from "@eris/settings"
   import { t } from "svelte-i18n"
   import { noteLinkable, notePreview, openUrl } from "$lib/native"
@@ -19,7 +18,13 @@
   let hover = $state<Hover | null>(null)
   let previews = $state<Record<string, string | null>>({})
 
-  const html = $derived(renderMarkdown(text))
+  let markdown = $state<typeof import("@eris/markdown")>()
+
+  $effect(() => {
+    import("@eris/markdown").then(module => (markdown = module))
+  })
+
+  const html = $derived(markdown?.renderMarkdown(text) ?? "")
 
   const references = $derived(linkable && link.enabled && link.references)
 
@@ -36,7 +41,7 @@
 
     previews[path] = null
     notePreview(path)
-      .then(markdown => (previews[path] = withoutFrontmatter(markdown)))
+      .then(text => (previews[path] = markdown?.withoutFrontmatter(text) ?? text))
       .catch(() => (previews[path] = ""))
   }
 
@@ -136,7 +141,7 @@
       <span class="loading loading-dots loading-sm text-base-content/50"></span>
     {:else if preview}
       <div class="markdown min-h-0 overflow-hidden text-xs text-base-content/75">
-        {@html renderMarkdown(excerpt(preview))}
+        {@html markdown?.renderMarkdown(excerpt(preview)) ?? ""}
       </div>
     {:else}
       <p class="text-xs text-base-content/50">{$t("panel.event.previewMissing")}</p>

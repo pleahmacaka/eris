@@ -49,6 +49,8 @@ export const openWithIntent = (label: WindowLabel, intent: string) =>
 export const takeIntent = (label: WindowLabel) =>
   invoke<string | null>("take_intent", { label })
 
+export const windowReady = () => invoke<void>("window_ready")
+
 export const hideWindow = (label: WindowLabel) =>
   invoke<void>("hide_window", { label })
 
@@ -64,6 +66,13 @@ export const onWindowShown = (label: WindowLabel, handler: () => void) =>
 
 export const onWindowHiding = (label: WindowLabel, handler: () => void) =>
   listen<WindowLabel>("window-hiding", event => {
+    if (event.payload === label) {
+      handler()
+    }
+  })
+
+export const onWindowHidden = (label: WindowLabel, handler: () => void) =>
+  listen<WindowLabel>("window-hidden", event => {
     if (event.payload === label) {
       handler()
     }

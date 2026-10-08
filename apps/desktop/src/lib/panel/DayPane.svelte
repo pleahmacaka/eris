@@ -3,77 +3,119 @@
   import { t } from "svelte-i18n"
   import { currentLocale } from "@eris/i18n"
   import { clock, shortDay, tagLabel, tagsOf } from "$lib/calendar"
-  import { type CalendarEvent, isDone, openEnded, parseLocal } from "$lib/data"
-  import { colorMeta } from "./colors"
+  import { type Occurrence, isDone, openEnded, parseLocal } from "$lib/data"
   import type { Panel } from "./panel.svelte"
+
+  type Zone = "before" | "after" | "group"
 
   const { panel }: { panel: Panel } = $props()
 
-  const day = $derived(panel.selected)
+  const ranged = $derived(panel.rangeEnd !== null)
 
-  const events = $derived(panel.dayEvents)
+  const sections = $derived(panel.daySections)
 
-  const allDay = $derived(events.filter(e => e.allDay))
-
-  const timed = $derived(events.filter(e => !e.allDay))
-
-  const holidays = $derived(panel.holidayFor(day))
-
-  const offDay = $derived(panel.isHoliday(day))
-
-  const topRows = $derived(holidays.length + allDay.length)
-
-  const labelsOf = (event: CalendarEvent) =>
-    tagsOf(panel.profile.calendar.tags, event).map(tagLabel)
+  const monthDay = (day: Date) =>
+    day.toLocaleDateString(currentLocale(), { month: "long", day: "numeric" })
 
   const heading = $derived(
-    day.toLocaleDateString(currentLocale(), { month: "long", day: "numeric" }),
+    panel.rangeEnd
+      ? `${monthDay(panel.selected)} – ${monthDay(panel.rangeEnd)}`
+      : monthDay(panel.selected),
   )
 
   const weekday = $derived(
-    day.toLocaleDateString(currentLocale(), { weekday: "long" }),
+    ranged
+      ? null
+      : panel.selected.toLocaleDateString(currentLocale(), { weekday: "long" }),
   )
 
-  let dragId = $state<string | null>(null)
-  let overId = $state<string | null>(null)
-  let overAfter = $state(false)
+  const empty = $derived(
+    sections.every(
+      ({ day, events }) =>
+        events.length === 0 &&
+        panel.holidayFor(day).length === 0 &&
+        panel.hiddenOn(day).length === 0,
+    ),
+  )
 
-  const onDragStart = (e: DragEvent, id: string) => {
-    dragId = id
+  const labelsOf = (event: Occurrence) =>
+    tagsOf(panel.profile.calendar.tags, event).map(tagLabel)
 
-    if (e.dataTransfer) {
-      e.dataTransfer.effectAllowed = "move"
-    }
+  const keyOf = (event: Occurrence) => event.id + event.start
+
+  const clusters = (list: Occurrence[]) => {
+    const members = Map.groupBy(
+      list.filter(e => e.group),
+      e => e.group ?? "",
+    )
+    const placed = new Set<string>()
+
+    return list.flatMap(e => {
+      const group = e.group ? members.get(e.group) : undefined
+
+      if (!e.group || !group || group.length < 2) {
+        return [[e]]
+      }
+
+      if (placed.has(e.group)) {
+        return []
+      }
+
+      placed.add(e.group)
+
+      return [group]
+    })
   }
 
-  const onDragOver = (e: DragEvent, id: string) => {
-    if (!dragId || id === dragId) {
+  const opened = (event: Occurrence) =>
+    panel.openEvent?.id === event.id && panel.openEvent.start === event.start
+
+  let dragged = $state<Occurrence | null>(null)
+  let over = $state<{ key: string; zone: Zone } | null>(null)
+
+  const zoneOf = (e: DragEvent, event: Occurrence): Zone => {
+    const box = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    const at = (e.clientY - box.top) / box.height
+    const sortable = !ranged && event.allDay && dragged?.allDay
+
+    if (sortable && at < 0.3) {
+      return "before"
+    }
+
+    return sortable && at > 0.7 ? "after" : "group"
+  }
+
+  const onDragOver = (e: DragEvent, event: Occurrence) => {
+    if (!dragged || keyOf(dragged) === keyOf(event)) {
       return
     }
 
     e.preventDefault()
-
-    const box = (e.currentTarget as HTMLElement).getBoundingClientRect()
-
-    overAfter = e.clientY > box.top + box.height / 2
-    overId = id
+    over = { key: keyOf(event), zone: zoneOf(e, event) }
   }
 
-  const onDrop = async (e: DragEvent, id: string) => {
+  const onDrop = async (e: DragEvent, event: Occurrence) => {
     e.preventDefault()
 
-    const from = dragId
+    const moved = dragged
+    const zone = over?.zone
 
     reset()
 
-    if (from) {
-      await panel.reorderDay(from, id, overAfter)
+    if (!moved || !zone) {
+      return
+    }
+
+    if (zone === "group") {
+      await panel.groupWith(moved, event)
+    } else {
+      await panel.reorderDay(moved.id, event.id, zone === "after")
     }
   }
 
   const reset = () => {
-    dragId = null
-    overId = null
+    dragged = null
+    over = null
   }
 </script>
 
@@ -84,9 +126,12 @@
   <header class="flex items-center justify-between gap-2 border-b border-base-300 py-1.5 pr-2 pl-4">
     <h2 class="truncate text-sm font-semibold tracking-tight">
       {heading}
-      <span class="ml-1 text-xs font-normal text-base-content/60">
-        {weekday}
-      </span>
+
+      {#if weekday}
+        <span class="ml-1 text-xs font-normal text-base-content/60">
+          {weekday}
+        </span>
+      {/if}
     </h2>
 
     <button
@@ -99,15 +144,17 @@
     </button>
   </header>
 
-  {#snippet holidayRow(name: string)}
+  {#snippet holidayRow(name: string, offDay: boolean)}
     <li class="flex items-stretch gap-1">
       <span class="w-5 shrink-0"></span>
 
-      <span class="w-11 shrink-0 pt-2 text-2xs text-base-content/70">
+      <span
+        class="mt-2 w-11 shrink-0 text-2xs leading-5 font-medium text-base-content/70"
+      >
         {$t("panel.allDay")}
       </span>
 
-      <span class="flex w-4 shrink-0 items-start pt-2">
+      <span class="mt-2 flex h-5 w-4 shrink-0 items-center">
         <Icon
           icon="lucide:flag"
           class={["size-3", offDay ? "text-error" : "text-base-content/50"]}
@@ -126,34 +173,44 @@
     </li>
   {/snippet}
 
-  {#snippet row(event: (typeof events)[number], movable: boolean)}
-    {@const meta = colorMeta[panel.colorOf(event.tags)]}
+  {#snippet row(event: Occurrence)}
     {@const parent = panel.parentOf(event)?.title}
     {@const labels = labelsOf(event)}
     {@const done = isDone(event)}
+    {@const target = over?.key === keyOf(event) ? over.zone : null}
     <li
-      class={["group relative", dragId === event.id && "opacity-40"]}
-      draggable={movable}
-      ondragstart={movable ? e => onDragStart(e, event.id) : undefined}
-      ondragover={movable ? e => onDragOver(e, event.id) : undefined}
-      ondrop={movable ? e => onDrop(e, event.id) : undefined}
+      class={["group relative", dragged && keyOf(dragged) === keyOf(event) && "opacity-40"]}
+      draggable="true"
+      ondragstart={e => {
+        dragged = event
+
+        if (e.dataTransfer) {
+          e.dataTransfer.effectAllowed = "move"
+        }
+      }}
+      ondragover={e => onDragOver(e, event)}
+      ondragleave={() => (over = null)}
+      ondrop={e => onDrop(e, event)}
       ondragend={reset}
     >
-      {#if movable && overId === event.id}
-        <span class={["drop-line", overAfter && "is-after"]}></span>
+      {#if target === "before" || target === "after"}
+        <span class={["drop-line", target === "after" && "is-after"]}></span>
       {/if}
 
       <div
         class={[
-          "flex items-stretch gap-1 rounded-field",
-          "transition-colors duration-120 hover:bg-base-content/5",
+          "flex items-stretch gap-1 rounded-field transition-colors duration-120",
+          "has-focus-visible:ring-2 has-focus-visible:ring-primary/50",
+          opened(event)
+            ? "bg-primary/10 ring-1 ring-primary/40"
+            : "hover:bg-base-content/5",
+          target === "group" && "ring-2 ring-primary/60",
         ]}
       >
         <span
           class={[
             "flex w-5 shrink-0 cursor-grab items-center justify-center",
             "text-base-content/25 transition-colors group-hover:text-base-content/45",
-            !movable && "cursor-default opacity-25 group-hover:text-base-content/25",
           ]}
           aria-hidden="true"
         >
@@ -167,16 +224,16 @@
           ]}
         >
           {#if event.allDay}
-            {$t("panel.allDay")}
+            <span class="leading-5 font-medium">{$t("panel.allDay")}</span>
           {:else}
-            <span class="font-medium">{clock(event.start)}</span>
+            <span class="leading-5 font-medium">{clock(event.start)}</span>
             {#if !openEnded(event)}
               <span class="text-base-content/50">{clock(event.end)}</span>
             {/if}
           {/if}
         </span>
 
-        <span class="flex w-4 shrink-0 items-start pt-2">
+        <span class="mt-2 flex h-5 w-4 shrink-0 items-center">
           {#if event.task}
             <input
               type="checkbox"
@@ -186,17 +243,13 @@
               onchange={() => panel.toggleDone(event)}
             />
           {:else}
-            <span class={["mt-1 size-2 rounded-full", meta.chip]}></span>
+            <span class={["size-2 rounded-full", panel.dotTone(event)]}></span>
           {/if}
         </span>
 
         <button
           type="button"
-          class={[
-            "flex min-w-0 flex-1 cursor-pointer flex-col gap-0.5 py-2 pr-9",
-            "text-left outline-none focus-visible:rounded-field",
-            "focus-visible:ring-2 focus-visible:ring-primary/50",
-          ]}
+          class="flex min-w-0 flex-1 cursor-pointer flex-col gap-0.5 py-2 pr-9 text-left outline-none"
           onclick={() => panel.show(event)}
         >
           <span
@@ -257,8 +310,30 @@
     </li>
   {/snippet}
 
+  {#snippet list(events: Occurrence[])}
+    {#each clusters(events) as members (keyOf(members[0]))}
+      {#if members.length === 1}
+        {@render row(members[0])}
+      {:else}
+        <li
+          class={[
+            "my-0.5 rounded-box border border-primary/25 bg-primary/5",
+            "transition-colors duration-120 hover:border-primary/50 hover:bg-primary/10",
+          ]}
+          aria-label={$t("panel.group.title")}
+        >
+          <ul class="flex flex-col">
+            {#each members as event (keyOf(event))}
+              {@render row(event)}
+            {/each}
+          </ul>
+        </li>
+      {/if}
+    {/each}
+  {/snippet}
+
   <div class="min-h-0 flex-1 overflow-y-auto p-2">
-    {#if topRows + timed.length === 0}
+    {#if empty}
       <div
         class={[
           "flex h-full flex-col items-center justify-center gap-2",
@@ -269,29 +344,62 @@
         <p class="text-xs">{$t("panel.day.empty")}</p>
       </div>
     {:else}
-      {#if topRows > 0}
-        <ul class="flex flex-col">
-          {#each holidays as name (name)}
-            {@render holidayRow(name)}
-          {/each}
+      {#each sections as { day, events: visible } (day.getTime())}
+        {@const holidays = panel.holidayFor(day)}
+        {@const hidden = panel.hiddenOn(day)}
+        {@const revealed = panel.isRevealed(day)}
+        {@const events = revealed ? [...visible, ...hidden] : visible}
+        {@const allDay = events.filter(e => e.allDay)}
+        {@const timed = events.filter(e => !e.allDay)}
 
-          {#each allDay as event (event.id + event.start)}
-            {@render row(event, true)}
-          {/each}
-        </ul>
-      {/if}
+        {#if ranged && holidays.length + events.length > 0}
+          <h3 class="px-2 pt-2 pb-1 text-2xs font-semibold text-base-content/55">
+            {shortDay(day)}
+          </h3>
+        {/if}
 
-      {#if topRows > 0 && timed.length > 0}
-        <div class="my-1.5 border-t border-base-300/70"></div>
-      {/if}
+        {#if holidays.length + allDay.length > 0}
+          <ul class="flex flex-col">
+            {#each holidays as name (name)}
+              {@render holidayRow(name, panel.isHoliday(day))}
+            {/each}
 
-      {#if timed.length > 0}
-        <ul class="flex flex-col">
-          {#each timed as event (event.id + event.start)}
-            {@render row(event, false)}
-          {/each}
-        </ul>
-      {/if}
+            {@render list(allDay)}
+          </ul>
+        {/if}
+
+        {#if holidays.length + allDay.length > 0 && timed.length > 0}
+          <div class="my-1.5 border-t border-base-300/70"></div>
+        {/if}
+
+        {#if timed.length > 0}
+          <ul class="flex flex-col">
+            {@render list(timed)}
+          </ul>
+        {/if}
+
+        {#if hidden.length > 0}
+          <button
+            type="button"
+            class={[
+              "mt-0.5 flex w-full cursor-pointer items-center gap-1.5 rounded-field py-1 pr-2 pl-7",
+              "text-2xs text-base-content/50 transition-colors duration-120",
+              "hover:bg-base-content/5 hover:text-base-content/70",
+            ]}
+            aria-expanded={revealed}
+            onclick={() => panel.toggleReveal(day)}
+          >
+            <Icon icon={revealed ? "lucide:eye" : "lucide:eye-off"} class="size-3" />
+            {$t(revealed ? "panel.hideAgain" : "panel.hiddenCount", {
+              values: { count: hidden.length },
+            })}
+            <Icon
+              icon="lucide:chevron-down"
+              class={["ml-auto size-3 transition-transform", revealed && "rotate-180"]}
+            />
+          </button>
+        {/if}
+      {/each}
     {/if}
   </div>
 </section>

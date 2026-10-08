@@ -52,6 +52,8 @@ export type CalendarEvent = {
   originalDate?: string | null
   task?: boolean
   done?: string[]
+  notesSync?: boolean
+  group?: string | null
   createdAt: number
   updatedAt: number
 }
