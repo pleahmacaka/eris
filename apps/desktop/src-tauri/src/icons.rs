@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Mutex, OnceLock};
+use std::time::UNIX_EPOCH;
 
 use base64::Engine;
 use tauri::{AppHandle, Manager};
@@ -13,10 +14,57 @@ fn memory() -> &'static Mutex<HashMap<String, String>> {
 
 const CACHE_DIR: &str = "app-icons";
 
+fn stamp(file: &str) -> String {
+    std::fs::metadata(file)
+        .ok()
+        .map_or_else(String::new, |meta| {
+            let modified = meta
+                .modified()
+                .ok()
+                .and_then(|time| time.duration_since(UNIX_EPOCH).ok())
+                .map_or(0, |since| since.as_secs());
+
+            format!("{modified}-{}", meta.len())
+        })
+}
+
+// an app updated in place keeps its path, so the key also carries the stamps of the files behind its icon
+fn cache_key(path: &str) -> (String, String) {
+    let target = crate::apps::shortcut_target(path);
+    let stamps = std::iter::once(path)
+        .chain(target.as_deref())
+        .map(stamp)
+        .collect::<Vec<_>>()
+        .join("|");
+    let base = crate::apps::stable_id(path);
+    let version = crate::apps::stable_id(&stamps);
+
+    (base.clone(), format!("{base}-{version}"))
+}
+
 fn cached_file(app: &AppHandle, key: &str) -> Option<PathBuf> {
     let dir = app.path().app_cache_dir().ok()?.join(CACHE_DIR);
 
     Some(dir.join(format!("{key}.png")))
+}
+
+fn drop_stale(file: &std::path::Path, base: &str) {
+    let Some(dir) = file.parent() else {
+        return;
+    };
+
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+        let name = entry.file_name().to_string_lossy().into_owned();
+
+        if path != file && name.starts_with(&format!("{base}-")) {
+            let _ = std::fs::remove_file(path);
+        }
+    }
 }
 
 pub fn render_png(path: &str) -> Option<Vec<u8>> {
@@ -48,7 +96,7 @@ pub fn icon_url(handle: isize) -> Option<String> {
 
 #[tauri::command(async)]
 pub fn app_icon(app: AppHandle, path: String) -> Option<String> {
-    let key = crate::apps::stable_id(&path);
+    let (base, key) = cache_key(&path);
 
     if let Some(hit) = memory().lock().unwrap().get(&key) {
         return Some(hit.clone());
@@ -65,6 +113,7 @@ pub fn app_icon(app: AppHandle, path: String) -> Option<String> {
             if let Some(file) = &file {
                 let _ = file.parent().map(std::fs::create_dir_all);
                 let _ = std::fs::write(file, &png);
+                drop_stale(file, &base);
             }
 
             Some(png)
