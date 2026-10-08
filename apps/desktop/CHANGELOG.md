@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.3.9](https://github.com/pleahmacaka/eris/compare/0.3.8...0.3.9) (2026-10-08)
+
+
+### Features
+
+* **calendar:** edit inline, select ranges, group events and write memos live ([fb446d2](https://github.com/pleahmacaka/eris/commit/fb446d2292312f3c252bdcacc30ef5ba1e7ab109))
+* **files:** split network places, embed terminal and show drop hints ([6fdafd3](https://github.com/pleahmacaka/eris/commit/6fdafd328470079572388fb6fa6cab31096fd21a))
+* **screen-share:** detect active windows capture sessions ([b17905b](https://github.com/pleahmacaka/eris/commit/b17905badc3349ccb4e7e1d31c6e3cb5d8f9627e))
+* **terminal:** share tab strip and hand off panes between windows ([9409430](https://github.com/pleahmacaka/eris/commit/9409430cbd8c2fd0f05301f700ff3ad7c6c58685))
+
+
+### Bug Fixes
+
+* **dock:** refresh cached icons when the file changes ([8ac6183](https://github.com/pleahmacaka/eris/commit/8ac6183fa298504704c9d213ca19cf47dbe881af))
+
+
+### Performance Improvements
+
+* **desktop:** load holidays, markdown and auth on demand ([f0113e5](https://github.com/pleahmacaka/eris/commit/f0113e585d1ea4c924100ae66df881dfa59f549b))
+
 ## [0.3.8](https://github.com/pleahmacaka/eris/compare/0.3.7...0.3.8) (2026-10-07)
 
 
