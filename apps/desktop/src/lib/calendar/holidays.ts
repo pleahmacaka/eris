@@ -1,6 +1,19 @@
-import Holidays from "date-holidays"
+import type Holidays from "date-holidays"
 
 const engines = new Map<string, Holidays>()
+
+let Engine: typeof Holidays | null = null
+
+let loading: Promise<void> | null = null
+
+// every country's rules ship in one 1.4 MB module, so only windows that show or shift by holidays fetch it
+export const loadHolidays = () => {
+  loading ??= import("date-holidays").then(module => {
+    Engine = module.default
+  })
+
+  return loading
+}
 
 const WEEKDAYS = [
   "sunday",
@@ -23,8 +36,12 @@ const engine = (country: string, lang: string) => {
   const key = `${country}:${lang}`
   let hd = engines.get(key)
 
+  if (!Engine) {
+    return null
+  }
+
   if (!hd) {
-    hd = new Holidays(country)
+    hd = new Engine(country)
 
     // date-holidays starts the 3-day Seollal span on the new year day; the law starts it on the eve
     if (country === "KR" && hd.unsetRule("korean 01-0-01 P3D")) {
@@ -74,8 +91,9 @@ const holidaysAt = (day: Date, region: string, lang: string) => {
   try {
     // a Date is shifted into the region's timezone and can land on the previous day
     return (
-      engine(region, lang).isHoliday(`${day.getFullYear()}-${month}-${date}`) ||
-      []
+      engine(region, lang)?.isHoliday(
+        `${day.getFullYear()}-${month}-${date}`,
+      ) || []
     )
   } catch {
     return []
@@ -101,7 +119,7 @@ export const holidayCheck = (calendar: { region: string }) => {
 }
 
 export const restDayOf = (region: string) => {
-  const name = engine(region, "en").getDayOff()?.toLowerCase()
+  const name = engine(region, "en")?.getDayOff()?.toLowerCase()
 
   return name ? WEEKDAYS.indexOf(name) : 0
 }
@@ -109,4 +127,4 @@ export const restDayOf = (region: string) => {
 export const blueSaturday = (region: string) => BLUE_SATURDAY.has(region)
 
 export const regions = (): string[] =>
-  Object.keys(new Holidays().getCountries()).sort()
+  Engine ? Object.keys(new Engine().getCountries()).sort() : []

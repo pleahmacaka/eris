@@ -1,5 +1,7 @@
-import { describe, expect, test } from "bun:test"
-import { holidaysOn, systemRegion } from "./holidays"
+import { beforeAll, describe, expect, test } from "bun:test"
+import { holidaysOn, loadHolidays, systemRegion } from "./holidays"
+
+beforeAll(loadHolidays)
 
 describe("holidaysOn", () => {
   test("korean chuseok falls on the lunar harvest dates", () => {

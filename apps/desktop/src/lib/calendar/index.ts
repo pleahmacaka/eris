@@ -11,6 +11,7 @@ export {
   blueSaturday,
   holidayCheck,
   holidaysOn,
+  loadHolidays,
   regionOf,
   regions,
   restDayOf,

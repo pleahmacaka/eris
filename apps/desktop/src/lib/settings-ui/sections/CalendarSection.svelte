@@ -7,7 +7,7 @@
   } from "@eris/settings"
   import { Row, Section, Segmented } from "@eris/ui"
   import { currentLocale } from "@eris/i18n"
-  import { regions } from "$lib/calendar"
+  import { loadHolidays, regions } from "$lib/calendar"
   import { t } from "svelte-i18n"
   import FeatureGate from "../FeatureGate.svelte"
   import { reset } from "../reset"
@@ -23,12 +23,18 @@
 
   const reminders = [0, 5, 10, 15, 30, 60]
 
+  let regionsReady = $state(false)
+
+  $effect(() => {
+    loadHolidays().then(() => (regionsReady = true))
+  })
+
   const regionOptions = $derived.by(() => {
     const names = new Intl.DisplayNames([currentLocale()], { type: "region" })
 
     return [
       { value: "system", label: $t("settings.options.system") },
-      ...regions().map(code => ({
+      ...(regionsReady ? regions() : []).map(code => ({
         value: code,
         label: names.of(code) ?? code,
       })),

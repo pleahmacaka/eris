@@ -12,7 +12,12 @@ import {
   requestPermission,
   sendNotification,
 } from "@tauri-apps/plugin-notification"
-import { eventSpan, hiddenWhileSharing, holidayCheck } from "$lib/calendar"
+import {
+  eventSpan,
+  hiddenWhileSharing,
+  holidayCheck,
+  loadHolidays,
+} from "$lib/calendar"
 
 const TICK = 30_000
 const CATCH_UP = 5 * 60_000
@@ -78,10 +83,24 @@ export const scheduleReminders = (
   const hidden = sharing ? hiddenWhileSharing(calendar.tags) : () => false
   const isHoliday = holidayCheck(calendar)
   const run = () => check(events, hidden, isHoliday)
+  let timer: ReturnType<typeof setInterval> | undefined
+  let stopped = false
 
-  run()
+  const start = () => {
+    if (!stopped) {
+      run()
+      timer = setInterval(run, TICK)
+    }
+  }
 
-  const timer = setInterval(run, TICK)
+  if (events.some(event => event.shift)) {
+    loadHolidays().then(start)
+  } else {
+    start()
+  }
 
-  return () => clearInterval(timer)
+  return () => {
+    stopped = true
+    clearInterval(timer)
+  }
 }
