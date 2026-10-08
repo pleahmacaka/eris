@@ -1,7 +1,7 @@
 <script lang="ts">
   import { addCollection } from "@iconify/svelte"
   import { logoSvg } from "@eris/ui/logo"
-  import { lucideSubset } from "$lib/icons"
+  import icons from "virtual:iconify-subset"
   import { setupI18n } from "@eris/i18n"
   import {
     type Appearance,
@@ -21,13 +21,16 @@
     onWindowHiding,
     onWindowShown,
     type WindowLabel,
+    windowReady,
   } from "$lib/native"
   import "@eris/markdown/markdown.css"
   import "./layout.css"
 
   let { children } = $props()
 
-  addCollection(lucideSubset)
+  for (const collection of icons) {
+    addCollection(collection)
+  }
 
   const WINDOWS: Record<string, WindowSurface> = {
     "": "launcher",
@@ -49,6 +52,10 @@
   const appWindow = getCurrentWindow()
   const windowLabel = appWindow.label as WindowLabel
   const framed = page.data.framed === true
+
+  $effect(() => {
+    windowReady().catch(() => undefined)
+  })
 
   $effect(() => {
     if (framed) {

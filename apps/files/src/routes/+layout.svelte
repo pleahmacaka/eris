@@ -2,12 +2,14 @@
   import { addCollection } from "@iconify/svelte"
   import { prefs } from "@eris/files"
   import { Aura, followEris, GlobalContextMenu, Toasts } from "@eris/ui"
-  import { lucideSubset } from "$lib/icons"
+  import icons from "virtual:iconify-subset"
   import "./layout.css"
 
   let { children } = $props()
 
-  addCollection(lucideSubset)
+  for (const collection of icons) {
+    addCollection(collection)
+  }
   followEris(prefs)
 </script>
 

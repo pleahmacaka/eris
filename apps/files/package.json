@@ -9,8 +9,7 @@
     "preview": "vite preview",
     "prepare": "svelte-kit sync || echo ''",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "tauri": "tauri",
-    "icons": "bun run ../desktop/scripts/icons.ts ../../packages/model-viewer/src ../../packages/files/src ../../packages/terminal/src && biome check --write src/lib/icons.ts"
+    "tauri": "tauri"
   },
   "dependencies": {
     "@eris/files": "workspace:*",
@@ -36,6 +35,7 @@
     "svelte-check": "^4.6.0",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3",
-    "vite": "^8.0.16"
+    "vite": "^8.0.16",
+    "vite-plugin-iconify-subset": "workspace:*"
   }
 }

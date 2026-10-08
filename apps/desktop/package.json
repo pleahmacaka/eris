@@ -12,7 +12,6 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "tauri": "tauri",
-    "icons": "bun run scripts/icons.ts ../../packages/terminal/src ../../packages/files/src ../../packages/model-viewer/src && biome check --write src/lib/icons.ts",
     "test": "bun test"
   },
   "devDependencies": {
@@ -27,7 +26,8 @@
     "svelte-check": "^4.6.0",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3",
-    "vite": "^8.0.16"
+    "vite": "^8.0.16",
+    "vite-plugin-iconify-subset": "workspace:*"
   },
   "dependencies": {
     "@eris/auth": "workspace:*",
@@ -36,6 +36,7 @@
     "@eris/files": "workspace:*",
     "@eris/i18n": "workspace:*",
     "@eris/launcher-core": "workspace:*",
+    "@eris/live-editor": "workspace:*",
     "@eris/markdown": "workspace:*",
     "@eris/settings": "workspace:*",
     "@eris/sync": "workspace:*",
@@ -43,6 +44,7 @@
     "@eris/ui": "workspace:*",
     "@iconify-json/lucide": "^1.2.128",
     "@iconify/svelte": "^5.2.2",
+    "@ssgoi/svelte": "^7.4.1",
     "@tauri-apps/api": "^2.11.1",
     "@tauri-apps/plugin-autostart": "^2.5.1",
     "@tauri-apps/plugin-clipboard-manager": "^2.3.3",

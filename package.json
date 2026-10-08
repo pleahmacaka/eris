@@ -13,8 +13,7 @@
     "check": "bun run --filter '*' check",
     "test": "bun test",
     "lint": "biome check .",
-    "format": "biome check --write .",
-    "icons": "bun run --cwd apps/desktop icons"
+    "format": "biome check --write ."
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.10",

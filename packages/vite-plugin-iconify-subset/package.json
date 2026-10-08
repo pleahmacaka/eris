@@ -1,0 +1,40 @@
+{
+  "name": "vite-plugin-iconify-subset",
+  "version": "0.1.0",
+  "description": "Bundle only the Iconify icons your sources name, for any Iconify runtime",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./client": {
+      "types": "./client.d.ts"
+    }
+  },
+  "files": [
+    "src",
+    "client.d.ts"
+  ],
+  "keywords": [
+    "vite-plugin",
+    "iconify",
+    "icons",
+    "tree-shaking"
+  ],
+  "scripts": {
+    "check": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@iconify/types": "^2.0.0",
+    "@iconify/utils": "^3.1.7"
+  },
+  "peerDependencies": {
+    "vite": "^8.0.16"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "typescript": "^6.0.3"
+  }
+}
