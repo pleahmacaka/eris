@@ -16,6 +16,8 @@ pub fn init<R: Runtime>(route: &str) -> TauriPlugin<R> {
             pty::write,
             pty::resize,
             pty::kill,
+            pty::attach,
+            pty::detach,
             shells::shells,
             windows::take_intent,
             windows::new_window,

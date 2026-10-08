@@ -1,5 +1,6 @@
 import { getCurrentWindow } from "@tauri-apps/api/window"
-import type { Shell } from "../pty"
+import { untrack } from "svelte"
+import { kill, type Shell, shells } from "../pty"
 import {
   insert,
   isSplit,
@@ -9,8 +10,11 @@ import {
   type Pane,
   panesOf,
   remove,
+  renumber,
   type Side,
 } from "./layout"
+import { prefs } from "./prefs.svelte"
+import { newWindow } from "./windows"
 
 export type Tab = {
   id: number
@@ -20,6 +24,14 @@ export type Tab = {
   name?: string
 }
 
+export type Handoff = { root: Layout; name?: string }
+
+export type Host = {
+  shell: () => string
+  cwd: () => string | null
+  empty: () => void
+}
+
 export const session = $state({
   shells: [] as Shell[],
   tabs: [] as Tab[],
@@ -27,15 +39,45 @@ export const session = $state({
   settingsOpen: false,
 })
 
+export const defaultShell = (preferred: string | null) =>
+  session.shells.find(shell => shell.id === preferred)?.id ??
+  session.shells[0]?.id ??
+  "cmd"
+
+let host: Host = {
+  shell: () => defaultShell(prefs.shell),
+  cwd: () => null,
+  empty: () => getCurrentWindow().close(),
+}
+
+export const setHost = (next: Host) => {
+  host = next
+}
+
+export const loadShells = async () => {
+  if (untrack(() => session.shells.length) === 0) {
+    session.shells = await shells().catch(() => [])
+  }
+}
+
 export const shellName = (id: string) =>
   session.shells.find(shell => shell.id === id)?.name ?? id
 
-const newPane = (shell: string, cwd: string | null = null): Pane => ({
+const newPane = (shell: string, cwd: string | null): Pane => ({
   id: newId(),
   shell,
   cwd,
+  pty: null,
   title: shellName(shell),
 })
+
+const killPanes = (root: Layout) => {
+  for (const pane of panesOf(root)) {
+    if (pane.pty !== null) {
+      kill(pane.pty)
+    }
+  }
+}
 
 export const paneLabel = (pane: Pane) => pane.name || pane.title
 
@@ -48,20 +90,43 @@ export const titleOf = (tab: Tab) => {
 export const tabOf = (paneId: number) =>
   session.tabs.find(tab => panesOf(tab.root).some(pane => pane.id === paneId))
 
-export const openTab = (shell: string, cwd: string | null = null) => {
-  const pane = newPane(shell, cwd)
+export const bindPty = (paneId: number, pty: number) => {
+  const pane = session.tabs
+    .flatMap(tab => panesOf(tab.root))
+    .find(entry => entry.id === paneId)
 
-  session.tabs.push({ id: newId(), root: pane, focus: pane.id, sync: false })
+  if (pane) {
+    pane.pty = pty
+  } else {
+    kill(pty)
+  }
+}
+
+const tabFor = (root: Layout, name?: string): Tab => ({
+  id: newId(),
+  root,
+  focus: panesOf(root)[0].id,
+  sync: false,
+  name,
+})
+
+const pushTab = (root: Layout, name?: string) => {
+  session.tabs.push(tabFor(root, name))
   session.active = session.tabs.length - 1
 }
 
-const insertTab = (index: number, pane: Pane) => {
-  session.tabs.splice(index, 0, {
-    id: newId(),
-    root: pane,
-    focus: pane.id,
-    sync: false,
-  })
+export const openTab = ({
+  shell = host.shell(),
+  cwd = host.cwd(),
+}: {
+  shell?: string
+  cwd?: string | null
+} = {}) => {
+  pushTab(newPane(shell, cwd))
+}
+
+export const adoptTab = ({ root, name }: Handoff) => {
+  pushTab(renumber(root), name)
 }
 
 export const detachPane = (paneId: number) => {
@@ -81,7 +146,7 @@ export const detachPane = (paneId: number) => {
     tab.focus = panesOf(left)[0].id
   }
 
-  insertTab(index + 1, pane)
+  session.tabs.splice(index + 1, 0, tabFor(pane))
   session.active = index + 1
 }
 
@@ -93,7 +158,7 @@ export const ungroup = (tab: Tab) => {
   session.active = session.tabs.indexOf(tab)
 }
 
-export const closeTab = (index: number) => {
+const removeTab = (index: number) => {
   session.tabs.splice(index, 1)
   session.active = Math.min(
     session.active,
@@ -101,8 +166,35 @@ export const closeTab = (index: number) => {
   )
 
   if (session.tabs.length === 0) {
-    getCurrentWindow().close()
+    host.empty()
   }
+}
+
+export const closeTab = (index: number) => {
+  const tab = session.tabs[index]
+
+  if (tab) {
+    killPanes(tab.root)
+    removeTab(index)
+  }
+}
+
+export const popOut = async () => {
+  const tab = session.tabs[session.active]
+
+  if (!tab) {
+    return
+  }
+
+  const handoff: Handoff = $state.snapshot({ root: tab.root, name: tab.name })
+
+  removeTab(session.active)
+
+  await newWindow(null, handoff).catch((reason: unknown) => {
+    killPanes(handoff.root)
+
+    throw reason
+  })
 }
 
 export const cycleTab = (step: number) => {
@@ -120,7 +212,7 @@ export const splitPane = (tab: Tab, side: Side) => {
     return
   }
 
-  const pane = newPane(focused.shell)
+  const pane = newPane(focused.shell, focused.cwd)
 
   tab.root = insert(tab.root, focused.id, side, pane)
   tab.focus = pane.id
@@ -128,8 +220,9 @@ export const splitPane = (tab: Tab, side: Side) => {
 
 export const closePane = (paneId: number) => {
   const tab = tabOf(paneId)
+  const pane = tab && panesOf(tab.root).find(entry => entry.id === paneId)
 
-  if (!tab) {
+  if (!tab || !pane) {
     return
   }
 
@@ -141,6 +234,7 @@ export const closePane = (paneId: number) => {
     return
   }
 
+  killPanes(pane)
   tab.root = left
 
   if (tab.focus === paneId) {

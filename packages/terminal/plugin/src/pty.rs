@@ -1,15 +1,15 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::io::{Read, Write};
 use std::path::Path;
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::mpsc::{self, RecvTimeoutError, Sender};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 
 use portable_pty::{native_pty_system, ChildKiller, CommandBuilder, MasterPty, PtySize};
 use serde::Deserialize;
-use tauri::ipc::{Channel, InvokeResponseBody};
+use tauri::ipc::{Channel, InvokeResponseBody, Response};
 use tauri::{Manager, Runtime, State, Window};
 
 use crate::shells;
@@ -17,12 +17,81 @@ use crate::shells;
 const READ_CHUNK: usize = 64 * 1024;
 const BATCH_LIMIT: usize = 1024 * 1024;
 const FRAME: Duration = Duration::from_millis(4);
+const REPLAY_LIMIT: usize = 1024 * 1024;
+
+#[derive(Default)]
+struct Sink {
+    output: Option<Channel<InvokeResponseBody>>,
+    exit: Option<Channel<u32>>,
+    buffer: VecDeque<u8>,
+    shown: usize,
+}
+
+impl Sink {
+    fn push(&mut self, batch: Vec<u8>) {
+        self.buffer.extend(&batch);
+
+        if let Some(output) = &self.output {
+            let _ = output.send(InvokeResponseBody::Raw(batch));
+            self.shown = self.buffer.len();
+        }
+
+        self.trim();
+    }
+
+    fn trim(&mut self) {
+        if self.buffer.len() <= REPLAY_LIMIT {
+            return;
+        }
+
+        let excess = self.buffer.len() - REPLAY_LIMIT;
+        let line = self
+            .buffer
+            .iter()
+            .skip(excess)
+            .position(|byte| *byte == b'\n')
+            .map_or(0, |at| at + 1);
+        let cut = excess + line;
+
+        self.buffer.drain(..cut);
+        self.shown = self.shown.saturating_sub(cut);
+    }
+
+    fn attach(&mut self, output: Channel<InvokeResponseBody>, exit: Channel<u32>) -> Vec<u8> {
+        // ConPTY asks for the cursor position at startup, so unseen output must reach a live screen
+        let unseen: Vec<u8> = self.buffer.range(self.shown..).copied().collect();
+
+        if !unseen.is_empty() {
+            let _ = output.send(InvokeResponseBody::Raw(unseen));
+        }
+
+        let history = self.buffer.range(..self.shown).copied().collect();
+
+        self.shown = self.buffer.len();
+        self.output = Some(output);
+        self.exit = Some(exit);
+
+        history
+    }
+
+    fn detach(&mut self, channel: u32) {
+        if self
+            .output
+            .as_ref()
+            .is_some_and(|output| output.id() == channel)
+        {
+            self.output = None;
+            self.exit = None;
+        }
+    }
+}
 
 struct Session {
     window: String,
     master: Box<dyn MasterPty + Send>,
     input: Sender<Vec<u8>>,
     killer: Box<dyn ChildKiller + Send + Sync>,
+    sink: Arc<Mutex<Sink>>,
 }
 
 #[derive(Default)]
@@ -89,7 +158,7 @@ fn feed(mut writer: Box<dyn Write + Send>) -> Sender<Vec<u8>> {
     input
 }
 
-fn pump(mut reader: Box<dyn Read + Send>, output: Channel<InvokeResponseBody>) -> JoinHandle<()> {
+fn pump(mut reader: Box<dyn Read + Send>, sink: Arc<Mutex<Sink>>) -> JoinHandle<()> {
     let (chunks, queue) = mpsc::channel::<Vec<u8>>();
 
     thread::spawn(move || {
@@ -115,10 +184,7 @@ fn pump(mut reader: Box<dyn Read + Send>, output: Channel<InvokeResponseBody>) -
                 }
             }
 
-            if output.send(InvokeResponseBody::Raw(batch)).is_err() {
-                break;
-            }
-
+            sink.lock().unwrap().push(batch);
             sent = Instant::now();
         }
     })
@@ -137,8 +203,6 @@ pub fn spawn<R: Runtime>(
     window: Window<R>,
     sessions: State<'_, Sessions>,
     spawn: Spawn,
-    output: Channel<InvokeResponseBody>,
-    exit: Channel<u32>,
 ) -> Result<u32, String> {
     let shell = shells::find(&spawn.shell).ok_or("unknown shell")?;
     let cwd = spawn.cwd.filter(|dir| Path::new(dir).is_dir());
@@ -168,6 +232,7 @@ pub fn spawn<R: Runtime>(
     let reader = pair.master.try_clone_reader().map_err(|e| e.to_string())?;
     let writer = pair.master.take_writer().map_err(|e| e.to_string())?;
     let id = sessions.next.fetch_add(1, Ordering::Relaxed);
+    let sink = Arc::new(Mutex::new(Sink::default()));
 
     sessions.open.lock().unwrap().insert(
         id,
@@ -176,10 +241,11 @@ pub fn spawn<R: Runtime>(
             master: pair.master,
             input: feed(writer),
             killer: child.clone_killer(),
+            sink: sink.clone(),
         },
     );
 
-    let pumping = pump(reader, output);
+    let pumping = pump(reader, sink.clone());
     let app = window.app_handle().clone();
 
     thread::spawn(move || {
@@ -189,10 +255,38 @@ pub fn spawn<R: Runtime>(
         drop(gone);
 
         let _ = pumping.join();
-        let _ = exit.send(code);
+
+        if let Some(exit) = &sink.lock().unwrap().exit {
+            let _ = exit.send(code);
+        }
     });
 
     Ok(id)
+}
+
+#[tauri::command]
+pub fn attach<R: Runtime>(
+    window: Window<R>,
+    sessions: State<'_, Sessions>,
+    id: u32,
+    output: Channel<InvokeResponseBody>,
+    exit: Channel<u32>,
+) -> Result<Response, String> {
+    let mut open = sessions.open.lock().unwrap();
+    let session = open.get_mut(&id).ok_or("session ended")?;
+
+    session.window = window.label().to_string();
+
+    let history = session.sink.lock().unwrap().attach(output, exit);
+
+    Ok(Response::new(history))
+}
+
+#[tauri::command]
+pub fn detach(sessions: State<'_, Sessions>, id: u32, channel: u32) {
+    if let Some(session) = sessions.open.lock().unwrap().get(&id) {
+        session.sink.lock().unwrap().detach(channel);
+    }
 }
 
 #[tauri::command]

@@ -3,6 +3,8 @@ const COMMANDS: &[&str] = &[
     "write",
     "resize",
     "kill",
+    "attach",
+    "detach",
     "shells",
     "take_intent",
     "new_window",

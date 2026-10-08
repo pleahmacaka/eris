@@ -4,6 +4,7 @@ export type Pane = {
   cwd: string | null
   title: string
   name?: string
+  pty: number | null
 }
 
 export type Split = {
@@ -36,6 +37,11 @@ export const isSplit = (node: Layout): node is Split => "children" in node
 
 export const panesOf = (node: Layout): Pane[] =>
   isSplit(node) ? node.children.flatMap(panesOf) : [node]
+
+export const renumber = (node: Layout): Layout =>
+  isSplit(node)
+    ? { ...node, id: newId(), children: node.children.map(renumber) }
+    : { ...node, id: newId() }
 
 export const mapPanes = (node: Layout, swap: (pane: Pane) => Layout): Layout =>
   isSplit(node)

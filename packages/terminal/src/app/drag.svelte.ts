@@ -1,10 +1,12 @@
-const SLOP = 6
+export const SLOP = 6
 
 export const drag = $state({ tab: null as number | null, x: 0, y: 0 })
 
 let landing: ((tab: number) => void) | null = null
 
 let settled = true
+
+let spring: ReturnType<typeof setTimeout> | undefined
 
 export const onTabDrop = (handler: (tab: number) => void) => {
   landing = handler
@@ -15,6 +17,16 @@ export const onTabDrop = (handler: (tab: number) => void) => {
 }
 
 export const justDragged = () => !settled
+
+export const springTo = (target: number, open: () => void) => {
+  clearTimeout(spring)
+
+  if (drag.tab !== null && drag.tab !== target) {
+    spring = setTimeout(open, 450)
+  }
+}
+
+export const unspring = () => clearTimeout(spring)
 
 export const pressTab = (e: PointerEvent, tab: number) => {
   if (e.button !== 0) {
@@ -40,6 +52,7 @@ export const pressTab = (e: PointerEvent, tab: number) => {
     window.removeEventListener("pointermove", move)
     window.removeEventListener("pointerup", up)
     window.removeEventListener("keydown", cancel, true)
+    unspring()
 
     if (drag.tab === null) {
       return

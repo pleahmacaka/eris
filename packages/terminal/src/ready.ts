@@ -1,6 +1,5 @@
 import "@fontsource-variable/jetbrains-mono"
 import nerdSymbols from "@azurity/pure-nerd-font/PureNerdFont.woff2?url"
-import { init } from "ghostty-web"
 import pretendard from "pretendard/dist/web/variable/woff2/PretendardVariable.woff2?url"
 
 export const DEFAULT_FONT = "JetBrains Mono Variable"
@@ -48,7 +47,7 @@ export const loadFont = async (family: string, size: number) => {
 }
 
 export const prepare = (family: string, size: number) => {
-  engine ??= init()
+  engine ??= import("ghostty-web").then(ghostty => ghostty.init())
 
   return Promise.all([engine, loadFont(family, size)])
 }

@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
+  import { write } from "../pty"
   import Terminal from "../Terminal.svelte"
   import { drag, onTabDrop } from "./drag.svelte"
   import {
@@ -12,8 +13,19 @@
     type Side,
     sideAt,
   } from "./layout"
-  import { prefs } from "./prefs.svelte"
-  import { closePane, dropTab, session, type Tab } from "./tabs.svelte"
+  import {
+    bindPty,
+    closePane,
+    dropTab,
+    session,
+    type Tab,
+  } from "./tabs.svelte"
+
+  let {
+    fontFamily,
+    fontSize,
+    visible = true,
+  }: { fontFamily: string; fontSize: number; visible?: boolean } = $props()
 
   const MIN_PANE = 80
   const CORNER = { x: 120, y: 80 }
@@ -21,9 +33,6 @@
 
   let area = $state<HTMLElement>()
   let near = $state(false)
-
-  const terminals: Record<number, ReturnType<typeof Terminal> | undefined> =
-    {}
 
   const current = $derived(session.tabs[session.active])
 
@@ -117,8 +126,8 @@
     }
 
     for (const pane of panesOf(tab.root)) {
-      if (pane.id !== from) {
-        terminals[pane.id]?.send(data)
+      if (pane.id !== from && pane.pty !== null) {
+        write(pane.pty, data)
       }
     }
   }
@@ -201,15 +210,16 @@
       onpointerdowncapture={() => (item.tab.focus = item.pane.id)}
     >
       <Terminal
-        bind:this={terminals[item.pane.id]}
         shell={item.pane.shell}
         cwd={item.pane.cwd}
-        fontFamily={prefs.fontFamily}
-        fontSize={prefs.fontSize}
-        active={shown && focused}
+        pty={item.pane.pty}
+        {fontFamily}
+        {fontSize}
+        active={visible && shown && focused}
         ontitle={title => (item.pane.title = title || item.pane.title)}
         oninput={data => share(item.tab, item.pane.id, data)}
         onexit={() => closePane(item.pane.id)}
+        onpty={id => bindPty(item.pane.id, id)}
       />
     </div>
   {/each}

@@ -4193,6 +4193,7 @@ dependencies = [
  "eris-window-kit",
  "portable-pty",
  "serde",
+ "serde_json",
  "tauri",
  "tauri-plugin",
  "winreg 0.55.0",

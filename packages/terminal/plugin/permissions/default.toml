@@ -5,6 +5,8 @@ permissions = [
   "allow-write",
   "allow-resize",
   "allow-kill",
+  "allow-attach",
+  "allow-detach",
   "allow-shells",
   "allow-take-intent",
   "allow-new-window",

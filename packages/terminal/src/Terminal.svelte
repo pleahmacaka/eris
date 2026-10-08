@@ -1,18 +1,20 @@
 <script lang="ts">
   import { readText, writeText } from "@tauri-apps/plugin-clipboard-manager"
-  import { FitAddon, Terminal as Screen } from "ghostty-web"
+  import type { FitAddon, Terminal as Screen } from "ghostty-web"
   import { untrack } from "svelte"
-  import { type Pty, spawn } from "./pty"
+  import { type Attachment, attach, resize, spawn, write } from "./pty"
   import { DEFAULT_FONT, fontStack, loadFont, prepare } from "./ready"
   import { terminalTheme } from "./theme"
 
   type Props = {
     shell: string
     cwd?: string | null
+    pty?: number | null
     fontFamily?: string
     fontSize?: number
     active?: boolean
     onexit?: (code: number) => void
+    onpty?: (id: number) => void
     ontitle?: (title: string) => void
     oninput?: (data: string) => void
     class?: string
@@ -21,10 +23,12 @@
   let {
     shell,
     cwd = null,
+    pty = null,
     fontFamily = DEFAULT_FONT,
     fontSize = 14,
     active = true,
     onexit,
+    onpty,
     ontitle,
     oninput,
     class: className,
@@ -33,13 +37,7 @@
   let host = $state<HTMLDivElement>()
   let term = $state.raw<Screen>()
   let fit: FitAddon | undefined
-  let pty: Pty | undefined
-
-  export const focus = () => term?.focus()
-
-  export const kill = () => pty?.kill()
-
-  export const send = (data: string) => pty?.write(data)
+  let attachment: Attachment | undefined
 
   const copy = () => {
     if (!term?.hasSelection()) {
@@ -124,23 +122,25 @@
     }
 
     let disposed = false
-    const start = untrack(() => ({ shell, cwd, fontFamily, fontSize }))
+    const start = untrack(() => ({ shell, cwd, pty, fontFamily, fontSize }))
 
     const open = async () => {
       await prepare(start.fontFamily, start.fontSize)
+
+      const ghostty = await import("ghostty-web")
 
       if (disposed) {
         return
       }
 
-      const screen = new Screen({
+      const screen = new ghostty.Terminal({
         fontFamily: fontStack(start.fontFamily),
         fontSize: start.fontSize,
         theme: terminalTheme(),
         cursorBlink: true,
       })
 
-      fit = new FitAddon()
+      fit = new ghostty.FitAddon()
       screen.loadAddon(fit)
       screen.open(node)
       fit.fit()
@@ -149,33 +149,58 @@
       screen.onTitleChange(title => ontitle?.(title))
       term = screen
 
-      const session = await spawn({
-        shell: start.shell,
-        cwd: start.cwd,
-        cols: screen.cols,
-        rows: screen.rows,
-        onData: data => screen.write(data),
-        onExit: code => {
-          if (!disposed) {
-            onexit?.(code)
-          }
-        },
-      }).catch((reason: unknown) => {
-        screen.write(`\r\n${String(reason)}\r\n`)
-      })
+      const live = {
+        onData: (data: Uint8Array) => !disposed && screen.write(data),
+        onExit: (code: number) => !disposed && onexit?.(code),
+      }
 
-      if (!session || disposed) {
-        session?.kill()
+      const id =
+        start.pty ??
+        (await spawn({
+          shell: start.shell,
+          cwd: start.cwd,
+          cols: screen.cols,
+          rows: screen.rows,
+        }).catch((reason: unknown) => {
+          screen.write(`\r\n${String(reason)}\r\n`)
+
+          return null
+        }))
+
+      if (id === null) {
+        return
+      }
+
+      onpty?.(id)
+
+      const attached = await attach(id, live).catch(() => null)
+
+      if (!attached) {
+        live.onExit(1)
 
         return
       }
 
-      pty = session
+      if (disposed) {
+        attached.detach()
+
+        return
+      }
+
+      attachment = attached
+
+      // ghostty answers queries inside write, so history replays before onData; it also throws on empty input
+      if (attached.history.length > 0) {
+        screen.write(attached.history)
+      }
+
+      resize(id, screen.cols, screen.rows)
       screen.onData(data => {
-        session.write(data)
+        write(id, data)
         oninput?.(data)
       })
-      screen.onResize(size => session.resize(size.cols, size.rows))
+      screen.onResize(size => resize(id, size.cols, size.rows))
+      attached.flow()
     }
 
     open()
@@ -192,7 +217,7 @@
     return () => {
       disposed = true
       recolor.disconnect()
-      pty?.kill()
+      attachment?.detach()
       fit?.dispose()
       term?.dispose()
     }

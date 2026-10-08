@@ -295,6 +295,30 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the attach command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-attach",
+          "markdownDescription": "Enables the attach command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the attach command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-attach",
+          "markdownDescription": "Denies the attach command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the detach command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-detach",
+          "markdownDescription": "Enables the detach command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the detach command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-detach",
+          "markdownDescription": "Denies the detach command without any pre-configured scope."
+        },
+        {
           "description": "Enables the kill command without any pre-configured scope.",
           "type": "string",
           "const": "allow-kill",
@@ -379,10 +403,10 @@
           "markdownDescription": "Denies the write command without any pre-configured scope."
         },
         {
-          "description": "Run shells in pseudo consoles and stream their output.\n#### This default permission set includes:\n\n- `allow-spawn`\n- `allow-write`\n- `allow-resize`\n- `allow-kill`\n- `allow-shells`\n- `allow-take-intent`\n- `allow-new-window`",
+          "description": "Run shells in pseudo consoles and stream their output.\n#### This default permission set includes:\n\n- `allow-spawn`\n- `allow-write`\n- `allow-resize`\n- `allow-kill`\n- `allow-attach`\n- `allow-detach`\n- `allow-shells`\n- `allow-take-intent`\n- `allow-new-window`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Run shells in pseudo consoles and stream their output.\n#### This default permission set includes:\n\n- `allow-spawn`\n- `allow-write`\n- `allow-resize`\n- `allow-kill`\n- `allow-shells`\n- `allow-take-intent`\n- `allow-new-window`"
+          "markdownDescription": "Run shells in pseudo consoles and stream their output.\n#### This default permission set includes:\n\n- `allow-spawn`\n- `allow-write`\n- `allow-resize`\n- `allow-kill`\n- `allow-attach`\n- `allow-detach`\n- `allow-shells`\n- `allow-take-intent`\n- `allow-new-window`"
         }
       ]
     }

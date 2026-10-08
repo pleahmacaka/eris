@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { DesktopAccount } from "@eris/auth/tauri"
   import {
     Confirm,
     type PrefsPage,
@@ -11,12 +10,9 @@
   import { getVersion } from "@tauri-apps/api/app"
   import { locale, t } from "svelte-i18n"
   import { prefs, resetPrefs } from "./prefs.svelte"
-  import { session } from "./tabs.svelte"
+  import { defaultShell, session } from "./tabs.svelte"
 
-  let {
-    fallback,
-    standalone = false,
-  }: { fallback: string; standalone?: boolean } = $props()
+  let { standalone = false }: { standalone?: boolean } = $props()
 
   const PAGES: [string, string][] = [
     ["general", "lucide:square-terminal"],
@@ -72,7 +68,7 @@
             <select
               class="select select-sm w-48"
               aria-label={$t("terminal.settings.shell")}
-              value={prefs.shell ?? fallback}
+              value={defaultShell(prefs.shell)}
               onchange={e => (prefs.shell = e.currentTarget.value)}
             >
               {#each session.shells as shell (shell.id)}
@@ -118,7 +114,9 @@
       {:else if page === "account"}
         <Section title={$t("terminal.settings.account")}>
           <div class="px-4 py-4">
-            <DesktopAccount lang={$locale} />
+            {#await import("@eris/auth/tauri") then { DesktopAccount }}
+              <DesktopAccount lang={$locale} />
+            {/await}
           </div>
         </Section>
       {:else}
