@@ -3,7 +3,7 @@ mod win;
 
 #[cfg(windows)]
 pub fn is_screen_sharing() -> bool {
-    win::share_bar_open() || win::capture_process_running()
+    win::capture_session_open() || win::share_bar_open() || win::capture_process_running()
 }
 
 #[cfg(not(windows))]

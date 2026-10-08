@@ -1,7 +1,7 @@
 {
   "name": "is-screen-sharing",
   "version": "0.1.0",
-  "description": "Detect whether the screen is being shared on Windows",
+  "description": "Detect whether the screen is being shared",
   "type": "commonjs",
   "main": "index.js",
   "types": "index.d.ts",
@@ -18,8 +18,7 @@
     "zoom",
     "meet",
     "teams",
-    "privacy",
-    "windows"
+    "privacy"
   ],
   "engines": {
     "node": ">=16"

@@ -4,6 +4,8 @@ use windows::Win32::System::Diagnostics::ToolHelp::{
 };
 use windows::Win32::UI::WindowsAndMessaging::{EnumWindows, GetWindowRect, GetWindowTextW};
 use windows::core::BOOL;
+use winreg::RegKey;
+use winreg::enums::HKEY_CURRENT_USER;
 
 const CAPTURE_PROCESSES: [&str; 1] = ["cpthost.exe"];
 
@@ -22,19 +24,24 @@ const SHARE_PHRASES: [&str; 12] = [
     "正在共享",
 ];
 
+const CAPTURE_STORES: [&str; 2] = [
+    r"Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\graphicsCaptureProgrammatic",
+    r"Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\graphicsCaptureWithoutBorder",
+];
+
 // share bars are short strips and may be hidden; tall windows with these words are documents
 const BAR_HEIGHT: i32 = 160;
 
-pub fn capture_process_running() -> bool {
+fn process_names() -> Vec<String> {
     let Ok(snapshot) = (unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) }) else {
-        return false;
+        return Vec::new();
     };
 
     let mut entry = PROCESSENTRY32W {
         dwSize: std::mem::size_of::<PROCESSENTRY32W>() as u32,
         ..Default::default()
     };
-    let mut found = false;
+    let mut names = Vec::new();
     let mut next = unsafe { Process32FirstW(snapshot, &mut entry) };
 
     while next.is_ok() {
@@ -43,13 +50,8 @@ pub fn capture_process_running() -> bool {
             .iter()
             .position(|&c| c == 0)
             .unwrap_or(entry.szExeFile.len());
-        let name = String::from_utf16_lossy(&entry.szExeFile[..length]).to_lowercase();
 
-        if CAPTURE_PROCESSES.contains(&name.as_str()) {
-            found = true;
-            break;
-        }
-
+        names.push(String::from_utf16_lossy(&entry.szExeFile[..length]).to_lowercase());
         next = unsafe { Process32NextW(snapshot, &mut entry) };
     }
 
@@ -57,7 +59,64 @@ pub fn capture_process_running() -> bool {
         let _ = CloseHandle(snapshot);
     }
 
-    found
+    names
+}
+
+pub fn capture_process_running() -> bool {
+    process_names()
+        .iter()
+        .any(|name| CAPTURE_PROCESSES.contains(&name.as_str()))
+}
+
+fn capturing(entry: &RegKey) -> bool {
+    let start: u64 = entry.get_value("LastUsedTimeStart").unwrap_or(0);
+    let stop: u64 = entry.get_value("LastUsedTimeStop").unwrap_or(1);
+
+    start != 0 && stop == 0
+}
+
+// Windows logs each Graphics Capture session per app; a zero stop time means the capture is still live
+pub fn capture_session_open() -> bool {
+    let user = RegKey::predef(HKEY_CURRENT_USER);
+    let mut running: Option<Vec<String>> = None;
+
+    for store in CAPTURE_STORES {
+        let Ok(store) = user.open_subkey(store) else {
+            continue;
+        };
+
+        for name in store.enum_keys().flatten() {
+            let Ok(entry) = store.open_subkey(&name) else {
+                continue;
+            };
+
+            if name != "NonPackaged" {
+                if capturing(&entry) {
+                    return true;
+                }
+
+                continue;
+            }
+
+            for program in entry.enum_keys().flatten() {
+                let live = entry
+                    .open_subkey(&program)
+                    .is_ok_and(|program| capturing(&program));
+                // a crashed app never writes its stop time, so its program must still be running
+                let exe = program
+                    .rsplit('#')
+                    .next()
+                    .unwrap_or_default()
+                    .to_lowercase();
+
+                if live && running.get_or_insert_with(process_names).contains(&exe) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    false
 }
 
 unsafe extern "system" fn inspect(hwnd: HWND, lparam: LPARAM) -> BOOL {
