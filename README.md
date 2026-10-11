@@ -96,6 +96,13 @@ bun run test:native
 Pull requests run frontend checks and Windows native checks independently.
 Native checks use the existing app lockfiles; no shared Cargo workspace is required.
 
+The audio hardware test is excluded from the default native suite because hosted
+Windows runners have no output device. Run it explicitly on a Windows desktop:
+
+```sh
+cargo test --locked --manifest-path apps/desktop/src-tauri/Cargo.toml --lib system::audio::tests::the_default_endpoint_can_be_reassigned_to_itself -- --ignored
+```
+
 With Windows development running and its settings window open, the opt-in UI
 regression test checks real tab transitions and table-of-contents navigation:
 
