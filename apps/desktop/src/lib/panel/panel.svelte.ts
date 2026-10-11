@@ -3,10 +3,6 @@ import {
   type DeviceSettings,
   defaultDevice,
   defaultProfile,
-  type EventTag,
-  loadProfile,
-  onDevice,
-  onProfile,
   type Profile,
 } from "@eris/settings"
 import {
@@ -14,12 +10,10 @@ import {
   hiddenWhileSharing,
   holidayCheck,
   holidaysOn,
-  loadHolidays,
   regionOf,
   restDayOf,
 } from "$lib/calendar"
 import {
-  addDays,
   type CalendarEvent,
   dateKey,
   dayDelta,
@@ -28,25 +22,29 @@ import {
   eventsByDay,
   eventsOn,
   inSeries,
-  isDone,
   live,
   monthGrid,
   newId,
   notes,
   type Occurrence,
-  occurrenceAt,
-  occurrenceKey,
   parseLocal,
   removeOccurrence,
-  type Scope,
   startOfDay,
   updateProfileSynced,
-  withDone,
 } from "$lib/data"
-import { ensureDevice } from "$lib/device"
-import * as native from "$lib/native"
-import { colorMeta, eventColors, toColor } from "./colors"
+import { colorMeta, toColor } from "./colors"
 import type { Draft } from "./draft"
+import { panelMutations } from "./mutations"
+import {
+  childrenOf,
+  daySections,
+  openOccurrence,
+  orderedDay,
+  rangeTone,
+  selectedRange,
+} from "./projections"
+import { type ScopeMode, ScopePrompt } from "./scope.svelte"
+import { subscribePanel } from "./subscriptions"
 
 export type View =
   | { kind: "day" }
@@ -54,18 +52,9 @@ export type View =
   | { kind: "event"; id: string; date: string | null }
   | { kind: "new"; day: Date; span: number; parent: string | null }
 
-export type ScopeMode = "edit" | "delete"
-
-type Asking = {
-  mode: ScopeMode
-  scoped: boolean
-  answer: (scope: Scope | null) => void
-}
+export type { ScopeMode } from "./scope.svelte"
 
 const GRID_DAYS = 42
-
-const byStart = (a: CalendarEvent, b: CalendarEvent) =>
-  parseLocal(a.start).getTime() - parseLocal(b.start).getTime()
 
 export class Panel {
   profile = $state<Profile>(defaultProfile)
@@ -86,7 +75,15 @@ export class Panel {
 
   drag = $state<{ from: Date; to: Date } | null>(null)
 
-  asking = $state<Asking | null>(null)
+  private scopePrompt = new ScopePrompt()
+
+  get asking() {
+    return this.scopePrompt.asking
+  }
+
+  set asking(value: ScopePrompt["asking"]) {
+    this.scopePrompt.asking = value
+  }
 
   kept: { key: string; draft: Draft } | null = null
 
@@ -169,71 +166,21 @@ export class Panel {
     eventsByDay(this.shown, this.weeks[0][0], GRID_DAYS, this.isHoliday),
   )
 
-  orderedDay = (day: Date) => {
-    const list = eventsOn(this.shown, day, this.isHoliday)
-    const allDay = list
-      .filter(e => e.allDay)
-      .sort((a, b) => (a.order ?? a.createdAt) - (b.order ?? b.createdAt))
-
-    return [...allDay, ...list.filter(e => !e.allDay)]
-  }
+  orderedDay = (day: Date) => orderedDay(this.shown, day, this.isHoliday)
 
   dayEvents = $derived(this.orderedDay(this.selected))
 
-  range = $derived.by(() => {
-    if (this.drag) {
-      const { from, to } = this.drag
+  range = $derived(selectedRange(this.selected, this.rangeEnd, this.drag))
 
-      return from <= to ? [from, to] : [to, from]
-    }
-
-    return this.rangeEnd ? [this.selected, this.rangeEnd] : null
-  })
-
-  daySections = $derived.by(() => {
-    const end = this.rangeEnd
-
-    if (!end) {
-      return [{ day: this.selected, events: this.dayEvents }]
-    }
-
-    const seen = new Set<string>()
-    const length = dayDelta(dateKey(this.selected), dateKey(end)) + 1
-
-    return Array.from({ length }, (_, index) => {
-      const day = addDays(this.selected, index)
-      const events = this.orderedDay(day).filter(e => {
-        const fresh = !seen.has(e.id + e.start)
-
-        seen.add(e.id + e.start)
-
-        return fresh
-      })
-
-      return { day, events }
-    })
-  })
+  daySections = $derived(
+    daySections(this.selected, this.rangeEnd, this.orderedDay),
+  )
 
   inRange = (day: Date) =>
     this.range !== null && day >= this.range[0] && day <= this.range[1]
 
-  rangeTone = (day: Date) => {
-    const range = this.range
-
-    if (!range || day < range[0] || day > range[1]) {
-      return null
-    }
-
-    const column = (day.getDay() - this.profile.calendar.weekStartsOn + 7) % 7
-    const first = column === 0 || dateKey(day) === dateKey(range[0])
-    const last = column === 6 || dateKey(day) === dateKey(range[1])
-
-    return [
-      "bg-primary/15",
-      !first && "-ml-0.5 rounded-l-none",
-      !last && "-mr-0.5 rounded-r-none",
-    ]
-  }
+  rangeTone = (day: Date) =>
+    rangeTone(day, this.range, this.profile.calendar.weekStartsOn)
 
   beginDrag = (day: Date) => {
     this.drag = { from: day, to: day }
@@ -255,21 +202,9 @@ export class Panel {
     }
   }
 
-  openEvent = $derived.by((): Occurrence | null => {
-    const view = this.view
-
-    if (view.kind !== "event") {
-      return null
-    }
-
-    const found = this.eventLive.items.find(e => e.id === view.id)
-
-    if (!found || found.recurrence === "none" || !view.date) {
-      return found ?? null
-    }
-
-    return occurrenceAt(found, view.date, this.isHoliday)
-  })
+  openEvent = $derived(
+    openOccurrence(this.eventLive.items, this.view, this.isHoliday),
+  )
 
   detailOpen = $derived(this.view.kind === "new" || this.openEvent !== null)
 
@@ -293,8 +228,7 @@ export class Panel {
   parentOf = (event: CalendarEvent) =>
     event.parentId ? this.shown.find(e => e.id === event.parentId) : undefined
 
-  childrenOf = (event: CalendarEvent) =>
-    this.shown.filter(e => e.parentId === event.id).sort(byStart)
+  childrenOf = (event: CalendarEvent) => childrenOf(this.shown, event)
 
   hasChildren = (event: CalendarEvent) =>
     this.eventLive.items.some(e => e.parentId === event.id)
@@ -358,41 +292,17 @@ export class Panel {
         event.recurrence === "none" ? null : dateKey(parseLocal(event.start)),
     })
 
-  private creating = false
+  private mutations = panelMutations(this, this.reveal, {
+    events,
+    editOccurrence,
+    removeOccurrence,
+    updateProfileSynced,
+    newId,
+  })
 
-  // the compact and expanded details can both commit one draft while the first write is in flight
-  createEvent = async (next: CalendarEvent) => {
-    if (this.creating) {
-      return
-    }
+  createEvent = this.mutations.createEvent
 
-    this.creating = true
-
-    try {
-      await events.put(next)
-      this.reveal(next)
-    } finally {
-      this.creating = false
-    }
-  }
-
-  commitEvent = async (
-    occurrence: Occurrence,
-    next: CalendarEvent,
-    scope: Scope | null,
-  ) => {
-    if (!occurrence.seriesDate || !scope) {
-      await events.put(next)
-
-      return
-    }
-
-    const edited = await editOccurrence(occurrence, next, scope)
-
-    if (edited) {
-      this.reveal({ ...edited, start: next.start })
-    }
-  }
+  commitEvent = this.mutations.commitEvent
 
   startNew = () =>
     this.go({
@@ -424,92 +334,19 @@ export class Panel {
   showNotes = () =>
     this.go(this.view.kind === "notes" ? { kind: "day" } : { kind: "notes" })
 
-  groupWith = async (moved: Occurrence, target: Occurrence) => {
-    const group = target.group ?? moved.group ?? newId()
-    const stored = await Promise.all([
-      events.get(moved.id),
-      events.get(target.id),
-    ])
-    const stamp = Date.now()
+  groupWith = this.mutations.groupWith
 
-    await events.apply({
-      put: stored.flatMap(e => (e ? [{ ...e, group, updatedAt: stamp }] : [])),
-      remove: [],
-    })
-  }
-
-  ungroup = async (event: Occurrence) => {
-    const stored = await events.get(event.id)
-
-    if (stored) {
-      await events.put({ ...stored, group: null, updatedAt: Date.now() })
-    }
-  }
+  ungroup = this.mutations.ungroup
 
   groupOf = (event: CalendarEvent) =>
     event.group ? this.shown.filter(e => e.group === event.group) : []
 
   askScope = (mode: ScopeMode, scoped = true) =>
-    new Promise<Scope | null>(resolve => {
-      this.asking?.answer(null)
-      this.asking = {
-        mode,
-        scoped,
-        answer: scope => {
-          this.asking = null
-          resolve(scope)
-        },
-      }
-    })
+    this.scopePrompt.ask(mode, scoped)
 
-  reorderDay = async (fromId: string, toId: string, after: boolean) => {
-    if (fromId === toId) {
-      return
-    }
+  reorderDay = this.mutations.reorderDay
 
-    const allDay = this.dayEvents.filter(e => e.allDay)
-    const from = allDay.findIndex(e => e.id === fromId)
-
-    if (from < 0 || !allDay.some(e => e.id === toId)) {
-      return
-    }
-
-    const next = [...allDay]
-    const [moved] = next.splice(from, 1)
-    const target = next.findIndex(e => e.id === toId)
-
-    next.splice(after ? target + 1 : target, 0, moved)
-
-    await Promise.all(
-      next.map((occ, index) => {
-        const base = this.shown.find(e => e.id === occ.id)
-
-        return base && base.order !== index
-          ? events.put({ ...base, order: index, updatedAt: Date.now() })
-          : null
-      }),
-    )
-  }
-
-  remove = async (event: Occurrence) => {
-    if (event.seriesDate) {
-      const scope = await this.askScope("delete")
-
-      if (!scope) {
-        return
-      }
-
-      await removeOccurrence(event, scope)
-    } else {
-      if (!(await this.askScope("delete", false))) {
-        return
-      }
-
-      await events.remove(event.id)
-    }
-
-    this.close()
-  }
+  remove = this.mutations.remove
 
   colorOf = (tagIds: string[] | undefined) =>
     toColor(
@@ -524,86 +361,13 @@ export class Panel {
     return inSeries(event) ? ["border", meta.ring] : meta.chip
   }
 
-  private editTags = (edit: (tags: EventTag[]) => EventTag[]) => {
-    this.profile.calendar.tags = edit(this.profile.calendar.tags)
-    updateProfileSynced(p => ({
-      ...p,
-      calendar: { ...p.calendar, tags: edit(p.calendar.tags) },
-    }))
-  }
+  createTag = this.mutations.createTag
 
-  createTag = (name: string) => {
-    const count = this.profile.calendar.tags.length
-    const tag = {
-      id: newId(),
-      name,
-      hideWhileSharing: false,
-      color: eventColors[count % eventColors.length],
-    }
+  updateTag = this.mutations.updateTag
 
-    this.editTags(tags => [...tags, tag])
+  removeTag = this.mutations.removeTag
 
-    return tag.id
-  }
+  toggleDone = this.mutations.toggleDone
 
-  updateTag = (id: string, patch: Partial<EventTag>) =>
-    this.editTags(tags =>
-      tags.map(tag => (tag.id === id ? { ...tag, ...patch } : tag)),
-    )
-
-  removeTag = (id: string) =>
-    this.editTags(tags => tags.filter(tag => tag.id !== id))
-
-  toggleDone = async (event: Occurrence) => {
-    const stored = await events.get(event.id)
-
-    if (stored) {
-      await events.put(
-        withDone(stored, occurrenceKey(event), !isDone(event), Date.now()),
-      )
-    }
-  }
-
-  start = () => {
-    loadHolidays().then(() => (this.holidaysReady = true))
-    ensureDevice()
-      .then(d => {
-        this.device = d
-      })
-      .catch(() => undefined)
-    loadProfile().then(p => {
-      this.profile = p
-    })
-
-    const stops = [
-      onProfile(p => {
-        this.profile = p
-      }),
-      onDevice(d => {
-        this.device = d
-      }),
-      native.watchScreenShare(value => {
-        this.sharing = value
-
-        if (!value) {
-          this.revealedDays = []
-        }
-      }),
-    ]
-
-    const clock = setInterval(() => {
-      this.now = new Date()
-    }, 60_000)
-
-    return () => {
-      clearInterval(clock)
-
-      for (const stop of stops) {
-        stop.then(fn => fn())
-      }
-
-      this.eventLive.stop()
-      this.noteLive.stop()
-    }
-  }
+  start = () => subscribePanel(this)
 }

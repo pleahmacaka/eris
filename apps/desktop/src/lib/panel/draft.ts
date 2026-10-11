@@ -5,7 +5,6 @@ import {
   dateKey,
   dateTimeKey,
   dayDelta,
-  newId,
   openEnded,
   parseLocal,
   parseTime,
@@ -15,7 +14,7 @@ import {
   shiftable,
   timeMinutes,
   withoutToken,
-} from "$lib/data"
+} from "@eris/data"
 
 export type Seed = { day: Date; span: number; parent: string | null }
 
@@ -139,6 +138,7 @@ export const eventFrom = (
   draft: Draft,
   stored: CalendarEvent | undefined,
   stamp: number,
+  newId: () => string,
 ): CalendarEvent => {
   const { day, start, end } = timesOf(draft)
 
