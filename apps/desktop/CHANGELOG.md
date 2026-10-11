@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.12](https://github.com/pleahmacaka/eris/compare/0.3.11...0.3.12) (2026-10-11)
+
+
+### Bug Fixes
+
+* **dock:** align drag placement with pinned app ordering ([3b5a275](https://github.com/pleahmacaka/eris/commit/3b5a2753efb5be144a79130b10b79658dd69bb39))
+* **dock:** resolve windows launched through helper processes ([7776e0d](https://github.com/pleahmacaka/eris/commit/7776e0d69af84325ef163ad113e039720d5703fc))
+* **tray:** reset callback negotiation when icons are readded ([039a619](https://github.com/pleahmacaka/eris/commit/039a6197e29a7bc8fd9f54f746ba7e5a7bd0c71a))
+
 ## [0.3.11](https://github.com/pleahmacaka/eris/compare/0.3.10...0.3.11) (2026-10-11)
 
 
