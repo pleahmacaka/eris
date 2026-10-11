@@ -2,9 +2,9 @@
   import { type Appearance, standaloneLook } from "@eris/settings"
   import { t } from "svelte-i18n"
   import AppearanceRows from "./AppearanceRows.svelte"
-  import Row from "./Row.svelte"
-  import Section from "./Section.svelte"
-  import { erisStyle } from "./standalone.svelte"
+  import Row from "../forms/Row.svelte"
+  import Section from "../forms/Section.svelte"
+  import { erisStyle } from "../../store/standalone.svelte"
 
   let {
     prefs,

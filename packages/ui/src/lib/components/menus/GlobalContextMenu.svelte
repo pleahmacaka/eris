@@ -8,8 +8,8 @@
     closeContextMenu,
     contextMenu,
     openContextMenu,
-  } from "./context.svelte"
-  import type { MenuItem } from "./menu"
+  } from "../../store/context.svelte"
+  import type { MenuItem } from "../../menus/menu"
   import ContextMenu from "./ContextMenu.svelte"
 
   let { dense = false }: { dense?: boolean } = $props()

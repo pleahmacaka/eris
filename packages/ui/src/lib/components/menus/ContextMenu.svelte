@@ -2,7 +2,7 @@
   import Icon from "@iconify/svelte"
   import { onDestroy } from "svelte"
   import { t } from "svelte-i18n"
-  import { isAction, type MenuItem } from "./menu"
+  import { isAction, type MenuItem } from "../../menus/menu"
 
   type Props = {
     items: MenuItem[]

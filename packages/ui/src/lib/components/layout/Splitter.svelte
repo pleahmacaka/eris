@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { type Resize, resizeHandle } from "./pointer"
+  import { type Resize, resizeHandle } from "../../layout/pointer"
 
   let {
     resize,

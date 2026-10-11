@@ -32,7 +32,11 @@ export const followEris = (prefs: ThemePrefs, command = "eris_style") => {
 
         return tick()
       })
-      .finally(() => current.show().then(() => current.setFocus()))
+      .finally(() => {
+        if (!Reflect.get(window, "__ERIS_HEADLESS__")) {
+          return current.show().then(() => current.setFocus())
+        }
+      })
 
     const stop = listen<ErisStyle>("eris-style", e => {
       Object.assign(erisStyle, e.payload)

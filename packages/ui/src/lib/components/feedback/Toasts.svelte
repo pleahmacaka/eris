@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { toasts } from "./toast.svelte"
+  import { toasts } from "../../store/toast.svelte"
 
   const icons = {
     success: "lucide:check",

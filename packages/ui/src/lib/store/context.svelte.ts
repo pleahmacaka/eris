@@ -1,4 +1,4 @@
-import type { MenuItem } from "./menu"
+import type { MenuItem } from "../menus/menu"
 
 type Request = {
   items: MenuItem[]

@@ -1,30 +1,40 @@
-export { default as AppearanceRows } from "./AppearanceRows.svelte"
 export { default as AsciiLogo } from "./AsciiLogo.svelte"
-export { default as Aura } from "./Aura.svelte"
-export { default as Confirm } from "./Confirm.svelte"
-export { default as ContextMenu } from "./ContextMenu.svelte"
-export {
-  closeContextMenu,
-  contextMenu,
-  openContextMenu,
-} from "./context.svelte"
-export { default as GlobalContextMenu } from "./GlobalContextMenu.svelte"
 export { default as Logo } from "./Logo.svelte"
-export { isAction, type MenuAction, type MenuItem } from "./menu"
-export { default as PrefsWindow, type PrefsPage } from "./PrefsWindow.svelte"
+export { default as AppearanceRows } from "./lib/components/appearance/AppearanceRows.svelte"
+export { default as Aura } from "./lib/components/appearance/Aura.svelte"
+export { default as StandaloneTheme } from "./lib/components/appearance/StandaloneTheme.svelte"
+export { default as Confirm } from "./lib/components/feedback/Confirm.svelte"
+export { default as Toasts } from "./lib/components/feedback/Toasts.svelte"
+export {
+  default as Row,
+  type RowTag,
+} from "./lib/components/forms/Row.svelte"
+export { default as Section } from "./lib/components/forms/Section.svelte"
+export { default as Segmented } from "./lib/components/forms/Segmented.svelte"
+export { default as Splitter } from "./lib/components/layout/Splitter.svelte"
+export { default as StandaloneShell } from "./lib/components/layout/StandaloneShell.svelte"
+export { default as ContextMenu } from "./lib/components/menus/ContextMenu.svelte"
+export { default as GlobalContextMenu } from "./lib/components/menus/GlobalContextMenu.svelte"
+export {
+  default as PrefsWindow,
+  type PrefsPage,
+} from "./lib/components/preferences/PrefsWindow.svelte"
+export {
+  default as SetupFlow,
+  type SetupStep,
+} from "./lib/components/preferences/SetupFlow.svelte"
 export {
   type Resize,
   resizeHandle,
   rootRem,
   snapRem,
   track,
-} from "./pointer"
-export { default as Row, type RowTag } from "./Row.svelte"
-export { default as Section } from "./Section.svelte"
-export { default as Segmented } from "./Segmented.svelte"
-export { default as SetupFlow, type SetupStep } from "./SetupFlow.svelte"
-export { default as Splitter } from "./Splitter.svelte"
-export { default as StandaloneTheme } from "./StandaloneTheme.svelte"
-export { erisStyle, followEris } from "./standalone.svelte"
-export { default as Toasts } from "./Toasts.svelte"
-export { toast, toasts } from "./toast.svelte"
+} from "./lib/layout/pointer"
+export { isAction, type MenuAction, type MenuItem } from "./lib/menus/menu"
+export {
+  closeContextMenu,
+  contextMenu,
+  openContextMenu,
+} from "./lib/store/context.svelte"
+export { erisStyle, followEris } from "./lib/store/standalone.svelte"
+export { toast, toasts } from "./lib/store/toast.svelte"

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { addCollection } from "@iconify/svelte"
   import { prefs } from "@eris/files"
-  import { Aura, followEris, GlobalContextMenu, Toasts } from "@eris/ui"
+  import { followEris, StandaloneShell } from "@eris/ui"
   import icons from "virtual:iconify-subset"
   import "./layout.css"
 
@@ -13,12 +13,6 @@
   followEris(prefs)
 </script>
 
-<div class="siri-shell">
-  <Aura />
-
+<StandaloneShell dense>
   {@render children()}
-</div>
-
-<GlobalContextMenu dense />
-
-<Toasts />
+</StandaloneShell>

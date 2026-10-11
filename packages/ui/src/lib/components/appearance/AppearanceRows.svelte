@@ -1,9 +1,9 @@
 <script lang="ts">
   import { type Appearance, SYSTEM_FONT } from "@eris/settings"
   import { t } from "svelte-i18n"
-  import Row from "./Row.svelte"
-  import Section from "./Section.svelte"
-  import Segmented from "./Segmented.svelte"
+  import Row from "../forms/Row.svelte"
+  import Section from "../forms/Section.svelte"
+  import Segmented from "../forms/Segmented.svelte"
 
   type Group = "color" | "surface" | "type"
 
