@@ -9,6 +9,10 @@ export type AppEntry = {
   path: string
   kind: AppKind
   subtitle: string
+  app_id?: string | null
+  executable?: string | null
+  icon_executable?: string | null
+  argument_executables?: string[]
 }
 
 export const listApps = () => invoke<AppEntry[]>("list_apps")

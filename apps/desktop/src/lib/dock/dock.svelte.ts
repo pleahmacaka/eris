@@ -11,6 +11,7 @@ import {
   onWindowsChanged,
   type WindowEntry,
 } from "$lib/native/windows"
+import { fallbackPin, matchPin, windowIdentity } from "./identity"
 
 export type DockPin = "windows" | "device" | null
 
@@ -52,13 +53,7 @@ export const resolvePins = (paths: string[], apps: AppEntry[]): AppEntry[] => {
 
   return paths.map(
     (path): AppEntry =>
-      byPath.get(path) ?? {
-        id: path,
-        name: displayName(baseName(path)),
-        path,
-        kind: "shortcut",
-        subtitle: "",
-      },
+      byPath.get(path) ?? fallbackPin(path, displayName(baseName(path))),
   )
 }
 
@@ -86,6 +81,7 @@ export const groupWindows = (
   const groups: DockGroup[] = []
   const seen = new Set<string>()
   const byExe = new Map<string, DockGroup>()
+  const pinGroups: { app: AppEntry; group: DockGroup }[] = []
 
   const pin = (app: AppEntry, source: DockPin) => {
     const path = app.path.toLowerCase()
@@ -101,14 +97,9 @@ export const groupWindows = (
       pinned: source,
       windows: [],
     }
-    const exe = (app.subtitle || baseName(app.path)).toLowerCase()
-
     seen.add(path)
     groups.push(group)
-
-    if (exe.endsWith(".exe") && !byExe.has(exe)) {
-      byExe.set(exe, group)
-    }
+    pinGroups.push({ app, group })
   }
 
   for (const app of pinned) {
@@ -120,12 +111,21 @@ export const groupWindows = (
   }
 
   for (const entry of windows) {
-    const exe = baseName(entry.process).toLowerCase()
-    let group = byExe.get(exe)
+    const exe = windowIdentity(entry)
+    let score = 0
+    let group: DockGroup | undefined
+    for (const candidate of pinGroups) {
+      const match = matchPin(candidate.app, entry)
+      if (match > score) {
+        score = match
+        group = candidate.group
+      }
+    }
+    group ??= byExe.get(exe)
 
     if (!group) {
       group = {
-        key: entry.process.toLowerCase(),
+        key: exe,
         name: displayName(baseName(entry.process)),
         path: entry.process,
         pinned: null,

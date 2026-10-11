@@ -7,6 +7,8 @@ export type WindowEntry = {
   process: string
   pid: number
   minimized: boolean
+  app_id?: string | null
+  ancestor_executables?: string[]
 }
 
 export type WindowLabel =
