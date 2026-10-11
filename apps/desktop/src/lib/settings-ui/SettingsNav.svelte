@@ -65,6 +65,7 @@
           section === s.id && "menu-active",
         ]}
         aria-current={section === s.id ? "page" : undefined}
+        data-settings-section={s.id}
         onclick={() => (section = s.id)}
       >
         <Icon icon={s.icon} class="size-4" />

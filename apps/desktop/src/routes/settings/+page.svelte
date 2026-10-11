@@ -57,6 +57,7 @@
   let profile = $state<Profile>(structuredClone(defaultProfile))
   let ready = $state(false)
   let scroller = $state<HTMLElement>()
+  let page = $state<HTMLElement>()
   let deviceJson = ""
   let profileJson = ""
   let groups = $state<string[]>([])
@@ -86,9 +87,7 @@
   }
 
   const groupElements = () => [
-    ...(scroller
-      ?.querySelector(`[data-ssgoi-transition="/settings/${section}"]`)
-      ?.querySelectorAll<HTMLElement>("section[data-group]") ?? []),
+    ...(page?.querySelectorAll<HTMLElement>("section[data-group]") ?? []),
   ]
 
   const collectGroups = () => {
@@ -122,7 +121,7 @@
 
   const jumpGroup = (group: string) => {
     activeGroup = group
-    scroller
+    page
       ?.querySelector<HTMLElement>(`section[data-group="${CSS.escape(group)}"]`)
       ?.scrollIntoView({ block: "start", behavior: "smooth" })
   }
@@ -131,7 +130,7 @@
     section = entry.section
     await tick()
 
-    const row = scroller?.querySelector<HTMLElement>(
+    const row = page?.querySelector<HTMLElement>(
       `[data-row="${$t(entry.key)}"]`,
     )
 
@@ -364,70 +363,73 @@
       onscroll={spyGroup}
     >
       {#if ready}
-        <Ssgoi config={swapConfig}>
-          {#key section}
-            <div data-ssgoi-transition="/settings/{section}">
-              <div class="mb-3">
-                <h2 class="text-xl font-semibold tracking-tight">
-                  {$t(`settings.sections.${section}.label`)}
-                </h2>
+        <div class="mb-3">
+          <h2 class="text-xl font-semibold tracking-tight">
+            {$t(`settings.sections.${section}.label`)}
+          </h2>
 
-                <p class="text-sm text-base-content/60">{$t(`settings.sections.${section}.blurb`)}</p>
+          <p class="text-sm text-base-content/60">{$t(`settings.sections.${section}.blurb`)}</p>
+        </div>
+
+        {#if groups.length > 1}
+          <nav
+            aria-label={$t("settings.tocAria")}
+            class="sticky top-0 z-10 -mx-5 mb-3 flex flex-wrap gap-1.5 border-b border-base-content/10 bg-base-100/90 px-5 py-2 backdrop-blur-md"
+          >
+            {#each groups as group (group)}
+              {@const active = activeGroup === group}
+
+              <button
+                type="button"
+                class={[
+                  "btn btn-xs rounded-full font-medium",
+                  active ? "btn-primary" : "btn-ghost bg-base-content/5",
+                ]}
+                aria-current={active ? "true" : undefined}
+                onclick={() => jumpGroup(group)}
+              >
+                {group}
+              </button>
+            {/each}
+          </nav>
+        {/if}
+
+        <!-- Keep sticky navigation out of outgoing transition snapshots. -->
+        <div class="relative">
+          <Ssgoi config={swapConfig}>
+            {#key section}
+              <div bind:this={page} data-ssgoi-transition="/settings/{section}">
+                <div class="flex flex-col gap-4">
+                  {#if section === "general"}
+                    <GeneralSection bind:device onreset={resetOnboarding} />
+                  {:else if section === "dock"}
+                    <DockSection bind:device bind:profile />
+                  {:else if section === "tray"}
+                    <TraySection bind:device />
+                  {:else if section === "launcher"}
+                    <LauncherSection bind:profile bind:device />
+                  {:else if section === "appearance"}
+                    <AppearanceSection bind:profile />
+                  {:else if section === "calendar"}
+                    <CalendarSection bind:profile bind:device />
+                  {:else if section === "note"}
+                    <NoteSection bind:device />
+                  {:else if section === "sync"}
+                    <SyncPanel bind:device />
+                  {:else if section === "account"}
+                    <AccountSection />
+                  {:else if section === "data"}
+                    <DataSection bind:device bind:profile />
+                  {:else if section === "about"}
+                    <AboutSection />
+                  {:else if section === "experimental"}
+                    <ExperimentalSection bind:device />
+                  {/if}
+                </div>
               </div>
-
-              {#if groups.length > 1}
-                <nav
-                  aria-label={$t("settings.tocAria")}
-                  class="sticky top-0 z-10 -mx-5 mb-3 flex flex-wrap gap-1.5 border-b border-base-content/10 bg-base-100/90 px-5 py-2 backdrop-blur-md"
-                >
-                  {#each groups as group (group)}
-                    {@const active = activeGroup === group}
-
-                    <button
-                      type="button"
-                      class={[
-                        "btn btn-xs rounded-full font-medium",
-                        active ? "btn-primary" : "btn-ghost bg-base-content/5",
-                      ]}
-                      aria-current={active ? "true" : undefined}
-                      onclick={() => jumpGroup(group)}
-                    >
-                      {group}
-                    </button>
-                  {/each}
-                </nav>
-              {/if}
-
-              <div class="flex flex-col gap-4">
-                {#if section === "general"}
-                  <GeneralSection bind:device onreset={resetOnboarding} />
-                {:else if section === "dock"}
-                  <DockSection bind:device bind:profile />
-                {:else if section === "tray"}
-                  <TraySection bind:device />
-                {:else if section === "launcher"}
-                  <LauncherSection bind:profile bind:device />
-                {:else if section === "appearance"}
-                  <AppearanceSection bind:profile />
-                {:else if section === "calendar"}
-                  <CalendarSection bind:profile bind:device />
-                {:else if section === "note"}
-                  <NoteSection bind:device />
-                {:else if section === "sync"}
-                  <SyncPanel bind:device />
-                {:else if section === "account"}
-                  <AccountSection />
-                {:else if section === "data"}
-                  <DataSection bind:device bind:profile />
-                {:else if section === "about"}
-                  <AboutSection />
-                {:else if section === "experimental"}
-                  <ExperimentalSection bind:device />
-                {/if}
-              </div>
-            </div>
-          {/key}
-        </Ssgoi>
+            {/key}
+          </Ssgoi>
+        </div>
       {:else}
         <div class="flex h-full items-center justify-center">
           <span class="loading loading-spinner loading-md text-primary"></span>
