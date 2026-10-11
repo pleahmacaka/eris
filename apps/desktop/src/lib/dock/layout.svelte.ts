@@ -12,6 +12,7 @@ import { newId } from "$lib/data"
 import * as native from "$lib/native"
 import { MAGNIFY_BOOST } from "./DockItem.svelte"
 import { type DockGroup, dock, groupWindows, resolvePins } from "./dock.svelte"
+import { DockOrdering, isDockPinned, moveGroup } from "./order"
 
 const STRIP = 6
 const GROW_SLOTS = 6
@@ -129,8 +130,8 @@ export class DockLayout {
         dock.pinned,
         resolvePins(this.device.pinnedApps, dock.apps),
         dock.windows,
-      ),
-    ).filter(g => !(this.hidden.has(g.path) && g.windows.length === 0)),
+      ).filter(g => !(this.hidden.has(g.path) && g.windows.length === 0)),
+    ),
   )
 
   maxDockWidth = $derived(
@@ -147,7 +148,9 @@ export class DockLayout {
       this.groups.length * this.slotWidth,
   )
 
-  pinnedCount = $derived(this.groups.filter(g => g.pinned !== null).length)
+  pinnedCount = $derived(
+    this.groups.filter(g => isDockPinned(g, this.hidden)).length,
+  )
 
   runningCount = $derived(this.groups.length - this.pinnedCount)
 
@@ -349,19 +352,17 @@ export class DockLayout {
       return
     }
 
-    const paths = this.groups
-      .map(group => group.path)
-      .filter(path => path !== from)
-    const at = paths.indexOf(onto)
+    const paths = moveGroup(this.groups, from, onto, before, this.hidden)
 
-    if (at < 0) {
+    if (!paths) {
       return
     }
 
-    paths.splice(before ? at : at + 1, 0, from)
-
+    this.ordering.commit(paths)
     const pinned = new Map(dock.pinned.map(app => [app.path, app]))
-    const taskbar = paths.filter(path => pinned.has(path))
+    const taskbar = paths.filter(
+      path => pinned.has(path) && !this.hidden.has(path),
+    )
     const moved = new Set(taskbar)
     let next = 0
     const reordered = dock.pinned.map(app =>
@@ -373,6 +374,7 @@ export class DockLayout {
       native.reorderPins(taskbar).catch(() => undefined)
     }
 
+    this.preview("dockOrder", paths)
     await updateDevice(device => ({ ...device, dockOrder: paths }))
   }
 
@@ -426,41 +428,9 @@ export class DockLayout {
       .catch(() => undefined)
   }
 
-  private seen = new Map<string, number>()
-
-  private seq = 0
+  private ordering = new DockOrdering()
 
   private ordered(list: DockGroup[]) {
-    const rank = new Map(
-      this.device.dockOrder.map((path, index) => [path, index]),
-    )
-    const present = new Set<string>()
-
-    for (const group of list) {
-      present.add(group.path)
-
-      if (!this.seen.has(group.path)) {
-        this.seen.set(group.path, this.seq++)
-      }
-    }
-
-    for (const path of this.seen.keys()) {
-      if (!present.has(path)) {
-        this.seen.delete(path)
-      }
-    }
-
-    const sorted = [...list].sort(
-      (a, b) =>
-        (rank.get(a.path) ?? Number.MAX_SAFE_INTEGER) -
-          (rank.get(b.path) ?? Number.MAX_SAFE_INTEGER) ||
-        (this.seen.get(a.path) ?? 0) - (this.seen.get(b.path) ?? 0),
-    )
-    const taskbar = list.filter(group => group.pinned === "windows")
-    let next = 0
-
-    return sorted.map(group =>
-      group.pinned === "windows" ? taskbar[next++] : group,
-    )
+    return this.ordering.arrange(list, this.device.dockOrder, this.hidden)
   }
 }

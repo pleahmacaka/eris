@@ -10,6 +10,7 @@
   import DockItem from "./DockItem.svelte"
   import EditOptions from "./EditOptions.svelte"
   import type { DockLayout } from "./layout.svelte"
+  import { dropTarget } from "./order"
 
   type Props = {
     layout: DockLayout
@@ -62,19 +63,20 @@
     e.preventDefault()
 
     const slots = [...toolbar.querySelectorAll<HTMLElement>("[data-path]")]
-    const next = slots.find(slot => {
-      const box = slot.getBoundingClientRect()
+    const target = dropTarget(
+      layout.groups,
+      layout.dragPath,
+      slots.map(slot => {
+        const box = slot.getBoundingClientRect()
 
-      return e.clientX < box.left + box.width / 2
-    })
-    const target = next ?? slots.at(-1)
+        return { path: slot.dataset.path ?? "", midpoint: box.left + box.width / 2 }
+      }),
+      e.clientX,
+      layout.hidden,
+    )
 
-    if (!target) {
-      return
-    }
-
-    layout.dropPath = target.dataset.path ?? null
-    layout.dropBefore = next !== undefined
+    layout.dropPath = target?.path ?? null
+    layout.dropBefore = target?.before ?? true
   }
 
   const drop = (e: DragEvent) => {
@@ -83,6 +85,7 @@
     }
 
     e.preventDefault()
+    track(e)
     layout.commitDrop()
   }
 </script>
