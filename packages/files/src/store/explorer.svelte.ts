@@ -2,62 +2,74 @@ import { currentLocale, tr } from "@eris/i18n"
 import { toast } from "@eris/ui"
 import { getCurrentWindow } from "@tauri-apps/api/window"
 import { writeText } from "@tauri-apps/plugin-clipboard-manager"
-import { kindOf } from "../filetypes"
 import { displayName, type Item, packedEntry } from "../items"
-import {
-  baseName,
-  HOME,
-  isVirtual,
-  joinPath,
-  normalize,
-  parentOf,
-  pathKey,
-  RECYCLE_BIN,
-  SEP,
-  sameLocation,
-  THIS_PC,
-  WINDOWS,
-} from "../locations"
+import { baseName, HOME, RECYCLE_BIN } from "../locations"
 import * as native from "../native"
 import { isArchive } from "./archive.svelte"
 import { arrange } from "./arrange"
+import { fail, failed } from "./command-errors"
+import * as opening from "./open-commands"
 import { nameDrive, placeName, places, refreshPlaces } from "./places.svelte"
 import {
-  type FolderType,
   type GroupKey,
   prefs,
   type SortKey,
   type ViewMode,
 } from "./prefs.svelte"
 import { confirmAll, confirmPrivate } from "./privacy.svelte"
+import * as renaming from "./rename-commands"
+import * as shell from "./shell-commands"
 import { pinnedEntry } from "./sidebar"
 import { Tab } from "./tab.svelte"
+import * as transferring from "./transfer-commands"
+import { transferPlan } from "./transfer-plan"
+import { groupKeyOf, viewPlan } from "./view-plan"
 
-const FOLDER_TYPES: Partial<Record<native.KnownId, FolderType>> = {
-  downloads: "downloads",
-  pictures: "pictures",
-  videos: "videos",
+export { fail } from "./command-errors"
+
+// Concrete bindings stay at the reactive boundary. Workflows receive only their
+// domain services and a live context; they never import Explorer or UI stores.
+const openServices: opening.OpenServices = {
+  native,
+  fail,
+  failed,
+  confirmPrivate,
+  isArchive,
+  packedEntry,
 }
 
-export const fail = (reason: unknown) => {
-  const text = String(reason)
-  const key = `explorer.errors.${text}`
-  const message = tr(key)
-
-  if (text !== "cancelled") {
-    toast(message === key ? text : message, "error")
-  }
+const transferServices: transferring.TransferServices = {
+  native,
+  fail,
+  failed,
+  writeText,
+  confirmAll,
+  archiveNotice: done =>
+    toast(
+      tr(`explorer.bandizip.${done ? "done" : "working"}`),
+      done ? "success" : undefined,
+    ),
 }
 
-const failed = (reason: unknown) => {
-  fail(reason)
-
-  return null
+const renameServices: renaming.RenameServices = {
+  native,
+  fail,
+  failed,
+  network: () => places.network,
+  nameDrive,
+  refreshPlaces,
+  displayName: item => displayName(item, prefs.showExtensions),
 }
 
-const sameDrive = (a: string, b: string) =>
-  !WINDOWS ||
-  (a.slice(0, 2).toLowerCase() === b.slice(0, 2).toLowerCase() && a[1] === ":")
+const shellServices: shell.ShellServices = {
+  native,
+  fail,
+  failed,
+  confirmAll,
+  refreshPlaces,
+  pinnedKey: location => pinnedEntry(location)?.key,
+  newFolderName: () => tr("explorer.commands.newFolder"),
+}
 
 const sectionOf = (item: Item) => {
   if (item.drive) {
@@ -72,14 +84,6 @@ const sectionOf = (item: Item) => {
     ? "folders"
     : "network"
 }
-
-const folderTypeOf = (location: string): FolderType => {
-  const known = places.known.find(entry => sameLocation(entry.path, location))
-
-  return (known && FOLDER_TYPES[known.id]) ?? "general"
-}
-
-const groupKeyOf = (location: string) => normalize(location).toLowerCase()
 
 export class Explorer {
   tabs = $state<Tab[]>([])
@@ -102,19 +106,19 @@ export class Explorer {
     count: number
   } | null>(null)
 
-  arrangeable = $derived(!(this.tab.location === THIS_PC && !this.tab.results))
-
-  own = $derived(prefs.folderViews[groupKeyOf(this.tab.location)])
-
-  folder = $derived(this.own ?? prefs.folders[folderTypeOf(this.tab.location)])
-
-  group: GroupKey = $derived(
-    this.own?.group ??
-      prefs.groups[groupKeyOf(this.tab.location)] ??
-      this.folder.group,
+  #layout = $derived(
+    viewPlan(this.tab.location, !!this.tab.results, prefs, places.known),
   )
 
-  view: ViewMode = $derived(this.arrangeable ? this.folder.view : "tiles")
+  arrangeable = $derived(this.#layout.arrangeable)
+
+  own = $derived(this.#layout.own)
+
+  folder = $derived(this.#layout.folder)
+
+  group: GroupKey = $derived(this.#layout.group)
+
+  view: ViewMode = $derived(this.#layout.view)
 
   arranged = $derived(
     arrange(
@@ -186,97 +190,15 @@ export class Explorer {
   }
 
   async open(item: Item): Promise<unknown> {
-    if (!(await confirmPrivate(item.path, this.tab.location))) {
-      return
-    }
-
-    if (item.dir) {
-      return this.go(item.path)
-    }
-
-    if (item.packed) {
-      const extracted = await native
-        .extractEntry(item.packed, packedEntry(item))
-        .catch(failed)
-
-      return extracted
-        ? this.open({
-            ...item,
-            key: extracted,
-            path: extracted,
-            packed: undefined,
-          })
-        : undefined
-    }
-
-    if (!isVirtual(item.path) && isArchive(item.name)) {
-      return this.go(item.path)
-    }
-
-    const kind = isVirtual(item.path) ? null : kindOf(item.name)
-    const mujoco =
-      kind === "text" &&
-      item.name.toLowerCase().endsWith(".xml") &&
-      (await native.isMujoco(item.path).catch(() => false))
-
-    if (kind === "model" || mujoco) {
-      return native.openViewer(item.path).catch(fail)
-    }
-
-    if (kind === "audio") {
-      return this.go(item.path)
-    }
-
-    const folder = await native.openItem(item.key).catch(failed)
-
-    if (folder) {
-      this.go(folder)
-    }
+    return opening.openItem(this, item, openServices)
   }
 
   async bandizip(job: native.BandizipJob, paths: string[]) {
-    const tab = this.tab
-
-    toast(tr("explorer.bandizip.working"))
-
-    const made = await native.bandizipJob(job, paths).catch(failed)
-
-    if (!made) {
-      return
-    }
-
-    toast(tr("explorer.bandizip.done"), "success")
-    await tab.refresh()
-
-    const present = made.filter(path =>
-      tab.items.some(item => item.key === path),
-    )
-
-    if (present.length) {
-      tab.select(present)
-    }
+    return transferring.bandizip(this, job, paths, transferServices)
   }
 
   openSelected() {
-    const [first, ...rest] = this.selected
-
-    if (!first) {
-      return
-    }
-
-    if (!rest.length) {
-      return this.open(first)
-    }
-
-    for (const item of this.selected.filter(item => !item.dir)) {
-      this.open(item)
-    }
-
-    const folder = this.selected.find(item => item.dir)
-
-    if (folder) {
-      this.go(folder.path)
-    }
+    return opening.openSelection(this)
   }
 
   openInTab(location: string) {
@@ -287,229 +209,73 @@ export class Explorer {
   }
 
   openWindow(location: string) {
-    native.newWindow(location).catch(fail)
+    shell.openWindow(location, shellServices)
   }
 
   async clip(cut: boolean) {
-    const paths = this.selected.map(item => item.path)
-
-    if (paths.length) {
-      await native.setClipboard(paths, cut).catch(fail)
-    }
+    return transferring.clipSelection(this, cut, transferServices)
   }
 
   copyPath() {
-    const text = this.selected.map(item => `"${item.path}"`).join("\r\n")
-
-    if (text) {
-      writeText(text).catch(fail)
-    }
+    transferring.copySelectionPath(this, transferServices)
   }
 
   async paste() {
-    if (!this.filesystem) {
-      return
-    }
-
-    const tab = this.tab
-    const landed = (await native.pasteItems(tab.location).catch(failed)) ?? []
-
-    await tab.refresh()
-
-    const present = landed.filter(path =>
-      tab.items.some(item => item.key === path),
-    )
-
-    if (present.length) {
-      tab.select(present)
-    }
+    return transferring.paste(this, transferServices)
   }
 
   dropPlan(paths: string[], target: string | null = null) {
-    const into = target ?? (this.filesystem ? this.tab.location : null)
-
-    if (!into || !paths.length) {
-      return null
-    }
-
-    const inside = (path: string) =>
-      sameLocation(path, into) ||
-      pathKey(into).startsWith(`${pathKey(path)}${SEP}`)
-    const sources = paths.filter(path => !inside(path))
-    const move = sources.every(path => sameDrive(path, into))
-    const changed = move
-      ? sources.filter(path => !sameLocation(parentOf(path) ?? "", into))
-      : sources
-
-    return changed.length ? { into, move, changed } : null
+    return transferPlan(paths, this.tab.location, this.filesystem, target)
   }
 
   async drop(paths: string[], target: string | null = null) {
-    const plan = this.dropPlan(paths, target)
-
-    if (!plan) {
-      return
-    }
-
-    await (plan.move ? native.moveItems : native.copyItems)(
-      plan.changed,
-      plan.into,
-    ).catch(fail)
-    await this.tab.refresh()
+    return transferring.drop(this, paths, target, transferServices)
   }
 
   async drag() {
-    const keys = this.selected.map(item => item.key)
-    const paths = this.selected.map(item => item.path)
-
-    if (keys.length && (await confirmAll(paths, this.tab.location))) {
-      await native.startDrag(keys).catch(fail)
-      await this.tab.refresh()
-    }
+    return transferring.drag(this, transferServices)
   }
 
-  renamable = (item: Item) =>
-    this.filesystem ||
-    !!item.drive ||
-    places.network.some(place => sameLocation(place.path, item.path))
+  renamable = (item: Item) => renaming.renamable(this, item, renameServices)
 
   rename() {
-    const target = this.focused ?? this.selected[0]
-
-    if (target && this.renamable(target)) {
-      this.tab.select([target.key])
-      this.tab.renaming = target.key
-    }
+    renaming.rename(this, renameServices)
   }
 
   async renamePlace(location: string) {
-    await this.tab.open(THIS_PC, { select: location })
-    this.rename()
+    return renaming.renamePlace(this, location)
   }
 
   async commitRename(item: Item, draft: string) {
-    const tab = this.tab
-
-    if (item.drive) {
-      tab.renaming = null
-      nameDrive(item.drive, draft)
-
-      return tab.refresh()
-    }
-
-    const place = places.network.find(entry =>
-      sameLocation(entry.path, item.path),
-    )
-
-    if (place) {
-      tab.renaming = null
-
-      const name = draft.trim()
-      const link = place.entry.toLowerCase().endsWith(".lnk") ? ".lnk" : ""
-
-      if (name && name !== place.name) {
-        await native.renameItem(place.entry, `${name}${link}`).catch(fail)
-        await refreshPlaces()
-      }
-
-      return tab.refresh()
-    }
-
-    const shown = displayName(item, prefs.showExtensions)
-    const hidden = item.name.slice(shown.length)
-    const name = `${draft.trim()}${hidden}`
-
-    tab.renaming = null
-
-    if (!draft.trim() || name === item.name) {
-      return
-    }
-
-    await native.renameItem(item.key, name).catch(fail)
-
-    const parent = parentOf(item.path)
-
-    await tab.refresh()
-
-    if (parent) {
-      tab.select([joinPath(parent, name)])
-    }
+    return renaming.commitRename(this, item, draft, renameServices)
   }
 
   async remove(permanent: boolean) {
-    const keys = this.selected.map(item => item.key)
-
-    if (keys.length) {
-      await native.deleteItems(keys, permanent || this.inBin).catch(fail)
-      await this.tab.refresh()
-    }
+    return shell.remove(this, permanent, shellServices)
   }
 
   async newFolder() {
-    if (!this.filesystem) {
-      return
-    }
-
-    const tab = this.tab
-    const created = await native
-      .newFolder(tab.location, tr("explorer.commands.newFolder"))
-      .catch(failed)
-
-    if (created) {
-      await tab.open(tab.location, { record: false, select: created })
-      tab.renaming = created
-    }
+    return shell.newFolder(this, shellServices)
   }
 
   properties(keys = this.selected.map(item => item.key)) {
-    native.showProperties(keys.length ? keys : [this.tab.location]).catch(fail)
+    shell.properties(this, keys, shellServices)
   }
 
   async more(keys: string[], extended = false) {
-    const paths = this.selected.map(item => item.path)
-
-    if (!(await confirmAll(paths, this.tab.location))) {
-      return
-    }
-
-    const verb = await native
-      .nativeMenu(keys, keys.length ? null : this.tab.location, extended)
-      .catch(failed)
-
-    if (verb === "rename") {
-      return this.rename()
-    }
-
-    if (verb !== null) {
-      await Promise.all([this.tab.refresh(), refreshPlaces()])
-    }
+    return shell.more(this, keys, extended, shellServices)
   }
 
   async pin(location: string, pinned: boolean) {
-    // the folder itself only ever offers pintohome; unpinning lives on its Home entry
-    const target = (pinned && pinnedEntry(location)?.key) || location
-
-    await native
-      .invokeVerb([target], pinned ? "unpinfromhome" : "pintohome")
-      .catch(fail)
-    await refreshPlaces()
+    return shell.pin(location, pinned, shellServices)
   }
 
   async restore() {
-    const keys = this.selected.map(item => item.key)
-
-    if (keys.length) {
-      await native.invokeVerb(keys, "undelete").catch(fail)
-      await this.tab.refresh()
-    }
+    return shell.restore(this, shellServices)
   }
 
   async emptyBin() {
-    await native.emptyRecycleBin().catch(fail)
-
-    if (this.inBin) {
-      await this.tab.refresh()
-    }
+    return shell.emptyBin(this, shellServices)
   }
 
   selectAll() {
@@ -569,13 +335,7 @@ export class Explorer {
   }
 
   async changePlaces(run: () => Promise<unknown>) {
-    await run().catch(fail)
-
-    if (this.tab.location === THIS_PC) {
-      await this.tab.refresh()
-    } else {
-      await refreshPlaces()
-    }
+    return shell.changePlaces(this, run, shellServices)
   }
 
   title(tab: Tab, translate: (key: string) => string) {
