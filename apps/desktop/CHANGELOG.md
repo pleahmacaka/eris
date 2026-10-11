@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.11](https://github.com/pleahmacaka/eris/compare/0.3.10...0.3.11) (2026-10-11)
+
+
+### Features
+
+* **dev:** isolate headless debugging and organize native capabilities ([01410bd](https://github.com/pleahmacaka/eris/commit/01410bd442351f5997b23a68d283641a1b024bb0))
+
+
+### Bug Fixes
+
+* **settings:** keep navigation outside page transitions ([296b5ac](https://github.com/pleahmacaka/eris/commit/296b5ac9280486c305a3e50e9807e680ef4009cb))
+
 ## [0.3.10](https://github.com/pleahmacaka/eris/compare/0.3.9...0.3.10) (2026-10-08)
 
 

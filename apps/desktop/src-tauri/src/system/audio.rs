@@ -228,6 +228,7 @@ pub(crate) mod win {
 #[cfg(test)]
 mod tests {
     #[test]
+    #[ignore = "requires an active Windows audio output device; run explicitly on a desktop"]
     fn the_default_endpoint_can_be_reassigned_to_itself() {
         let devices = super::win::devices();
 
