@@ -213,6 +213,16 @@ mod win {
         Some((message.action, message.icon.incoming()))
     }
 
+    fn negotiated_version(action: u32, current: u32, incoming: u32) -> u32 {
+        // uVersion shares storage with uTimeout. Only NIM_SETVERSION negotiates
+        // the callback protocol; every NIM_ADD starts over at legacy version 0.
+        match action {
+            NIM_ADD => 0,
+            NIM_SETVERSION => incoming,
+            _ => current,
+        }
+    }
+
     fn apply(action: u32, incoming: Incoming) {
         let mut entries = ENTRIES.lock().unwrap();
         let key = key_of(incoming.hwnd, incoming.id, &incoming.guid);
@@ -251,10 +261,9 @@ mod win {
         };
 
         let entry = &mut entries[index];
+        entry.version = negotiated_version(action, entry.version, incoming.version);
 
         if action == NIM_SETVERSION {
-            entry.version = incoming.version;
-
             return;
         }
 
@@ -653,18 +662,33 @@ mod win {
         (((high & 0xffff) << 16) | (low & 0xffff)) as usize
     }
 
-    fn forward(hwnd: isize, callback: u32, id: u32, version: u32, message: u32) {
-        let (wparam, lparam) = if version >= NOTIFYICON_VERSION_4 {
-            let mut cursor = POINT::default();
-            let _ = unsafe { GetCursorPos(&mut cursor) };
+    fn click_messages(version: u32, button: &str) -> &'static [u32] {
+        // Keep raw mouse callbacks for applications that act on mouse release.
+        // V3/V4 also receive the semantic select/menu notice (e.g. Qt activation).
+        match (version >= NOTIFYICON_VERSION, button) {
+            (true, "left") => &[WM_LBUTTONDOWN, WM_LBUTTONUP, NIN_SELECT],
+            (true, "right") => &[WM_RBUTTONDOWN, WM_RBUTTONUP, WM_CONTEXTMENU],
+            (false, "left") => &[WM_LBUTTONDOWN, WM_LBUTTONUP],
+            (false, "right") => &[WM_RBUTTONDOWN, WM_RBUTTONUP],
+            _ => &[],
+        }
+    }
 
+    fn callback_params(id: u32, version: u32, message: u32, cursor: POINT) -> (WPARAM, LPARAM) {
+        if version >= NOTIFYICON_VERSION_4 {
+            // V4 puts the event and 16-bit icon ID in lParam, and signed
+            // screen coordinates in wParam (including monitors left/above primary).
             (
                 WPARAM(packed(cursor.x as u32, cursor.y as u32)),
                 LPARAM(packed(message, id) as isize),
             )
         } else {
             (WPARAM(id as usize), LPARAM(message as isize))
-        };
+        }
+    }
+
+    fn forward(hwnd: isize, callback: u32, id: u32, version: u32, message: u32, cursor: POINT) {
+        let (wparam, lparam) = callback_params(id, version, message, cursor);
 
         unsafe {
             let _ = PostMessageW(Some(HWND(hwnd as _)), callback, wparam, lparam);
@@ -686,26 +710,21 @@ mod win {
             return;
         }
 
-        let right = button == "right";
+        let messages = click_messages(version, button);
 
-        let (down, up) = if right {
-            (WM_RBUTTONDOWN, WM_RBUTTONUP)
-        } else {
-            (WM_LBUTTONDOWN, WM_LBUTTONUP)
-        };
+        if messages.is_empty() {
+            return;
+        }
+
+        let mut cursor = POINT::default();
 
         unsafe {
+            let _ = GetCursorPos(&mut cursor);
             let _ = SetForegroundWindow(HWND(hwnd as _));
         }
 
-        forward(hwnd, callback, icon, version, down);
-        forward(hwnd, callback, icon, version, up);
-
-        // versioned icons act on the follow-up notification, so Qt apps ignore a bare left click
-        if version >= NOTIFYICON_VERSION {
-            let follow = if right { WM_CONTEXTMENU } else { NIN_SELECT };
-
-            forward(hwnd, callback, icon, version, follow);
+        for &message in messages {
+            forward(hwnd, callback, icon, version, message, cursor);
         }
     }
 
@@ -944,7 +963,101 @@ mod win {
 
     #[cfg(test)]
     mod tests {
-        use super::{IconData, TrayMessage};
+        use super::*;
+
+        #[test]
+        fn readding_an_icon_resets_negotiation_even_when_timeout_looks_like_a_version() {
+            let version = negotiated_version(NIM_SETVERSION, 0, NOTIFYICON_VERSION_4);
+            assert_eq!(version, NOTIFYICON_VERSION_4);
+
+            let version = negotiated_version(NIM_ADD, version, NOTIFYICON_VERSION_4);
+            assert_eq!(version, 0);
+            assert_eq!(
+                click_messages(version, "left"),
+                &[WM_LBUTTONDOWN, WM_LBUTTONUP]
+            );
+            let (wparam, lparam) =
+                callback_params(0x1234_abcd, version, WM_LBUTTONUP, POINT::default());
+            assert_eq!(wparam.0, 0x1234_abcd);
+            assert_eq!(lparam.0, WM_LBUTTONUP as isize);
+
+            let version = negotiated_version(NIM_MODIFY, version, 30_000);
+            assert_eq!(version, 0);
+            let version = negotiated_version(NIM_SETVERSION, version, NOTIFYICON_VERSION_4);
+            assert_eq!(version, NOTIFYICON_VERSION_4);
+            assert_eq!(negotiated_version(NIM_MODIFY, version, 30_000), version);
+        }
+
+        #[test]
+        fn legacy_clicks_send_only_the_matching_mouse_pair() {
+            for version in 0..NOTIFYICON_VERSION {
+                assert_eq!(
+                    click_messages(version, "left"),
+                    &[WM_LBUTTONDOWN, WM_LBUTTONUP]
+                );
+                assert_eq!(
+                    click_messages(version, "right"),
+                    &[WM_RBUTTONDOWN, WM_RBUTTONUP]
+                );
+            }
+        }
+
+        #[test]
+        fn v3_and_v4_retain_mouse_callbacks_and_matching_semantic_follow_up() {
+            for version in [NOTIFYICON_VERSION, NOTIFYICON_VERSION_4] {
+                assert_eq!(
+                    click_messages(version, "left"),
+                    &[WM_LBUTTONDOWN, WM_LBUTTONUP, NIN_SELECT]
+                );
+                assert_eq!(
+                    click_messages(version, "right"),
+                    &[WM_RBUTTONDOWN, WM_RBUTTONUP, WM_CONTEXTMENU]
+                );
+            }
+        }
+
+        #[test]
+        fn unsupported_buttons_do_not_activate_an_icon() {
+            for version in [0, NOTIFYICON_VERSION, NOTIFYICON_VERSION_4] {
+                for button in ["", "middle", "Left"] {
+                    assert!(click_messages(version, button).is_empty());
+                }
+            }
+        }
+
+        #[test]
+        fn pre_v4_callbacks_keep_the_full_icon_id_in_wparam() {
+            for version in [0, NOTIFYICON_VERSION] {
+                for button in ["left", "right"] {
+                    for &message in click_messages(version, button) {
+                        let (wparam, lparam) =
+                            callback_params(0x1234_abcd, version, message, POINT { x: -10, y: 20 });
+                        assert_eq!(wparam.0, 0x1234_abcd);
+                        assert_eq!(lparam.0, message as isize);
+                    }
+                }
+            }
+        }
+
+        #[test]
+        fn v4_callbacks_pack_event_id_and_signed_screen_position() {
+            for button in ["left", "right"] {
+                for &message in click_messages(NOTIFYICON_VERSION_4, button) {
+                    for (x, y) in [(-1920, -200), (1920, 1080), (0, 0)] {
+                        let (wparam, lparam) = callback_params(
+                            0x1234_abcd,
+                            NOTIFYICON_VERSION_4,
+                            message,
+                            POINT { x, y },
+                        );
+                        assert_eq!(lparam.0 as u32 & 0xffff, message);
+                        assert_eq!((lparam.0 as u32 >> 16) as u16, 0xabcd);
+                        assert_eq!(wparam.0 as u16 as i16, x as i16);
+                        assert_eq!((wparam.0 >> 16) as u16 as i16, y as i16);
+                    }
+                }
+            }
+        }
 
         #[test]
         fn the_wire_layout_matches_what_shell32_sends() {

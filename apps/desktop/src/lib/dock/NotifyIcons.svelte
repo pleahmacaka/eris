@@ -275,7 +275,11 @@
       dragId = icon.id
       dragStashed = !icon.promoted
     }}
-    onclick={() => {
+    onclick={e => {
+      if (e.button !== 0) {
+        return
+      }
+
       click(icon.id, "left")
       closeStash()
     }}
