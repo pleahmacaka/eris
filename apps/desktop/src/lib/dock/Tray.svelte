@@ -1,8 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import type { MenuBox } from "./layout.svelte"
-  import { listen } from "@tauri-apps/api/event"
-  import { exit } from "@tauri-apps/plugin-process"
   import { flip } from "svelte/animate"
   import { t } from "svelte-i18n"
   import { currentLocale } from "@eris/i18n"
@@ -15,7 +13,18 @@
   } from "@eris/settings"
   import { syncStatus } from "$lib/sync"
   import { ContextMenu } from "@eris/ui"
-  import type { MenuItem } from "@eris/ui"
+  import { notificationMenu, settingsMenu, slotMenu } from "./tray/menus"
+  import {
+    batteryIcon as iconForBattery,
+    batteryTitle as titleForBattery,
+    hidePatch,
+    reorderSlot,
+    syncTitle as titleForSync,
+    syncTone as toneForSync,
+    traySlots,
+    type Widget,
+  } from "./tray/policy"
+  import { TrayStatus } from "./tray/status.svelte"
   import Bluetooth from "./Bluetooth.svelte"
   import ClaudeUsage from "./ClaudeUsage.svelte"
   import Clock from "./Clock.svelte"
@@ -37,99 +46,14 @@
 
   let { device, panelOpen, onclock, claimFor, edge: edgeProp, compact: compactProp }: Props = $props()
 
-  const INFO_POLL = 5_000
   const MENU_GRACE = 600
   const SLOT_DATA = "application/x-eris-tray-slot"
 
-  const HIDE_PATCH: Partial<Record<TraySlot, Partial<DeviceSettings>>> = {
-    taskview: { showTaskView: false },
-    claude: { showClaudeUsage: false },
-    tray: { showTrayIcons: false },
-    media: { showMedia: false },
-    input: { showInputLanguage: false },
-    meters: { showMeters: false, showNetwork: false },
-    bluetooth: { showBluetooth: false },
-    battery: { showBattery: false },
-    volume: { showVolume: false },
-    bell: { showNotifications: false },
-    settings: { showSettingsButton: false },
-    desktop: { showDesktopButton: false },
-  }
-
-  const hideItem = (id: TraySlot): MenuItem => ({
-    label: $t("tray.icons.hideFromDock"),
-    icon: "lucide:eye-off",
-    action: () => {
-      const patch = HIDE_PATCH[id]
-
-      if (patch) {
-        updateDevice(d => ({ ...d, ...patch })).catch(() => undefined)
-      }
-    },
-  })
-
-  const MENU = $derived<MenuItem[]>([
-    {
-      label: $t("common.settings"),
-      icon: "lucide:settings",
-      action: () => native.showWindow("settings"),
-    },
-    {
-      label: $t("tray.menu.calendar"),
-      icon: "lucide:calendar",
-      action: () => native.toggleWindow("panel"),
-    },
-    "separator",
-    {
-      label: $t("tray.menu.lock"),
-      icon: "lucide:lock",
-      action: () => native.powerAction("lock"),
-    },
-    {
-      label: $t("tray.menu.sleep"),
-      icon: "lucide:moon",
-      action: () => native.powerAction("sleep"),
-    },
-    {
-      label: $t("tray.menu.restart"),
-      icon: "lucide:rotate-ccw",
-      action: () => native.powerAction("restart"),
-    },
-    {
-      label: $t("tray.menu.shutdown"),
-      icon: "lucide:power",
-      action: () => native.powerAction("shutdown"),
-    },
-    "separator",
-    hideItem("settings"),
-    "separator",
-    { label: $t("tray.menu.quit"), icon: "lucide:circle-x", action: () => exit(0) },
-  ])
-
-  const BELL_MENU = $derived<MenuItem[]>([
-    {
-      label: $t("tray.notifications.windowsCenter"),
-      icon: "lucide:bell-ring",
-      action: () => native.quickAction("notifications"),
-    },
-    {
-      label: $t("tray.notifications.quickSettings"),
-      icon: "lucide:sliders-horizontal",
-      action: () => native.quickAction("quicksettings"),
-    },
-    {
-      label: $t("tray.notifications.focusAssist"),
-      icon: "lucide:moon-star",
-      action: () => native.openUrl("ms-settings:quiethours"),
-    },
-    {
-      label: $t("tray.notifications.settings"),
-      icon: "lucide:settings-2",
-      action: () => native.openUrl("ms-settings:notifications"),
-    },
-    "separator",
-    hideItem("bell"),
-  ])
+  const status = new TrayStatus(() => device.showNotifications && dockAwake.visible)
+  const info = $derived(status.info)
+  const unseen = $derived(status.unseen)
+  const MENU = $derived(settingsMenu($t))
+  const BELL_MENU = $derived(notificationMenu($t))
 
   let slotMenuId = $state<TraySlot | null>(null)
   let slotMenuOpen = $state(false)
@@ -137,7 +61,7 @@
   let slotMenuY = $state(0)
 
   const openSlotMenu = (e: MouseEvent, id: TraySlot) => {
-    if (e.defaultPrevented || !HIDE_PATCH[id]) {
+    if (e.defaultPrevented || !hidePatch[id]) {
       return
     }
 
@@ -148,58 +72,7 @@
     slotMenuOpen = true
   }
 
-  const slotMenuItems = $derived.by((): MenuItem[] => {
-    const id = slotMenuId
-
-    if (!id || !HIDE_PATCH[id]) {
-      return []
-    }
-
-    const items: MenuItem[] = []
-
-    if (id === "volume" && info.volume) {
-      items.push({
-        label: info.volume.muted
-          ? $t("tray.volume.unmute")
-          : $t("tray.volume.mute"),
-        icon: info.volume.muted ? "lucide:volume-2" : "lucide:volume-x",
-        action: () => {
-          if (info.volume) {
-            info.volume = { level: info.volume.level, muted: !info.volume.muted }
-          }
-
-          native.toggleMute().catch(() => undefined)
-        },
-      })
-    }
-
-    if (id === "input") {
-      items.push({
-        label: $t("tray.input.settings"),
-        icon: "lucide:settings-2",
-        action: () =>
-          native.openUrl("ms-settings:regionlanguage").catch(() => undefined),
-      })
-    }
-
-    if (items.length > 0) {
-      items.push("separator")
-    }
-
-    items.push(hideItem(id))
-
-    return items
-  })
-
-  type Widget =
-    | "claude"
-    | "tray"
-    | "media"
-    | "input"
-    | "meters"
-    | "bluetooth"
-    | "battery"
-    | "volume"
+  const slotMenuItems = $derived(slotMenu(slotMenuId, info.volume, $t, status.toggleMute))
 
   const compact = $derived(compactProp ?? device.dockHeight < 40)
 
@@ -215,37 +88,10 @@
   }
 
   let bellMenu = $state(false)
-  let unseen = $state(0)
-
-  const UNSEEN_POLL = 30_000
-
-  const refreshUnseen = async () => {
-    unseen = await native.noticesUnseen().catch(() => unseen)
-  }
-
-  $effect(() => {
-    if (!device.showNotifications || !dockAwake.visible) {
-      return
-    }
-
-    refreshUnseen()
-
-    const timer = setInterval(refreshUnseen, UNSEEN_POLL)
-    const stop = listen("notices-changed", refreshUnseen)
-
-    return () => {
-      clearInterval(timer)
-      stop.then(off => off()).catch(() => undefined)
-    }
-  })
 
   const openNotices = (e: MouseEvent) => {
     const box = (e.currentTarget as HTMLElement).getBoundingClientRect()
-
-    unseen = 0
-    native
-      .noticesOpenPanel([box.left, box.top, box.right, box.bottom])
-      .catch(() => undefined)
+    status.openNotices(box)
   }
 
   let leaveTimer: ReturnType<typeof setTimeout> | undefined
@@ -265,57 +111,7 @@
 
   $effect(() => cancelClose)
 
-  let info = $state<native.SystemInfo>({ battery: null, volume: null })
-
-  const refresh = async () => {
-    info = await native.systemInfo().catch(() => info)
-  }
-
-  $effect(() => {
-    refresh()
-
-    const timer = setInterval(refresh, INFO_POLL)
-
-    return () => clearInterval(timer)
-  })
-
-  const widgets = $derived(
-    [
-      device.showClaudeUsage && device.claudeUsageSide === "right" && "claude",
-      device.showTrayIcons && "tray",
-      device.showMedia && device.mediaSide === "right" && "media",
-      device.showInputLanguage && "input",
-      (device.showMeters || device.showNetwork) && "meters",
-      device.showBluetooth && "bluetooth",
-      device.showBattery && info.battery !== null && "battery",
-      device.showVolume && info.volume !== null && "volume",
-    ].filter((w): w is Widget => typeof w === "string"),
-  )
-
-  const slots = $derived.by(() => {
-    const enabled = new Set<TraySlot>(
-      [
-        device.showTaskView && "taskview",
-        ...widgets,
-        "clock",
-        device.showNotifications && "bell",
-        device.showSettingsButton && "settings",
-        device.showDesktopButton && "desktop",
-      ].filter((id): id is TraySlot => typeof id === "string"),
-    )
-
-    const seen = new Set<TraySlot>()
-    const list: TraySlot[] = []
-
-    for (const id of [...device.traySlots, ...defaultDevice.traySlots]) {
-      if (enabled.has(id) && !seen.has(id)) {
-        seen.add(id)
-        list.push(id)
-      }
-    }
-
-    return list
-  })
+  const slots = $derived(traySlots(device, info, defaultDevice.traySlots))
 
   let blank = $state<Partial<Record<TraySlot, boolean>>>({})
   let menuClaimed = $state(false)
@@ -364,94 +160,16 @@
       return
     }
 
-    updateDevice(d => {
-      const ids = d.traySlots.filter(id => id !== from)
-      const at = ids.indexOf(onto)
-
-      ids.splice(at < 0 ? ids.length : before ? at : at + 1, 0, from)
-
-      return { ...d, traySlots: ids }
-    })
+    updateDevice(d => ({
+      ...d,
+      traySlots: reorderSlot(d.traySlots, from, onto, before),
+    }))
   }
 
-  const batteryIcon = $derived.by(() => {
-    const battery = info.battery
-
-    if (!battery) {
-      return ""
-    }
-
-    if (battery.charging) {
-      return "lucide:battery-charging"
-    }
-
-    if (battery.percent >= 80) {
-      return "lucide:battery-full"
-    }
-
-    if (battery.percent >= 40) {
-      return "lucide:battery-medium"
-    }
-
-    if (battery.percent >= 15) {
-      return "lucide:battery-low"
-    }
-
-    return "lucide:battery-warning"
-  })
-
-  const batteryTitle = $derived.by(() => {
-    const battery = info.battery
-
-    if (!battery) {
-      return ""
-    }
-
-    const level = $t("tray.battery.level", { values: { percent: battery.percent } })
-
-    return battery.charging ? `${level}, ${$t("tray.battery.charging")}` : level
-  })
-
-  const syncTone = $derived(
-    syncStatus.state === "error"
-      ? "bg-error"
-      : syncStatus.state === "syncing"
-        ? "bg-info animate-pulse"
-        : syncStatus.state === "idle" && syncStatus.peers > 0
-          ? "bg-success"
-          : "bg-base-content/30",
-  )
-
-  const syncTitle = $derived.by(() => {
-    if (syncStatus.state === "error") {
-      return $t("tray.sync.failed", {
-        values: { error: syncStatus.lastError ?? $t("tray.sync.unknownError") },
-      })
-    }
-
-    if (syncStatus.state === "syncing") {
-      return $t("tray.sync.syncing")
-    }
-
-    if (syncStatus.state === "unpaired") {
-      return $t("tray.sync.unpaired")
-    }
-
-    if (syncStatus.peers === 0) {
-      return $t("tray.sync.waiting")
-    }
-
-    if (!syncStatus.lastSyncAt) {
-      return $t("tray.sync.ready")
-    }
-
-    const at = new Date(syncStatus.lastSyncAt).toLocaleTimeString(currentLocale(), {
-      hour: "numeric",
-      minute: "2-digit",
-    })
-
-    return $t("tray.sync.synced", { values: { time: at } })
-  })
+  const batteryIcon = $derived(iconForBattery(info.battery))
+  const batteryTitle = $derived(titleForBattery(info.battery, $t))
+  const syncTone = $derived(toneForSync(syncStatus))
+  const syncTitle = $derived(titleForSync(syncStatus, $t, currentLocale()))
 
   const quick = (action: native.QuickAction) => {
     native.quickAction(action).catch(() => undefined)
