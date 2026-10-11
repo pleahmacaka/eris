@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { LazyDesktopAccount } from "@eris/auth"
   import {
     Confirm,
     type PrefsPage,
@@ -114,9 +115,7 @@
       {:else if page === "account"}
         <Section title={$t("terminal.settings.account")}>
           <div class="px-4 py-4">
-            {#await import("@eris/auth/tauri") then { DesktopAccount }}
-              <DesktopAccount lang={$locale} />
-            {/await}
+            <LazyDesktopAccount lang={$locale} />
           </div>
         </Section>
       {:else}
