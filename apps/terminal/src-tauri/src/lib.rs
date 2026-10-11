@@ -2,6 +2,7 @@ mod launch;
 
 pub fn run() {
     let builder = tauri::Builder::default()
+        .plugin(eris_window_kit::development())
         .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
             if !tauri_plugin_eris_auth::claims(&args) {
                 launch::forward(app, &args, &cwd);

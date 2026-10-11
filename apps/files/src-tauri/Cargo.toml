@@ -10,6 +10,7 @@ name = "files_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [dependencies]
+eris-window-kit = { version = "0.1.0", path = "../../../packages/window-kit" }
 serde_json = "1"
 tauri = { version = "2.11.3", features = ["protocol-asset"] }
 tauri-plugin-clipboard-manager = "2.3.3"

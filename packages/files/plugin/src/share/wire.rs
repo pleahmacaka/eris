@@ -16,7 +16,11 @@ pub const ALPN: &[u8] = b"eris/files/1";
 pub const REQUEST_LIMIT: usize = 16 * 1024;
 pub const REPLY_LIMIT: usize = 64 * 1024 * 1024;
 
-pub const SCHEME: &str = "eris-files";
+pub const SCHEME: &str = if cfg!(debug_assertions) {
+    "eris-files-dev"
+} else {
+    "eris-files"
+};
 
 const RESERVED: [&str; 22] = [
     "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8",

@@ -101,7 +101,10 @@ struct ProviderMessage {
 }
 
 fn target(provider: &str) -> String {
-    format!("Eris Files/transcription/{provider}")
+    format!(
+        "{}/transcription/{provider}",
+        eris_window_kit::channel_name("Eris Files")
+    )
 }
 
 fn known(provider: &str) -> Result<()> {

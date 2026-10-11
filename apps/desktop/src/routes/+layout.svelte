@@ -58,7 +58,7 @@
   })
 
   $effect(() => {
-    if (framed) {
+    if (framed && !Reflect.get(window, "__ERIS_HEADLESS__")) {
       appWindow.show().then(() => appWindow.setFocus())
     }
   })

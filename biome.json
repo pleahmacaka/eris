@@ -5,6 +5,7 @@
       "*.ts",
       "*.json",
       "*.jsonc",
+      "scripts/**/*.ts",
       "apps/*/src/**/*.ts",
       "apps/*/scripts/**",
       "apps/*/test/**",

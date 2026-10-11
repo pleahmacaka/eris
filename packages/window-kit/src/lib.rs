@@ -9,6 +9,40 @@ const LINK_SCHEMES: [&str; 3] = ["http", "https", "mailto"];
 
 static NEXT: AtomicU32 = AtomicU32::new(1);
 
+// Keep shared plugin data and URL handlers in the same channel as the host.
+pub fn channel_name(name: &str) -> String {
+    if cfg!(debug_assertions) {
+        format!("{name}.dev")
+    } else {
+        name.to_string()
+    }
+}
+
+pub fn scheme(name: &str) -> String {
+    if cfg!(debug_assertions) {
+        format!("{name}-dev")
+    } else {
+        name.to_string()
+    }
+}
+
+pub fn headless() -> bool {
+    cfg!(debug_assertions) && std::env::var("ERIS_DEV_HEADLESS").as_deref() == Ok("1")
+}
+
+// This is injected before page code runs, including in dynamically created children.
+pub fn development<R: Runtime>() -> tauri::plugin::TauriPlugin<R> {
+    let script = if headless() {
+        "Object.defineProperty(window, '__ERIS_HEADLESS__', { value: true });"
+    } else {
+        ""
+    };
+
+    tauri::plugin::Builder::new("eris-development")
+        .js_init_script(script.to_string())
+        .build()
+}
+
 pub struct Intents<T>(Mutex<HashMap<String, T>>);
 
 impl<T> Default for Intents<T> {

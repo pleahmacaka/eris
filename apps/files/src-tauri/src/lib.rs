@@ -9,7 +9,7 @@ pub fn run() {
     #[cfg(windows)]
     let _ = unsafe { AllowSetForegroundWindow(ASFW_ANY) };
 
-    let builder = tauri::Builder::default();
+    let builder = tauri::Builder::default().plugin(eris_window_kit::development());
 
     #[cfg(desktop)]
     let builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, cwd| {

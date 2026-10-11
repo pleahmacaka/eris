@@ -2,7 +2,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize};
 
-use crate::{appbar, windowing};
+use crate::shell::{appbar, windowing};
 
 static EDITING: AtomicBool = AtomicBool::new(false);
 

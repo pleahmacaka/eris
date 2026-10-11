@@ -280,7 +280,7 @@ mod win {
 
         if incoming.flags & NIF_ICON != 0 {
             entry.icon = incoming.icon;
-            entry.png = crate::icons::icon_url(incoming.icon);
+            entry.png = crate::apps::icons::icon_url(incoming.icon);
         }
     }
 
@@ -710,7 +710,7 @@ mod win {
     }
 
     unsafe fn relay(message: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
-        let Some(shell) = crate::appbar::shell_tray() else {
+        let Some(shell) = crate::shell::appbar::shell_tray() else {
             return LRESULT(0);
         };
 

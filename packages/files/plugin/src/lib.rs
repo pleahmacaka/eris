@@ -49,7 +49,11 @@ mod transcribe;
 mod watch;
 
 pub(crate) const IDENTIFIER: &str = "com.arixlab.eris.files";
-const SCHEME: &str = "eris-files://";
+const SCHEME: &str = if cfg!(debug_assertions) {
+    "eris-files-dev://"
+} else {
+    "eris-files://"
+};
 
 pub type PeerList = fn(&AppHandle) -> Vec<(String, String)>;
 
@@ -74,7 +78,10 @@ pub const STANDALONE: Host = Host {
 
 // the share identity and paired devices must survive moving between the standalone app and Eris
 pub(crate) fn data_dir(app: &AppHandle) -> tauri::Result<std::path::PathBuf> {
-    Ok(app.path().local_data_dir()?.join(IDENTIFIER))
+    Ok(app
+        .path()
+        .local_data_dir()?
+        .join(eris_window_kit::channel_name(IDENTIFIER)))
 }
 
 pub fn init(host: Host) -> TauriPlugin<Wry> {

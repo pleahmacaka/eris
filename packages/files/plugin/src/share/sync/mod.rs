@@ -100,7 +100,7 @@ pub(super) fn safety(app: &AppHandle, folder: &Path) -> Safety {
     let own = [app.path().data_dir(), app.path().local_data_dir()]
         .into_iter()
         .filter_map(std::result::Result::ok)
-        .map(|dir| key(&dir.join(crate::IDENTIFIER)))
+        .map(|dir| key(&dir.join(eris_window_kit::channel_name(crate::IDENTIFIER))))
         .any(|data| inside(&path, &data) || inside(&data, &path));
 
     if is_root || system || profile || own {

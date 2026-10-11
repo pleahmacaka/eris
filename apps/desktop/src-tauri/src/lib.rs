@@ -4,40 +4,24 @@ use tauri::{AppHandle, DeviceEventFilter, Manager, WindowEvent};
 use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
 use tauri_plugin_store::StoreExt;
 
-use crate::features::{release_shell, start_dock, stored_features, DOCK_ON, LAUNCHER_ON};
-use crate::shortcuts::set_launcher_shortcut;
+use crate::shell::features::{release_shell, start_dock, stored_features, DOCK_ON, LAUNCHER_ON};
+use crate::shell::shortcuts::set_launcher_shortcut;
 
-mod appbar;
 mod apps;
-mod audio;
 mod clipboard;
 mod commands;
-mod desktop;
-mod edge;
-mod edit;
-mod eris_files;
-mod features;
-mod icons;
-mod media;
-mod meters;
-mod monitors;
 mod note;
-mod notices;
-mod notify;
-mod outside;
-mod pins;
-mod preview;
-mod quick;
-mod share;
-mod shortcuts;
-mod spectrum;
+mod notifications;
+mod shell;
 mod system;
 mod theme_link;
 mod usage;
-mod windowing;
-mod winkey;
 
+use apps::{files, launcher};
 use eris_p2p as p2p;
+use notifications::tray;
+use shell::{desktop, windowing, winkey};
+use system::share;
 
 const QUIET_LOGS: [&str; 6] = [
     "iroh",
@@ -68,6 +52,10 @@ fn follow_exe(app: &AppHandle) {
 }
 
 fn open(app: &AppHandle) {
+    if eris_window_kit::headless() {
+        return;
+    }
+
     windowing::conceal_hidden(app);
 
     let features = stored_features(app);
@@ -116,7 +104,7 @@ fn logger() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 pub fn run() {
     let args: Vec<String> = std::env::args().skip(1).collect();
 
-    if let Some(code) = tauri_plugin_eris_files::default_app::cli(&eris_files::HOST, &args) {
+    if let Some(code) = tauri_plugin_eris_files::default_app::cli(&files::HOST, &args) {
         std::process::exit(code);
     }
 
@@ -137,9 +125,12 @@ pub fn run() {
         )
     };
 
-    adopt_previous_data();
+    if !cfg!(debug_assertions) {
+        adopt_previous_data();
+    }
 
     let builder = tauri::Builder::default()
+        .plugin(eris_window_kit::development())
         .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
             if tauri_plugin_eris_auth::claims(&args) {
                 return;
@@ -151,7 +142,7 @@ pub fn run() {
                 return;
             }
 
-            if tauri_plugin_eris_files::claims(&eris_files::HOST, &args) {
+            if tauri_plugin_eris_files::claims(&files::HOST, &args) {
                 tauri_plugin_eris_files::forward(app, args, cwd);
 
                 return;
@@ -181,7 +172,7 @@ pub fn run() {
         .plugin(tauri_plugin_eris_terminal::init("/terminal"))
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_eris_auth::init("eris"))
-        .plugin(tauri_plugin_eris_files::init(eris_files::HOST))
+        .plugin(tauri_plugin_eris_files::init(files::HOST))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(commands::handler());
@@ -200,11 +191,13 @@ pub fn run() {
             // windows skips a low level keyboard hook whose process registered for raw input
             handle.set_device_event_filter(DeviceEventFilter::Always);
 
-            notify::host(handle.clone());
-            winkey::install(handle.clone());
-            clipboard::watch(handle.clone());
+            if !eris_window_kit::headless() {
+                tray::host(handle.clone());
+                winkey::install(handle.clone());
+                clipboard::watch(handle.clone());
+            }
             desktop::watch(handle.clone());
-            apps::watch(handle.clone());
+            launcher::watch(handle.clone());
             share::watch(handle.clone());
             if let Some(id) = tauri_plugin_eris_files::endpoint_id(&handle) {
                 p2p::set_files(id);
@@ -216,7 +209,7 @@ pub fn run() {
                 theme_link::accept(&handle, link);
             }
 
-            if tauri_plugin_eris_files::claims(&eris_files::HOST, &args) {
+            if tauri_plugin_eris_files::claims(&files::HOST, &args) {
                 let cwd = std::env::current_dir().unwrap_or_default();
 
                 tauri_plugin_eris_files::start(&handle, args, &cwd);
@@ -224,7 +217,7 @@ pub fn run() {
 
             let features = stored_features(&handle);
 
-            if features.launcher {
+            if features.launcher && !eris_window_kit::headless() {
                 let _ = set_launcher_shortcut(handle.clone(), Some("Alt+Space".into()));
             }
 

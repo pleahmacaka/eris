@@ -197,7 +197,7 @@ mod win {
     }
 
     pub fn open_or_chord(uri: &str, chord: Chord) -> Result<(), String> {
-        if crate::apps::shell_execute("open", uri, None, true).is_ok() {
+        if crate::apps::launcher::shell_execute("open", uri, None, true).is_ok() {
             return Ok(());
         }
 
@@ -206,13 +206,13 @@ mod win {
             Chord::QuickSettings => VK_A,
         };
 
-        crate::winkey::chord(&[VK_LWIN, key]);
+        crate::shell::winkey::chord(&[VK_LWIN, key]);
 
         Ok(())
     }
 
     pub fn task_view() -> Result<(), String> {
-        crate::winkey::chord(&[VK_LWIN, VK_TAB]);
+        crate::shell::winkey::chord(&[VK_LWIN, VK_TAB]);
 
         Ok(())
     }
@@ -229,7 +229,7 @@ mod win {
             return Ok(());
         }
 
-        crate::winkey::chord(&[VK_LWIN, VK_D]);
+        crate::shell::winkey::chord(&[VK_LWIN, VK_D]);
 
         Ok(())
     }

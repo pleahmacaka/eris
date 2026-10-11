@@ -4,7 +4,8 @@ use std::sync::Mutex;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_store::StoreExt;
 
-use crate::{appbar, edge, notify, windowing, winkey};
+use crate::notifications::tray;
+use crate::shell::{appbar, edge, windowing, winkey};
 
 pub(crate) static DOCK_ON: AtomicBool = AtomicBool::new(true);
 pub(crate) static LAUNCHER_ON: AtomicBool = AtomicBool::new(true);
@@ -37,6 +38,10 @@ pub(crate) fn stored_features(app: &AppHandle) -> Features {
 
 // the shell answers an appbar message by sending one back to the dock, so never ask from its own thread
 pub(crate) fn start_dock(app: &AppHandle) {
+    if eris_window_kit::headless() {
+        return;
+    }
+
     let handle = app.clone();
 
     std::thread::spawn(move || {
@@ -53,8 +58,12 @@ pub(crate) fn start_dock(app: &AppHandle) {
 }
 
 pub(crate) fn release_shell(app: &AppHandle) {
+    if eris_window_kit::headless() {
+        return;
+    }
+
     appbar::release_all(app);
-    notify::release();
+    tray::release();
     winkey::release();
 }
 
@@ -81,8 +90,10 @@ pub fn resume_shell(app: AppHandle) {
         }
     }
 
-    notify::host(app.clone());
-    appbar::restore_all(&app);
+    if !eris_window_kit::headless() {
+        tray::host(app.clone());
+        appbar::restore_all(&app);
+    }
 }
 
 fn dock_enabled(app: &AppHandle, on: bool) {

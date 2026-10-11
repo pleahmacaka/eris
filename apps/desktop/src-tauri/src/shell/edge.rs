@@ -70,7 +70,7 @@ mod win {
         loop {
             std::thread::sleep(TICK);
 
-            if !crate::features::DOCK_ON.load(Ordering::Relaxed) {
+            if !crate::shell::features::DOCK_ON.load(Ordering::Relaxed) {
                 at_edge = false;
                 fullscreen = false;
                 revealed = false;
@@ -94,24 +94,24 @@ mod win {
                 }
             }
 
-            if crate::appbar::desktop_pinned() {
-                if !crate::appbar::desktop_reveals() {
+            if crate::shell::appbar::desktop_pinned() {
+                if !crate::shell::appbar::desktop_reveals() {
                     continue;
                 }
 
                 if at_edge
                     && !lifted
                     && (foreground_covers(&screen) != Some(true)
-                        || crate::appbar::fullscreen_reveals(&app))
+                        || crate::shell::appbar::fullscreen_reveals(&app))
                 {
                     lifted = true;
                     left_band = None;
-                    crate::appbar::lift(dock, true);
+                    crate::shell::appbar::lift(dock, true);
                 } else if lifted && !holds(cursor, at_edge, dock, preview) {
                     if left_band.get_or_insert_with(Instant::now).elapsed() >= LINGER {
                         lifted = false;
                         left_band = None;
-                        crate::appbar::lift(dock, false);
+                        crate::shell::appbar::lift(dock, false);
                     }
                 } else {
                     left_band = None;
@@ -134,7 +134,7 @@ mod win {
                 continue;
             }
 
-            if at_edge && !revealed && crate::appbar::fullscreen_reveals(&app) {
+            if at_edge && !revealed && crate::shell::appbar::fullscreen_reveals(&app) {
                 revealed = true;
                 left_band = None;
                 set_visible(&app, dock, true);
@@ -155,7 +155,7 @@ mod win {
     }
 
     fn screen() -> RECT {
-        match crate::appbar::dock_screen() {
+        match crate::shell::appbar::dock_screen() {
             Some([left, top, right, bottom]) => RECT {
                 left,
                 top,
@@ -202,7 +202,7 @@ mod win {
 
     // the dock window keeps room above the band for menus, so reveal logic follows the band alone
     fn band(dock: HWND) -> RECT {
-        match crate::appbar::dock_frame() {
+        match crate::shell::appbar::dock_frame() {
             Some([left, top, width, height]) => RECT {
                 left,
                 top,
@@ -237,7 +237,7 @@ mod win {
     }
 
     fn edge_band(screen: &RECT) -> RECT {
-        if crate::appbar::edge_is_top() {
+        if crate::shell::appbar::edge_is_top() {
             RECT {
                 bottom: screen.top + EDGE,
                 ..*screen
@@ -330,13 +330,13 @@ mod win {
     }
 
     fn set_visible(app: &AppHandle, dock: HWND, visible: bool) {
-        let topbar = crate::appbar::topbar_on(app);
+        let topbar = crate::shell::appbar::topbar_on(app);
 
         if visible {
-            crate::windowing::webview_visible(app, "taskbar", true);
+            crate::shell::windowing::webview_visible(app, "taskbar", true);
 
             if topbar {
-                crate::windowing::webview_visible(app, "topbar", true);
+                crate::shell::windowing::webview_visible(app, "topbar", true);
             }
         }
 
@@ -376,8 +376,8 @@ mod win {
         }
 
         if !visible {
-            crate::windowing::webview_visible(app, "taskbar", false);
-            crate::windowing::webview_visible(app, "topbar", false);
+            crate::shell::windowing::webview_visible(app, "taskbar", false);
+            crate::shell::windowing::webview_visible(app, "topbar", false);
         }
 
         let _ = app.emit("dock-visible", json!({ "visible": visible }));

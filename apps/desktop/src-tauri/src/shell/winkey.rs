@@ -354,8 +354,8 @@ mod win {
 
         std::thread::spawn(move || {
             while receiver.recv().is_ok() {
-                if crate::features::LAUNCHER_ON.load(Ordering::Relaxed) {
-                    crate::windowing::toggle(&app, "main");
+                if crate::shell::features::LAUNCHER_ON.load(Ordering::Relaxed) {
+                    crate::shell::windowing::toggle(&app, "main");
                 }
             }
         });

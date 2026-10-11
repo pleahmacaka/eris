@@ -5,7 +5,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, WebviewWindow};
 
-use crate::{apps, windowing};
+use crate::apps::launcher;
+use crate::shell::windowing;
 
 #[derive(Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -82,7 +83,7 @@ pub fn notices_activate(app: AppHandle, id: i64) -> Result<(), String> {
         .launch
         .unwrap_or_else(|| format!("shell:AppsFolder\\{}", notice.app));
 
-    apps::shell_execute("open", &target, None, true)?;
+    launcher::shell_execute("open", &target, None, true)?;
     notices_dismiss(app.clone(), vec![id]);
     windowing::hide(&app, "notices");
 

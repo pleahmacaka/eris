@@ -1,6 +1,7 @@
 use serde::Serialize;
 
-use crate::{apps, audio};
+use crate::apps::launcher;
+use crate::system::audio;
 
 #[derive(Serialize)]
 pub struct Battery {
@@ -47,12 +48,12 @@ pub fn empty_recycle_bin() -> Result<(), String> {
 
 #[tauri::command]
 pub fn open_url(url: String) -> Result<(), String> {
-    apps::shell_execute("open", &url, None, true)
+    launcher::shell_execute("open", &url, None, true)
 }
 
 #[tauri::command]
 pub fn run_command(command: String) -> Result<(), String> {
-    apps::shell_execute(
+    launcher::shell_execute(
         "open",
         "cmd.exe",
         Some(&format!("/c start \"\" {command}")),
@@ -93,7 +94,7 @@ pub fn open_data_folder(app: tauri::AppHandle) -> Result<(), String> {
 
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
 
-    apps::shell_execute("open", &dir.to_string_lossy(), None, true)
+    launcher::shell_execute("open", &dir.to_string_lossy(), None, true)
 }
 
 mod win {

@@ -1,18 +1,18 @@
 use tauri::ipc::Invoke;
 use tauri::Wry;
 
-use crate::{
-    appbar, apps, audio, clipboard, desktop, edge, edit, features, icons, media, meters, monitors,
-    note, notices, notify, p2p, pins, preview, quick, share, shortcuts, spectrum, system,
-    theme_link, usage, windowing, winkey,
-};
+use crate::apps::{icons, launcher, pins};
+use crate::notifications::{notices, tray};
+use crate::shell::{appbar, desktop, edge, edit, features, preview, shortcuts, windowing, winkey};
+use crate::system::{audio, controls, media, meters, monitors, quick, share, spectrum};
+use crate::{clipboard, note, p2p, theme_link, usage};
 
 pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
     tauri::generate_handler![
-        apps::list_apps,
-        apps::pinned_apps,
-        apps::launch_app,
-        apps::open_location,
+        launcher::list_apps,
+        launcher::pinned_apps,
+        launcher::launch_app,
+        launcher::open_location,
         icons::app_icon,
         desktop::list_windows,
         desktop::activate_window,
@@ -20,17 +20,17 @@ pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
         desktop::minimize_window,
         preview::preview_show,
         preview::preview_hide,
-        system::system_accent,
+        controls::system_accent,
         share::screen_sharing,
         share::set_share_watch,
-        system::system_info,
-        system::power_action,
-        system::empty_recycle_bin,
-        system::open_url,
-        system::run_command,
-        system::installed_terminals,
-        system::machine_name,
-        system::open_data_folder,
+        controls::system_info,
+        controls::power_action,
+        controls::empty_recycle_bin,
+        controls::open_url,
+        controls::run_command,
+        controls::installed_terminals,
+        controls::machine_name,
+        controls::open_data_folder,
         icons::clear_icon_cache,
         audio::set_volume,
         audio::toggle_mute,
@@ -51,9 +51,9 @@ pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
         usage::claude_usage,
         usage::usage_bridge_installed,
         usage::install_usage_bridge,
-        notify::notify_icons,
-        notify::notify_icon_click,
-        notify::notify_icon_promote,
+        tray::notify_icons,
+        tray::notify_icon_click,
+        tray::notify_icon_promote,
         quick::radios,
         quick::set_radio,
         quick::bluetooth_devices,

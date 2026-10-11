@@ -14,12 +14,15 @@ const CALLBACK: &str = "eris-auth-callback";
 
 static PENDING: Mutex<Option<String>> = Mutex::new(None);
 
-struct Scheme(&'static str);
+struct Scheme(String);
 
 pub fn is_callback(url: &str) -> bool {
-    SCHEMES
-        .iter()
-        .any(|scheme| url.starts_with(&format!("{scheme}://auth/callback")))
+    SCHEMES.iter().any(|scheme| {
+        url.starts_with(&format!(
+            "{}://auth/callback",
+            eris_window_kit::scheme(scheme)
+        ))
+    })
 }
 
 pub fn claims(args: &[String]) -> bool {
@@ -29,7 +32,7 @@ pub fn claims(args: &[String]) -> bool {
 fn folder(app: &AppHandle) -> Result<PathBuf, String> {
     app.path()
         .local_data_dir()
-        .map(|dir| dir.join("com.arixlab.eris.auth"))
+        .map(|dir| dir.join(eris_window_kit::channel_name("com.arixlab.eris.auth")))
         .map_err(|e| e.to_string())
 }
 
@@ -123,15 +126,20 @@ pub fn init(scheme: &'static str) -> TauriPlugin<Wry> {
             open_authorize
         ])
         .setup(move |app, _| {
-            app.manage(Scheme(scheme));
+            let scheme = eris_window_kit::scheme(scheme);
+            app.manage(Scheme(scheme.clone()));
 
             let links = app.deep_link();
 
-            let _ = links.register(scheme);
+            let _ = links.register(&scheme);
 
             let started = links.get_current().ok().flatten().unwrap_or_default();
 
-            if let Some(url) = started.iter().map(|url| url.to_string()).find(|url| is_callback(url)) {
+            if let Some(url) = started
+                .iter()
+                .map(|url| url.to_string())
+                .find(|url| is_callback(url))
+            {
                 accept(app, url);
             }
 

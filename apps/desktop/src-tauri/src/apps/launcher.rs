@@ -180,14 +180,14 @@ pub fn list_apps() -> Vec<AppEntry> {
 
 #[tauri::command(async)]
 pub fn pinned_apps() -> Vec<AppEntry> {
-    let Some(root) = crate::pins::folder() else {
+    let Some(root) = crate::apps::pins::folder() else {
         return Vec::new();
     };
 
     let mut entries = shortcuts_in(root, 1);
     let names: Vec<String> = entries.iter().map(|found| file_name(&found.path)).collect();
-    let order = crate::pins::read_favorites()
-        .map(|favorites| crate::pins::taskbar_order(&favorites, &names))
+    let order = crate::apps::pins::read_favorites()
+        .map(|favorites| crate::apps::pins::taskbar_order(&favorites, &names))
         .unwrap_or_default();
 
     entries.sort_by_key(|found| {
@@ -214,7 +214,7 @@ fn file_name(path: &str) -> String {
 
 #[tauri::command(async)]
 pub fn launch_app(app: AppHandle, path: String, admin: bool) -> Result<(), String> {
-    if !admin && opens_explorer(&path) && crate::eris_files::open_instead(&app, None) {
+    if !admin && opens_explorer(&path) && crate::apps::files::open_instead(&app, None) {
         return Ok(());
     }
 
@@ -227,7 +227,7 @@ pub fn launch_app(app: AppHandle, path: String, admin: bool) -> Result<(), Strin
 pub fn open_location(app: AppHandle, path: String) -> Result<(), String> {
     let target = shortcut_target(&path).unwrap_or(path);
 
-    if crate::eris_files::open_instead(&app, Some(target.clone())) {
+    if crate::apps::files::open_instead(&app, Some(target.clone())) {
         return Ok(());
     }
 

@@ -1589,6 +1589,7 @@ name = "eris-files"
 version = "0.1.0"
 dependencies = [
  "eris-style",
+ "eris-window-kit",
  "serde_json",
  "tauri",
  "tauri-build",
@@ -6922,6 +6923,7 @@ dependencies = [
 name = "tauri-plugin-eris-auth"
 version = "0.1.0"
 dependencies = [
+ "eris-window-kit",
  "keyring",
  "open",
  "tauri",

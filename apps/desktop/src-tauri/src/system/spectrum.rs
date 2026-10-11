@@ -92,7 +92,7 @@ mod win {
     };
 
     use super::{bands_from, BANDS};
-    use crate::audio::win::device_id;
+    use crate::system::audio::win::device_id;
 
     const WINDOW: usize = 1024;
     const TICK: Duration = Duration::from_millis(33);

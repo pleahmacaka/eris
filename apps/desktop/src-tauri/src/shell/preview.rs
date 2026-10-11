@@ -106,7 +106,7 @@ mod win {
         };
 
         // a menu extends the dock window upward, so anchor to the band it reserves instead
-        let [dock_left, dock_top, _, dock_height] = match crate::appbar::dock_frame() {
+        let [dock_left, dock_top, _, dock_height] = match crate::shell::appbar::dock_frame() {
             Some(frame) => frame,
             None => {
                 let (Ok(position), Ok(size)) = (dock.outer_position(), dock.outer_size()) else {
@@ -133,7 +133,7 @@ mod win {
 
         let gap = (DOCK_GAP * scale).round() as i32;
 
-        let top = if crate::appbar::edge_is_top() {
+        let top = if crate::shell::appbar::edge_is_top() {
             dock_top + dock_height + gap
         } else {
             dock_top - gap - physical_height
@@ -214,7 +214,7 @@ mod win {
 
         let _ = app.emit("preview-shown", placed);
 
-        crate::windowing::webview_visible(app, "preview", true);
+        crate::shell::windowing::webview_visible(app, "preview", true);
 
         unsafe {
             let _ = ShowWindow(destination, SW_SHOWNA);
@@ -236,6 +236,6 @@ mod win {
             }
         }
 
-        crate::windowing::webview_visible(app, "preview", false);
+        crate::shell::windowing::webview_visible(app, "preview", false);
     }
 }

@@ -1845,6 +1845,7 @@ dependencies = [
  "base64 0.23.1",
  "diesel",
  "eris-p2p",
+ "eris-window-kit",
  "image",
  "is-screen-sharing",
  "libsqlite3-sys",
@@ -7686,6 +7687,7 @@ dependencies = [
 name = "tauri-plugin-eris-auth"
 version = "0.1.0"
 dependencies = [
+ "eris-window-kit",
  "keyring",
  "open",
  "tauri",

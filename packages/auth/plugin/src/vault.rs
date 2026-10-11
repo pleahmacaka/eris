@@ -31,7 +31,8 @@ fn blob(bytes: &[u8]) -> CRYPT_INTEGER_BLOB {
 
 #[cfg(windows)]
 fn take(output: CRYPT_INTEGER_BLOB) -> Vec<u8> {
-    let bytes = unsafe { std::slice::from_raw_parts(output.pbData, output.cbData as usize) }.to_vec();
+    let bytes =
+        unsafe { std::slice::from_raw_parts(output.pbData, output.cbData as usize) }.to_vec();
 
     unsafe {
         LocalFree(Some(HLOCAL(output.pbData as _)));
@@ -107,8 +108,9 @@ pub fn store(folder: &Path, key: &str, value: &str) -> Result<(), String> {
 fn entry(folder: &Path, key: &str) -> Result<keyring::Entry, String> {
     file(folder, key)?;
 
-    // Eris, Files and Terminal read the same entries, so this service name must not change
-    keyring::Entry::new("com.arixlab.eris.auth", key).map_err(|e| e.to_string())
+    // Eris, Files and Terminal share entries within the same build channel.
+    keyring::Entry::new(&eris_window_kit::channel_name("com.arixlab.eris.auth"), key)
+        .map_err(|e| e.to_string())
 }
 
 #[cfg(not(windows))]

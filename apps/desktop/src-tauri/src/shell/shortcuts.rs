@@ -4,7 +4,7 @@ use std::sync::Mutex;
 use tauri::AppHandle;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutEvent, ShortcutState};
 
-use crate::{features, windowing};
+use crate::shell::{features, windowing};
 
 static LAUNCHER_SHORTCUT: Mutex<Option<Shortcut>> = Mutex::new(None);
 
@@ -43,6 +43,10 @@ fn replace(
 
 #[tauri::command]
 pub fn set_launcher_shortcut(app: AppHandle, shortcut: Option<String>) -> Result<(), String> {
+    if eris_window_kit::headless() {
+        return Ok(());
+    }
+
     replace(&app, &LAUNCHER_SHORTCUT, shortcut, |app, _, event| {
         if event.state() == ShortcutState::Pressed && features::LAUNCHER_ON.load(Ordering::Relaxed)
         {

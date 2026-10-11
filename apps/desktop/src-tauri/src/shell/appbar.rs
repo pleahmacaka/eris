@@ -6,7 +6,7 @@ use serde::Deserialize;
 use tauri::{AppHandle, Manager, WebviewWindow};
 use tauri_plugin_store::StoreExt;
 
-use crate::monitors;
+use crate::system::monitors;
 
 #[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -149,7 +149,7 @@ pub fn release_topbar(app: AppHandle) -> Result<(), String> {
         .ok_or("topbar window is missing")?;
 
     release(&window);
-    crate::windowing::hide(&app, "topbar");
+    crate::shell::windowing::hide(&app, "topbar");
 
     Ok(())
 }
@@ -164,6 +164,10 @@ fn apply_as(
     primary: bool,
     force: bool,
 ) -> tauri::Result<()> {
+    if eris_window_kit::headless() {
+        return Ok(());
+    }
+
     if SUSPENDED.load(Ordering::Relaxed) {
         PARKED
             .lock()
@@ -212,6 +216,10 @@ pub fn reapply(window: &WebviewWindow) {
 }
 
 pub fn release(window: &WebviewWindow) {
+    if eris_window_kit::headless() {
+        return;
+    }
+
     LAST.lock().unwrap().remove(window.label());
 
     if window.label() == "taskbar" {
@@ -437,7 +445,7 @@ mod win {
 
                 None
             }
-            None => crate::notify::beside_host(|| unsafe {
+            None => crate::notifications::tray::beside_host(|| unsafe {
                 if layout.desktop {
                     if was_registered {
                         SHAppBarMessage(ABM_REMOVE, &mut data);
@@ -527,7 +535,8 @@ mod win {
             let had_hole = bar.hole.is_some();
 
             bar.reach = (px.max(0.0) * frame.scale).round() as i32;
-            bar.hole = rect.map(|rect| crate::windowing::region::physical(rect, frame.scale));
+            bar.hole =
+                rect.map(|rect| crate::shell::windowing::region::physical(rect, frame.scale));
 
             let (reach, hole) = (bar.reach, bar.hole);
             let menus_open = bars.values().any(|bar| bar.hole.is_some());
@@ -538,7 +547,7 @@ mod win {
         let hwnd = window.hwnd()?;
 
         shape(hwnd, &frame, reach, hole);
-        crate::outside::watch(window.app_handle(), menus_open);
+        crate::shell::outside::watch(window.app_handle(), menus_open);
 
         // restacking on every reshape buries a tray app's context menu opened over the dock
         if hole.is_some() == had_hole {
@@ -584,7 +593,7 @@ mod win {
             ]);
         }
 
-        crate::windowing::region::set(hwnd, Some(&rects), false);
+        crate::shell::windowing::region::set(hwnd, Some(&rects), false);
     }
 
     pub fn raise(window: &WebviewWindow) {
@@ -728,7 +737,7 @@ mod win {
         if let Ok(hwnd) = window.hwnd() {
             let mut data = payload(hwnd, ABE_BOTTOM);
 
-            crate::notify::beside_host(|| unsafe {
+            crate::notifications::tray::beside_host(|| unsafe {
                 SHAppBarMessage(ABM_REMOVE, &mut data);
             });
         }
@@ -789,7 +798,7 @@ mod win {
 
         data.lParam = LPARAM(state as isize);
 
-        crate::notify::beside_host(|| unsafe {
+        crate::notifications::tray::beside_host(|| unsafe {
             SHAppBarMessage(ABM_SETSTATE, &mut data);
         });
 
@@ -799,7 +808,9 @@ mod win {
     fn current_shell_state() -> usize {
         let mut data = payload(HWND::default(), ABE_BOTTOM);
 
-        crate::notify::beside_host(|| unsafe { SHAppBarMessage(ABM_GETSTATE, &mut data) })
+        crate::notifications::tray::beside_host(|| unsafe {
+            SHAppBarMessage(ABM_GETSTATE, &mut data)
+        })
     }
 
     fn saved_shell_state() -> Option<usize> {

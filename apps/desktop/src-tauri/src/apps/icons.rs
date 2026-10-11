@@ -30,14 +30,14 @@ fn stamp(file: &str) -> String {
 
 // an app updated in place keeps its path, so the key also carries the stamps of the files behind its icon
 fn cache_key(path: &str) -> (String, String) {
-    let target = crate::apps::shortcut_target(path);
+    let target = crate::apps::launcher::shortcut_target(path);
     let stamps = std::iter::once(path)
         .chain(target.as_deref())
         .map(stamp)
         .collect::<Vec<_>>()
         .join("|");
-    let base = crate::apps::stable_id(path);
-    let version = crate::apps::stable_id(&stamps);
+    let base = crate::apps::launcher::stable_id(path);
+    let version = crate::apps::launcher::stable_id(&stamps);
 
     (base.clone(), format!("{base}-{version}"))
 }
@@ -346,7 +346,7 @@ mod win {
             }
 
             let bitmap = image_of(path).or_else(|| {
-                crate::apps::shortcut_target(path)
+                crate::apps::launcher::shortcut_target(path)
                     .as_deref()
                     .and_then(|target| image_of(target))
             })?;
@@ -363,7 +363,7 @@ mod win {
 mod tests {
     #[test]
     fn renders_an_icon_from_a_start_menu_shortcut() {
-        let apps = crate::apps::list_apps();
+        let apps = crate::apps::launcher::list_apps();
 
         let png = apps
             .iter()
