@@ -12,7 +12,7 @@
     },
     "apps/desktop": {
       "name": "eris",
-      "version": "0.3.8",
+      "version": "0.3.10",
       "dependencies": {
         "@eris/auth": "workspace:*",
         "@eris/bridge": "workspace:*",
@@ -63,7 +63,7 @@
     },
     "apps/files": {
       "name": "eris-files",
-      "version": "0.3.8",
+      "version": "0.3.10",
       "dependencies": {
         "@eris/files": "workspace:*",
         "@eris/i18n": "workspace:*",
@@ -94,7 +94,7 @@
     },
     "apps/terminal": {
       "name": "eris-terminal",
-      "version": "0.3.8",
+      "version": "0.3.10",
       "dependencies": {
         "@eris/i18n": "workspace:*",
         "@eris/settings": "workspace:*",
