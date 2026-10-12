@@ -64,6 +64,13 @@ pub fn dock_screen() -> Option<[i32; 4]> {
     *SCREEN.lock().unwrap()
 }
 
+// the frontend's dock/bar.ts reserves the same height once it loads
+const ISLAND_INSET: f64 = 4.0;
+
+fn bar_height(dock_height: f64, islands: bool) -> f64 {
+    dock_height + if islands { ISLAND_INSET * 2.0 } else { 0.0 }
+}
+
 pub fn dock_frame() -> Option<[i32; 4]> {
     win::base_frame("taskbar")
 }
@@ -84,9 +91,12 @@ pub fn stored_layout(app: &AppHandle) -> TaskbarLayout {
         edge: field("dockEdge")
             .and_then(|v| v.as_str().map(String::from))
             .unwrap_or(base.edge),
-        height: field("dockHeight")
-            .and_then(|v| v.as_f64())
-            .unwrap_or(base.height),
+        height: bar_height(
+            field("dockHeight")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(base.height),
+            field("dockIslands").is_some_and(|v| v.as_bool() == Some(true)),
+        ),
         width: field("dockWidth")
             .and_then(|v| v.as_f64())
             .unwrap_or(base.width),
@@ -939,7 +949,13 @@ mod tests {
     use windows::Win32::Foundation::RECT;
 
     use super::win::{offset, span};
-    use super::TaskbarLayout;
+    use super::{bar_height, TaskbarLayout};
+
+    #[test]
+    fn islands_reserve_their_inset_above_and_below_the_configured_height() {
+        assert_eq!(bar_height(56.0, false), 56.0);
+        assert_eq!(bar_height(56.0, true), 64.0);
+    }
 
     const SECONDARY: RECT = RECT {
         left: 1920,

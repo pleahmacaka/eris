@@ -10,6 +10,7 @@ import { Tween } from "svelte/motion"
 import { SvelteMap } from "svelte/reactivity"
 import { newId } from "#lib/data/index.js"
 import * as native from "#lib/native/index.js"
+import { barHeightFor } from "./bar"
 import { MAGNIFY_BOOST } from "./DockItem.svelte"
 import { type DockGroup, dock, groupWindows, resolvePins } from "./dock.svelte"
 import { DockOrdering, isDockPinned, moveGroup } from "./order"
@@ -85,6 +86,10 @@ export class DockLayout {
   )
 
   slotWidth = $derived(this.device.dockIconSize + 20)
+
+  barHeight = $derived(
+    barHeightFor(this.device.dockHeight, this.device.dockIslands),
+  )
 
   launcherShown = $derived(
     this.device.showLauncherButton && this.device.features.launcher,
@@ -207,7 +212,7 @@ export class DockLayout {
     [
       this.device.dockStyle,
       this.device.dockEdge,
-      this.device.dockHeight,
+      this.barHeight,
       this.device.dockAutoHide,
       this.desktop,
       this.hideSystemTaskbar,
@@ -391,6 +396,7 @@ export class DockLayout {
       root.dataset.dock = "windows"
       root.dataset.edge = "top"
       root.style.setProperty("--dock-height", `${TOPBAR_H}px`)
+      root.style.setProperty("--dock-content-height", `${TOPBAR_H}px`)
 
       return native
         .applyTopbar({
@@ -408,16 +414,16 @@ export class DockLayout {
 
     root.dataset.dock = this.device.dockStyle
     root.dataset.edge = this.device.dockEdge
-    root.style.setProperty("--dock-height", `${this.device.dockHeight}px`)
+    root.style.setProperty("--dock-height", `${this.barHeight}px`)
+    root.style.setProperty(
+      "--dock-content-height",
+      `${this.device.dockHeight}px`,
+    )
 
     return native
       .applyTaskbar({
         edge: this.device.dockEdge,
-        height: this.collapsed
-          ? this.edgeOnly
-            ? 0
-            : STRIP
-          : this.device.dockHeight,
+        height: this.collapsed ? (this.edgeOnly ? 0 : STRIP) : this.barHeight,
         width: this.dockWidth,
         floating: this.device.dockStyle !== "windows",
         autoHide: this.device.dockAutoHide,

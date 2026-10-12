@@ -339,7 +339,7 @@
     <button
       class={[
         "ml-1 w-1.5 shrink-0 border-l border-base-content/10 transition-colors duration-100 hover:bg-base-content/20",
-        mac ? "h-6 rounded-r-full" : "h-(--dock-height)",
+        mac ? "h-6 rounded-r-full" : "h-(--dock-content-height)",
       ]}
       title={$t("tray.showDesktop")}
       aria-label={$t("tray.showDesktop")}

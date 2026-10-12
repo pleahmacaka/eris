@@ -32,8 +32,6 @@
 
   const islands = $derived(device.dockIslands)
 
-  const pillSize = $derived(islands ? device.dockHeight - 8 : device.dockHeight)
-
   const barClaim = $derived(layout.claimFor("bar"))
   const launcherSpot = $derived(layout.claimFor("spot-launcher"))
   const traySpot = $derived(layout.claimFor("spot-tray"))
@@ -153,10 +151,7 @@
     class={[
       "dock-pill pointer-events-none absolute left-1/2 z-20 grid -translate-x-1/2 place-items-center",
       islands && "island-fill rounded-full",
-      device.dockEdge === "top" ? (islands ? "top-1" : "top-0") : islands ? "bottom-1" : "bottom-0",
     ]}
-    style:width="{pillSize}px"
-    style:height="{pillSize}px"
   >
     {@render mark("size-1/2")}
   </div>
@@ -171,7 +166,7 @@
         layout.mac ? "rounded-[var(--shell-radius)] px-3" : "px-2",
         !islands && (layout.mac ? "border" : device.dockEdge === "top" ? "border-b" : "border-t"),
       ]}
-      style:height="{device.dockHeight}px"
+      style:height="{layout.barHeight}px"
       style:gap={islands ? `${device.dockIslandGap}px` : undefined}
       aria-label={$t("dock.dockAria")}
       bind:offsetWidth={layout.navWidth}
@@ -277,8 +272,8 @@
         bind:open={barMenu}
         items={barMenuItems}
         x={barMenuX}
-        y={device.dockEdge === "top" ? device.dockHeight + 8 : undefined}
-        bottom={device.dockEdge === "top" ? undefined : device.dockHeight + 8}
+        y={device.dockEdge === "top" ? layout.barHeight + 8 : undefined}
+        bottom={device.dockEdge === "top" ? undefined : layout.barHeight + 8}
         placement={layout.spotPlacement}
         width={224}
         label={$t("dock.dockMenu")}
@@ -328,7 +323,7 @@
   }
 
   .dock-island {
-    height: calc(var(--dock-height) - 0.5rem);
+    height: var(--dock-content-height);
     padding-inline: 0.5rem;
     border-radius: 9999px;
   }

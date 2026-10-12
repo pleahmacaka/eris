@@ -93,15 +93,16 @@
   }
 
   :root[data-surface="dock"][data-dock-islands="true"] {
-    --band-top: calc(100% - var(--dock-height) + 0.25rem);
-    --band-bottom: 0.25rem;
+    --island-inset: calc((var(--dock-height) - var(--dock-content-height)) / 2);
+    --band-top: calc(100% - var(--dock-height) + var(--island-inset));
+    --band-bottom: var(--island-inset);
     --band-radius: calc(var(--dock-height) / 2);
-    --gather-side: calc(50% - var(--dock-height) / 2 + 0.25rem);
+    --gather-side: calc(50% - var(--dock-height) / 2 + var(--island-inset));
   }
 
   :root[data-surface="dock"][data-dock-islands="true"][data-edge="top"] {
-    --band-top: 0.25rem;
-    --band-bottom: calc(100% - var(--dock-height) + 0.25rem);
+    --band-top: var(--island-inset);
+    --band-bottom: calc(100% - var(--dock-height) + var(--island-inset));
   }
 
   @keyframes dock-gather {
@@ -158,6 +159,9 @@
   }
 
   .dock-pill {
+    top: var(--band-top);
+    bottom: var(--band-bottom);
+    aspect-ratio: 1;
     opacity: 0;
   }
 
