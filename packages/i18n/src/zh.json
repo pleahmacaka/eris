@@ -20,7 +20,9 @@
     "on": "开",
     "off": "关",
     "previous": "上一步",
-    "partial": "部分支持"
+    "partial": "部分支持",
+    "pinSetting": "仅在此电脑使用",
+    "syncSetting": "包含在同步中"
   },
   "languages": {
     "system": "跟随系统",
@@ -271,7 +273,8 @@
         "preview": "预览"
       },
       "panelStart": "打开时的大小",
-      "font": "字体"
+      "font": "字体",
+      "metersStacked": "CPU 和内存两行显示"
     },
     "hints": {
       "deviceName": "其他已同步设备上显示的名称",
@@ -389,7 +392,8 @@
         "preview": "将光标悬停在页面链接上时,在左侧显示 Note 内容"
       },
       "panelStart": "打开日历时最初显示的大小。",
-      "font": "其他字体请直接输入已安装的字体名称。"
+      "font": "其他字体请直接输入已安装的字体名称。",
+      "metersStacked": "将 CPU 和内存使用率分两行显示"
     },
     "options": {
       "win": "Win 键",

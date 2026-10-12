@@ -250,6 +250,7 @@ export const defaultDevice: DeviceSettings = {
   claudeUsageSource: "",
   claudeUsageSide: "left",
   claudeUsageStacked: false,
+  metersStacked: false,
   mediaSide: "left",
   showSpectrum: true,
   spectrumStyle: "bars",
@@ -325,3 +326,5 @@ export const standaloneLook: Appearance = {
 }
 
 export const SYSTEM_FONT = "system"
+
+export const CUSTOM_PRESET = "custom"

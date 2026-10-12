@@ -188,6 +188,13 @@
   {@render toggleRow("showVolume", $t("settings.rows.showVolume"))}
   {@render toggleRow("showNetwork", $t("settings.rows.showNetwork"))}
   {@render toggleRow("showMeters", $t("settings.rows.showMeters"))}
+
+  {#if device.showMeters}
+    <div class="ml-1 border-l-2 border-primary/25 pl-3">
+      {@render toggleRow("metersStacked", $t("settings.rows.metersStacked"))}
+    </div>
+  {/if}
+
   {@render toggleRow("showBluetooth", $t("settings.rows.showBluetooth"))}
   {@render toggleRow("showNotifications", $t("settings.rows.showNotifications"))}
   {@render toggleRow("showInputLanguage", $t("settings.rows.showInputLanguage"))}
@@ -198,32 +205,38 @@
   {@render toggleRow("showClaudeUsage", $t("settings.rows.showClaudeUsage"))}
 
   {#if device.showClaudeUsage}
-    {@render toggleRow("claudeUsageStacked", $t("settings.rows.claudeUsageStacked"))}
+    <div class="ml-1 border-l-2 border-primary/25 pl-3">
+      {@render toggleRow("claudeUsageStacked", $t("settings.rows.claudeUsageStacked"))}
 
-    <div class="flex items-center justify-between gap-3 py-1 text-xs">
-      <span>{$t("settings.rows.claudeUsageSide")}</span>
+      <div class="flex items-center justify-between gap-3 py-1 text-xs">
+        <span>{$t("settings.rows.claudeUsageSide")}</span>
 
-      <Segmented value={device.claudeUsageSide} options={sideOptions} onchange={v => layout.patch("claudeUsageSide", v)} />
+        <Segmented value={device.claudeUsageSide} options={sideOptions} onchange={v => layout.patch("claudeUsageSide", v)} />
+      </div>
     </div>
   {/if}
 
   {@render toggleRow("showMedia", $t("settings.rows.showMedia"))}
 
   {#if device.showMedia}
-    {@render toggleRow("showSpectrum", $t("settings.rows.showSpectrum"))}
-
-    {#if device.showSpectrum}
+    <div class="ml-1 border-l-2 border-primary/25 pl-3">
       <div class="flex items-center justify-between gap-3 py-1 text-xs">
-        <span>{$t("settings.rows.spectrumStyle")}</span>
+        <span>{$t("settings.rows.mediaSide")}</span>
 
-        <Segmented value={device.spectrumStyle} options={spectrumOptions} onchange={v => layout.patch("spectrumStyle", v)} />
+        <Segmented value={device.mediaSide} options={sideOptions} onchange={v => layout.patch("mediaSide", v)} />
       </div>
-    {/if}
 
-    <div class="flex items-center justify-between gap-3 py-1 text-xs">
-      <span>{$t("settings.rows.mediaSide")}</span>
+      {@render toggleRow("showSpectrum", $t("settings.rows.showSpectrum"))}
 
-      <Segmented value={device.mediaSide} options={sideOptions} onchange={v => layout.patch("mediaSide", v)} />
+      {#if device.showSpectrum}
+        <div class="ml-1 border-l-2 border-primary/25 pl-3">
+          <div class="flex items-center justify-between gap-3 py-1 text-xs">
+            <span>{$t("settings.rows.spectrumStyle")}</span>
+
+            <Segmented value={device.spectrumStyle} options={spectrumOptions} onchange={v => layout.patch("spectrumStyle", v)} />
+          </div>
+        </div>
+      {/if}
     </div>
   {/if}
 {:else}

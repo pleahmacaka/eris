@@ -1,9 +1,9 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { live, presets as userPresets } from "#lib/data/index.js"
-  import type { Profile } from "@eris/settings"
+  import { CUSTOM_PRESET, type Profile } from "@eris/settings"
   import { type PresetDefinition, presets as builtIn } from "#lib/theme.js"
-  import { allPresets, CUSTOM, matchPreset, swatchFor } from "./presets"
+  import { allPresets, matchPreset, swatchFor } from "./presets"
   import { t } from "svelte-i18n"
 
   let { profile = $bindable() }: { profile: Profile } = $props()
@@ -28,7 +28,7 @@
   )
 
   const custom = $derived<PresetDefinition>({
-    id: CUSTOM,
+    id: CUSTOM_PRESET,
     name: "",
     description: "",
     appearance: profile.appearance,
@@ -90,7 +90,7 @@
 {/snippet}
 
 <div class="flex snap-x gap-3 overflow-x-auto pb-1">
-  {#if activeId === CUSTOM}
+  {#if activeId === CUSTOM_PRESET}
     {@render card(custom, true, $t("settings.appearance.customPreset"))}
   {/if}
 

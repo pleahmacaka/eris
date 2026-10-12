@@ -1,3 +1,17 @@
+<script module lang="ts">
+  import type { PinPath } from "@eris/settings"
+  import { getContext, setContext } from "svelte"
+
+  export type RowPins = {
+    has: (path: PinPath) => boolean
+    toggle: (path: PinPath) => void
+  }
+
+  const PINS = Symbol("row-pins")
+
+  export const providePins = (pins: RowPins) => setContext(PINS, pins)
+</script>
+
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import type { Snippet } from "svelte"
@@ -12,6 +26,7 @@
     tag,
     stacked = false,
     onreset,
+    pin,
     children,
   }: {
     label: string
@@ -20,8 +35,13 @@
     tag?: RowTag
     stacked?: boolean
     onreset?: () => void
+    pin?: PinPath
     children?: Snippet
   } = $props()
+
+  const pins = getContext<RowPins | undefined>(PINS)
+
+  const pinned = $derived(!!pin && !!pins?.has(pin))
 </script>
 
 <div
@@ -63,6 +83,24 @@
           onclick={onreset}
         >
           <Icon icon="lucide:rotate-ccw" class="size-3.5" />
+        </button>
+      {/if}
+
+      {#if pins && pin}
+        <button
+          type="button"
+          class={[
+            "btn btn-ghost btn-circle btn-xs shrink-0 transition-opacity duration-100",
+            pinned
+              ? "text-primary"
+              : "opacity-0 group-hover/row:opacity-60 hover:opacity-100 focus-visible:opacity-100",
+          ]}
+          aria-pressed={pinned}
+          aria-label={$t(pinned ? "common.syncSetting" : "common.pinSetting")}
+          title={$t(pinned ? "common.syncSetting" : "common.pinSetting")}
+          onclick={() => pins.toggle(pin)}
+        >
+          <Icon icon={pinned ? "lucide:user-round-check" : "lucide:user-round"} class="size-3.5" />
         </button>
       {/if}
     </div>

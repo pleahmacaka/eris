@@ -5,6 +5,7 @@ export {
   systemAccentHue,
 } from "./appearance"
 export {
+  CUSTOM_PRESET,
   DOCK_ALIGNS,
   DOCK_STYLES,
   defaultAppearance,
@@ -38,6 +39,8 @@ export {
   isLastEntryPoint,
   type LauncherTrigger,
   type NoteLink,
+  type PinPath,
+  type Pins,
   type Profile,
   type SpectrumStyle,
   type SyncSettings,
@@ -53,15 +56,21 @@ export {
   standaloneAppearance,
   withProfileDefaults,
 } from "./normalize"
+export { hasPin } from "./pins"
 export {
   DEVICE_EVENT,
   loadDevice,
+  loadPins,
   loadProfile,
+  loadSyncedProfile,
   onDevice,
+  onPins,
   onProfile,
   PROFILE_EVENT,
   saveDevice,
   saveProfile,
+  saveSyncedProfile,
+  togglePin,
   updateDevice,
   updateProfile,
 } from "./store"

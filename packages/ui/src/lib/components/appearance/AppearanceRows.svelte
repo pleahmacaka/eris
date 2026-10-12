@@ -33,12 +33,14 @@
     essential = false,
     onchange,
     onreset,
+    pinnable = false,
   }: {
     appearance: Appearance
     groups?: Group[]
     essential?: boolean
     onchange?: () => void
     onreset?: (key: keyof Appearance) => void
+    pinnable?: boolean
   } = $props()
 
   const percent = (v: number) => `${Math.round(v * 100)}%`
@@ -58,8 +60,10 @@
 
   const SWATCHES = [215, 260, 300, 340, 20, 60, 140, 180]
 
-  const resetter = (key: keyof Appearance) =>
-    onreset ? () => onreset(key) : undefined
+  const appearanceRow = (key: keyof Appearance) => ({
+    onreset: onreset ? () => onreset(key) : undefined,
+    pin: pinnable ? (`appearance.${key}` as const) : undefined,
+  })
 
   const savedChoice = $derived<FontChoice>(
     !appearance.font ? "default" : appearance.font === SYSTEM_FONT ? "system" : "custom",
@@ -110,7 +114,7 @@
       : $t(`settings.hints.${s.row}`)}
     value={s.format(appearance[s.key])}
     stacked
-    onreset={resetter(s.key)}
+    {...appearanceRow(s.key)}
   >
     <input
       type="range"
@@ -130,7 +134,7 @@
     <Row
       label={$t("settings.rows.mode")}
       hint={$t("settings.hints.mode")}
-      onreset={resetter("mode")}
+      {...appearanceRow("mode")}
     >
       <Segmented
         label={$t("settings.rows.mode")}
@@ -148,7 +152,7 @@
       <Row
         label={$t("settings.rows.followAccent")}
         hint={$t("settings.hints.followAccent")}
-        onreset={resetter("useSystemAccent")}
+        {...appearanceRow("useSystemAccent")}
       >
         <input
           type="checkbox"
@@ -167,7 +171,7 @@
         : $t("settings.appearance.baseColor")}
       value="{appearance.accentHue}°"
       stacked
-      onreset={resetter("accentHue")}
+      {...appearanceRow("accentHue")}
     >
       <div class="flex flex-col gap-3">
         <div class="flex flex-wrap gap-2">
@@ -216,7 +220,7 @@
     <Row
       label={$t("settings.rows.background")}
       hint={$t("settings.hints.background")}
-      onreset={resetter("background")}
+      {...appearanceRow("background")}
     >
       <Segmented
         label={$t("settings.rows.background")}
@@ -244,7 +248,7 @@
       label={$t("settings.rows.font")}
       hint={$t("settings.hints.font")}
       stacked
-      onreset={resetter("font")}
+      {...appearanceRow("font")}
     >
       <div class="flex flex-col gap-2">
         <Segmented
@@ -284,7 +288,7 @@
       <Row
         label={$t("settings.rows.density")}
         hint={$t("settings.hints.density")}
-        onreset={resetter("density")}
+        {...appearanceRow("density")}
       >
         <Segmented
           label={$t("settings.rows.density")}
@@ -300,7 +304,7 @@
       <Row
         label={$t("settings.rows.motion")}
         hint={$t("settings.hints.motion")}
-        onreset={resetter("motion")}
+        {...appearanceRow("motion")}
       >
         <input
           type="checkbox"

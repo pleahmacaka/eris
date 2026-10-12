@@ -1,7 +1,7 @@
 <script lang="ts">
   import { installUsageBridge, usageBridgeInstalled } from "#lib/native/usage.js"
   import { type ClockAlign, type DeviceSettings, defaultDevice } from "@eris/settings"
-  import { Row, Section, Segmented, toast } from "@eris/ui"
+  import { Row, Section, Segmented, SubRows, toast } from "@eris/ui"
   import { t } from "svelte-i18n"
   import { reset } from "../reset"
 
@@ -27,6 +27,7 @@
     | "showSpectrum"
     | "showClaudeUsage"
     | "claudeUsageStacked"
+    | "metersStacked"
 
   const ITEMS: Toggle[] = [
     "showTrayIcons",
@@ -43,6 +44,10 @@
   ]
 
   const PARTIAL = new Set<Toggle>(["showNetwork", "showBluetooth", "showNotifications"])
+
+  const CHILDREN: Partial<Record<Toggle, Toggle[]>> = {
+    showMeters: ["metersStacked"],
+  }
 
   const CLOCK_ALIGNMENTS: { value: ClockAlign; icon: string }[] = [
     { value: "start", icon: "lucide:align-left" },
@@ -124,6 +129,14 @@
   <Section title={$t("settings.groups.trayItems")}>
     {#each ITEMS as key (key)}
       {@render toggle(key)}
+
+      {#if CHILDREN[key]}
+        <SubRows open={device[key]}>
+          {#each CHILDREN[key] as child (child)}
+            {@render toggle(child)}
+          {/each}
+        </SubRows>
+      {/if}
     {/each}
   </Section>
 
@@ -147,7 +160,7 @@
   <Section title={$t("settings.groups.media")}>
     {@render toggle("showMedia")}
 
-    {#if device.showMedia}
+    <SubRows open={device.showMedia}>
       <Row
         label={$t("settings.rows.mediaSide")}
         hint={$t("settings.hints.mediaSide")}
@@ -158,7 +171,7 @@
 
       {@render toggle("showSpectrum")}
 
-      {#if device.showSpectrum}
+      <SubRows open={device.showSpectrum}>
         <Row
           label={$t("settings.rows.spectrumStyle")}
           hint={$t("settings.hints.spectrumStyle")}
@@ -175,14 +188,14 @@
             ]}
           />
         </Row>
-      {/if}
-    {/if}
+      </SubRows>
+    </SubRows>
   </Section>
 
   <Section title={$t("settings.groups.claude")}>
     {@render toggle("showClaudeUsage")}
 
-    {#if device.showClaudeUsage}
+    <SubRows open={device.showClaudeUsage}>
       <Row
         label={$t("settings.rows.claudeUsageSide")}
         hint={$t("settings.hints.claudeUsageSide")}
@@ -224,6 +237,6 @@
           />
         </Row>
       {/if}
-    {/if}
+    </SubRows>
   </Section>
 </fieldset>

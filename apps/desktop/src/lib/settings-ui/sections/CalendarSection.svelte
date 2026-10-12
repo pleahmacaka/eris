@@ -10,14 +10,18 @@
   import { loadHolidays, regions } from "#lib/calendar/index.js"
   import { t } from "svelte-i18n"
   import FeatureGate from "../FeatureGate.svelte"
-  import { reset } from "../reset"
+  import { pinnableRow, reset } from "../reset"
 
   let {
     profile = $bindable(),
     device = $bindable(),
   }: { profile: Profile; device: DeviceSettings } = $props()
 
-  const resetCalendar = reset(() => profile.calendar, defaultProfile.calendar)
+  const calendarRow = pinnableRow(
+    () => profile.calendar,
+    defaultProfile.calendar,
+    key => `calendar.${key}`,
+  )
 
   const resetDevice = reset(() => device, defaultDevice)
 
@@ -69,7 +73,7 @@
 
     <Row
       label={$t("settings.rows.weekStartsOn")}
-      onreset={resetCalendar("weekStartsOn")}
+      {...calendarRow("weekStartsOn")}
     >
       <Segmented
         label={$t("settings.rows.weekStartsOn")}
@@ -84,7 +88,7 @@
     <Row
       label={$t("settings.rows.holidayRegion")}
       hint={$t("settings.hints.holidayRegion")}
-      onreset={resetCalendar("region")}
+      {...calendarRow("region")}
     >
       <select
         class="select select-sm w-40"
@@ -100,7 +104,7 @@
     <Row
       label={$t("settings.rows.weekNumbers")}
       hint={$t("settings.hints.weekNumbers")}
-      onreset={resetCalendar("showWeekNumbers")}
+      {...calendarRow("showWeekNumbers")}
     >
       <input
         type="checkbox"
@@ -113,7 +117,7 @@
     <Row
       label={$t("settings.rows.defaultReminder")}
       hint={$t("settings.hints.defaultReminder")}
-      onreset={resetCalendar("reminderMinutes")}
+      {...calendarRow("reminderMinutes")}
     >
       <select
         class="select select-sm w-40"

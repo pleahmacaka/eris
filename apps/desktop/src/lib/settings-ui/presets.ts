@@ -1,8 +1,10 @@
-import { type Appearance, defaultAppearance } from "@eris/settings"
+import {
+  type Appearance,
+  CUSTOM_PRESET,
+  defaultAppearance,
+} from "@eris/settings"
 import type { Preset } from "#lib/data/index.js"
 import { presets as builtIn, type PresetDefinition } from "#lib/theme.js"
-
-export const CUSTOM = "custom"
 
 const keys = Object.keys(defaultAppearance) as (keyof Appearance)[]
 
@@ -40,4 +42,4 @@ export const allPresets = (user: Preset[]) => [
 ]
 
 export const matchPreset = (list: PresetDefinition[], appearance: Appearance) =>
-  list.find(p => sameAppearance(p.appearance, appearance))?.id ?? CUSTOM
+  list.find(p => sameAppearance(p.appearance, appearance))?.id ?? CUSTOM_PRESET

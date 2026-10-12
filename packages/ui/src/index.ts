@@ -7,10 +7,13 @@ export { default as Confirm } from "./lib/components/feedback/Confirm.svelte"
 export { default as Toasts } from "./lib/components/feedback/Toasts.svelte"
 export {
   default as Row,
+  providePins,
+  type RowPins,
   type RowTag,
 } from "./lib/components/forms/Row.svelte"
 export { default as Section } from "./lib/components/forms/Section.svelte"
 export { default as Segmented } from "./lib/components/forms/Segmented.svelte"
+export { default as SubRows } from "./lib/components/forms/SubRows.svelte"
 export { default as Splitter } from "./lib/components/layout/Splitter.svelte"
 export { default as StandaloneShell } from "./lib/components/layout/StandaloneShell.svelte"
 export { default as ContextMenu } from "./lib/components/menus/ContextMenu.svelte"
@@ -36,5 +39,6 @@ export {
   contextMenu,
   openContextMenu,
 } from "./lib/store/context.svelte"
+export { revealSection } from "./lib/store/sections.svelte"
 export { erisStyle, followEris } from "./lib/store/standalone.svelte"
 export { toast, toasts } from "./lib/store/toast.svelte"

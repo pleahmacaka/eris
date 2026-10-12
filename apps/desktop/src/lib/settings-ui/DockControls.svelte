@@ -10,7 +10,7 @@
   import Icon from "@iconify/svelte"
   import DockPreview from "./DockPreview.svelte"
   import { reset } from "./reset"
-  import { Logo, Row, Segmented, toast } from "@eris/ui"
+  import { Logo, Row, Segmented, SubRows, toast } from "@eris/ui"
   import { t } from "svelte-i18n"
 
   type Part = "style" | "size" | "behavior" | "arrange"
@@ -261,7 +261,7 @@
       />
     </Row>
 
-    {#if device.dockIslands}
+    <SubRows open={device.dockIslands}>
       <Row
         label={$t("settings.rows.islandGap")}
         hint={$t("settings.hints.islandGap")}
@@ -279,7 +279,7 @@
           bind:value={device.dockIslandGap}
         />
       </Row>
-    {/if}
+    </SubRows>
 
     <Row
       label={$t("settings.rows.dockIcon")}
@@ -397,105 +397,108 @@
     />
   </Row>
 
-  {#if device.dockAutoHide && !subset}
-    <Row
-      label={$t("settings.rows.hideDelay")}
-      hint={$t("settings.hints.hideDelay")}
-      value="{device.dockHideDelay} ms"
-      stacked
-      onreset={resetRow("dockHideDelay")}
-    >
-      <input
-        type="range"
-        class="range range-primary range-xs w-full"
-        min="200"
-        max="3000"
-        step="40"
-        aria-label={$t("settings.rows.hideDelay")}
-        bind:value={device.dockHideDelay}
-      />
-    </Row>
-
-    <Row
-      label={$t("settings.rows.edgeOnly")}
-      hint={$t("settings.hints.edgeOnly")}
-      onreset={resetRow("dockEdgeOnly")}
-    >
-      <Segmented
-        label={$t("settings.rows.edgeOnly")}
-        bind:value={device.dockEdgeOnly}
-        options={[
-          { value: "never", label: $t("common.off") },
-          { value: "maximized", label: $t("settings.dock.edgeOnly.maximized") },
-          { value: "always", label: $t("settings.dock.edgeOnly.always") },
-        ]}
-      />
-    </Row>
-
-    <Row
-      label={$t("settings.rows.hideAnimation")}
-      hint={$t("settings.hints.hideAnimation")}
-      onreset={resetRow("dockHideAnimation")}
-    >
-      <input
-        type="checkbox"
-        class="toggle toggle-primary"
-        aria-label={$t("settings.rows.hideAnimation")}
-        bind:checked={device.dockHideAnimation}
-      />
-    </Row>
-
-    <Row
-      label={$t("settings.rows.hideGather")}
-      hint={$t("settings.hints.hideGather")}
-      onreset={resetRow("dockHideGather")}
-    >
-      <input
-        type="checkbox"
-        class="toggle toggle-primary"
-        aria-label={$t("settings.rows.hideGather")}
-        disabled={!device.dockHideAnimation}
-        bind:checked={device.dockHideGather}
-      />
-    </Row>
-
-    {#if device.dockHideAnimation && device.dockHideGather}
+  {#if !subset}
+    <SubRows open={device.dockAutoHide}>
       <Row
-        label={$t("settings.rows.gatherHideMs")}
-        hint={$t("settings.hints.gatherHideMs")}
-        value="{device.dockGatherHideMs} ms"
+        label={$t("settings.rows.hideDelay")}
+        hint={$t("settings.hints.hideDelay")}
+        value="{device.dockHideDelay} ms"
         stacked
-        onreset={resetRow("dockGatherHideMs")}
+        onreset={resetRow("dockHideDelay")}
       >
         <input
           type="range"
           class="range range-primary range-xs w-full"
           min="200"
-          max="1200"
-          step="20"
-          aria-label={$t("settings.rows.gatherHideMs")}
-          bind:value={device.dockGatherHideMs}
+          max="3000"
+          step="40"
+          aria-label={$t("settings.rows.hideDelay")}
+          bind:value={device.dockHideDelay}
         />
       </Row>
 
       <Row
-        label={$t("settings.rows.gatherShowMs")}
-        hint={$t("settings.hints.gatherShowMs")}
-        value="{device.dockGatherShowMs} ms"
-        stacked
-        onreset={resetRow("dockGatherShowMs")}
+        label={$t("settings.rows.edgeOnly")}
+        hint={$t("settings.hints.edgeOnly")}
+        onreset={resetRow("dockEdgeOnly")}
       >
-        <input
-          type="range"
-          class="range range-primary range-xs w-full"
-          min="120"
-          max="1200"
-          step="20"
-          aria-label={$t("settings.rows.gatherShowMs")}
-          bind:value={device.dockGatherShowMs}
+        <Segmented
+          label={$t("settings.rows.edgeOnly")}
+          bind:value={device.dockEdgeOnly}
+          options={[
+            { value: "never", label: $t("common.off") },
+            { value: "maximized", label: $t("settings.dock.edgeOnly.maximized") },
+            { value: "always", label: $t("settings.dock.edgeOnly.always") },
+          ]}
         />
       </Row>
-    {/if}
+
+      <Row
+        label={$t("settings.rows.hideAnimation")}
+        hint={$t("settings.hints.hideAnimation")}
+        onreset={resetRow("dockHideAnimation")}
+      >
+        <input
+          type="checkbox"
+          class="toggle toggle-primary"
+          aria-label={$t("settings.rows.hideAnimation")}
+          bind:checked={device.dockHideAnimation}
+        />
+      </Row>
+
+      <SubRows open={device.dockHideAnimation}>
+        <Row
+          label={$t("settings.rows.hideGather")}
+          hint={$t("settings.hints.hideGather")}
+          onreset={resetRow("dockHideGather")}
+        >
+          <input
+            type="checkbox"
+            class="toggle toggle-primary"
+            aria-label={$t("settings.rows.hideGather")}
+            bind:checked={device.dockHideGather}
+          />
+        </Row>
+
+        <SubRows open={device.dockHideGather}>
+          <Row
+            label={$t("settings.rows.gatherHideMs")}
+            hint={$t("settings.hints.gatherHideMs")}
+            value="{device.dockGatherHideMs} ms"
+            stacked
+            onreset={resetRow("dockGatherHideMs")}
+          >
+            <input
+              type="range"
+              class="range range-primary range-xs w-full"
+              min="200"
+              max="1200"
+              step="20"
+              aria-label={$t("settings.rows.gatherHideMs")}
+              bind:value={device.dockGatherHideMs}
+            />
+          </Row>
+
+          <Row
+            label={$t("settings.rows.gatherShowMs")}
+            hint={$t("settings.hints.gatherShowMs")}
+            value="{device.dockGatherShowMs} ms"
+            stacked
+            onreset={resetRow("dockGatherShowMs")}
+          >
+            <input
+              type="range"
+              class="range range-primary range-xs w-full"
+              min="120"
+              max="1200"
+              step="20"
+              aria-label={$t("settings.rows.gatherShowMs")}
+              bind:value={device.dockGatherShowMs}
+            />
+          </Row>
+        </SubRows>
+      </SubRows>
+    </SubRows>
   {/if}
 
   {#if !subset}

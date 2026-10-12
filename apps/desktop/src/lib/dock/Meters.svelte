@@ -9,6 +9,7 @@
   type Props = {
     showMeters: boolean
     showNetwork: boolean
+    stacked?: boolean
     compact?: boolean
     edge?: DockEdge
     onmenu?: (rect: MenuBox | null) => void
@@ -18,6 +19,7 @@
   let {
     showMeters,
     showNetwork,
+    stacked = false,
     compact = false,
     edge = "bottom",
     onmenu,
@@ -144,8 +146,12 @@
         >
           <Icon icon="lucide:cpu" class="size-4" />
 
-          {#if !compact}
-            <span>CPU {cpu}% · RAM {ram}%</span>
+          {#if !compact || stacked}
+            <span class={["flex", stacked ? "flex-col text-3xs leading-tight" : "gap-1.5"]}>
+              <span>CPU {cpu}%</span>
+
+              <span>RAM {ram}%</span>
+            </span>
           {/if}
         </button>
 

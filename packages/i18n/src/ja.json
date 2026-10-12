@@ -20,7 +20,9 @@
     "on": "オン",
     "off": "オフ",
     "previous": "前へ",
-    "partial": "一部対応"
+    "partial": "一部対応",
+    "pinSetting": "この PC だけで使用",
+    "syncSetting": "同期に含める"
   },
   "languages": {
     "system": "システム",
@@ -271,7 +273,8 @@
         "preview": "プレビュー"
       },
       "panelStart": "開くときのサイズ",
-      "font": "フォント"
+      "font": "フォント",
+      "metersStacked": "CPU とメモリを 2 行で表示"
     },
     "hints": {
       "deviceName": "同期した他のデバイスに表示される名前です",
@@ -389,7 +392,8 @@
         "preview": "ページリンクにカーソルを合わせると左に Note の内容を表示します"
       },
       "panelStart": "カレンダーを開いたときに最初に表示されるサイズです。",
-      "font": "一覧にないフォントは、インストール済みの名前を入力してください。"
+      "font": "一覧にないフォントは、インストール済みの名前を入力してください。",
+      "metersStacked": "CPU とメモリの使用量を 2 行で表示します"
     },
     "options": {
       "win": "Win キー",

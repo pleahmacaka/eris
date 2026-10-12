@@ -7,9 +7,12 @@ import {
 } from "@eris/data"
 import {
   loadDevice,
-  loadProfile,
+  loadSyncedProfile,
+  type PinPath,
   type Profile,
   saveProfile,
+  saveSyncedProfile,
+  togglePin,
   updateProfile,
 } from "@eris/settings"
 import {
@@ -249,17 +252,20 @@ const stampProfile = async () => {
   await notify("profile")
 }
 
-export const saveProfileSynced = async (profile: Profile) => {
-  await saveProfile(profile)
-  await stampProfile()
+const stampIfChanged = async (changed: Promise<boolean>) => {
+  if (await changed) {
+    await stampProfile()
+  }
 }
 
-export const updateProfileSynced = async (
-  change: (profile: Profile) => Profile,
-) => {
-  await updateProfile(change)
-  await stampProfile()
-}
+export const saveProfileSynced = (profile: Profile) =>
+  stampIfChanged(saveProfile(profile))
+
+export const updateProfileSynced = (change: (profile: Profile) => Profile) =>
+  stampIfChanged(updateProfile(change))
+
+export const togglePinSynced = (path: PinPath) =>
+  stampIfChanged(togglePin(path))
 
 export const localRecords = async (
   collections: readonly SyncedCollection[],
@@ -272,7 +278,7 @@ export const localRecords = async (
   const expired: SyncRecord[] = []
 
   for (const name of collections) {
-    const profile = name === "profile" ? await loadProfile() : null
+    const profile = name === "profile" ? await loadSyncedProfile() : null
 
     for (const item of prefixed<LocalItem>(entries, `${name}/`)) {
       records.push({
@@ -345,7 +351,7 @@ export const applyRemote = async (
   await db.save()
 
   if (profile) {
-    await saveProfile(profile)
+    await saveSyncedProfile(profile)
   }
 
   for (const name of changed) {

@@ -109,6 +109,7 @@ export type DeviceSettings = {
   claudeUsageSource: string
   claudeUsageSide: DockSide
   claudeUsageStacked: boolean
+  metersStacked: boolean
   mediaSide: DockSide
   showSpectrum: boolean
   spectrumStyle: SpectrumStyle
@@ -192,6 +193,20 @@ export type Profile = {
     showCompleted: boolean
     sortBy: TodoSort
   }
+}
+
+export type PinSection = "appearance" | "launcher" | "calendar"
+
+export type PinPath = {
+  [S in PinSection]: `${S}.${keyof Profile[S] & string}`
+}[PinSection]
+
+// the synced values hidden behind this PC's own, so only the sync boundary sees them
+export type Pins = {
+  presetId?: string
+  appearance?: Partial<Appearance>
+  launcher?: Partial<Profile["launcher"]>
+  calendar?: Partial<Profile["calendar"]>
 }
 
 export type ErisStyle = { linked: boolean; profile: Partial<Profile> | null }

@@ -211,6 +211,7 @@
   {:else if name === "meters"}
     <Meters
       showMeters={device.showMeters}
+      stacked={device.metersStacked}
       showNetwork={device.showNetwork}
       compact={compact}
       edge={edge}

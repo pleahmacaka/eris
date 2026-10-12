@@ -6,12 +6,12 @@
     defaultDevice,
     defaultProfile,
   } from "@eris/settings"
-  import { Row, Section, Segmented } from "@eris/ui"
+  import { Row, Section, Segmented, SubRows } from "@eris/ui"
   import { t } from "svelte-i18n"
   import { installedTerminals } from "#lib/native/index.js"
   import FeatureGate from "../FeatureGate.svelte"
   import HotkeyPicker from "../HotkeyPicker.svelte"
-  import { reset } from "../reset"
+  import { pinnableRow, reset } from "../reset"
   import { shortcuts } from "../shortcuts"
 
   let {
@@ -20,7 +20,12 @@
   }: { profile: Profile; device: DeviceSettings } = $props()
 
   const resetDevice = reset(() => device, defaultDevice)
-  const resetLauncher = reset(() => profile.launcher, defaultProfile.launcher)
+
+  const launcherRow = pinnableRow(
+    () => profile.launcher,
+    defaultProfile.launcher,
+    key => `launcher.${key}`,
+  )
 
   const groups = $derived(shortcuts($t, device))
 
@@ -82,7 +87,7 @@
     />
   </Row>
 
-  {#if device.launcherTrigger !== "win"}
+  <SubRows open={device.launcherTrigger !== "win"}>
     <Row
       label={$t("settings.rows.shortcut")}
       hint={$t("settings.hints.shortcut")}
@@ -90,7 +95,7 @@
     >
       <HotkeyPicker bind:value={device.launcherShortcut} />
     </Row>
-  {/if}
+  </SubRows>
 </Section>
 
 <Section title={$t("settings.groups.results")}>
@@ -98,7 +103,7 @@
     label={$t("settings.rows.resultsPerGroup")}
     value={String(profile.launcher.maxResults)}
     stacked
-    onreset={resetLauncher("maxResults")}
+    {...launcherRow("maxResults")}
   >
     <input
       type="range"
@@ -127,7 +132,7 @@
   <Row
     label={$t("settings.rows.openWindows")}
     hint={$t("settings.hints.openWindows")}
-    onreset={resetLauncher("showWindows")}
+    {...launcherRow("showWindows")}
   >
     <input
       type="checkbox"
@@ -140,7 +145,7 @@
   <Row
     label={$t("settings.rows.commands")}
     hint={$t("settings.hints.commands")}
-    onreset={resetLauncher("showCommands")}
+    {...launcherRow("showCommands")}
   >
     <input
       type="checkbox"
@@ -153,7 +158,7 @@
   <Row
     label={$t("settings.rows.todos")}
     hint={$t("settings.hints.todos")}
-    onreset={resetLauncher("showTodos")}
+    {...launcherRow("showTodos")}
   >
     <input
       type="checkbox"
@@ -166,7 +171,7 @@
   <Row
     label={$t("settings.rows.calculator")}
     hint={$t("settings.hints.calculator")}
-    onreset={resetLauncher("calculator")}
+    {...launcherRow("calculator")}
   >
     <input
       type="checkbox"
@@ -179,7 +184,7 @@
   <Row
     label={$t("settings.rows.webSearch")}
     hint={$t("settings.hints.webSearch")}
-    onreset={resetLauncher("webSearch")}
+    {...launcherRow("webSearch")}
   >
     <select
       class="select select-sm w-40"

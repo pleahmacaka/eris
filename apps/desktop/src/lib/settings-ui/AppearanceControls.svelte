@@ -5,11 +5,13 @@
     type Appearance,
     type DockBackground,
     type Profile,
+    CUSTOM_PRESET,
     defaultAppearance,
     defaultProfile,
     WINDOW_BACKGROUNDS,
   } from "@eris/settings"
-  import { allPresets, CUSTOM, sameAppearance } from "./presets"
+  import { pinState } from "./pins.svelte"
+  import { allPresets, sameAppearance } from "./presets"
   import { reset as resetField } from "./reset"
   import { AppearanceRows, Row, Section, Segmented } from "@eris/ui"
   import { toast } from "@eris/ui"
@@ -48,11 +50,16 @@
   $effect(() => () => user.stop())
 
   let base = $state(
-    profile.presetId === CUSTOM ? defaultProfile.presetId : profile.presetId,
+    pinState.pins.presetId ??
+      (profile.presetId === CUSTOM_PRESET ? defaultProfile.presetId : profile.presetId),
   )
 
   $effect(() => {
-    if (profile.presetId !== CUSTOM) {
+    const synced = pinState.pins.presetId
+
+    if (synced) {
+      base = synced
+    } else if (profile.presetId !== CUSTOM_PRESET) {
       base = profile.presetId
     }
   })
@@ -60,7 +67,7 @@
   const basePreset = $derived(allPresets(user.items).find(p => p.id === base))
 
   const markCustom = () => {
-    profile.presetId = CUSTOM
+    profile.presetId = CUSTOM_PRESET
   }
 
   const resetRow = (key: keyof Appearance) => () => {
@@ -74,6 +81,11 @@
       markCustom()
     }
   }
+
+  const appearanceRow = (key: keyof Appearance) => ({
+    onreset: resetRow(key),
+    pin: `appearance.${key}` as const,
+  })
 
   const reset = () => {
     if (basePreset) {
@@ -122,7 +134,7 @@
     hint={$t(`settings.hints.${s.row}`)}
     value={s.format(profile.appearance[s.key])}
     stacked
-    onreset={resetRow(s.key)}
+    {...appearanceRow(s.key)}
   >
     <input
       type="range"
@@ -141,7 +153,7 @@
   <Row
     label={$t("settings.rows.dockBackground")}
     hint={$t("settings.hints.dockBackground")}
-    onreset={resetRow("dockBackground")}
+    {...appearanceRow("dockBackground")}
   >
     <Segmented
       label={$t("settings.rows.dockBackground")}
@@ -163,7 +175,7 @@
   <Row
     label={$t("settings.rows.dockBorder")}
     hint={$t("settings.hints.dockBorder")}
-    onreset={resetRow("dockBorder")}
+    {...appearanceRow("dockBorder")}
   >
     <input
       type="checkbox"
@@ -179,6 +191,7 @@
     groups={["color", "surface"]}
     onchange={markCustom}
     onreset={key => resetRow(key)()}
+    pinnable
   />
 
   <Section
@@ -186,7 +199,7 @@
     description={$t("settings.groups.windowBackgrounds.description")}
   >
     {#each Object.values(WINDOW_BACKGROUNDS) as key (key)}
-      <Row label={$t(`settings.rows.${key}`)} onreset={resetRow(key)}>
+      <Row label={$t(`settings.rows.${key}`)} {...appearanceRow(key)}>
         <select
           class="select select-sm w-40"
           aria-label={$t(`settings.rows.${key}`)}
@@ -206,6 +219,7 @@
     groups={["type"]}
     onchange={markCustom}
     onreset={key => resetRow(key)()}
+    pinnable
   />
 
   <div class="flex flex-wrap items-center justify-end gap-2">

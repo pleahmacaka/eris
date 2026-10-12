@@ -20,7 +20,9 @@
     "on": "On",
     "off": "Off",
     "previous": "Previous",
-    "partial": "Partial support"
+    "partial": "Partial support",
+    "pinSetting": "Keep on this PC only",
+    "syncSetting": "Include in sync"
   },
   "languages": {
     "system": "System",
@@ -271,7 +273,8 @@
         "preview": "Preview"
       },
       "panelStart": "Opening size",
-      "font": "Font"
+      "font": "Font",
+      "metersStacked": "CPU and memory on two lines"
     },
     "hints": {
       "deviceName": "The name other synced devices see",
@@ -389,7 +392,8 @@
         "preview": "Hover a page link to show the note on the left"
       },
       "panelStart": "Size the calendar opens at.",
-      "font": "For any other font, type its installed name."
+      "font": "For any other font, type its installed name.",
+      "metersStacked": "Show CPU and memory usage on two lines"
     },
     "options": {
       "win": "Win key",

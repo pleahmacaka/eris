@@ -28,7 +28,11 @@
   const grouped = $derived(
     GROUPS.map(group => ({
       group,
-      items: visible.filter(s => s.group === group),
+      items: visible.filter(
+        s =>
+          s.group === group &&
+          !visible.some(parent => parent.id === s.parent),
+      ),
     })).filter(g => g.items.length > 0),
   )
 </script>
@@ -55,6 +59,7 @@
 
   {#snippet item(s: NavSection)}
     {@const rows = found.filter(r => r.section === s.id)}
+    {@const children = visible.filter(c => c.parent === s.id)}
     {@const label = $t(`settings.sections.${s.id}.label`)}
 
     <li>
@@ -72,8 +77,12 @@
         {label}
       </button>
 
-      {#if rows.length}
+      {#if children.length || rows.length}
         <ul>
+          {#each children as child (child.id)}
+            {@render item(child)}
+          {/each}
+
           {#each rows as r (r.key)}
             <li>
               <button

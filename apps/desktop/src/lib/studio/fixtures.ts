@@ -149,8 +149,8 @@ const systemInfo: SystemInfo = {
 }
 
 const meters: Meters = {
-  cpu: 18,
-  memory: 54,
+  cpu: 0.18,
+  memory: 0.54,
   memoryUsedMb: 17_600,
   memoryTotalMb: 32_768,
   network: {

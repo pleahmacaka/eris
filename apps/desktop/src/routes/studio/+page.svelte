@@ -2,7 +2,6 @@
   import Icon from "@iconify/svelte"
   import { resolve } from "$app/paths"
   import { saveProfileSynced } from "#lib/data/index.js"
-  import { CUSTOM } from "#lib/settings-ui/index.js"
   import type { TaskbarLayout } from "#lib/native/index.js"
   import {
     BARS,
@@ -19,6 +18,7 @@
     writeStore,
   } from "#lib/studio/index.js"
   import {
+    CUSTOM_PRESET as CUSTOM,
     type DeviceSettings,
     loadDevice,
     loadProfile,

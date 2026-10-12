@@ -18,6 +18,7 @@ export type NavSection = {
   id: SectionId
   icon: string
   group: NavGroup
+  parent?: SectionId
 }
 
 export type SearchEntry = {
@@ -32,7 +33,7 @@ export const sections: NavSection[] = [
   { id: "general", icon: "lucide:sliders-horizontal", group: "base" },
   { id: "appearance", icon: "lucide:palette", group: "base" },
   { id: "dock", icon: "lucide:panel-bottom", group: "features" },
-  { id: "tray", icon: "lucide:blocks", group: "features" },
+  { id: "tray", icon: "lucide:blocks", group: "features", parent: "dock" },
   { id: "launcher", icon: "lucide:search", group: "features" },
   { id: "calendar", icon: "lucide:calendar-check", group: "features" },
   { id: "note", icon: "lucide:notebook-pen", group: "features" },
@@ -169,6 +170,7 @@ export const index: SearchEntry[] = [
   entry("tray", "showClaudeUsage", "claude usage limit widget"),
   entry("tray", "claudeUsageSide", "claude usage widget position left right"),
   entry("tray", "claudeUsageStacked", "claude usage two lines compact"),
+  entry("tray", "metersStacked", "cpu memory ram two lines stacked compact"),
   entry("tray", "claudeBridge", "claude statusline bridge connect"),
   entry("tray", "usageSnapshot", "claude usage file source path"),
 

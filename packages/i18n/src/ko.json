@@ -20,7 +20,9 @@
     "on": "켬",
     "off": "끔",
     "previous": "이전",
-    "partial": "부분 지원"
+    "partial": "부분 지원",
+    "pinSetting": "이 PC에서만 사용",
+    "syncSetting": "동기화에 포함"
   },
   "languages": {
     "system": "시스템",
@@ -271,7 +273,8 @@
         "preview": "미리보기"
       },
       "panelStart": "시작 크기",
-      "font": "글꼴"
+      "font": "글꼴",
+      "metersStacked": "CPU와 메모리 두 줄 배치"
     },
     "hints": {
       "deviceName": "동기화한 다른 장치에 표시되는 이름입니다.",
@@ -389,7 +392,8 @@
         "preview": "페이지 링크에 커서를 올리면 왼쪽에 Note 내용을 표시합니다."
       },
       "panelStart": "캘린더를 열 때 처음 보이는 크기입니다.",
-      "font": "목록에 없는 글꼴은 설치된 이름을 직접 입력하세요."
+      "font": "목록에 없는 글꼴은 설치된 이름을 직접 입력하세요.",
+      "metersStacked": "CPU와 메모리 사용량을 두 줄로 표시합니다."
     },
     "options": {
       "win": "Win 키",

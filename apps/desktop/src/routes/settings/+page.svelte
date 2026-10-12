@@ -3,7 +3,7 @@
   import Icon from "@iconify/svelte"
   import { emit } from "@tauri-apps/api/event"
   import { tick, untrack } from "svelte"
-  import { saveProfileSynced } from "#lib/data/index.js"
+  import { saveProfileSynced, togglePinSynced } from "#lib/data/index.js"
   import { ensureDevice } from "#lib/device.js"
   import {
     onThemeLink,
@@ -14,19 +14,23 @@
   } from "#lib/native/windows.js"
   import { setLauncherShortcut, setWinKeyCapture } from "#lib/native/dock.js"
   import {
+    CUSTOM_PRESET,
     type DeviceSettings,
     defaultDevice,
     defaultProfile,
+    hasPin,
+    loadPins,
     loadProfile,
     onDevice,
+    onPins,
     onProfile,
+    type PinPath,
     type Profile,
     saveDevice,
   } from "@eris/settings"
   import {
     AboutSection,
     AccountSection,
-    CUSTOM,
     AppearanceSection,
     CalendarSection,
     DataSection,
@@ -35,6 +39,7 @@
     GeneralSection,
     LauncherSection,
     NoteSection,
+    pinState,
     SettingsNav,
     SyncPanel,
     TraySection,
@@ -44,7 +49,7 @@
     sections,
     themeFromLink,
   } from "#lib/settings-ui/index.js"
-  import { Confirm, Logo, Toasts } from "@eris/ui"
+  import { Confirm, Logo, providePins, revealSection, Toasts } from "@eris/ui"
   import { Ssgoi } from "@ssgoi/svelte"
   import { swapConfig } from "#lib/motion.js"
   import { toast } from "@eris/ui"
@@ -81,7 +86,7 @@
     }
 
     profile.appearance = { ...profile.appearance, ...incoming.appearance }
-    profile.presetId = CUSTOM
+    profile.presetId = CUSTOM_PRESET
     section = "appearance"
     incoming = null
   }
@@ -121,6 +126,7 @@
 
   const jumpGroup = (group: string) => {
     activeGroup = group
+    revealSection(group)
     page
       ?.querySelector<HTMLElement>(`section[data-group="${CSS.escape(group)}"]`)
       ?.scrollIntoView({ block: "start", behavior: "smooth" })
@@ -138,6 +144,8 @@
       return
     }
 
+    revealSection(row.closest<HTMLElement>("section[data-group]")?.dataset.group ?? "")
+    await tick()
     row.scrollIntoView({ block: "center", behavior: "smooth" })
     row.classList.add("row-flash")
     setTimeout(() => row.classList.remove("row-flash"), 1400)
@@ -157,6 +165,7 @@
       .catch(() => undefined)
   }
 
+
   const persistDevice = async () => {
     const snapshot = $state.snapshot(device)
 
@@ -170,6 +179,22 @@
     profileJson = stableJson(snapshot)
     await saveProfileSynced(snapshot)
   }
+
+  // a pending edit must land before the pin, or the pin captures the old value
+  const togglePin = async (path: PinPath) => {
+    if (ready && stableJson(profile) !== profileJson) {
+      await persistProfile()
+    }
+
+    await togglePinSynced(path)
+  }
+
+  providePins({
+    has: path => hasPin(pinState.pins, path),
+    toggle: path => {
+      togglePin(path).catch(() => undefined)
+    },
+  })
 
   const flush = () => {
     if (!ready) {
@@ -186,15 +211,19 @@
   }
 
   $effect(() => {
-    Promise.all([ensureDevice(), loadProfile()]).then(([d, p]) => {
-      deviceJson = stableJson(d)
-      profileJson = stableJson(p)
-      device = d
-      profile = p
-      ready = true
-    })
+    Promise.all([ensureDevice(), loadProfile(), loadPins()]).then(
+      ([d, p, pins]) => {
+        deviceJson = stableJson(d)
+        profileJson = stableJson(p)
+        device = d
+        profile = p
+        pinState.pins = pins
+        ready = true
+      },
+    )
 
     const stops = [
+      onPins(pins => (pinState.pins = pins)),
       onDevice(value => {
         const json = stableJson(value)
 

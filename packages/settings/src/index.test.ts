@@ -20,6 +20,11 @@ mock.module("@tauri-apps/plugin-store", () => ({
         operations.push(`set:${key}`)
         data.set(key, value)
       },
+      delete: async (key: string) => {
+        operations.push(`delete:${key}`)
+
+        return data.delete(key)
+      },
       save: async () => {
         operations.push("save")
         await saveHook?.()
@@ -128,15 +133,15 @@ test("device saves and both updates share one ordered write queue", async () => 
   expect(operations).toEqual(["set:device", "save"])
   release()
   expect(await saving).toBeUndefined()
-  const profile = await updatingProfile
+  expect(await updatingProfile).toBe(true)
   expect(await updatingDevice).toBeUndefined()
-  expect(profile.todo.showCompleted).toBe(true)
   expect(data.get("device")).toEqual({ ...saved, dockHeight: 61 })
   expect(operations).toEqual([
     "set:device",
     "save",
     `emit:${DEVICE_EVENT}`,
     "get:profile",
+    "get:pins",
     "set:profile",
     "save",
     `emit:${PROFILE_EVENT}`,
@@ -145,8 +150,11 @@ test("device saves and both updates share one ordered write queue", async () => 
     "save",
     `emit:${DEVICE_EVENT}`,
   ])
+  const profile = await loadProfile()
+  expect(profile.todo.showCompleted).toBe(true)
   expect(emitted[0]).toBe(saved)
   expect(emitted[1]).toEqual(profile)
+  expect(data.has("pins")).toBe(false)
 })
 
 test("a failed queued write rejects its caller without poisoning later writes", async () => {
@@ -164,7 +172,7 @@ test("a failed queued write rejects its caller without poisoning later writes", 
   expect(emitted).toEqual([{ ...saved, dockHeight: 61 }])
 })
 
-test("direct profile saves remain outside the device write queue", async () => {
+test("profile saves wait in the same write queue as device saves", async () => {
   let release = () => {}
   let started = () => {}
   const gate = new Promise<void>(resolve => {
@@ -180,16 +188,20 @@ test("direct profile saves remain outside the device write queue", async () => {
   }
 
   const saving = saveDevice(defaultDevice)
+  const profileSave = saveProfile(defaultProfile)
   await firstSave
-  await saveProfile(defaultProfile)
+  expect(operations).toEqual(["set:device", "save"])
+  release()
+  await saving
+  await profileSave
   expect(operations).toEqual([
     "set:device",
     "save",
+    `emit:${DEVICE_EVENT}`,
+    "get:profile",
+    "get:pins",
     "set:profile",
     "save",
     `emit:${PROFILE_EVENT}`,
   ])
-  release()
-  await saving
-  expect(operations.at(-1)).toBe(`emit:${DEVICE_EVENT}`)
 })
