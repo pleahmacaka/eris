@@ -4,9 +4,9 @@
   import { listen } from "@tauri-apps/api/event"
   import { t } from "svelte-i18n"
   import { currentLocale } from "@eris/i18n"
-  import { ensureDevice } from "$lib/device"
-  import * as native from "$lib/native"
-  import type { Notice } from "$lib/native/notices"
+  import { ensureDevice } from "#lib/device.js"
+  import * as native from "#lib/native/index.js"
+  import type { Notice } from "#lib/native/notices.js"
 
   const appWindow = getCurrentWindow()
   const BLUR_GRACE = 400

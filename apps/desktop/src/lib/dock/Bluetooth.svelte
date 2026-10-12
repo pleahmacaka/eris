@@ -2,8 +2,8 @@
   import Icon from "@iconify/svelte"
   import type { MenuBox } from "./layout.svelte"
   import { t } from "svelte-i18n"
-  import { openUrl } from "$lib/native/system"
-  import { bluetoothDevices, type RadioState, radios, setRadio } from "$lib/native/quick"
+  import { openUrl } from "#lib/native/system.js"
+  import { bluetoothDevices, type RadioState, radios, setRadio } from "#lib/native/quick.js"
   import type { DockEdge } from "@eris/settings"
   import { dockAwake } from "./dock.svelte"
 

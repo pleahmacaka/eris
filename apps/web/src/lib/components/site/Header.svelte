@@ -2,8 +2,8 @@
   import { type Account, webAccount } from "@eris/auth"
   import Logo from "@eris/ui/Logo.svelte"
   import { onMount } from "svelte"
-  import type { Copy } from "$lib/copy/en"
-  import { hrefFor, type Lang, languages } from "$lib/copy/languages"
+  import type { Copy } from "#lib/copy/en.js"
+  import { hrefFor, type Lang, languages } from "#lib/copy/languages.js"
 
   let { lang, t }: { lang: Lang; t: Copy } = $props()
 

@@ -8,7 +8,7 @@
   } from "@eris/settings"
   import { Row, Section, Segmented } from "@eris/ui"
   import { t } from "svelte-i18n"
-  import { installedTerminals } from "$lib/native"
+  import { installedTerminals } from "#lib/native/index.js"
   import FeatureGate from "../FeatureGate.svelte"
   import HotkeyPicker from "../HotkeyPicker.svelte"
   import { reset } from "../reset"

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { t } from "svelte-i18n"
-  import { type Occurrence, setNotesSync } from "$lib/data"
+  import { type Occurrence, setNotesSync } from "#lib/data/index.js"
   import type { EditingState } from "./editing.svelte"
   import MemoEditor from "./MemoEditor.svelte"
   import NoteText from "./NoteText.svelte"

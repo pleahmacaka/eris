@@ -29,7 +29,6 @@ export default defineConfig({
       adapter: adapter({
         pages: studio,
         assets: studio,
-        fallback: "index.html",
       }),
 
       paths: { base: studio ? "/studio" : "" },

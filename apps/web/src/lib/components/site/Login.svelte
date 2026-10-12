@@ -2,7 +2,7 @@
   import { type Account, AccountPanel, webAccount } from "@eris/auth"
   import Logo from "@eris/ui/Logo.svelte"
   import { onMount } from "svelte"
-  import { copy, type Lang } from "$lib/copy/languages"
+  import { copy, type Lang } from "#lib/copy/languages.js"
 
   let { lang }: { lang: Lang } = $props()
 

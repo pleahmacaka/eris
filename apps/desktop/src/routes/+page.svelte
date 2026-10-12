@@ -1,8 +1,8 @@
 <script lang="ts">
   import { loadProfile, onDevice, onProfile } from "@eris/settings"
   import { listen } from "@tauri-apps/api/event"
-  import { ensureDevice } from "$lib/device"
-  import { watchEdit } from "$lib/edit"
+  import { ensureDevice } from "#lib/device.js"
+  import { watchEdit } from "#lib/edit/index.js"
   import {
     contextmenu,
     keydown,
@@ -14,9 +14,9 @@
     ResultList,
     SearchBox,
     subscribeTimers,
-  } from "$lib/launcher"
-  import { onAppsChanged } from "$lib/native/apps"
-  import { onWindowShown } from "$lib/native/windows"
+  } from "#lib/launcher/index.js"
+  import { onAppsChanged } from "#lib/native/apps.js"
+  import { onWindowShown } from "#lib/native/windows.js"
 
   const launcher = new Launcher()
 

@@ -1,5 +1,5 @@
 import { untrack } from "svelte"
-import { events, newId, shareOccurrenceNotes } from "$lib/data"
+import { events, newId, shareOccurrenceNotes } from "#lib/data/index.js"
 import { type Draft, draftFrom, type Seed } from "./draft"
 import { createDraftCommit } from "./edit-commit"
 import type { Panel } from "./panel.svelte"

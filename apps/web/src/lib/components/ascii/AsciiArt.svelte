@@ -9,8 +9,8 @@
     loadGlyphFont,
     RAMP,
     randomGlyph,
-  } from "$lib/ascii/glyphs"
-  import { type Cell, type Painter, rasterize } from "$lib/ascii/raster"
+  } from "#lib/ascii/glyphs.js"
+  import { type Cell, type Painter, rasterize } from "#lib/ascii/raster.js"
 
   type Props = {
     paint: Painter

@@ -1,8 +1,8 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { live, presets as userPresets } from "$lib/data"
+  import { live, presets as userPresets } from "#lib/data/index.js"
   import type { Profile } from "@eris/settings"
-  import { type PresetDefinition, presets as builtIn } from "$lib/theme"
+  import { type PresetDefinition, presets as builtIn } from "#lib/theme.js"
   import { allPresets, CUSTOM, matchPreset, swatchFor } from "./presets"
   import { t } from "svelte-i18n"
 

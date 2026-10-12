@@ -1,7 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
-  import { dateKey } from "$lib/data"
+  import { dateKey } from "#lib/data/index.js"
   import type { Panel } from "./panel.svelte"
 
   const {

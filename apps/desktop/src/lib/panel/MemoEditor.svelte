@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { BlockLabels, CompletionSource, EditorView } from "@eris/live-editor"
   import { t } from "svelte-i18n"
-  import { citationOf } from "$lib/data"
-  import { notePages } from "$lib/native"
+  import { citationOf } from "#lib/data/index.js"
+  import { notePages } from "#lib/native/index.js"
 
   const {
     text,

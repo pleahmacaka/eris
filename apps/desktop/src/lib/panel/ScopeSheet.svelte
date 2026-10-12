@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Scope } from "$lib/data"
+  import type { Scope } from "#lib/data/index.js"
   import { t } from "svelte-i18n"
 
   const SCOPES: Scope[] = ["one", "following", "all"]

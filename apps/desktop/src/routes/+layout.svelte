@@ -12,8 +12,8 @@
     onProfile,
     type WindowSurface,
   } from "@eris/settings"
-  import { applyAppearance } from "$lib/theme"
-  import { fadeShell } from "$lib/motion"
+  import { applyAppearance } from "#lib/theme.js"
+  import { fadeShell } from "#lib/motion.js"
   import { page } from "$app/state"
   import { getCurrentWindow } from "@tauri-apps/api/window"
   import { Aura, GlobalContextMenu } from "@eris/ui"
@@ -22,7 +22,7 @@
     onWindowShown,
     type WindowLabel,
     windowReady,
-  } from "$lib/native"
+  } from "#lib/native/index.js"
   import "@eris/markdown/markdown.css"
   import "./layout.css"
 

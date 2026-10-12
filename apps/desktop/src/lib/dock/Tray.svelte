@@ -4,14 +4,14 @@
   import { flip } from "svelte/animate"
   import { t } from "svelte-i18n"
   import { currentLocale } from "@eris/i18n"
-  import * as native from "$lib/native"
+  import * as native from "#lib/native/index.js"
   import {
     type DeviceSettings,
     type TraySlot,
     defaultDevice,
     updateDevice,
   } from "@eris/settings"
-  import { syncStatus } from "$lib/sync"
+  import { syncStatus } from "#lib/sync/index.js"
   import { ContextMenu } from "@eris/ui"
   import { notificationMenu, settingsMenu, slotMenu } from "./tray/menus"
   import {

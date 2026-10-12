@@ -2,8 +2,8 @@
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
   import { currentLocale } from "@eris/i18n"
-  import { clock, shortDay, tagLabel, tagsOf } from "$lib/calendar"
-  import { type Occurrence, isDone, openEnded, parseLocal } from "$lib/data"
+  import { clock, shortDay, tagLabel, tagsOf } from "#lib/calendar/index.js"
+  import { type Occurrence, isDone, openEnded, parseLocal } from "#lib/data/index.js"
   import type { Panel } from "./panel.svelte"
 
   type Zone = "before" | "after" | "group"

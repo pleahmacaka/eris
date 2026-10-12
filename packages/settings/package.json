@@ -14,11 +14,12 @@
   },
   "dependencies": {
     "@eris/i18n": "workspace:*",
-    "@eris/sync": "workspace:*"
+    "@eris/sync": "workspace:*",
+    "es-toolkit": "^1.52.0"
   },
   "peerDependencies": {
-    "@tauri-apps/api": "^2.11.1",
-    "@tauri-apps/plugin-store": "^2.4.4"
+    "@tauri-apps/api": "^2.12.3",
+    "@tauri-apps/plugin-store": "^2.5.0"
   },
   "devDependencies": {
     "typescript": "^6.0.3"

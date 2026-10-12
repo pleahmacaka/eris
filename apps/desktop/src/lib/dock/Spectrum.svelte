@@ -1,6 +1,6 @@
 <script lang="ts">
   import { listen } from "@tauri-apps/api/event"
-  import * as native from "$lib/native"
+  import * as native from "#lib/native/index.js"
   import type { SpectrumStyle } from "@eris/settings"
 
   type Props = {

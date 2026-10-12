@@ -1,5 +1,5 @@
 import { listen } from "@tauri-apps/api/event"
-import * as native from "$lib/native"
+import * as native from "#lib/native/index.js"
 
 // Each Tray owns its polling and subscription; effects are disposed with its
 // component. Opening the panel and mute actions update the same local snapshot.

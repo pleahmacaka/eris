@@ -2,8 +2,8 @@
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
   import { claudeIcon } from "./claudeIcon"
-  import { http } from "$lib/http"
-  import { type ClaudeUsage, claudeUsage } from "$lib/native"
+  import { http } from "#lib/http.js"
+  import { type ClaudeUsage, claudeUsage } from "#lib/native/index.js"
 
   type Props = {
     source?: string

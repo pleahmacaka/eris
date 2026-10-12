@@ -1,11 +1,11 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { logoPainter } from "$lib/ascii/sources"
-  import AsciiArt from "$lib/components/ascii/AsciiArt.svelte"
-  import AsciiField from "$lib/components/ascii/AsciiField.svelte"
-  import Eyebrow from "$lib/components/ui/Eyebrow.svelte"
-  import type { Copy } from "$lib/copy/en"
-  import { ARIXLAB, RELEASES, REPO } from "$lib/links"
+  import { logoPainter } from "#lib/ascii/sources.js"
+  import AsciiArt from "#lib/components/ascii/AsciiArt.svelte"
+  import AsciiField from "#lib/components/ascii/AsciiField.svelte"
+  import Eyebrow from "#lib/components/ui/Eyebrow.svelte"
+  import type { Copy } from "#lib/copy/en.js"
+  import { ARIXLAB, RELEASES, REPO } from "#lib/links.js"
 
   let { t }: { t: Copy } = $props()
 </script>

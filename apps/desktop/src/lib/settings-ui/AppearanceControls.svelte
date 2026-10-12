@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { live, newId, presets as userPresets } from "$lib/data"
+  import { live, newId, presets as userPresets } from "#lib/data/index.js"
   import {
     type Appearance,
     type DockBackground,

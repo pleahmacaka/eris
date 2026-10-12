@@ -1,6 +1,6 @@
 <script lang="ts">
   import Gallery from "@eris/community/Gallery.svelte"
-  import { STUDIO } from "$lib/links"
+  import { STUDIO } from "#lib/links.js"
 </script>
 
 <Gallery

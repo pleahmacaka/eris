@@ -13,7 +13,7 @@
     presets,
     saveProfileSynced,
     todos,
-  } from "$lib/data"
+  } from "#lib/data/index.js"
   import {
     defaultAppearance,
     defaultDevice,

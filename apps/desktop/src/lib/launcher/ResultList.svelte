@@ -2,7 +2,7 @@
   import Icon from "@iconify/svelte"
   import { Logo } from "@eris/ui"
   import { t } from "svelte-i18n"
-  import { appIcon } from "$lib/apps"
+  import { appIcon } from "#lib/apps.js"
   import type { Launcher } from "./launcher.svelte"
   import ResultRow from "./ResultRow.svelte"
 

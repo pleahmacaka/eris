@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { listMonitors, type MonitorInfo } from "$lib/native/windows"
-  import { startEdit } from "$lib/edit"
+  import { listMonitors, type MonitorInfo } from "#lib/native/windows.js"
+  import { startEdit } from "#lib/edit/index.js"
   import {
     DOCK_STYLES,
     type DeviceSettings,

@@ -6,7 +6,7 @@
     filesDefault,
     openErisFiles,
     openFilesDefaults,
-  } from "$lib/native/files"
+  } from "#lib/native/files.js"
 
   let { launch = true }: { launch?: boolean } = $props()
 

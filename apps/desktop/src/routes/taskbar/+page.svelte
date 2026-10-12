@@ -3,12 +3,12 @@
   import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart"
   import { tick, untrack } from "svelte"
   import { getCurrentWindow, Window } from "@tauri-apps/api/window"
-  import { events, live, migrateTodos, scheduleReminders } from "$lib/data"
-  import { ensureDevice } from "$lib/device"
-  import { DockBar, DockLayout, dockAwake, previewHover, startDock } from "$lib/dock"
-  import { watchEdit } from "$lib/edit"
-  import { startTimerWatch } from "$lib/launcher"
-  import * as native from "$lib/native"
+  import { events, live, migrateTodos, scheduleReminders } from "#lib/data/index.js"
+  import { ensureDevice } from "#lib/device.js"
+  import { DockBar, DockLayout, dockAwake, previewHover, startDock } from "#lib/dock/index.js"
+  import { watchEdit } from "#lib/edit/index.js"
+  import { startTimerWatch } from "#lib/launcher/index.js"
+  import * as native from "#lib/native/index.js"
   import {
     defaultProfile,
     loadProfile,
@@ -16,8 +16,8 @@
     onProfile,
     type Profile,
   } from "@eris/settings"
-  import { startAutoSync, startNoteLink } from "$lib/sync"
-  import { announceUpdate } from "$lib/updates"
+  import { startAutoSync, startNoteLink } from "#lib/sync/index.js"
+  import { announceUpdate } from "#lib/updates.js"
   import { t } from "svelte-i18n"
 
   const HIDE_SLIDE = 120

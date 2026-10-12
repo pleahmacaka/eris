@@ -1,8 +1,8 @@
 <script lang="ts">
   import Stage from "@eris/community/Stage.svelte"
   import { DOCK_STYLES, type DockStyle } from "@eris/settings"
-  import type { Copy } from "$lib/copy/en"
-  import { STUDIO } from "$lib/links"
+  import type { Copy } from "#lib/copy/en.js"
+  import { STUDIO } from "#lib/links.js"
 
   let { t }: { t: Copy } = $props()
 

@@ -2,13 +2,13 @@
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
   import { currentLocale } from "@eris/i18n"
-  import { eventSpan, eventTime, longDay } from "$lib/calendar"
+  import { eventSpan, eventTime, longDay } from "#lib/calendar/index.js"
   import {
     type CalendarEvent,
     dateKey,
     isDone,
     splitCitations,
-  } from "$lib/data"
+  } from "#lib/data/index.js"
   import { colorMeta } from "./colors"
   import type { Panel } from "./panel.svelte"
 

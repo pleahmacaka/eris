@@ -1,18 +1,18 @@
 <script lang="ts">
-  import * as native from "$lib/native"
+  import * as native from "#lib/native/index.js"
   import Icon from "@iconify/svelte"
   import { emit } from "@tauri-apps/api/event"
   import { tick, untrack } from "svelte"
-  import { saveProfileSynced } from "$lib/data"
-  import { ensureDevice } from "$lib/device"
+  import { saveProfileSynced } from "#lib/data/index.js"
+  import { ensureDevice } from "#lib/device.js"
   import {
     onThemeLink,
     onWindowHiding,
     onWindowShown,
     showWindow,
     takeThemeLink,
-  } from "$lib/native/windows"
-  import { setLauncherShortcut, setWinKeyCapture } from "$lib/native/dock"
+  } from "#lib/native/windows.js"
+  import { setLauncherShortcut, setWinKeyCapture } from "#lib/native/dock.js"
   import {
     type DeviceSettings,
     defaultDevice,
@@ -43,12 +43,12 @@
     type SectionId,
     sections,
     themeFromLink,
-  } from "$lib/settings-ui"
+  } from "#lib/settings-ui/index.js"
   import { Confirm, Logo, Toasts } from "@eris/ui"
   import { Ssgoi } from "@ssgoi/svelte"
-  import { swapConfig } from "$lib/motion"
+  import { swapConfig } from "#lib/motion.js"
   import { toast } from "@eris/ui"
-  import { applyAppearance } from "$lib/theme"
+  import { applyAppearance } from "#lib/theme.js"
   import { t } from "svelte-i18n"
 
   let section = $state<SectionId>("general")

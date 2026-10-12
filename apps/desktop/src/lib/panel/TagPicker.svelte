@@ -2,7 +2,7 @@
   import Icon from "@iconify/svelte"
   import type { EventTag } from "@eris/settings"
   import { t } from "svelte-i18n"
-  import { tagLabel } from "$lib/calendar"
+  import { tagLabel } from "#lib/calendar/index.js"
   import { colorMeta, eventColors, toColor } from "./colors"
   import type { Panel } from "./panel.svelte"
 

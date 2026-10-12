@@ -13,7 +13,7 @@ import type {
   SystemInfo,
   TrayIcon,
   WindowEntry,
-} from "$lib/native"
+} from "#lib/native/index.js"
 
 type Args = Record<string, unknown>
 

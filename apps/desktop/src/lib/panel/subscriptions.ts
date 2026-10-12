@@ -1,7 +1,7 @@
 import { loadProfile, onDevice, onProfile } from "@eris/settings"
-import { loadHolidays } from "$lib/calendar"
-import { ensureDevice } from "$lib/device"
-import * as native from "$lib/native"
+import { loadHolidays } from "#lib/calendar/index.js"
+import { ensureDevice } from "#lib/device.js"
+import * as native from "#lib/native/index.js"
 import type { Panel } from "./panel.svelte"
 
 export const subscribePanel = (

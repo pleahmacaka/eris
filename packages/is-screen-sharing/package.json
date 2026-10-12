@@ -34,6 +34,6 @@
     "build": "napi build --platform --release --js binding.js --dts binding.d.ts"
   },
   "devDependencies": {
-    "@napi-rs/cli": "^3.10.6"
+    "@napi-rs/cli": "^3.10.8"
   }
 }

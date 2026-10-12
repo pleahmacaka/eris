@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.10/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
   "files": {
     "includes": [
       "*.ts",
@@ -41,17 +41,26 @@
             "patterns": [
               {
                 "group": [
-                  "$lib/dock/*",
-                  "$lib/launcher/*",
-                  "$lib/panel/*",
-                  "$lib/claude/*",
-                  "$lib/edit/*",
-                  "$lib/sync/*",
-                  "$lib/data/*",
-                  "$lib/settings-ui/*",
-                  "$lib/studio/*"
+                  "#lib/dock/*",
+                  "!#lib/dock/index.js",
+                  "#lib/launcher/*",
+                  "!#lib/launcher/index.js",
+                  "#lib/panel/*",
+                  "!#lib/panel/index.js",
+                  "#lib/claude/*",
+                  "!#lib/claude/index.js",
+                  "#lib/edit/*",
+                  "!#lib/edit/index.js",
+                  "#lib/sync/*",
+                  "!#lib/sync/index.js",
+                  "#lib/data/*",
+                  "!#lib/data/index.js",
+                  "#lib/settings-ui/*",
+                  "!#lib/settings-ui/index.js",
+                  "#lib/studio/*",
+                  "!#lib/studio/index.js"
                 ],
-                "message": "Import the feature's index ($lib/<feature>) instead of a file inside it."
+                "message": "Import the feature's index (#lib/<feature>/index.js) instead of a file inside it."
               }
             ]
           }

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { startEdit } from "$lib/edit"
-  import { hideWindow, showWindow } from "$lib/native"
+  import { startEdit } from "#lib/edit/index.js"
+  import { hideWindow, showWindow } from "#lib/native/index.js"
   import { type DeviceSettings, defaultDevice } from "@eris/settings"
   import { Row, Section } from "@eris/ui"
   import { t } from "svelte-i18n"

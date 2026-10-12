@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { copy, type Lang } from "$lib/copy/languages"
+  import { copy, type Lang } from "#lib/copy/languages.js"
   import Cta from "./Cta.svelte"
   import Footer from "./Footer.svelte"
   import Header from "./Header.svelte"

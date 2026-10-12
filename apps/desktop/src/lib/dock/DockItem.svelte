@@ -8,7 +8,7 @@
   import Icon from "@iconify/svelte"
   import type { MenuBox } from "./layout.svelte"
   import { t } from "svelte-i18n"
-  import * as native from "$lib/native"
+  import * as native from "#lib/native/index.js"
   import type { DockEdge } from "@eris/settings"
   import { ContextMenu } from "@eris/ui"
   import { closePreview, dismissPreview, openPreview } from "./preview.svelte"

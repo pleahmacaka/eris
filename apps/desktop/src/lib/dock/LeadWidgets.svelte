@@ -1,6 +1,6 @@
 <script lang="ts">
   import { t } from "svelte-i18n"
-  import { EditSpot } from "$lib/edit"
+  import { EditSpot } from "#lib/edit/index.js"
   import ClaudeUsage from "./ClaudeUsage.svelte"
   import EditOptions from "./EditOptions.svelte"
   import type { DockLayout } from "./layout.svelte"

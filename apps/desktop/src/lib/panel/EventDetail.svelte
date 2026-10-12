@@ -2,7 +2,7 @@
   import Icon from "@iconify/svelte"
   import { untrack } from "svelte"
   import { t } from "svelte-i18n"
-  import { isDone } from "$lib/data"
+  import { isDone } from "#lib/data/index.js"
   import { colorMeta } from "./colors"
   import { finalTitle } from "./draft"
   import { editingState } from "./editing.svelte"

@@ -8,10 +8,14 @@ import {
 } from "@eris/settings"
 import { fromStore } from "svelte/store"
 import { t } from "svelte-i18n"
-import { saveProfileSynced } from "$lib/data"
-import { type AppEntry, listApps, pinnedApps } from "$lib/native/apps"
-import { type ClipEntry, clipboardHistory } from "$lib/native/clipboard"
-import { hideWindow, listWindows, type WindowEntry } from "$lib/native/windows"
+import { saveProfileSynced } from "#lib/data/index.js"
+import { type AppEntry, listApps, pinnedApps } from "#lib/native/apps.js"
+import { type ClipEntry, clipboardHistory } from "#lib/native/clipboard.js"
+import {
+  hideWindow,
+  listWindows,
+  type WindowEntry,
+} from "#lib/native/windows.js"
 import { settingsLinks, systemCommands } from "./commands"
 import { record, top } from "./frecency"
 import { buildGroups, RECENT } from "./groups"

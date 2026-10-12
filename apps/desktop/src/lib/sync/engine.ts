@@ -22,14 +22,14 @@ import {
   localRecords,
   onDataChange,
   updateSyncMeta,
-} from "$lib/data"
+} from "#lib/data/index.js"
 import {
   onP2pPeers,
   onP2pSnapshot,
   p2pPublish,
   p2pStatus,
   p2pSync,
-} from "$lib/native"
+} from "#lib/native/index.js"
 import { ensureDevice } from "../device"
 import { refreshPairing, setSyncStatus } from "./status.svelte"
 

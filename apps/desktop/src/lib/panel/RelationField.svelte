@@ -1,8 +1,8 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
-  import { shortDay } from "$lib/calendar"
-  import { type CalendarEvent, type Occurrence, parseLocal } from "$lib/data"
+  import { shortDay } from "#lib/calendar/index.js"
+  import { type CalendarEvent, type Occurrence, parseLocal } from "#lib/data/index.js"
   import type { Panel } from "./panel.svelte"
 
   type Picking = "parent" | "group" | null

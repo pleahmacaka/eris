@@ -4,9 +4,9 @@
   import { getCurrentWindow } from "@tauri-apps/api/window"
   import { tick } from "svelte"
   import { t } from "svelte-i18n"
-  import { longDay } from "$lib/calendar"
-  import { dateKey } from "$lib/data"
-  import * as native from "$lib/native"
+  import { longDay } from "#lib/calendar/index.js"
+  import { dateKey } from "#lib/data/index.js"
+  import * as native from "#lib/native/index.js"
   import {
     CompactPanel,
     MonthGrid,
@@ -14,7 +14,7 @@
     Panel,
     PanelAside,
     PanelHeader,
-  } from "$lib/panel"
+  } from "#lib/panel/index.js"
 
   const PICKER_TYPES = ["date", "datetime-local", "time", "color", "file"]
   const BLUR_GRACE = 400

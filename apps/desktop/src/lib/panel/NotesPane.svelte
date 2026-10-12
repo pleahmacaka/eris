@@ -10,7 +10,7 @@
     noteTitle,
     searchNotes,
     sortNotes,
-  } from "$lib/data"
+  } from "#lib/data/index.js"
 
   const { items, back }: { items: Note[]; back: () => void } = $props()
 

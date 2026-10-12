@@ -17,7 +17,7 @@ import {
   hiddenWhileSharing,
   holidayCheck,
   loadHolidays,
-} from "$lib/calendar"
+} from "#lib/calendar/index.js"
 
 const TICK = 30_000
 const CATCH_UP = 5 * 60_000

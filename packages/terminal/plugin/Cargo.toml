@@ -10,11 +10,11 @@ links = "tauri-plugin-eris-terminal"
 eris-window-kit = { version = "0.1.0", path = "../../window-kit" }
 portable-pty = "0.9.0"
 serde = { version = "1.0.229", features = ["derive"] }
-serde_json = "1.0.151"
-tauri = "2.11"
+serde_json = "1.0.154"
+tauri = "2.12"
 
 [build-dependencies]
 tauri-plugin = { version = "2", features = ["build"] }
 
 [target."cfg(windows)".dependencies]
-winreg = "0.55"
+winreg = "0.56"

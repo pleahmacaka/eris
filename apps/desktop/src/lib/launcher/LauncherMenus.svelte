@@ -2,8 +2,8 @@
   import { updateDevice } from "@eris/settings"
   import { ContextMenu, type MenuItem } from "@eris/ui"
   import { t } from "svelte-i18n"
-  import { type PowerAction, powerAction } from "$lib/native/system"
-  import { showWindow } from "$lib/native/windows"
+  import { type PowerAction, powerAction } from "#lib/native/system.js"
+  import { showWindow } from "#lib/native/windows.js"
   import type { Launcher } from "./launcher.svelte"
 
   let { launcher }: { launcher: Launcher } = $props()

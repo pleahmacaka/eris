@@ -3,7 +3,7 @@
   import type { MenuBox } from "./layout.svelte"
   import { t } from "svelte-i18n"
   import { flip } from "svelte/animate"
-  import { notifyIconClick, notifyIconPromote, notifyIcons, onTrayIcons, type TrayIcon } from "$lib/native/tray"
+  import { notifyIconClick, notifyIconPromote, notifyIcons, onTrayIcons, type TrayIcon } from "#lib/native/tray.js"
   import type { DockEdge } from "@eris/settings"
   import { ContextMenu } from "@eris/ui"
   import type { MenuItem } from "@eris/ui"

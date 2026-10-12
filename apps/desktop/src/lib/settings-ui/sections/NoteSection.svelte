@@ -3,7 +3,7 @@
   import { type DeviceSettings, defaultDevice, type NoteLink } from "@eris/settings"
   import { Row, Section } from "@eris/ui"
   import { t } from "svelte-i18n"
-  import { type NoteStatus, noteStatus, openUrl } from "$lib/native"
+  import { type NoteStatus, noteStatus, openUrl } from "#lib/native/index.js"
   import { reset } from "../reset"
 
   type Feature = Exclude<keyof NoteLink, "enabled">

@@ -2,8 +2,8 @@
   import Icon from "@iconify/svelte"
   import type { MenuBox } from "./layout.svelte"
   import { t } from "svelte-i18n"
-  import * as native from "$lib/native"
-  import { type MediaAction, mediaCommand, type MediaStatus, mediaStatus } from "$lib/native/media"
+  import * as native from "#lib/native/index.js"
+  import { type MediaAction, mediaCommand, type MediaStatus, mediaStatus } from "#lib/native/media.js"
   import type { DockEdge, SpectrumStyle } from "@eris/settings"
   import Spectrum from "./Spectrum.svelte"
 

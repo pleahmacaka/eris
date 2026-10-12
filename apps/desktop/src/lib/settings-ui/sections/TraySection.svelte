@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { installUsageBridge, usageBridgeInstalled } from "$lib/native/usage"
+  import { installUsageBridge, usageBridgeInstalled } from "#lib/native/usage.js"
   import { type ClockAlign, type DeviceSettings, defaultDevice } from "@eris/settings"
   import { Row, Section, Segmented, toast } from "@eris/ui"
   import { t } from "svelte-i18n"

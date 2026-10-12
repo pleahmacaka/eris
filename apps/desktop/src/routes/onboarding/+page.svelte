@@ -1,11 +1,11 @@
 <script lang="ts">
-  import * as native from "$lib/native"
+  import * as native from "#lib/native/index.js"
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
-  import { saveProfileSynced } from "$lib/data"
-  import { ensureDevice } from "$lib/device"
-  import { onWindowShown, showWindow } from "$lib/native/windows"
-  import { setLauncherShortcut, setWinKeyCapture } from "$lib/native/dock"
+  import { saveProfileSynced } from "#lib/data/index.js"
+  import { ensureDevice } from "#lib/device.js"
+  import { onWindowShown, showWindow } from "#lib/native/windows.js"
+  import { setLauncherShortcut, setWinKeyCapture } from "#lib/native/dock.js"
   import {
     type DeviceSettings,
     defaultDevice,
@@ -22,7 +22,7 @@
     PresetGrid,
     allPresets,
     SyncPanel,
-  } from "$lib/settings-ui"
+  } from "#lib/settings-ui/index.js"
   import {
     AsciiLogo,
     Logo,
@@ -33,7 +33,7 @@
     Toasts,
     toast,
   } from "@eris/ui"
-  import { applyAppearance } from "$lib/theme"
+  import { applyAppearance } from "#lib/theme.js"
 
   const steps = [
     "welcome",

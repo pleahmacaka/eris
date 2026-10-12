@@ -2,7 +2,7 @@
   import Icon from "@iconify/svelte"
   import { updateDevice, type WebSearchEngine } from "@eris/settings"
   import { t } from "svelte-i18n"
-  import { EditSpot } from "$lib/edit"
+  import { EditSpot } from "#lib/edit/index.js"
   import type { Launcher } from "./launcher.svelte"
   import { timerKindLabel } from "./providers"
 

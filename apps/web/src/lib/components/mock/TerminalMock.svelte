@@ -1,7 +1,7 @@
 <script lang="ts">
   import Logo from "@eris/ui/Logo.svelte"
   import Icon from "@iconify/svelte"
-  import type { Copy } from "$lib/copy/en"
+  import type { Copy } from "#lib/copy/en.js"
   import MockStage from "./MockStage.svelte"
 
   let { t }: { t: Copy } = $props()

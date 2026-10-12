@@ -1,5 +1,5 @@
 import { addDays, parseLocal } from "@eris/data"
-import { dateLabel, dayPeriod } from "$lib/calendar"
+import { dateLabel, dayPeriod } from "#lib/calendar/index.js"
 import type { Draft } from "./draft"
 
 type Translate = (

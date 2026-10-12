@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import type { SyncStatus } from "$lib/sync"
+import type { SyncStatus } from "#lib/sync/index.js"
 import { defaultDevice } from "../../../../../../packages/settings/src/defaults"
 import {
   batteryIcon,

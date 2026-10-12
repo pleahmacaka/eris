@@ -7,9 +7,9 @@ import {
   rank,
 } from "@eris/launcher-core"
 import type { Profile } from "@eris/settings"
-import type { AppEntry } from "$lib/native/apps"
-import type { ClipEntry } from "$lib/native/clipboard"
-import type { WindowEntry } from "$lib/native/windows"
+import type { AppEntry } from "#lib/native/apps.js"
+import type { ClipEntry } from "#lib/native/clipboard.js"
+import type { WindowEntry } from "#lib/native/windows.js"
 import { boost } from "./frecency"
 import {
   appResult,

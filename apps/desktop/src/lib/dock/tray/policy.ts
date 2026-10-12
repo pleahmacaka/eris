@@ -1,6 +1,6 @@
 import type { DeviceSettings, TraySlot } from "@eris/settings"
-import type { Battery, SystemInfo } from "$lib/native"
-import type { SyncStatus } from "$lib/sync"
+import type { Battery, SystemInfo } from "#lib/native/index.js"
+import type { SyncStatus } from "#lib/sync/index.js"
 
 export type Translate = (
   key: string,

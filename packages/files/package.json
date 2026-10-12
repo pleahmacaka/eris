@@ -18,25 +18,26 @@
     "@eris/auth": "workspace:*",
     "@eris/doc-preview": "workspace:*",
     "@eris/i18n": "workspace:*",
+    "@eris/markdown": "workspace:*",
     "@eris/model-viewer": "workspace:*",
     "@eris/settings": "workspace:*",
     "@eris/terminal": "workspace:*",
     "@eris/ui": "workspace:*",
     "@iconify/svelte": "^5.2.2",
-    "@tauri-apps/api": "^2.12.1",
-    "@tauri-apps/plugin-barcode-scanner": "^2.5.1",
-    "@tauri-apps/plugin-clipboard-manager": "^2.4.1",
-    "@tauri-apps/plugin-dialog": "^2.7.3",
-    "effect": "^4.0.1",
+    "@tauri-apps/api": "^2.12.3",
+    "@tauri-apps/plugin-barcode-scanner": "^2.5.2",
+    "@tauri-apps/plugin-clipboard-manager": "^2.4.2",
+    "@tauri-apps/plugin-dialog": "^2.8.2",
+    "effect": "^4.0.3",
     "es-toolkit": "^1.52.0",
     "svelte-i18n": "^4.0.1"
   },
   "devDependencies": {
     "svelte-check": "^4.7.6",
     "typescript": "^6.0.3",
-    "vite": "^8.0.16"
+    "vite": "^8.3.4"
   },
   "peerDependencies": {
-    "svelte": "^5.57.1"
+    "svelte": "^5.57.2"
   }
 }

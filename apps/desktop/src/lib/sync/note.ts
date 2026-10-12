@@ -1,8 +1,8 @@
 import type { DeviceSettings } from "@eris/settings"
 import { readSnapshot } from "@eris/sync/merge"
 import type { Snapshot } from "@eris/sync/protocol"
-import { applyRemote, localRecords, onDataChange } from "$lib/data"
-import { noteBridgePublish, noteBridgeRead } from "$lib/native"
+import { applyRemote, localRecords, onDataChange } from "#lib/data/index.js"
+import { noteBridgePublish, noteBridgeRead } from "#lib/native/index.js"
 import { ensureDevice } from "../device"
 import { conformed } from "./engine"
 

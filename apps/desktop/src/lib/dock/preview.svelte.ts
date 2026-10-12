@@ -1,5 +1,5 @@
 import { listen } from "@tauri-apps/api/event"
-import * as native from "$lib/native"
+import * as native from "#lib/native/index.js"
 
 const HOVER_DELAY = 400
 const LEAVE_GRACE = 260

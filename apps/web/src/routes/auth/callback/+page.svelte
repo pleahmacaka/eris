@@ -1,7 +1,7 @@
 <script lang="ts">
   import { webAccount } from "@eris/auth"
   import { onMount } from "svelte"
-  import { copy } from "$lib/copy/languages"
+  import { copy } from "#lib/copy/languages.js"
 
   const RETURN = "eris-auth-return"
 

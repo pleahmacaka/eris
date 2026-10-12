@@ -1,5 +1,5 @@
-import { editing } from "$lib/edit"
-import { hideWindow } from "$lib/native/windows"
+import { editing } from "#lib/edit/index.js"
+import { hideWindow } from "#lib/native/windows.js"
 import type { Launcher } from "./launcher.svelte"
 
 const PAGE = 5

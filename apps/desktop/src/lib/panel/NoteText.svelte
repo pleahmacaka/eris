@@ -2,8 +2,8 @@
   import Icon from "@iconify/svelte"
   import type { NoteLink } from "@eris/settings"
   import { t } from "svelte-i18n"
-  import { noteLinkable, notePreview, openUrl } from "$lib/native"
-  import { openWithIntent } from "$lib/native/windows"
+  import { noteLinkable, notePreview, openUrl } from "#lib/native/index.js"
+  import { openWithIntent } from "#lib/native/windows.js"
 
   const EXCERPT_LINES = 14
   const GAP = 8

@@ -2,7 +2,7 @@
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
   import type { DockWidget } from "@eris/settings"
-  import { EditSpot, editing } from "$lib/edit"
+  import { EditSpot, editing } from "#lib/edit/index.js"
   import type { DockLayout } from "./layout.svelte"
 
   let {

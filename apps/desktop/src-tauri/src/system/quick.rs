@@ -123,7 +123,10 @@ mod win {
     }
 
     fn all_radios() -> Result<Vec<Radio>, String> {
-        let list = Radio::GetRadiosAsync().map_err(text)?.get().map_err(text)?;
+        let list = Radio::GetRadiosAsync()
+            .map_err(text)?
+            .join()
+            .map_err(text)?;
 
         Ok(list.into_iter().collect())
     }
@@ -141,7 +144,7 @@ mod win {
     pub fn set_radio(kind: &str, on: bool) -> Result<(), String> {
         let access = Radio::RequestAccessAsync()
             .map_err(text)?
-            .get()
+            .join()
             .map_err(text)?;
 
         if access != RadioAccessStatus::Allowed {
@@ -157,7 +160,7 @@ mod win {
         let status = radio
             .SetStateAsync(state)
             .map_err(text)?
-            .get()
+            .join()
             .map_err(text)?;
 
         if status != RadioAccessStatus::Allowed {
@@ -178,7 +181,7 @@ mod win {
         for selector in selectors {
             let found = DeviceInformation::FindAllAsyncAqsFilter(&selector)
                 .map_err(text)?
-                .get()
+                .join()
                 .map_err(text)?;
 
             names.extend(

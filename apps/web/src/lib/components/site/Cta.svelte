@@ -1,10 +1,10 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { textPainter } from "$lib/ascii/raster"
-  import AsciiArt from "$lib/components/ascii/AsciiArt.svelte"
-  import AsciiField from "$lib/components/ascii/AsciiField.svelte"
-  import type { Copy } from "$lib/copy/en"
-  import { RELEASES } from "$lib/links"
+  import { textPainter } from "#lib/ascii/raster.js"
+  import AsciiArt from "#lib/components/ascii/AsciiArt.svelte"
+  import AsciiField from "#lib/components/ascii/AsciiField.svelte"
+  import type { Copy } from "#lib/copy/en.js"
+  import { RELEASES } from "#lib/links.js"
 
   let { t }: { t: Copy } = $props()
 

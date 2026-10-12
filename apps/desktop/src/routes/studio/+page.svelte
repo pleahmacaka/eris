@@ -1,9 +1,9 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { base } from "$app/paths"
-  import { saveProfileSynced } from "$lib/data"
-  import { CUSTOM } from "$lib/settings-ui"
-  import type { TaskbarLayout } from "$lib/native"
+  import { resolve } from "$app/paths"
+  import { saveProfileSynced } from "#lib/data/index.js"
+  import { CUSTOM } from "#lib/settings-ui/index.js"
+  import type { TaskbarLayout } from "#lib/native/index.js"
   import {
     BARS,
     type BusMessage,
@@ -17,7 +17,7 @@
     type Surface,
     surfaces,
     writeStore,
-  } from "$lib/studio"
+  } from "#lib/studio/index.js"
   import {
     type DeviceSettings,
     loadDevice,
@@ -28,6 +28,8 @@
   } from "@eris/settings"
   import { Confirm, Logo, Segmented } from "@eris/ui"
   import { t } from "svelte-i18n"
+
+  const root = resolve("")
 
   type Bar = {
     edge: "top" | "bottom"
@@ -551,7 +553,7 @@
               {#key selected.label}
                 <iframe
                   title={nameOf(selected.label)}
-                  src={base + selected.url}
+                  src="{root}{selected.url}"
                   class="m-auto shrink-0"
                   style:width="{width}px"
                   style:height="{height}px"
@@ -564,14 +566,14 @@
 
           <iframe
             title={nameOf("topbar")}
-            src="{base}/topbar"
+            src="{root}/topbar"
             class={["absolute z-10", !top.on && "invisible"]}
             style={barStyle(top)}
           ></iframe>
 
           <iframe
             title={nameOf("taskbar")}
-            src="{base}/taskbar"
+            src="{root}/taskbar"
             class="absolute z-10"
             style={barStyle(dock)}
           ></iframe>

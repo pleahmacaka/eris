@@ -3,11 +3,11 @@
   import { loadDevice, onDevice } from "@eris/settings"
   import { getCurrentWindow } from "@tauri-apps/api/window"
   import { t } from "svelte-i18n"
-  import EditOptions from "$lib/dock/EditOptions.svelte"
-  import { DockLayout } from "$lib/dock/layout.svelte"
-  import { stopEdit } from "$lib/edit"
-  import * as native from "$lib/native"
-  import { listMonitors, type MonitorInfo } from "$lib/native/windows"
+  import EditOptions from "#lib/dock/EditOptions.svelte"
+  import { DockLayout } from "#lib/dock/layout.svelte.js"
+  import { stopEdit } from "#lib/edit/index.js"
+  import * as native from "#lib/native/index.js"
+  import { listMonitors, type MonitorInfo } from "#lib/native/windows.js"
 
   const GAP = 64
 

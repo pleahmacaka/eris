@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { live, events, presets } from "$lib/data"
-  import { clearIconCache } from "$lib/native/apps"
-  import { openDataFolder } from "$lib/native/system"
+  import { live, events, presets } from "#lib/data/index.js"
+  import { clearIconCache } from "#lib/native/apps.js"
+  import { openDataFolder } from "#lib/native/system.js"
   import {
     defaultAppearance,
     defaultDevice,

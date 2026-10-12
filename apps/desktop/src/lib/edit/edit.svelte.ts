@@ -1,5 +1,5 @@
 import { listen } from "@tauri-apps/api/event"
-import * as native from "$lib/native"
+import * as native from "#lib/native/index.js"
 
 export const editing = $state({ on: false, open: null as string | null })
 

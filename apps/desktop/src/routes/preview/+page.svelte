@@ -2,7 +2,7 @@
   import Icon from "@iconify/svelte"
   import { emit, listen } from "@tauri-apps/api/event"
   import { t } from "svelte-i18n"
-  import * as native from "$lib/native"
+  import * as native from "#lib/native/index.js"
 
   type Slot = {
     hwnd: number

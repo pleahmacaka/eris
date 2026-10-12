@@ -3,8 +3,8 @@
   import { noteUrl } from "@eris/bridge"
   import { renderMarkdown, withoutFrontmatter } from "@eris/markdown"
   import { t } from "svelte-i18n"
-  import * as native from "$lib/native"
-  import { onWindowShown, takeIntent } from "$lib/native/windows"
+  import * as native from "#lib/native/index.js"
+  import { onWindowShown, takeIntent } from "#lib/native/windows.js"
 
   type Shown = { path: string; title: string }
 

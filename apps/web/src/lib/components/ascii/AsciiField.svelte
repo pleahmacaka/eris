@@ -2,7 +2,7 @@
   import { onMount } from "svelte"
   import type { ClassValue } from "svelte/elements"
   import { prefersReducedMotion } from "svelte/motion"
-  import { cssColor, glyphFont, loadGlyphFont, RAMP } from "$lib/ascii/glyphs"
+  import { cssColor, glyphFont, loadGlyphFont, RAMP } from "#lib/ascii/glyphs.js"
 
   let { class: className }: { class?: ClassValue } = $props()
 

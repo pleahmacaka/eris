@@ -1,7 +1,7 @@
 import { type TraySlot, updateDevice } from "@eris/settings"
 import type { MenuItem } from "@eris/ui"
 import { exit } from "@tauri-apps/plugin-process"
-import * as native from "$lib/native"
+import * as native from "#lib/native/index.js"
 import { hidePatch, type Translate } from "./policy"
 
 function hideItem(id: TraySlot, t: Translate): MenuItem {

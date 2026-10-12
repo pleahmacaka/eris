@@ -24,7 +24,7 @@ export default defineConfig({
           filename.includes("node_modules") ? undefined : true,
       },
 
-      adapter: adapter({ fallback: "index.html" }),
+      adapter: adapter(),
     }),
   ],
 

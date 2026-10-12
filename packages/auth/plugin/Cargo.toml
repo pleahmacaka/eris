@@ -8,7 +8,7 @@ links = "tauri-plugin-eris-auth"
 
 [dependencies]
 eris-window-kit = { version = "0.1.0", path = "../../window-kit" }
-tauri = "2.11"
+tauri = "2.12"
 tauri-plugin-deep-link = "2"
 
 [build-dependencies]

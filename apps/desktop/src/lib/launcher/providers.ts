@@ -9,7 +9,7 @@ import {
   plainNumber,
 } from "@eris/launcher-core"
 import type { WebSearchEngine } from "@eris/settings"
-import { events } from "$lib/data"
+import { events } from "#lib/data/index.js"
 import { toggleDockPin } from "../dock/dock.svelte"
 import {
   type AppEntry,

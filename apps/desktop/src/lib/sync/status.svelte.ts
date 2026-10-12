@@ -1,7 +1,7 @@
 import { loadDevice } from "@eris/settings"
 import { emit, listen } from "@tauri-apps/api/event"
-import { syncMeta } from "$lib/data"
-import { p2pStatus } from "$lib/native"
+import { syncMeta } from "#lib/data/index.js"
+import { p2pStatus } from "#lib/native/index.js"
 
 export type SyncState = "disabled" | "unpaired" | "syncing" | "idle" | "error"
 

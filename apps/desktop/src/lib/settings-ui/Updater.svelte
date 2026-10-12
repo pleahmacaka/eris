@@ -1,7 +1,7 @@
 <script module lang="ts">
   import { relaunch } from "@tauri-apps/plugin-process"
   import { check, type Update } from "@tauri-apps/plugin-updater"
-  import { resumeShell, suspendShell } from "$lib/native/dock"
+  import { resumeShell, suspendShell } from "#lib/native/dock.js"
 
   type UpdateState = "idle" | "checking" | "none" | "available" | "downloading" | "installing" | "failed"
 

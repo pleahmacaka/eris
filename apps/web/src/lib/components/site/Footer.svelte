@@ -1,8 +1,8 @@
 <script lang="ts">
   import AsciiLogo from "@eris/ui/AsciiLogo.svelte"
   import Icon from "@iconify/svelte"
-  import type { Copy } from "$lib/copy/en"
-  import { ARIXLAB, NOTE, REPO } from "$lib/links"
+  import type { Copy } from "#lib/copy/en.js"
+  import { ARIXLAB, NOTE, REPO } from "#lib/links.js"
 
   let { t }: { t: Copy } = $props()
 

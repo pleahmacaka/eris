@@ -16,8 +16,8 @@
     type P2pPeer,
     p2pRemove,
     p2pStatus,
-  } from "$lib/native"
-  import { refreshPairing, syncNow, syncStatus } from "$lib/sync"
+  } from "#lib/native/index.js"
+  import { refreshPairing, syncNow, syncStatus } from "#lib/sync/index.js"
   import {
     type SyncedCollection,
     syncedCollections,
