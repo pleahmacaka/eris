@@ -17,6 +17,7 @@ export type Item = {
   dir: boolean
   size: number
   modified: number
+  created: number
   attrs: number
   link: boolean
   kind: string
@@ -26,6 +27,7 @@ export type Item = {
 }
 
 const blank = {
+  created: 0,
   attrs: 0,
   link: false,
   parent: null,
@@ -186,6 +188,12 @@ const THUMBNAILS = new Set([
 const SIZES = [16, 20, 24, 32, 40, 48, 64, 96, 128, 256]
 
 const samples = new Map<string, string>()
+
+export const hasOwnIcon = (item: Item) =>
+  !item.dir && PER_ITEM.has(extensionOf(item.name))
+
+export const hasThumbnail = (item: Item) =>
+  !item.dir && THUMBNAILS.has(extensionOf(item.name))
 
 export const iconPixels = (rem: number) =>
   SIZES.find(size => size >= rem * 16 * window.devicePixelRatio) ?? 256

@@ -5,6 +5,7 @@
   import { docKind } from "@eris/doc-preview"
   import ItemIcon from "../items/ItemIcon.svelte"
   import DocumentPeek from "./DocumentPeek.svelte"
+  import FolderPane from "./FolderPane.svelte"
   import FolderPeek from "./FolderPeek.svelte"
   import ZoomImage from "./ZoomImage.svelte"
   import { formatBytes, formatDate } from "../../format"
@@ -22,6 +23,7 @@
   import { isArchive } from "../../store/archive.svelte"
   import { prefs } from "../../store/prefs.svelte"
   import { confirmPrivate } from "../../store/privacy.svelte"
+  import type { Tab } from "../../store/tab.svelte"
 
   type Kind = Exclude<FileKind, "model"> | "document" | "folder" | "archive"
 
@@ -33,7 +35,7 @@
     children: Item[]
   }
 
-  let { item }: { item: Item | null } = $props()
+  let { item, tab }: { item: Item | null; tab: Tab } = $props()
 
   let shown = $state<Shown | null>(null)
 
@@ -153,14 +155,7 @@
   style:width="{prefs.previewWidth}rem"
 >
   {#if !item}
-    <div
-      class={[
-        "flex grow items-center justify-center px-4 text-center text-sm",
-        "text-base-content/50",
-      ]}
-    >
-      {$t("explorer.states.selectToPreview")}
-    </div>
+    <FolderPane {tab} />
   {:else}
     <div
       class={[

@@ -31,6 +31,7 @@ import {
   watchDir,
 } from "../native"
 import { archiveListing, splitArchive } from "./archive.svelte"
+import { Insight } from "./insight.svelte"
 import { driveName, places, refreshPlaces } from "./places.svelte"
 import { takePrefetched } from "./prefetch"
 import { confirmPrivate } from "./privacy.svelte"
@@ -252,6 +253,8 @@ export class Tab {
 
   renaming = $state<string | null>(null)
 
+  insight = new Insight()
+
   canBack = $derived(this.cursor > 0)
 
   canForward = $derived(this.cursor < this.history.length - 1)
@@ -411,6 +414,14 @@ export class Tab {
 
     this.selection = new Set([...(additive ? this.selection : []), ...range])
     this.focus = key
+  }
+
+  inspect() {
+    this.insight.update(
+      this.location,
+      this.items,
+      this.kind === "folder" && !onNetwork(this.location),
+    )
   }
 
   refresh() {

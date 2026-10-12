@@ -367,6 +367,18 @@
           "markdownDescription": "Denies the cancel_search command without any pre-configured scope."
         },
         {
+          "description": "Enables the cleanup_plan command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-cleanup-plan",
+          "markdownDescription": "Enables the cleanup_plan command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the cleanup_plan command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-cleanup-plan",
+          "markdownDescription": "Denies the cleanup_plan command without any pre-configured scope."
+        },
+        {
           "description": "Enables the clear_transcribe_key command without any pre-configured scope.",
           "type": "string",
           "const": "allow-clear-transcribe-key",
@@ -485,6 +497,126 @@
           "type": "string",
           "const": "deny-extract-entry",
           "markdownDescription": "Denies the extract_entry command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the git_clone command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-git-clone",
+          "markdownDescription": "Enables the git_clone command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the git_clone command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-git-clone",
+          "markdownDescription": "Denies the git_clone command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the git_commit command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-git-commit",
+          "markdownDescription": "Enables the git_commit command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the git_commit command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-git-commit",
+          "markdownDescription": "Denies the git_commit command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the git_log command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-git-log",
+          "markdownDescription": "Enables the git_log command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the git_log command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-git-log",
+          "markdownDescription": "Denies the git_log command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the git_repo command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-git-repo",
+          "markdownDescription": "Enables the git_repo command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the git_repo command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-git-repo",
+          "markdownDescription": "Denies the git_repo command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the git_stage command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-git-stage",
+          "markdownDescription": "Enables the git_stage command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the git_stage command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-git-stage",
+          "markdownDescription": "Denies the git_stage command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the git_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-git-status",
+          "markdownDescription": "Enables the git_status command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the git_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-git-status",
+          "markdownDescription": "Denies the git_status command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the git_sync command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-git-sync",
+          "markdownDescription": "Enables the git_sync command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the git_sync command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-git-sync",
+          "markdownDescription": "Denies the git_sync command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the git_unstage command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-git-unstage",
+          "markdownDescription": "Enables the git_unstage command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the git_unstage command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-git-unstage",
+          "markdownDescription": "Denies the git_unstage command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the identical_files command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-identical-files",
+          "markdownDescription": "Enables the identical_files command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the identical_files command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-identical-files",
+          "markdownDescription": "Denies the identical_files command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the installers command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-installers",
+          "markdownDescription": "Enables the installers command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the installers command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-installers",
+          "markdownDescription": "Denies the installers command without any pre-configured scope."
         },
         {
           "description": "Enables the invoke_verb command without any pre-configured scope.",
@@ -713,6 +845,18 @@
           "type": "string",
           "const": "deny-preview-text",
           "markdownDescription": "Denies the preview_text command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the probe_dirs command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-probe-dirs",
+          "markdownDescription": "Enables the probe_dirs command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the probe_dirs command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-probe-dirs",
+          "markdownDescription": "Denies the probe_dirs command without any pre-configured scope."
         },
         {
           "description": "Enables the read_transcript command without any pre-configured scope.",
@@ -1315,10 +1459,10 @@
           "markdownDescription": "Denies the wsl_distros command without any pre-configured scope."
         },
         {
-          "description": "Browse, preview, share and manage files.\n#### This default permission set includes:\n\n- `allow-list-dir`\n- `allow-list-shell`\n- `allow-search-dir`\n- `allow-cancel-search`\n- `allow-measure-dirs`\n- `allow-list-archive`\n- `allow-extract-entry`\n- `allow-bandizip-available`\n- `allow-bandizip-job`\n- `allow-known-folders`\n- `allow-drives`\n- `allow-explorer-settings`\n- `allow-wsl-distros`\n- `allow-screen-sharing`\n- `allow-open-item`\n- `allow-open-with`\n- `allow-show-properties`\n- `allow-empty-recycle-bin`\n- `allow-start-drag`\n- `allow-native-menu`\n- `allow-invoke-verb`\n- `allow-transfer-items`\n- `allow-delete-items`\n- `allow-rename-item`\n- `allow-new-folder`\n- `allow-set-clipboard`\n- `allow-paste-items`\n- `allow-clipboard-has-files`\n- `allow-allow-preview`\n- `allow-preview-text`\n- `allow-model-files`\n- `allow-is-mujoco`\n- `allow-open-viewer`\n- `allow-audio-waveform`\n- `allow-transcribe`\n- `allow-read-transcript`\n- `allow-transcribe-key-status`\n- `allow-save-transcribe-key`\n- `allow-clear-transcribe-key`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-default-app-status`\n- `allow-set-default-app`\n- `allow-open-default-apps`\n- `allow-watch-dir`\n- `allow-network-places`\n- `allow-reconnect-drive`\n- `allow-disconnect-drive`\n- `allow-map-network-drive`\n- `allow-disconnect-network-drive`\n- `allow-add-network-location`\n- `allow-run-address`\n- `allow-share-state`\n- `allow-share-take-attention`\n- `allow-share-rename-self`\n- `allow-share-invite`\n- `allow-share-join`\n- `allow-share-dismiss-pair`\n- `allow-share-rename-device`\n- `allow-share-remove-device`\n- `allow-share-create`\n- `allow-share-set-public`\n- `allow-share-offer`\n- `allow-share-revoke`\n- `allow-share-open`\n- `allow-share-fetch`\n- `allow-share-download`\n- `allow-share-cancel`\n- `allow-share-dismiss`\n- `allow-share-qr`\n- `allow-share-browse`\n- `allow-share-browse-fetch`\n- `allow-share-browse-answer`\n- `allow-share-browse-revoke`\n- `allow-share-browse-scope`\n- `allow-share-set-expiry`\n- `allow-sync-check`\n- `allow-sync-create`\n- `allow-sync-accept`\n- `allow-sync-decline`\n- `allow-sync-pause`\n- `allow-sync-now`\n- `allow-sync-remove`\n- `allow-share-files`",
+          "description": "Browse, preview, share and manage files.\n#### This default permission set includes:\n\n- `allow-list-dir`\n- `allow-list-shell`\n- `allow-search-dir`\n- `allow-cancel-search`\n- `allow-measure-dirs`\n- `allow-list-archive`\n- `allow-extract-entry`\n- `allow-bandizip-available`\n- `allow-bandizip-job`\n- `allow-known-folders`\n- `allow-drives`\n- `allow-explorer-settings`\n- `allow-wsl-distros`\n- `allow-screen-sharing`\n- `allow-open-item`\n- `allow-open-with`\n- `allow-show-properties`\n- `allow-empty-recycle-bin`\n- `allow-start-drag`\n- `allow-native-menu`\n- `allow-invoke-verb`\n- `allow-transfer-items`\n- `allow-delete-items`\n- `allow-rename-item`\n- `allow-new-folder`\n- `allow-set-clipboard`\n- `allow-paste-items`\n- `allow-clipboard-has-files`\n- `allow-allow-preview`\n- `allow-preview-text`\n- `allow-model-files`\n- `allow-is-mujoco`\n- `allow-open-viewer`\n- `allow-audio-waveform`\n- `allow-identical-files`\n- `allow-probe-dirs`\n- `allow-installers`\n- `allow-cleanup-plan`\n- `allow-git-status`\n- `allow-git-log`\n- `allow-git-repo`\n- `allow-git-stage`\n- `allow-git-unstage`\n- `allow-git-commit`\n- `allow-git-sync`\n- `allow-git-clone`\n- `allow-transcribe`\n- `allow-read-transcript`\n- `allow-transcribe-key-status`\n- `allow-save-transcribe-key`\n- `allow-clear-transcribe-key`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-default-app-status`\n- `allow-set-default-app`\n- `allow-open-default-apps`\n- `allow-watch-dir`\n- `allow-network-places`\n- `allow-reconnect-drive`\n- `allow-disconnect-drive`\n- `allow-map-network-drive`\n- `allow-disconnect-network-drive`\n- `allow-add-network-location`\n- `allow-run-address`\n- `allow-share-state`\n- `allow-share-take-attention`\n- `allow-share-rename-self`\n- `allow-share-invite`\n- `allow-share-join`\n- `allow-share-dismiss-pair`\n- `allow-share-rename-device`\n- `allow-share-remove-device`\n- `allow-share-create`\n- `allow-share-set-public`\n- `allow-share-offer`\n- `allow-share-revoke`\n- `allow-share-open`\n- `allow-share-fetch`\n- `allow-share-download`\n- `allow-share-cancel`\n- `allow-share-dismiss`\n- `allow-share-qr`\n- `allow-share-browse`\n- `allow-share-browse-fetch`\n- `allow-share-browse-answer`\n- `allow-share-browse-revoke`\n- `allow-share-browse-scope`\n- `allow-share-set-expiry`\n- `allow-sync-check`\n- `allow-sync-create`\n- `allow-sync-accept`\n- `allow-sync-decline`\n- `allow-sync-pause`\n- `allow-sync-now`\n- `allow-sync-remove`\n- `allow-share-files`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Browse, preview, share and manage files.\n#### This default permission set includes:\n\n- `allow-list-dir`\n- `allow-list-shell`\n- `allow-search-dir`\n- `allow-cancel-search`\n- `allow-measure-dirs`\n- `allow-list-archive`\n- `allow-extract-entry`\n- `allow-bandizip-available`\n- `allow-bandizip-job`\n- `allow-known-folders`\n- `allow-drives`\n- `allow-explorer-settings`\n- `allow-wsl-distros`\n- `allow-screen-sharing`\n- `allow-open-item`\n- `allow-open-with`\n- `allow-show-properties`\n- `allow-empty-recycle-bin`\n- `allow-start-drag`\n- `allow-native-menu`\n- `allow-invoke-verb`\n- `allow-transfer-items`\n- `allow-delete-items`\n- `allow-rename-item`\n- `allow-new-folder`\n- `allow-set-clipboard`\n- `allow-paste-items`\n- `allow-clipboard-has-files`\n- `allow-allow-preview`\n- `allow-preview-text`\n- `allow-model-files`\n- `allow-is-mujoco`\n- `allow-open-viewer`\n- `allow-audio-waveform`\n- `allow-transcribe`\n- `allow-read-transcript`\n- `allow-transcribe-key-status`\n- `allow-save-transcribe-key`\n- `allow-clear-transcribe-key`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-default-app-status`\n- `allow-set-default-app`\n- `allow-open-default-apps`\n- `allow-watch-dir`\n- `allow-network-places`\n- `allow-reconnect-drive`\n- `allow-disconnect-drive`\n- `allow-map-network-drive`\n- `allow-disconnect-network-drive`\n- `allow-add-network-location`\n- `allow-run-address`\n- `allow-share-state`\n- `allow-share-take-attention`\n- `allow-share-rename-self`\n- `allow-share-invite`\n- `allow-share-join`\n- `allow-share-dismiss-pair`\n- `allow-share-rename-device`\n- `allow-share-remove-device`\n- `allow-share-create`\n- `allow-share-set-public`\n- `allow-share-offer`\n- `allow-share-revoke`\n- `allow-share-open`\n- `allow-share-fetch`\n- `allow-share-download`\n- `allow-share-cancel`\n- `allow-share-dismiss`\n- `allow-share-qr`\n- `allow-share-browse`\n- `allow-share-browse-fetch`\n- `allow-share-browse-answer`\n- `allow-share-browse-revoke`\n- `allow-share-browse-scope`\n- `allow-share-set-expiry`\n- `allow-sync-check`\n- `allow-sync-create`\n- `allow-sync-accept`\n- `allow-sync-decline`\n- `allow-sync-pause`\n- `allow-sync-now`\n- `allow-sync-remove`\n- `allow-share-files`"
+          "markdownDescription": "Browse, preview, share and manage files.\n#### This default permission set includes:\n\n- `allow-list-dir`\n- `allow-list-shell`\n- `allow-search-dir`\n- `allow-cancel-search`\n- `allow-measure-dirs`\n- `allow-list-archive`\n- `allow-extract-entry`\n- `allow-bandizip-available`\n- `allow-bandizip-job`\n- `allow-known-folders`\n- `allow-drives`\n- `allow-explorer-settings`\n- `allow-wsl-distros`\n- `allow-screen-sharing`\n- `allow-open-item`\n- `allow-open-with`\n- `allow-show-properties`\n- `allow-empty-recycle-bin`\n- `allow-start-drag`\n- `allow-native-menu`\n- `allow-invoke-verb`\n- `allow-transfer-items`\n- `allow-delete-items`\n- `allow-rename-item`\n- `allow-new-folder`\n- `allow-set-clipboard`\n- `allow-paste-items`\n- `allow-clipboard-has-files`\n- `allow-allow-preview`\n- `allow-preview-text`\n- `allow-model-files`\n- `allow-is-mujoco`\n- `allow-open-viewer`\n- `allow-audio-waveform`\n- `allow-identical-files`\n- `allow-probe-dirs`\n- `allow-installers`\n- `allow-cleanup-plan`\n- `allow-git-status`\n- `allow-git-log`\n- `allow-git-repo`\n- `allow-git-stage`\n- `allow-git-unstage`\n- `allow-git-commit`\n- `allow-git-sync`\n- `allow-git-clone`\n- `allow-transcribe`\n- `allow-read-transcript`\n- `allow-transcribe-key-status`\n- `allow-save-transcribe-key`\n- `allow-clear-transcribe-key`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-default-app-status`\n- `allow-set-default-app`\n- `allow-open-default-apps`\n- `allow-watch-dir`\n- `allow-network-places`\n- `allow-reconnect-drive`\n- `allow-disconnect-drive`\n- `allow-map-network-drive`\n- `allow-disconnect-network-drive`\n- `allow-add-network-location`\n- `allow-run-address`\n- `allow-share-state`\n- `allow-share-take-attention`\n- `allow-share-rename-self`\n- `allow-share-invite`\n- `allow-share-join`\n- `allow-share-dismiss-pair`\n- `allow-share-rename-device`\n- `allow-share-remove-device`\n- `allow-share-create`\n- `allow-share-set-public`\n- `allow-share-offer`\n- `allow-share-revoke`\n- `allow-share-open`\n- `allow-share-fetch`\n- `allow-share-download`\n- `allow-share-cancel`\n- `allow-share-dismiss`\n- `allow-share-qr`\n- `allow-share-browse`\n- `allow-share-browse-fetch`\n- `allow-share-browse-answer`\n- `allow-share-browse-revoke`\n- `allow-share-browse-scope`\n- `allow-share-set-expiry`\n- `allow-sync-check`\n- `allow-sync-create`\n- `allow-sync-accept`\n- `allow-sync-decline`\n- `allow-sync-pause`\n- `allow-sync-now`\n- `allow-sync-remove`\n- `allow-share-files`"
         }
       ]
     }

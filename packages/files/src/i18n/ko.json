@@ -197,10 +197,10 @@
       "reconnect": "재연결"
     },
     "peek": {
-        "items": "항목 {count}개",
-        "more": "외 {count}개",
-        "archive": "압축 파일 항목 {count}개",
-        "documentFailed": "문서를 열 수 없음"
+      "items": "항목 {count}개",
+      "more": "외 {count}개",
+      "archive": "압축 파일 항목 {count}개",
+      "documentFailed": "문서를 열 수 없음"
     },
     "errors": {
       "denied": "접근 권한 없음",
@@ -236,7 +236,8 @@
         "transcribe": "받아쓰기",
         "devices": "기기",
         "account": "계정",
-        "about": "정보"
+        "about": "정보",
+        "decor": "파일 표시"
       },
       "display": "표시",
       "toolbar": "도구 상자",
@@ -250,7 +251,33 @@
       "resetBody": "보기, 사이드바, 모양 설정이 기본값으로 돌아갑니다.",
       "appearanceHosted": "Eris 설정의 모양을 따릅니다.",
       "previewPane": "미리 보기 창",
-      "previewPaneHint": "선택한 파일을 오른쪽에서 미리 봅니다."
+      "previewPaneHint": "선택한 파일을 오른쪽에서 미리 봅니다.",
+      "decor": {
+        "title": "파일 표시",
+        "iconStyle": "아이콘 스타일",
+        "iconSystem": "시스템",
+        "iconIde": "IDE",
+        "duplicates": "중복 파일 강조",
+        "duplicatesHint": "내용이 같은 파일을 같은 배경색으로 표시합니다.",
+        "gitColors": "Git 상태 색상",
+        "gitColorsHint": "변경, 스테이징, 추적 안 함, 무시 상태를 색상으로 구분합니다.",
+        "emptyFolders": "빈 폴더 표시",
+        "emptyFoldersHint": "빈 폴더 이름 옆에 (빈 폴더)를 표시합니다."
+      },
+      "cleanup": {
+        "title": "설치 파일 정리",
+        "enabled": "자동 정리",
+        "enabledHint": "다운로드 폴더의 설치 파일을 지정한 시간 뒤 휴지통으로 이동합니다.",
+        "hours": "정리 시간",
+        "hoursValue": "{hours}시간",
+        "color": "남은 시간 색상",
+        "colors": {
+          "orange": "주황",
+          "amber": "노랑",
+          "red": "빨강",
+          "primary": "강조색"
+        }
+      }
     },
     "sidebar": {
       "title": "사이드바",
@@ -318,7 +345,8 @@
         "look": "모양",
         "layout": "화면 구성",
         "integrate": "연결",
-        "done": "완료"
+        "done": "완료",
+        "tidy": "파일 표시"
       },
       "start": "시작하기",
       "finish": "Eris Files 시작",
@@ -360,13 +388,57 @@
         "full": "펼침",
         "compact": "접힘",
         "on": "사용",
-        "off": "사용 안 함"
+        "off": "사용 안 함",
+        "icons": "아이콘",
+        "cleanup": "설치 파일 정리"
+      },
+      "tidy": {
+        "title": "파일 표시와 정리",
+        "blurb": "아이콘, 강조 색상, 설치 파일 정리 방식을 선택하세요."
       }
     },
     "drop": {
       "move": "이동",
       "copy": "복사",
       "items": "{count}개 항목"
+    },
+    "decor": {
+      "empty": "(빈 폴더)",
+      "hoursLeft": "{hours}시간 남음",
+      "due": "정리 대기",
+      "cleanupHint": "다운로드한 설치 파일은 {hours}시간 뒤 휴지통으로 이동합니다.",
+      "repo": "Git 저장소",
+      "submodule": "서브모듈"
+    },
+    "git": {
+      "needFolder": "폴더를 연 상태에서 클론하세요.",
+      "cloning": "{name} 클론 중",
+      "cloned": "{name} 클론 완료",
+      "cloneHere": "여기에 클론",
+      "fetch": "페치",
+      "pull": "풀",
+      "push": "푸시",
+      "message": "커밋 메시지",
+      "commit": "커밋",
+      "groups": {
+        "staged": "스테이징됨",
+        "changes": "변경",
+        "untracked": "추적 안 함"
+      },
+      "stageAll": "모두 스테이징",
+      "unstageAll": "모두 스테이징 해제",
+      "stage": "스테이징",
+      "unstage": "스테이징 해제",
+      "clean": "변경 사항 없음",
+      "history": "최근 커밋",
+      "untrusted": "Git 상태를 보려면 이 저장소를 신뢰하세요.",
+      "trust": "저장소 신뢰"
+    },
+    "folderPane": {
+      "git": "Git",
+      "readme": "README",
+      "rendered": "렌더링",
+      "raw": "원문"
     }
   },
   "terminal": {

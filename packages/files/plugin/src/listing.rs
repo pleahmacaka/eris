@@ -32,6 +32,7 @@ pub struct Entry {
     dir: bool,
     size: u64,
     modified: u64,
+    created: u64,
     attrs: u32,
     link: bool,
 }
@@ -156,6 +157,7 @@ fn entry(data: &WIN32_FIND_DATAW) -> Entry {
             ((data.nFileSizeHigh as u64) << 32) | data.nFileSizeLow as u64
         },
         modified: millis(data.ftLastWriteTime),
+        created: millis(data.ftCreationTime),
         attrs: data.dwFileAttributes,
         link: reparse
             && [IO_REPARSE_TAG_SYMLINK, IO_REPARSE_TAG_MOUNT_POINT].contains(&data.dwReserved0),

@@ -1,4 +1,5 @@
 import { icons as lucide } from "@iconify-json/lucide"
+import { icons as simpleIcons } from "@iconify-json/simple-icons"
 import adapter from "@sveltejs/adapter-static"
 import { sveltekit } from "@sveltejs/kit/vite"
 import tailwindcss from "@tailwindcss/vite"
@@ -10,7 +11,7 @@ const studio = process.env.ERIS_STUDIO_OUT
 export default defineConfig({
   plugins: [
     iconifySubset({
-      collections: [lucide],
+      collections: [lucide, simpleIcons],
       scan: [
         "src",
         "../../packages/ui/src",

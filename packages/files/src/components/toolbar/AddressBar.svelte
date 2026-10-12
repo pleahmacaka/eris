@@ -11,7 +11,9 @@
     THIS_PC,
   } from "../../locations"
   import { openItem, runAddress } from "../../native"
+  import { parseRemote } from "../../remote"
   import { splitArchive } from "../../store/archive.svelte"
+  import { cloneInto } from "../../store/clone"
   import type { Explorer } from "../../store/explorer.svelte"
   import { prefetchOnHover } from "../../store/prefetch"
   import { confirmPrivate } from "../../store/privacy.svelte"
@@ -27,6 +29,7 @@
   const EDIT_ROOM = 40
 
   let editing = $state(false)
+  let cloning = $state(false)
   let draft = $state("")
   let field = $state<HTMLInputElement>()
   let barWidth = $state(0)
@@ -128,12 +131,24 @@
     field?.select()
   }
 
+  const remote = $derived(editing ? parseRemote(draft) : null)
+
   const submit = async () => {
     const text = draft.trim()
 
     editing = false
 
     if (!text || text === crumbs.at(-1)?.name) {
+      return
+    }
+
+    const repository = parseRemote(text)
+
+    if (repository) {
+      cloning = true
+      await cloneInto(tab, repository)
+      cloning = false
+
       return
     }
 
@@ -187,7 +202,15 @@
     <span class="busy pointer-events-none absolute inset-y-0 left-0 -z-10 rounded-field bg-primary/15"></span>
   {/if}
 
+  {#if cloning}
+    <span class="loading loading-spinner loading-xs ml-2.5 shrink-0 text-primary"></span>
+  {/if}
+
   {#if editing}
+    {#if remote}
+      <Icon icon={remote.icon} class="ml-2.5 size-4 shrink-0" aria-label={remote.label} />
+    {/if}
+
     <input
       bind:this={field}
       bind:value={draft}
@@ -206,6 +229,13 @@
         }
       }}
     />
+
+    {#if remote}
+      <span class="mr-2 flex shrink-0 items-center gap-1 text-xs text-base-content/50">
+        <Icon icon="lucide:corner-down-left" class="size-3" />
+        {$t("explorer.git.cloneHere")}
+      </span>
+    {/if}
   {:else}
     <div
       aria-hidden="true"

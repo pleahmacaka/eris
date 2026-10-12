@@ -15,10 +15,16 @@ mod address;
 #[cfg(desktop)]
 mod archive;
 mod audio;
+#[cfg(desktop)]
+mod cleanup;
 #[cfg(windows)]
 mod com;
 pub mod default_app;
 pub mod error;
+#[cfg(desktop)]
+mod git;
+#[cfg(desktop)]
+mod inspect;
 #[cfg(desktop)]
 mod launch;
 #[cfg(desktop)]
@@ -158,6 +164,30 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             #[cfg(desktop)]
             preview::open_viewer,
             audio::audio_waveform,
+            #[cfg(desktop)]
+            inspect::identical_files,
+            #[cfg(desktop)]
+            inspect::probe_dirs,
+            #[cfg(desktop)]
+            cleanup::installers,
+            #[cfg(desktop)]
+            cleanup::cleanup_plan,
+            #[cfg(desktop)]
+            git::git_status,
+            #[cfg(desktop)]
+            git::git_log,
+            #[cfg(desktop)]
+            git::git_repo,
+            #[cfg(desktop)]
+            git::git_stage,
+            #[cfg(desktop)]
+            git::git_unstage,
+            #[cfg(desktop)]
+            git::git_commit,
+            #[cfg(desktop)]
+            git::git_sync,
+            #[cfg(desktop)]
+            git::git_clone,
             #[cfg(desktop)]
             transcribe::transcribe,
             #[cfg(desktop)]

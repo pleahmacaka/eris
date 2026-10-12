@@ -197,10 +197,10 @@
       "reconnect": "重新连接"
     },
     "peek": {
-        "items": "{count} 个项目",
-        "more": "另外 {count} 个",
-        "archive": "压缩包内 {count} 个项目",
-        "documentFailed": "无法打开文档"
+      "items": "{count} 个项目",
+      "more": "另外 {count} 个",
+      "archive": "压缩包内 {count} 个项目",
+      "documentFailed": "无法打开文档"
     },
     "errors": {
       "denied": "拒绝访问",
@@ -236,7 +236,8 @@
         "transcribe": "转写",
         "devices": "设备",
         "account": "账户",
-        "about": "关于"
+        "about": "关于",
+        "decor": "文件显示"
       },
       "display": "显示",
       "toolbar": "工具栏",
@@ -250,7 +251,33 @@
       "resetBody": "视图、侧边栏和外观设置将恢复为默认值。",
       "appearanceHosted": "跟随 Eris 中的外观设置。",
       "previewPane": "预览窗格",
-      "previewPaneHint": "在右侧预览所选文件。"
+      "previewPaneHint": "在右侧预览所选文件。",
+      "decor": {
+        "title": "文件显示",
+        "iconStyle": "图标样式",
+        "iconSystem": "系统",
+        "iconIde": "IDE",
+        "duplicates": "突出显示重复文件",
+        "duplicatesHint": "内容相同的文件使用相同的背景色。",
+        "gitColors": "Git 状态颜色",
+        "gitColorsHint": "用颜色区分已修改、已暂存、未跟踪和已忽略。",
+        "emptyFolders": "标记空文件夹",
+        "emptyFoldersHint": "在空文件夹名称旁显示 (空文件夹)。"
+      },
+      "cleanup": {
+        "title": "安装程序清理",
+        "enabled": "自动清理",
+        "enabledHint": "在设定时间后将下载文件夹中的安装程序移到回收站。",
+        "hours": "清理时间",
+        "hoursValue": "{hours} 小时",
+        "color": "剩余时间颜色",
+        "colors": {
+          "orange": "橙色",
+          "amber": "黄色",
+          "red": "红色",
+          "primary": "强调色"
+        }
+      }
     },
     "sidebar": {
       "title": "侧边栏",
@@ -318,7 +345,8 @@
         "look": "外观",
         "layout": "布局",
         "integrate": "集成",
-        "done": "完成"
+        "done": "完成",
+        "tidy": "文件显示"
       },
       "start": "开始使用",
       "finish": "启动 Eris Files",
@@ -360,13 +388,57 @@
         "full": "展开",
         "compact": "折叠",
         "on": "开启",
-        "off": "关闭"
+        "off": "关闭",
+        "icons": "图标",
+        "cleanup": "安装程序清理"
+      },
+      "tidy": {
+        "title": "显示与清理",
+        "blurb": "选择图标、强调颜色和安装程序清理方式。"
       }
     },
     "drop": {
       "move": "移动",
       "copy": "复制",
       "items": "{count} 个项目"
+    },
+    "decor": {
+      "empty": "(空文件夹)",
+      "hoursLeft": "剩余 {hours} 小时",
+      "due": "等待清理",
+      "cleanupHint": "下载的安装程序将在 {hours} 小时后移到回收站。",
+      "repo": "Git 仓库",
+      "submodule": "子模块"
+    },
+    "git": {
+      "needFolder": "请先打开一个文件夹再克隆。",
+      "cloning": "正在克隆 {name}",
+      "cloned": "已克隆 {name}",
+      "cloneHere": "克隆到此处",
+      "fetch": "获取",
+      "pull": "拉取",
+      "push": "推送",
+      "message": "提交信息",
+      "commit": "提交",
+      "groups": {
+        "staged": "已暂存",
+        "changes": "更改",
+        "untracked": "未跟踪"
+      },
+      "stageAll": "全部暂存",
+      "unstageAll": "全部取消暂存",
+      "stage": "暂存",
+      "unstage": "取消暂存",
+      "clean": "没有更改",
+      "history": "最近提交",
+      "untrusted": "信任此仓库以显示其 Git 状态。",
+      "trust": "信任仓库"
+    },
+    "folderPane": {
+      "git": "Git",
+      "readme": "README",
+      "rendered": "渲染",
+      "raw": "原文"
     }
   },
   "terminal": {

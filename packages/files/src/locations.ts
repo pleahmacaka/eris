@@ -10,6 +10,8 @@ export const HIDDEN = 0x2
 
 export const SYSTEM = 0x4
 
+export const CLOUD_ONLY = 0x1000 | 0x40000 | 0x400000
+
 export const WINDOWS =
   typeof navigator === "undefined" || navigator.userAgent.includes("Windows")
 

@@ -197,10 +197,10 @@
       "reconnect": "Reconnect"
     },
     "peek": {
-        "items": "{count} items",
-        "more": "+{count} more",
-        "archive": "{count} items in archive",
-        "documentFailed": "Cannot open document"
+      "items": "{count} items",
+      "more": "+{count} more",
+      "archive": "{count} items in archive",
+      "documentFailed": "Cannot open document"
     },
     "errors": {
       "denied": "Access denied",
@@ -236,7 +236,8 @@
         "transcribe": "Transcription",
         "devices": "Devices",
         "account": "Account",
-        "about": "About"
+        "about": "About",
+        "decor": "File display"
       },
       "display": "Display",
       "toolbar": "Toolbar",
@@ -250,7 +251,33 @@
       "resetBody": "View, sidebar and appearance settings return to their defaults.",
       "appearanceHosted": "Follows the appearance set in Eris.",
       "previewPane": "Preview pane",
-      "previewPaneHint": "Previews the selected file on the right."
+      "previewPaneHint": "Previews the selected file on the right.",
+      "decor": {
+        "title": "File display",
+        "iconStyle": "Icon style",
+        "iconSystem": "System",
+        "iconIde": "IDE",
+        "duplicates": "Highlight duplicates",
+        "duplicatesHint": "Files with identical content share a background color.",
+        "gitColors": "Git status colors",
+        "gitColorsHint": "Color modified, staged, untracked and ignored items.",
+        "emptyFolders": "Mark empty folders",
+        "emptyFoldersHint": "Show (empty) next to empty folder names."
+      },
+      "cleanup": {
+        "title": "Installer cleanup",
+        "enabled": "Automatic cleanup",
+        "enabledHint": "Move installers in Downloads to the Recycle Bin after the set time.",
+        "hours": "Cleanup after",
+        "hoursValue": "{hours} h",
+        "color": "Countdown color",
+        "colors": {
+          "orange": "Orange",
+          "amber": "Amber",
+          "red": "Red",
+          "primary": "Accent"
+        }
+      }
     },
     "sidebar": {
       "title": "Sidebar",
@@ -318,7 +345,8 @@
         "look": "Appearance",
         "layout": "Layout",
         "integrate": "Windows",
-        "done": "Done"
+        "done": "Done",
+        "tidy": "Files"
       },
       "start": "Get started",
       "finish": "Start Eris Files",
@@ -360,13 +388,57 @@
         "full": "Full",
         "compact": "Collapsed",
         "on": "On",
-        "off": "Off"
+        "off": "Off",
+        "icons": "Icons",
+        "cleanup": "Installer cleanup"
+      },
+      "tidy": {
+        "title": "Display and cleanup",
+        "blurb": "Choose icons, highlight colors and installer cleanup."
       }
     },
     "drop": {
       "move": "Move",
       "copy": "Copy",
       "items": "{count} items"
+    },
+    "decor": {
+      "empty": "(empty)",
+      "hoursLeft": "{hours}h left",
+      "due": "Cleanup pending",
+      "cleanupHint": "Downloaded installers move to the Recycle Bin after {hours} hours.",
+      "repo": "Git repo",
+      "submodule": "Submodule"
+    },
+    "git": {
+      "needFolder": "Open a folder to clone into.",
+      "cloning": "Cloning {name}",
+      "cloned": "Cloned {name}",
+      "cloneHere": "Clone here",
+      "fetch": "Fetch",
+      "pull": "Pull",
+      "push": "Push",
+      "message": "Commit message",
+      "commit": "Commit",
+      "groups": {
+        "staged": "Staged",
+        "changes": "Changes",
+        "untracked": "Untracked"
+      },
+      "stageAll": "Stage all",
+      "unstageAll": "Unstage all",
+      "stage": "Stage",
+      "unstage": "Unstage",
+      "clean": "No changes",
+      "history": "Recent commits",
+      "untrusted": "Trust this repository to show its Git status.",
+      "trust": "Trust repository"
+    },
+    "folderPane": {
+      "git": "Git",
+      "readme": "README",
+      "rendered": "Rendered",
+      "raw": "Raw"
     }
   },
   "terminal": {

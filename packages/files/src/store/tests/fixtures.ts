@@ -10,6 +10,7 @@ export const item = (path: string, extra: Partial<Item> = {}): Item => ({
   dir: false,
   size: 0,
   modified: 0,
+  created: 0,
   attrs: 0,
   link: false,
   kind: "",

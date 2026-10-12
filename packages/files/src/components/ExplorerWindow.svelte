@@ -5,6 +5,7 @@
   import { t } from "svelte-i18n"
   import { isAudio } from "../filetypes"
   import { isVirtual, parentOf } from "../locations"
+  import { startCleanup, syncCleanupPlan } from "../store/cleanup.svelte"
   import { BINDINGS, comboOf, runCommand } from "../store/commands"
   import type { Explorer } from "../store/explorer.svelte"
   import { openMenu } from "../store/menus"
@@ -177,6 +178,14 @@
     return path && !isVirtual(path) ? path : null
   }
 
+  $effect(startCleanup)
+
+  $effect(syncCleanupPlan)
+
+  $effect(() => {
+    tab.inspect()
+  })
+
   $effect(() => {
     current
       .setTitle(`${explorer.title(tab, $t)} - Eris Files`)
@@ -274,7 +283,7 @@
         {/if}
 
         {#if prefs.preview}
-          <PreviewPane item={preview} />
+          <PreviewPane item={preview} {tab} />
         {/if}
       </div>
 

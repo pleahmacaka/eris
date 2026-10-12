@@ -10,6 +10,7 @@ export type RawEntry = {
   dir: boolean
   size: number
   modified: number
+  created: number
   attrs: number
   link: boolean
 }
@@ -20,7 +21,7 @@ export type Listing = {
   types: Record<string, string>
 }
 
-export type Hit = RawEntry & { parent: string; kind: string }
+export type Hit = Omit<RawEntry, "created"> & { parent: string; kind: string }
 
 export type ShellEntry = {
   key: string
@@ -84,6 +85,35 @@ export type ArchiveListing = {
   entries: Packed[]
   types: Record<string, string>
   folder: string
+}
+
+export type GitChange = { code: string; path: string }
+
+export type GitRepo = {
+  root: string
+  prefix: string
+  superproject: string | null
+}
+
+export type GitStatus = GitRepo & {
+  branch: string
+  upstream: string | null
+  ahead: number
+  behind: number
+  changes: GitChange[]
+}
+
+export type Probe = { empty: string[]; repos: string[]; submodules: string[] }
+
+export type GitSync = "fetch" | "pull" | "push"
+
+export type CleanupPlan = { folder: string; hours: number; since: number }
+
+export type GitCommit = {
+  hash: string
+  subject: string
+  author: string
+  time: number
 }
 
 export type BandizipJob =
@@ -251,5 +281,44 @@ export const shellImage = (
   key: string,
   version = 0,
 ) => `${convertFileSrc(`${mode}/${size}/${key}`, "shell")}?v=${version}`
+
+export const identicalFiles = (groups: string[][]) =>
+  call<string[][]>("identical_files", { groups })
+
+export const probeDirs = (paths: string[]) =>
+  call<Probe>("probe_dirs", { paths })
+
+export const installers = (paths: string[]) =>
+  call<string[]>("installers", { paths })
+
+export const cleanupPlan = (plan: CleanupPlan | null) =>
+  call<void>("cleanup_plan", { plan })
+
+export const gitRepo = (path: string) =>
+  call<GitRepo | null>("git_repo", { path })
+
+export const gitStatus = (path: string, whole: boolean) =>
+  call<GitStatus | null>("git_status", { path, whole })
+
+export const gitLog = (root: string) => call<GitCommit[]>("git_log", { root })
+
+export const gitStage = (root: string, paths: string[]) =>
+  call<void>("git_stage", { root, paths })
+
+export const gitUnstage = (root: string, paths: string[]) =>
+  call<void>("git_unstage", { root, paths })
+
+export const gitCommit = (root: string, message: string) =>
+  call<void>("git_commit", { root, message })
+
+export const gitSync = (root: string, action: GitSync) =>
+  call<void>("git_sync", { root, action })
+
+export const gitClone = (
+  parent: string,
+  url: string,
+  name: string,
+  flags: string[],
+) => call<string>("git_clone", { parent, url, name, flags })
 
 export const assetUrl = (path: string) => convertFileSrc(path)

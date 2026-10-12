@@ -5,12 +5,13 @@
   import { type DefaultApp, defaultAppStatus } from "../../native"
   import type { Explorer } from "../../store/explorer.svelte"
   import { prefs } from "../../store/prefs.svelte"
+  import DecorSettings from "../settings/DecorSettings.svelte"
   import DefaultAppRows from "../settings/DefaultAppRows.svelte"
   import MiniExplorer from "./MiniExplorer.svelte"
 
   let { explorer }: { explorer: Explorer } = $props()
 
-  const STEPS = ["welcome", "look", "layout", "integrate", "done"]
+  const STEPS = ["welcome", "look", "layout", "tidy", "integrate", "done"]
 
   const FEATURES = [
     { id: "tabs", icon: "lucide:panels-top-left" },
@@ -52,6 +53,24 @@
       icon: "lucide:panel-right",
       label: $t("explorer.setup.done.preview"),
       value: $t(prefs.preview ? "explorer.setup.done.on" : "explorer.setup.done.off"),
+    },
+    {
+      icon: "lucide:shapes",
+      label: $t("explorer.setup.done.icons"),
+      value: $t(
+        prefs.iconStyle === "ide"
+          ? "explorer.settings.decor.iconIde"
+          : "explorer.settings.decor.iconSystem",
+      ),
+    },
+    {
+      icon: "lucide:trash-2",
+      label: $t("explorer.setup.done.cleanup"),
+      value: prefs.cleanup
+        ? $t("explorer.settings.cleanup.hoursValue", {
+            values: { hours: prefs.cleanupHours },
+          })
+        : $t("explorer.setup.done.off"),
     },
     {
       icon: "lucide:folder-check",
@@ -225,6 +244,12 @@
             </div>
 
             {@render preview()}
+          </div>
+        {:else if id === "tidy"}
+          {@render heading("tidy")}
+
+          <div class="flex max-w-xl flex-col gap-6">
+            <DecorSettings />
           </div>
         {:else if id === "integrate"}
           {@render heading("integrate")}

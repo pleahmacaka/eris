@@ -11,6 +11,8 @@
   import { middleClick } from "../middleClick"
   import { prefs, SORT_KEYS } from "../../store/prefs.svelte"
   import { cellText, kindText } from "./cells"
+  import { DUPLICATE_TINTS, GIT_TONES } from "./decor"
+  import ItemBadges from "./ItemBadges.svelte"
   import ItemIcon from "./ItemIcon.svelte"
   import RenameField from "./RenameField.svelte"
 
@@ -32,6 +34,16 @@
   const view = $derived(explorer.view)
   const results = $derived(!!tab.results)
   const selected = $derived(tab.selection.has(item.key))
+  const insight = $derived(tab.insight.view)
+  const dropping = $derived(explorer.dropKey === item.key)
+
+  const tint = $derived(
+    prefs.duplicates ? insight.duplicates.get(item.key) : undefined,
+  )
+
+  const gitState = $derived(
+    prefs.gitColors ? insight.states.get(item.key) : undefined,
+  )
 
   const usage = $derived(
     item.drive && item.drive.total > 0
@@ -64,10 +76,13 @@
       class={[
         "min-w-0",
         multiline ? "line-clamp-2 text-center break-all" : "truncate",
+        gitState && GIT_TONES[gitState],
       ]}
     >
       {shown}
     </span>
+
+    <ItemBadges {item} view={insight} />
   {/if}
 {/snippet}
 
@@ -81,10 +96,14 @@
   title={view === "details" ? undefined : item.name}
   class={[
     "min-w-0 cursor-default rounded-field outline-none",
-    selected ? "bg-primary/20" : "hover:bg-base-content/5",
+    dropping
+      ? "bg-primary/25 ring-2 ring-primary ring-inset"
+      : selected
+        ? "bg-primary/20"
+        : tint !== undefined
+          ? DUPLICATE_TINTS[tint % DUPLICATE_TINTS.length]
+          : "hover:bg-base-content/5",
     tab.focus === item.key && "ring-1 ring-primary/50 ring-inset",
-    explorer.dropKey === item.key &&
-      "bg-primary/25 ring-2 ring-primary ring-inset",
     (item.attrs & HIDDEN) !== 0 && "opacity-60",
     view === "details" && "mx-1 grid items-center text-sm",
     (view === "list" || view === "small") &&
@@ -127,7 +146,7 @@
     <ItemIcon source={item} rem={3} thumbnail class="size-12 shrink-0" />
 
     <div class="flex min-w-0 grow flex-col gap-0.5">
-      <div class="flex min-w-0 text-sm">
+      <div class="flex min-w-0 items-center gap-1.5 text-sm">
         {@render name(false)}
       </div>
 
@@ -177,7 +196,7 @@
       class={[view === "large" ? "size-24" : "size-12", "shrink-0"]}
     />
 
-    <div class="flex w-full min-w-0 justify-center">
+    <div class="flex w-full min-w-0 flex-col items-center gap-0.5">
       {@render name(true)}
     </div>
   {/if}

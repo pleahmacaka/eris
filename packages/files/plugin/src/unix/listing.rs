@@ -26,6 +26,7 @@ pub struct Entry {
     dir: bool,
     size: u64,
     modified: u64,
+    created: u64,
     attrs: u32,
     link: bool,
 }
@@ -112,6 +113,11 @@ fn entry(name: String, meta: &Metadata, link: bool) -> Entry {
     Entry {
         size: if dir { 0 } else { meta.len() },
         modified: millis(meta),
+        created: meta
+            .created()
+            .ok()
+            .and_then(|time| time.duration_since(UNIX_EPOCH).ok())
+            .map_or(0, |since| since.as_millis() as u64),
         name,
         dir,
         attrs,

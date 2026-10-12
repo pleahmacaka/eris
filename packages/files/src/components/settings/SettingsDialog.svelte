@@ -13,6 +13,7 @@
   import TranscribeSettings from "../audio/TranscribeSettings.svelte"
   import DeviceSettings from "../share/DeviceSettings.svelte"
   import TerminalSettings from "../terminal/TerminalSettings.svelte"
+  import DecorSettings from "./DecorSettings.svelte"
   import DefaultAppRows from "./DefaultAppRows.svelte"
   import SidebarSettings from "./SidebarSettings.svelte"
   import type { Explorer } from "../../store/explorer.svelte"
@@ -34,6 +35,7 @@
   const PAGES: [string, string][] = [
     ["general", "lucide:settings-2"],
     ["appearance", "lucide:palette"],
+    ["decor", "lucide:highlighter"],
     ["sidebar", "lucide:panel-left"],
     ["defaultApp", "lucide:folder-check"],
     ["terminal", "lucide:square-terminal"],
@@ -125,6 +127,8 @@
             </Row>
           </Section>
         {/if}
+      {:else if page === "decor"}
+        <DecorSettings />
       {:else if page === "sidebar"}
         <SidebarSettings />
       {:else if page === "defaultApp"}

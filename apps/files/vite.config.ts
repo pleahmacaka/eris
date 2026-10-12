@@ -1,4 +1,5 @@
 import { icons as lucide } from "@iconify-json/lucide"
+import { icons as simpleIcons } from "@iconify-json/simple-icons"
 import adapter from "@sveltejs/adapter-static"
 import { sveltekit } from "@sveltejs/kit/vite"
 import tailwindcss from "@tailwindcss/vite"
@@ -8,7 +9,7 @@ import { iconifySubset } from "vite-plugin-iconify-subset"
 export default defineConfig({
   plugins: [
     iconifySubset({
-      collections: [lucide],
+      collections: [lucide, simpleIcons],
       scan: [
         "src",
         "../../packages/ui/src",

@@ -212,15 +212,23 @@ const entry = (name: string, dir: boolean, size: number, minutes: number) => ({
   dir,
   size,
   modified: ago(minutes),
+  created: ago(minutes),
   attrs: dir ? 16 : 32,
   link: false,
 })
+
+const paths = (args: Args) =>
+  Array.isArray(args.paths) ? args.paths.map(String) : []
 
 const folderEntries = [
   entry("Projects", true, 0, 40),
   entry("Screenshots", true, 0, 300),
   entry("eris-0.3.3-setup.exe", false, 18_944_000, 90),
   entry("notes.md", false, 4_200, 15),
+  entry("notes copy.md", false, 4_200, 12),
+  entry("README.md", false, 1_800, 30),
+  { ...entry("shared", true, 0, 50), link: true },
+  entry(".gitignore", false, 120, 30),
   entry("wallpaper.png", false, 2_480_000, 2 * 60 * 24),
   entry("budget.csv", false, 12_800, 3 * 60 * 24),
 ]
@@ -336,6 +344,57 @@ export const fixtures: Record<string, (args: Args) => unknown> = {
       ".csv": "CSV File",
     },
   }),
+  "plugin:eris-files|identical_files": a => a.groups,
+  "plugin:eris-files|probe_dirs": a => ({
+    empty: paths(a).filter(path => path.endsWith("Screenshots")),
+    repos: paths(a).filter(path => path.endsWith("Projects")),
+    submodules: [],
+  }),
+  "plugin:eris-files|installers": a =>
+    paths(a).filter(path => path.includes("setup")),
+  "plugin:eris-files|preview_text": () =>
+    "# Studio\n\nSample **README** with a [link](https://example.com).\n\n- one\n- two\n",
+  "plugin:eris-files|git_repo": a => ({
+    root: String(a.path),
+    prefix: "",
+    superproject: null,
+  }),
+  "plugin:eris-files|git_status": a => ({
+    root: String(a.path),
+    prefix: "",
+    superproject: null,
+    branch: "main",
+    upstream: "origin/main",
+    ahead: 1,
+    behind: 0,
+    changes: [
+      { code: " M", path: "notes.md" },
+      { code: "A ", path: "budget.csv" },
+      { code: "??", path: "wallpaper.png" },
+      { code: "!!", path: "Screenshots/" },
+      { code: " M", path: "Projects/app/main.rs" },
+    ],
+  }),
+  "plugin:eris-files|git_log": () => [
+    {
+      hash: "61c4c16",
+      subject: "chore(main): release 0.3.12",
+      author: "Studio",
+      time: ago(90),
+    },
+    {
+      hash: "039a619",
+      subject: "fix(tray): reset callback negotiation",
+      author: "Studio",
+      time: ago(600),
+    },
+  ],
+  "plugin:eris-files|git_stage": () => null,
+  "plugin:eris-files|git_unstage": () => null,
+  "plugin:eris-files|git_commit": () => null,
+  "plugin:eris-files|git_sync": () => null,
+  "plugin:eris-files|git_clone": a => `${String(a.parent)}\\${String(a.name)}`,
+  "plugin:eris-files|cleanup_plan": () => null,
   "plugin:eris-files|default_app_status": () => ({
     supported: true,
     enabled: false,

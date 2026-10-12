@@ -197,10 +197,10 @@
       "reconnect": "再接続"
     },
     "peek": {
-        "items": "{count}個の項目",
-        "more": "ほか{count}個",
-        "archive": "アーカイブ内の項目 {count}個",
-        "documentFailed": "文書を開けません"
+      "items": "{count}個の項目",
+      "more": "ほか{count}個",
+      "archive": "アーカイブ内の項目 {count}個",
+      "documentFailed": "文書を開けません"
     },
     "errors": {
       "denied": "アクセス拒否",
@@ -236,7 +236,8 @@
         "transcribe": "文字起こし",
         "devices": "デバイス",
         "account": "アカウント",
-        "about": "情報"
+        "about": "情報",
+        "decor": "ファイル表示"
       },
       "display": "表示",
       "toolbar": "ツールバー",
@@ -250,7 +251,33 @@
       "resetBody": "表示、サイドバー、外観の設定が既定値に戻ります。",
       "appearanceHosted": "Eris の外観設定に従います。",
       "previewPane": "プレビューウィンドウ",
-      "previewPaneHint": "選択したファイルを右側でプレビューします。"
+      "previewPaneHint": "選択したファイルを右側でプレビューします。",
+      "decor": {
+        "title": "ファイル表示",
+        "iconStyle": "アイコンスタイル",
+        "iconSystem": "システム",
+        "iconIde": "IDE",
+        "duplicates": "重複ファイルの強調",
+        "duplicatesHint": "内容が同じファイルを同じ背景色で表示します。",
+        "gitColors": "Git ステータスの色",
+        "gitColorsHint": "変更、ステージ済み、未追跡、無視を色で区別します。",
+        "emptyFolders": "空のフォルダーを表示",
+        "emptyFoldersHint": "空のフォルダー名の横に (空のフォルダー) を表示します。"
+      },
+      "cleanup": {
+        "title": "インストーラーの整理",
+        "enabled": "自動整理",
+        "enabledHint": "ダウンロード フォルダーのインストーラーを指定時間後にごみ箱へ移動します。",
+        "hours": "整理までの時間",
+        "hoursValue": "{hours}時間",
+        "color": "残り時間の色",
+        "colors": {
+          "orange": "オレンジ",
+          "amber": "黄",
+          "red": "赤",
+          "primary": "アクセント"
+        }
+      }
     },
     "sidebar": {
       "title": "サイドバー",
@@ -318,7 +345,8 @@
         "look": "外観",
         "layout": "画面構成",
         "integrate": "連携",
-        "done": "完了"
+        "done": "完了",
+        "tidy": "ファイル表示"
       },
       "start": "はじめる",
       "finish": "Eris Files を開始",
@@ -360,13 +388,57 @@
         "full": "表示",
         "compact": "折りたたみ",
         "on": "使用",
-        "off": "使用しない"
+        "off": "使用しない",
+        "icons": "アイコン",
+        "cleanup": "インストーラーの整理"
+      },
+      "tidy": {
+        "title": "表示と整理",
+        "blurb": "アイコン、強調色、インストーラーの整理方法を選択してください。"
       }
     },
     "drop": {
       "move": "移動",
       "copy": "コピー",
       "items": "{count} 個の項目"
+    },
+    "decor": {
+      "empty": "(空のフォルダー)",
+      "hoursLeft": "残り{hours}時間",
+      "due": "整理待ち",
+      "cleanupHint": "ダウンロードしたインストーラーは{hours}時間後にごみ箱へ移動します。",
+      "repo": "Git リポジトリ",
+      "submodule": "サブモジュール"
+    },
+    "git": {
+      "needFolder": "フォルダーを開いてからクローンしてください。",
+      "cloning": "{name} をクローン中",
+      "cloned": "{name} のクローン完了",
+      "cloneHere": "ここにクローン",
+      "fetch": "フェッチ",
+      "pull": "プル",
+      "push": "プッシュ",
+      "message": "コミット メッセージ",
+      "commit": "コミット",
+      "groups": {
+        "staged": "ステージ済み",
+        "changes": "変更",
+        "untracked": "未追跡"
+      },
+      "stageAll": "すべてステージ",
+      "unstageAll": "すべてステージ解除",
+      "stage": "ステージ",
+      "unstage": "ステージ解除",
+      "clean": "変更なし",
+      "history": "最近のコミット",
+      "untrusted": "Git の状態を表示するには、このリポジトリを信頼してください。",
+      "trust": "リポジトリを信頼"
+    },
+    "folderPane": {
+      "git": "Git",
+      "readme": "README",
+      "rendered": "レンダリング",
+      "raw": "原文"
     }
   },
   "terminal": {
