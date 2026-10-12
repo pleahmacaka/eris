@@ -28,6 +28,11 @@
           "type": "json",
           "path": "apps/terminal/package.json",
           "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "apps/installer/package.json",
+          "jsonpath": "$.version"
         }
       ]
     }
