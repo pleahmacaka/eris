@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.13](https://github.com/pleahmacaka/eris/compare/0.3.12...0.3.13) (2026-10-12)
+
+
+### Features
+
+* **calendar:** use custom date and time pickers ([9b3b2bf](https://github.com/pleahmacaka/eris/commit/9b3b2bf3b7e733f1fe0eb4e8e35ae7cc05bb0757))
+* **files:** add git pane, file insights and ide icons ([d2cd2d2](https://github.com/pleahmacaka/eris/commit/d2cd2d2a7e8a1e1823b64652853c639a5847bf09))
+* **installer:** add unified installer for all platforms ([670c5a0](https://github.com/pleahmacaka/eris/commit/670c5a09014d8fedc9a24dc0c785b5858efefaf0))
+* **settings:** pin options to this pc and nest sub-options ([03751f8](https://github.com/pleahmacaka/eris/commit/03751f8d3763916346457ebecf8cb9a9dd74eb19))
+* **sync:** add eris cli with headless sync server ([80c0575](https://github.com/pleahmacaka/eris/commit/80c0575047b70d02dfb97b486a45860e9532b26c))
+
+
+### Bug Fixes
+
+* **dock:** keep island height and padding ([2d25539](https://github.com/pleahmacaka/eris/commit/2d255392004004aa91169046582a3f46d4188348))
+* **files:** build share browsing on android ([fc7ebf8](https://github.com/pleahmacaka/eris/commit/fc7ebf868279fb5dcb8469047c92a985b19a8ec6))
+
 ## [0.3.12](https://github.com/pleahmacaka/eris/compare/0.3.11...0.3.12) (2026-10-11)
 
 
