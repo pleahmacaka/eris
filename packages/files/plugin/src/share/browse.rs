@@ -116,18 +116,20 @@ fn drives() -> Vec<PathBuf> {
 
 fn home(app: &AppHandle) -> Vec<PathBuf> {
     let path = app.path();
+    let mut dirs = Vec::new();
 
-    [
-        path.desktop_dir(),
+    #[cfg(desktop)]
+    dirs.push(path.desktop_dir());
+
+    dirs.extend([
         path.document_dir(),
         path.download_dir(),
         path.picture_dir(),
         path.audio_dir(),
         path.video_dir(),
-    ]
-    .into_iter()
-    .flatten()
-    .collect()
+    ]);
+
+    dirs.into_iter().flatten().collect()
 }
 
 fn millis(meta: &std::fs::Metadata) -> u64 {
