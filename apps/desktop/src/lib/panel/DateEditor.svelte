@@ -1,23 +1,22 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
+  import DateField from "./DateField.svelte"
   import type { Draft } from "./draft"
+  import TimeField from "./TimeField.svelte"
 
-  const { draft, change }: {
+  const { draft, change, weekStart }: {
     draft: Draft
     change: (next: Partial<Draft>) => void
+    weekStart: 0 | 1
   } = $props()
-
-  const pickTime = (e: MouseEvent & { currentTarget: HTMLInputElement }) => {
-    e.currentTarget.showPicker()
-  }
 </script>
 
-<input
-  type="date"
-  class="input input-sm w-full tabular-nums"
+<DateField
   value={draft.date}
-  onchange={e => e.currentTarget.value && change({ date: e.currentTarget.value })}
+  {weekStart}
+  label={$t("panel.event.date")}
+  onchange={date => change({ date })}
 />
 
 {#if draft.allDay}
@@ -32,13 +31,10 @@
 {:else}
   <div class="flex items-center gap-2">
     <label class="input input-sm min-w-0 flex-1 gap-0 pr-1">
-      <input
-        type="time"
-        class="time-field min-w-0 grow cursor-pointer tabular-nums"
-        aria-label={$t("panel.event.start")}
+      <TimeField
         value={draft.start}
-        onclick={pickTime}
-        onchange={e => e.currentTarget.value && change({ start: e.currentTarget.value })}
+        label={$t("panel.event.start")}
+        onchange={start => change({ start })}
       />
 
       <button
@@ -56,13 +52,10 @@
       <span class="text-base-content/50">–</span>
 
       <label class="input input-sm min-w-0 flex-1 gap-0 pr-1">
-        <input
-          type="time"
-          class="time-field min-w-0 grow cursor-pointer tabular-nums"
-          aria-label={$t("panel.event.end")}
+        <TimeField
           value={draft.end}
-          onclick={pickTime}
-          onchange={e => e.currentTarget.value && change({ end: e.currentTarget.value })}
+          label={$t("panel.event.end")}
+          onchange={end => change({ end })}
         />
 
         <button
@@ -89,9 +82,3 @@
     </button>
   {/if}
 {/if}
-
-<style>
-  .time-field::-webkit-calendar-picker-indicator {
-    display: none;
-  }
-</style>

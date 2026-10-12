@@ -91,7 +91,11 @@
 
 {#snippet popover(field: Field)}
   {#if field === "date"}
-    <DateEditor {draft} change={editor.change} />
+    <DateEditor
+      {draft}
+      change={editor.change}
+      weekStart={panel.profile.calendar.weekStartsOn}
+    />
   {:else if field === "repeat"}
     <div class="flex flex-col">
       {#each RECURRENCES as option (option)}
