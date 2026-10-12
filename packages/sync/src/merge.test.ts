@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test"
+import fixtures from "../fixtures/merge.json"
 import { isPoisoned, readSnapshot, remoteWins, toLocal } from "./merge"
 import type { SyncRecord } from "./protocol"
 
@@ -105,4 +106,22 @@ describe("readSnapshot", () => {
     expect(readSnapshot("not json")).toEqual([])
     expect(readSnapshot("[]")).toEqual([])
   })
+})
+
+describe("shared merge fixtures", () => {
+  for (const { name, snapshot, accepted } of fixtures.read) {
+    test(`read: ${name}`, () => {
+      const ids = readSnapshot(JSON.stringify(snapshot), fixtures.now).map(
+        r => r.id,
+      )
+
+      expect(ids.toSorted()).toEqual(accepted.toSorted())
+    })
+  }
+
+  for (const { name, local, remote, wins } of fixtures.wins) {
+    test(`wins: ${name}`, () => {
+      expect(remoteWins(remote, local, "own")).toBe(wins)
+    })
+  }
 })

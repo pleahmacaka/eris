@@ -1,0 +1,155 @@
+{
+  "now": 1700000000000,
+  "read": [
+    {
+      "name": "keeps a valid record",
+      "snapshot": {
+        "deviceId": "dev-b",
+        "app": "eris",
+        "records": [
+          { "collection": "todos", "id": "a", "updatedAt": 1699999990000, "deleted": false, "deviceId": "dev-b", "data": { "title": "x" } }
+        ]
+      },
+      "accepted": ["a"]
+    },
+    {
+      "name": "drops unknown collections",
+      "snapshot": {
+        "app": "eris",
+        "records": [
+          { "collection": "files", "id": "a", "updatedAt": 1699999990000, "deleted": false, "deviceId": "dev-b", "data": {} }
+        ]
+      },
+      "accepted": []
+    },
+    {
+      "name": "drops empty ids and device ids",
+      "snapshot": {
+        "app": "eris",
+        "records": [
+          { "collection": "todos", "id": "", "updatedAt": 1699999990000, "deleted": false, "deviceId": "dev-b", "data": {} },
+          { "collection": "todos", "id": "b", "updatedAt": 1699999990000, "deleted": false, "deviceId": "", "data": {} }
+        ]
+      },
+      "accepted": []
+    },
+    {
+      "name": "keeps records up to a day in the future and drops later ones",
+      "snapshot": {
+        "app": "eris",
+        "records": [
+          { "collection": "todos", "id": "a", "updatedAt": 1700086400000, "deleted": false, "deviceId": "dev-b", "data": {} },
+          { "collection": "todos", "id": "b", "updatedAt": 1700086400001, "deleted": false, "deviceId": "dev-b", "data": {} }
+        ]
+      },
+      "accepted": ["a"]
+    },
+    {
+      "name": "drops timestamps outside the safe integer range",
+      "snapshot": {
+        "app": "eris",
+        "records": [
+          { "collection": "todos", "id": "a", "updatedAt": -9223372036854775808, "deleted": false, "deviceId": "dev-b", "data": {} },
+          { "collection": "todos", "id": "b", "updatedAt": -9007199254740992, "deleted": false, "deviceId": "dev-b", "data": {} }
+        ]
+      },
+      "accepted": []
+    },
+    {
+      "name": "drops live records without object data",
+      "snapshot": {
+        "app": "eris",
+        "records": [
+          { "collection": "todos", "id": "a", "updatedAt": 1699999990000, "deleted": false, "deviceId": "dev-b", "data": "x" },
+          { "collection": "todos", "id": "b", "updatedAt": 1699999990000, "deleted": false, "deviceId": "dev-b" }
+        ]
+      },
+      "accepted": []
+    },
+    {
+      "name": "keeps tombstones without data",
+      "snapshot": {
+        "app": "eris",
+        "records": [
+          { "collection": "todos", "id": "a", "updatedAt": 1699999990000, "deleted": true, "deviceId": "dev-b", "data": null }
+        ]
+      },
+      "accepted": ["a"]
+    },
+    {
+      "name": "drops array-shaped records",
+      "snapshot": {
+        "app": "eris",
+        "records": [["events", "a", 1699999990000, false, "dev-b", {}]]
+      },
+      "accepted": []
+    },
+    {
+      "name": "keeps only events from another app",
+      "snapshot": {
+        "app": "note",
+        "records": [
+          { "collection": "todos", "id": "a", "updatedAt": 1699999990000, "deleted": false, "deviceId": "dev-b", "data": {} },
+          { "collection": "events", "id": "b", "updatedAt": 1699999990000, "deleted": false, "deviceId": "dev-b", "data": {} }
+        ]
+      },
+      "accepted": ["b"]
+    },
+    {
+      "name": "treats a null app as another app",
+      "snapshot": {
+        "app": null,
+        "records": [
+          { "collection": "todos", "id": "a", "updatedAt": 1699999990000, "deleted": false, "deviceId": "dev-b", "data": {} },
+          { "collection": "events", "id": "b", "updatedAt": 1699999990000, "deleted": false, "deviceId": "dev-b", "data": {} }
+        ]
+      },
+      "accepted": ["b"]
+    },
+    {
+      "name": "treats a missing app as eris",
+      "snapshot": {
+        "records": [
+          { "collection": "todos", "id": "a", "updatedAt": 1699999990000, "deleted": false, "deviceId": "dev-b", "data": {} }
+        ]
+      },
+      "accepted": ["a"]
+    },
+    {
+      "name": "rejects a records field that is not an array",
+      "snapshot": { "app": "eris", "records": {} },
+      "accepted": []
+    },
+    {
+      "name": "rejects an envelope that is not an object",
+      "snapshot": [],
+      "accepted": []
+    }
+  ],
+  "wins": [
+    {
+      "name": "newer remote wins",
+      "local": { "updatedAt": 1699999990000, "deviceId": "dev-a" },
+      "remote": { "updatedAt": 1699999990001, "deviceId": "dev-b" },
+      "wins": true
+    },
+    {
+      "name": "older remote loses",
+      "local": { "updatedAt": 1699999990001, "deviceId": "dev-a" },
+      "remote": { "updatedAt": 1699999990000, "deviceId": "dev-b" },
+      "wins": false
+    },
+    {
+      "name": "a tie goes to the lower remote device id",
+      "local": { "updatedAt": 1699999990000, "deviceId": "dev-c" },
+      "remote": { "updatedAt": 1699999990000, "deviceId": "dev-b" },
+      "wins": true
+    },
+    {
+      "name": "a tie keeps the lower local device id",
+      "local": { "updatedAt": 1699999990000, "deviceId": "dev-a" },
+      "remote": { "updatedAt": 1699999990000, "deviceId": "dev-b" },
+      "wins": false
+    }
+  ]
+}

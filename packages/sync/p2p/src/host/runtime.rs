@@ -4,11 +4,10 @@ use std::sync::{Arc, OnceLock};
 
 use tauri::{AppHandle, Emitter, Manager};
 
-use super::node::{Event, Node, Sink};
-use super::protocol::fail;
+use crate::node::{Event, Node, Sink, FILES};
+use crate::protocol::fail;
 
-static NODE: OnceLock<Arc<Node>> = OnceLock::new();
-pub(super) static FILES: OnceLock<String> = OnceLock::new();
+static NODE: OnceLock<Result<Arc<Node>, String>> = OnceLock::new();
 
 pub fn set_files(id: String) {
     let _ = FILES.set(id);
@@ -34,7 +33,7 @@ pub fn members(app: &AppHandle) -> Vec<(String, String)> {
 
 pub(super) fn node(app: &AppHandle) -> Result<&'static Arc<Node>, String> {
     if let Some(node) = NODE.get() {
-        return Ok(node);
+        return node.as_ref().map_err(Clone::clone);
     }
 
     let dir = app.path().app_data_dir().map_err(fail)?;
@@ -47,7 +46,9 @@ pub(super) fn node(app: &AppHandle) -> Result<&'static Arc<Node>, String> {
         };
     });
 
-    Ok(NODE.get_or_init(|| Arc::new(Node::open(&dir, sink))))
+    NODE.get_or_init(|| Node::open(&dir, sink).map(Arc::new))
+        .as_ref()
+        .map_err(Clone::clone)
 }
 
 pub fn start(app: &AppHandle) {

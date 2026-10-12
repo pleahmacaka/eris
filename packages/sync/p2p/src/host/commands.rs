@@ -2,8 +2,8 @@
 
 use tauri::AppHandle;
 
-use super::protocol::{parse_code, Status, MAX_FRAME};
 use super::runtime::node;
+use crate::protocol::{parse_code, Status, MAX_FRAME};
 
 #[tauri::command(async)]
 pub fn p2p_status(app: AppHandle) -> Result<Status, String> {

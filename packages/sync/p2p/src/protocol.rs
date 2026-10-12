@@ -4,7 +4,6 @@ use std::fmt;
 
 use data_encoding::BASE32_NOPAD_NOCASE;
 use iroh::endpoint::{RecvStream, SendStream};
-use iroh::EndpointId;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
@@ -15,23 +14,23 @@ pub(super) const MAX_HELLO: usize = 1024;
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Peer {
-    pub(super) node_id: String,
-    pub(super) name: String,
+    pub node_id: String,
+    pub name: String,
     #[serde(default)]
-    pub(super) last_seen: Option<u64>,
+    pub last_seen: Option<u64>,
     #[serde(default)]
-    pub(super) first_seen: Option<u64>,
+    pub(crate) first_seen: Option<u64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(super) files: Option<String>,
+    pub(crate) files: Option<String>,
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Status {
-    pub(super) node_id: String,
-    pub(super) paired: bool,
-    pub(super) peers: Vec<Peer>,
-    pub(super) removable: Vec<String>,
+    pub node_id: String,
+    pub paired: bool,
+    pub peers: Vec<Peer>,
+    pub(crate) removable: Vec<String>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -76,6 +75,7 @@ pub(super) fn encode(bytes: &[u8; 32]) -> String {
     BASE32_NOPAD_NOCASE.encode(bytes).to_ascii_lowercase()
 }
 
+#[cfg(any(feature = "tauri", test))]
 fn decode(text: &str) -> Option<[u8; 32]> {
     BASE32_NOPAD_NOCASE
         .decode(text.as_bytes())
@@ -84,13 +84,14 @@ fn decode(text: &str) -> Option<[u8; 32]> {
         .ok()
 }
 
-pub(super) fn parse_code(code: &str) -> Result<(EndpointId, [u8; 32]), String> {
+#[cfg(any(feature = "tauri", test))]
+pub(crate) fn parse_code(code: &str) -> Result<(iroh::EndpointId, [u8; 32]), String> {
     let invalid = || "invalid pairing code".to_string();
 
     let (id, chain) = code.trim().split_once('.').ok_or_else(invalid)?;
 
     let id = decode(id)
-        .and_then(|bytes| EndpointId::from_bytes(&bytes).ok())
+        .and_then(|bytes| iroh::EndpointId::from_bytes(&bytes).ok())
         .ok_or_else(invalid)?;
 
     Ok((id, decode(chain).ok_or_else(invalid)?))

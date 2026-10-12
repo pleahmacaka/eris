@@ -2,7 +2,7 @@
 
 use std::fmt;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::{Arc, Mutex, MutexGuard, OnceLock};
 use std::time::Duration;
 
 use iroh::endpoint::{presets, Connection};
@@ -12,14 +12,12 @@ use tokio::sync::OnceCell;
 use tokio::time::timeout;
 
 use super::protocol::{
-    encode, fail, read, same, write, Exchange, Hello, Peer, Revocation, Rotation, Status, ALPN,
-    MAX_FRAME, MAX_HELLO,
+    encode, fail, read, same, write, Exchange, Hello, Peer, Rotation, Status, ALPN, MAX_FRAME,
+    MAX_HELLO,
 };
-use super::runtime::FILES;
 use super::state::{self, now, random, Saved};
 
 const DIAL_TIMEOUT: Duration = Duration::from_secs(8);
-const JOIN_TIMEOUT: Duration = Duration::from_secs(20);
 const SERVE_TIMEOUT: Duration = Duration::from_secs(30);
 const ONLINE_TIMEOUT: Duration = Duration::from_secs(10);
 
@@ -28,7 +26,9 @@ pub enum Event {
     Peers,
 }
 
-pub(super) type Sink = Box<dyn Fn(Event) + Send + Sync>;
+pub(crate) type Sink = Box<dyn Fn(Event) + Send + Sync>;
+
+pub(super) static FILES: OnceLock<String> = OnceLock::new();
 
 pub struct Node {
     id: EndpointId,
@@ -61,11 +61,31 @@ impl ProtocolHandler for Listener {
     }
 }
 
+fn status_of(saved: &Saved) -> Status {
+    let since = saved.joined_at.unwrap_or(0);
+
+    Status {
+        node_id: SecretKey::from_bytes(&saved.key).public().to_string(),
+        paired: saved.chain.is_some(),
+        peers: saved.peers.clone(),
+        removable: saved
+            .peers
+            .iter()
+            .filter(|peer| saved.may_remove(since, &peer.node_id))
+            .map(|peer| peer.node_id.clone())
+            .collect(),
+    }
+}
+
+pub fn stored_status(dir: &Path) -> Result<Option<Status>, String> {
+    Ok(state::load(&dir.join("p2p.json"))?.as_ref().map(status_of))
+}
+
 impl Node {
-    pub(super) fn open(dir: &Path, sink: Sink) -> Self {
+    pub fn open(dir: &Path, sink: Sink) -> Result<Self, String> {
         let file = dir.join("p2p.json");
 
-        let stored = state::load(&file);
+        let stored = state::load(&file)?;
         let fresh = stored.is_none();
         let saved = stored.unwrap_or_else(Saved::fresh);
 
@@ -82,7 +102,7 @@ impl Node {
             node.persist(&node.lock());
         }
 
-        node
+        Ok(node)
     }
 
     pub(super) fn lock(&self) -> MutexGuard<'_, Saved> {
@@ -93,64 +113,12 @@ impl Node {
         state::persist(&self.file, saved);
     }
 
-    pub(super) fn status(&self) -> Status {
-        let saved = self.lock();
-        let since = saved.joined_at.unwrap_or(0);
-
-        Status {
-            node_id: self.id.to_string(),
-            paired: saved.chain.is_some(),
-            peers: saved.peers.clone(),
-            removable: saved
-                .peers
-                .iter()
-                .filter(|peer| saved.may_remove(since, &peer.node_id))
-                .map(|peer| peer.node_id.clone())
-                .collect(),
-        }
+    pub fn status(&self) -> Status {
+        status_of(&self.lock())
     }
 
-    pub(super) fn paired(&self) -> bool {
-        self.lock().chain.is_some()
-    }
-
-    pub(super) fn publish(&self, snapshot: String) {
+    pub fn publish(&self, snapshot: String) {
         *self.snapshot.lock().unwrap() = Some(snapshot);
-    }
-
-    pub(super) fn leave(&self) {
-        {
-            let mut saved = self.lock();
-
-            saved.forget();
-            self.persist(&saved);
-        }
-
-        (self.sink)(Event::Peers);
-    }
-
-    pub(super) fn remove(&self, node_id: String) -> Result<(), String> {
-        {
-            let mut saved = self.lock();
-            let since = saved.joined_at.unwrap_or(0);
-
-            if saved.chain.is_none() || !saved.knows(&node_id) || !saved.may_remove(since, &node_id)
-            {
-                return Err("not allowed".into());
-            }
-
-            saved.peers.retain(|peer| peer.node_id != node_id);
-            saved.revoked.push(Revocation {
-                node_id,
-                by: self.id.to_string(),
-            });
-            saved.rotate();
-            self.persist(&saved);
-        }
-
-        (self.sink)(Event::Peers);
-
-        Ok(())
     }
 
     pub(super) async fn endpoint(self: &Arc<Self>) -> Result<Endpoint, String> {
@@ -176,7 +144,7 @@ impl Node {
         Ok(router.endpoint().clone())
     }
 
-    pub(super) async fn invite(self: &Arc<Self>, name: String) -> Result<String, String> {
+    pub async fn invite(self: &Arc<Self>, name: String) -> Result<String, String> {
         let chain = {
             let mut saved = self.lock();
 
@@ -197,55 +165,18 @@ impl Node {
 
         let _ = timeout(ONLINE_TIMEOUT, endpoint.online()).await;
 
-        Ok(format!("{}.{}", encode(self.id.as_bytes()), encode(&chain)))
+        Ok(self.code_for(&chain))
     }
 
-    pub(super) async fn join(
-        self: &Arc<Self>,
-        inviter: EndpointAddr,
-        chain: [u8; 32],
-        name: String,
-    ) -> Result<(), String> {
-        let endpoint = self.endpoint().await?;
-
-        let previous = {
-            let mut saved = self.lock();
-
-            saved.name = name;
-
-            (
-                saved.chain.replace(chain),
-                std::mem::take(&mut saved.peers),
-                saved.joined_at.replace(now()),
-                std::mem::take(&mut saved.epoch),
-                std::mem::take(&mut saved.retired),
-                std::mem::take(&mut saved.revoked),
-            )
-        };
-
-        let outcome = timeout(JOIN_TIMEOUT, self.dial(&endpoint, inviter))
-            .await
-            .unwrap_or_else(|_| Err("inviter unreachable".into()));
-
-        let mut saved = self.lock();
-
-        if outcome.is_err() {
-            (
-                saved.chain,
-                saved.peers,
-                saved.joined_at,
-                saved.epoch,
-                saved.retired,
-                saved.revoked,
-            ) = previous;
-        }
-
-        self.persist(&saved);
-
-        outcome
+    fn code_for(&self, chain: &[u8; 32]) -> String {
+        format!("{}.{}", encode(self.id.as_bytes()), encode(chain))
     }
 
-    pub(super) async fn sync(self: &Arc<Self>) -> Result<usize, String> {
+    pub fn code(&self) -> Option<String> {
+        self.lock().chain.map(|chain| self.code_for(&chain))
+    }
+
+    pub async fn sync(self: &Arc<Self>) -> Result<usize, String> {
         let ids: Vec<EndpointId> = {
             let saved = self.lock();
 
@@ -268,9 +199,9 @@ impl Node {
                 let node = self.clone();
                 let endpoint = endpoint.clone();
 
-                tauri::async_runtime::spawn(async move {
-                    timeout(DIAL_TIMEOUT, node.dial(&endpoint, id.into())).await
-                })
+                tokio::spawn(
+                    async move { timeout(DIAL_TIMEOUT, node.dial(&endpoint, id.into())).await },
+                )
             })
             .collect();
 
@@ -444,5 +375,94 @@ impl Node {
         if let Some(snapshot) = exchange.snapshot.filter(|snapshot| !snapshot.is_empty()) {
             (self.sink)(Event::Snapshot(snapshot));
         }
+    }
+}
+
+#[cfg(feature = "tauri")]
+impl Node {
+    const JOIN_TIMEOUT: Duration = Duration::from_secs(20);
+
+    pub(crate) fn paired(&self) -> bool {
+        self.lock().chain.is_some()
+    }
+
+    pub(crate) fn leave(&self) {
+        {
+            let mut saved = self.lock();
+
+            saved.forget();
+            self.persist(&saved);
+        }
+
+        (self.sink)(Event::Peers);
+    }
+
+    pub(crate) fn remove(&self, node_id: String) -> Result<(), String> {
+        {
+            let mut saved = self.lock();
+            let since = saved.joined_at.unwrap_or(0);
+
+            if saved.chain.is_none() || !saved.knows(&node_id) || !saved.may_remove(since, &node_id)
+            {
+                return Err("not allowed".into());
+            }
+
+            saved.peers.retain(|peer| peer.node_id != node_id);
+            saved.revoked.push(super::protocol::Revocation {
+                node_id,
+                by: self.id.to_string(),
+            });
+            saved.rotate();
+            self.persist(&saved);
+        }
+
+        (self.sink)(Event::Peers);
+
+        Ok(())
+    }
+
+    pub(crate) async fn join(
+        self: &Arc<Self>,
+        inviter: EndpointAddr,
+        chain: [u8; 32],
+        name: String,
+    ) -> Result<(), String> {
+        let endpoint = self.endpoint().await?;
+
+        let previous = {
+            let mut saved = self.lock();
+
+            saved.name = name;
+
+            (
+                saved.chain.replace(chain),
+                std::mem::take(&mut saved.peers),
+                saved.joined_at.replace(now()),
+                std::mem::take(&mut saved.epoch),
+                std::mem::take(&mut saved.retired),
+                std::mem::take(&mut saved.revoked),
+            )
+        };
+
+        let outcome = timeout(Self::JOIN_TIMEOUT, self.dial(&endpoint, inviter))
+            .await
+            .unwrap_or_else(|_| Err("inviter unreachable".into()));
+
+        let mut saved = self.lock();
+
+        if outcome.is_err() {
+            (
+                saved.chain,
+                saved.peers,
+                saved.joined_at,
+                saved.epoch,
+                saved.retired,
+                saved.revoked,
+            ) = previous;
+        }
+
+        self.persist(&saved);
+
+        outcome
     }
 }

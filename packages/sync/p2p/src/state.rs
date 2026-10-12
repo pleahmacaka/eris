@@ -1,5 +1,6 @@
 //! Persisted identity and membership state; callers retain ownership of locking.
 
+use std::io::ErrorKind;
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -65,15 +66,6 @@ impl Saved {
                 .is_none_or(|seen| seen >= remover_since)
     }
 
-    pub(super) fn rotate(&mut self) {
-        if let Some(old) = self.chain.replace(random()) {
-            self.retired.insert(0, old);
-            self.retired.truncate(RETIRED_LIMIT);
-        }
-
-        self.epoch += 1;
-    }
-
     pub(super) fn forget(&mut self) {
         self.chain = None;
         self.peers.clear();
@@ -134,24 +126,53 @@ impl Saved {
     }
 }
 
-pub(super) fn load(file: &Path) -> Option<Saved> {
-    std::fs::read(file)
-        .ok()
-        .and_then(|bytes| serde_json::from_slice::<Saved>(&bytes).ok())
+#[cfg(any(feature = "tauri", test))]
+impl Saved {
+    pub(super) fn rotate(&mut self) {
+        if let Some(old) = self.chain.replace(random()) {
+            self.retired.insert(0, old);
+            self.retired.truncate(RETIRED_LIMIT);
+        }
+
+        self.epoch += 1;
+    }
+}
+
+// only a missing file means a fresh node; treating other failures as fresh overwrites the identity
+pub(super) fn load(file: &Path) -> Result<Option<Saved>, String> {
+    let bytes = match std::fs::read(file) {
+        Ok(bytes) => bytes,
+        Err(error) if error.kind() == ErrorKind::NotFound => return Ok(None),
+        Err(error) => return Err(format!("{}: {error}", file.display())),
+    };
+
+    serde_json::from_slice(&bytes)
+        .map(Some)
+        .map_err(|error| format!("{}: {error}", file.display()))
 }
 
 pub(super) fn persist(file: &Path, saved: &Saved) {
-    let Ok(bytes) = serde_json::to_vec(saved) else {
-        return;
-    };
-
-    let staging = file.with_extension("json.tmp");
-
     let _ = file.parent().map(std::fs::create_dir_all);
 
-    if std::fs::write(&staging, bytes).is_ok() {
-        let _ = std::fs::rename(staging, file);
+    if let Ok(bytes) = serde_json::to_vec(saved) {
+        let _ = write_private(file, &bytes);
     }
+}
+
+pub fn write_private(file: &Path, bytes: &[u8]) -> std::io::Result<()> {
+    let staging = file.with_extension("tmp");
+    let mut options = std::fs::OpenOptions::new();
+
+    // a leftover staging file keeps its old mode when reopened, so start from a fresh one
+    let _ = std::fs::remove_file(&staging);
+
+    options.write(true).create_new(true);
+
+    #[cfg(unix)]
+    std::os::unix::fs::OpenOptionsExt::mode(&mut options, 0o600);
+
+    std::io::Write::write_all(&mut options.open(&staging)?, bytes)?;
+    std::fs::rename(staging, file)
 }
 
 pub(super) fn random() -> [u8; 32] {
