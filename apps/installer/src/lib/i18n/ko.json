@@ -1,0 +1,24 @@
+{
+  "installer": {
+    "title": "Eris 설치",
+    "version": "버전 {version}",
+    "components": "구성 요소",
+    "apps": {
+      "eris": "독, 런처, 패널",
+      "files": "파일 탐색기",
+      "terminal": "터미널"
+    },
+    "installed": "설치됨",
+    "installedVersion": "{version} 설치됨",
+    "unavailable": "패키지 없음",
+    "install": "설치",
+    "update": "업데이트",
+    "installing": "설치 중",
+    "done": "설치 완료",
+    "partial": "일부 구성 요소 설치 실패",
+    "hint": "선택 해제한 구성 요소는 변경하지 않습니다.",
+    "newInstaller": "새 설치기 {version}",
+    "getInstaller": "설치기 업데이트",
+    "updateFailed": "업데이트 실패: {reason}"
+  }
+}

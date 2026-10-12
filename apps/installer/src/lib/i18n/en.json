@@ -1,0 +1,24 @@
+{
+  "installer": {
+    "title": "Install Eris",
+    "version": "Version {version}",
+    "components": "Components",
+    "apps": {
+      "eris": "Dock, launcher and panel",
+      "files": "File explorer",
+      "terminal": "Terminal"
+    },
+    "installed": "Installed",
+    "installedVersion": "{version} installed",
+    "unavailable": "Not included",
+    "install": "Install",
+    "update": "Update",
+    "installing": "Installing",
+    "done": "Installation complete",
+    "partial": "Some components failed to install",
+    "hint": "Unchecked components stay as they are.",
+    "newInstaller": "New installer {version}",
+    "getInstaller": "Update installer",
+    "updateFailed": "Update failed: {reason}"
+  }
+}

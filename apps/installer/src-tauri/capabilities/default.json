@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Installer window",
+  "windows": ["main"],
+  "permissions": ["core:default", "core:window:allow-close"]
+}
