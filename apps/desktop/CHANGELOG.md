@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.14](https://github.com/pleahmacaka/eris/compare/0.3.13...0.3.14) (2026-10-13)
+
+
+### Features
+
+* **files:** preview tensors, list shell verbs, show git hosts ([050ca75](https://github.com/pleahmacaka/eris/commit/050ca75c0fcf08a80e6188bdd030d18cabcbad8a))
+
+
+### Performance Improvements
+
+* **desktop:** cut idle polling and create windows lazily ([5f792ac](https://github.com/pleahmacaka/eris/commit/5f792ac5a1cdad7f207d0a7186e6e12c4e27f457))
+
 ## [0.3.13](https://github.com/pleahmacaka/eris/compare/0.3.12...0.3.13) (2026-10-12)
 
 
