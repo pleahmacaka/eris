@@ -1,4 +1,7 @@
+use std::collections::VecDeque;
 use std::fmt::Write;
+use std::sync::{Condvar, LazyLock, Mutex};
+use std::time::Duration;
 
 use tauri::AppHandle;
 use tokio::sync::oneshot;
@@ -44,13 +47,74 @@ pub fn blocking<T: Send + 'static>(work: impl FnOnce() -> T + Send + 'static) ->
     .map_err(|_| Error::Os("the operation stopped unexpectedly".into()))
 }
 
+type Task = Box<dyn FnOnce() + Send>;
+
+const WORKER_IDLE: Duration = Duration::from_secs(30);
+
+#[derive(Default)]
+struct Queue {
+    tasks: VecDeque<Task>,
+    idle: usize,
+}
+
+#[derive(Default)]
+struct Workers {
+    queue: Mutex<Queue>,
+    ready: Condvar,
+}
+
+static WORKERS: LazyLock<Workers> = LazyLock::new(Workers::default);
+
+impl Workers {
+    fn submit(&'static self, task: Task) {
+        let mut queue = self.queue.lock().unwrap();
+
+        queue.tasks.push_back(task);
+
+        if queue.tasks.len() > queue.idle {
+            std::thread::spawn(|| self.run());
+        } else {
+            self.ready.notify_one();
+        }
+    }
+
+    fn next(&self) -> Option<Task> {
+        let mut queue = self.queue.lock().unwrap();
+
+        loop {
+            if let Some(task) = queue.tasks.pop_front() {
+                return Some(task);
+            }
+
+            queue.idle += 1;
+
+            let (woken, wait) = self.ready.wait_timeout(queue, WORKER_IDLE).unwrap();
+
+            queue = woken;
+            queue.idle -= 1;
+
+            if wait.timed_out() && queue.tasks.is_empty() {
+                return None;
+            }
+        }
+    }
+
+    fn run(&self) {
+        let _apartment = Apartment::enter();
+
+        while let Some(task) = self.next() {
+            task();
+        }
+    }
+}
+
+// a search or a modal network dialog can hold a worker for minutes, so the pool grows instead of queueing
 pub async fn sta<T: Send + 'static>(work: impl FnOnce() -> T + Send + 'static) -> Result<T> {
     let (sender, receiver) = oneshot::channel();
 
-    std::thread::spawn(move || {
-        let _apartment = Apartment::enter();
+    WORKERS.submit(Box::new(move || {
         let _ = sender.send(work());
-    });
+    }));
 
     receiver
         .await
@@ -134,6 +198,10 @@ pub fn owner(raw: isize) -> HWND {
 pub struct Pidl(*mut ITEMIDLIST);
 
 impl Pidl {
+    pub fn from_raw(raw: *mut ITEMIDLIST) -> Self {
+        Self(raw)
+    }
+
     pub fn as_ptr(&self) -> *const ITEMIDLIST {
         self.0
     }

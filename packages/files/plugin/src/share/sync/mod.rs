@@ -4,12 +4,12 @@ use std::collections::{BTreeSet, HashMap};
 use std::fs::File;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use std::time::{Duration, UNIX_EPOCH};
 
 use iroh::EndpointId;
-use iroh_blobs::api::blobs::{AddPathOptions, ImportMode};
+use iroh_blobs::api::blobs::{AddPathOptions, ExportMode, ExportOptions, ImportMode};
 use iroh_blobs::api::downloader::Shuffled;
 use iroh_blobs::format::collection::Collection;
 use iroh_blobs::{BlobFormat, Hash, HashAndFormat};
@@ -51,7 +51,7 @@ pub(super) struct SyncInvite {
     received_at: u64,
 }
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Default, Clone, PartialEq, Serialize, Deserialize)]
 struct Ledger {
     index: HashMap<String, Entry>,
     base: HashMap<String, Hash>,
@@ -67,7 +67,7 @@ pub enum Safety {
 
 pub(super) struct Slot {
     wake: Arc<Notify>,
-    watcher: Arc<AtomicBool>,
+    watcher: Arc<Stop>,
     task: JoinHandle<()>,
 }
 
@@ -238,24 +238,98 @@ async fn recycle(path: PathBuf) -> Result<()> {
 }
 
 #[cfg(desktop)]
-use crate::watch::watch_tree;
+use crate::watch::{watch_tree, Stop};
 
-// without a change journal the folder is rescanned on a timer
+#[cfg(mobile)]
+#[derive(Default)]
+pub(super) struct Stop(std::sync::atomic::AtomicBool);
+
+#[cfg(mobile)]
+impl Stop {
+    fn set(&self) {
+        self.0.store(true, Ordering::Relaxed);
+    }
+
+    fn is_set(&self) -> bool {
+        self.0.load(Ordering::Relaxed)
+    }
+}
+
+#[cfg(mobile)]
+fn fingerprint(dir: &Path, hasher: &mut std::hash::DefaultHasher) {
+    use std::hash::Hash;
+
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
+    let mut entries: Vec<_> = entries.flatten().collect();
+
+    entries.sort_by_key(|entry| entry.file_name());
+
+    for entry in entries {
+        let name = entry.file_name().to_string_lossy().into_owned();
+
+        if name.starts_with(STAGING) || ignored(&name) {
+            continue;
+        }
+
+        let Ok(meta) = std::fs::symlink_metadata(entry.path()) else {
+            continue;
+        };
+
+        name.hash(hasher);
+
+        if meta.is_dir() {
+            fingerprint(&entry.path(), hasher);
+        } else {
+            (meta.len(), millis(&meta)).hash(hasher);
+        }
+    }
+}
+
+#[cfg(mobile)]
+fn walk(dir: &Path) -> u64 {
+    use std::hash::Hasher;
+
+    let mut hasher = std::hash::DefaultHasher::new();
+
+    fingerprint(dir, &mut hasher);
+
+    hasher.finish()
+}
+
+// without a change journal the folder is polled with a stat walk, and a full round still runs now and then to catch a missed peer nudge
 #[cfg(mobile)]
 fn watch_tree(
-    _path: PathBuf,
+    path: PathBuf,
     settle: std::time::Duration,
     on_change: impl Fn() + Send + 'static,
-) -> std::sync::Arc<std::sync::atomic::AtomicBool> {
-    let stop = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+) -> Arc<Stop> {
+    const FULL_ROUND: u32 = 10;
+
+    let stop = Arc::new(Stop::default());
     let stopped = stop.clone();
     let every = settle.max(std::time::Duration::from_secs(30));
 
     std::thread::spawn(move || {
-        while !stopped.load(Ordering::Relaxed) {
+        let mut last = walk(&path);
+        let mut quiet = 0;
+
+        while !stopped.is_set() {
             std::thread::sleep(every);
 
-            if !stopped.load(Ordering::Relaxed) {
+            let current = walk(&path);
+
+            quiet += 1;
+
+            if current == last && quiet < FULL_ROUND {
+                continue;
+            }
+
+            last = current;
+            quiet = 0;
+
+            if !stopped.is_set() {
                 on_change();
             }
         }
@@ -358,33 +432,36 @@ impl Node {
             index.insert(key, entry);
         }
 
-        let root = Collection::from_iter(
-            index
-                .values()
-                .map(|entry: &Entry| (entry.path.clone(), entry.hash)),
-        )
-        .store(&net.store)
-        .await
-        .map_err(fail)?;
+        let changed = index != ledger.index;
+        let tagged = self.sync_hashes.lock().unwrap().contains_key(&sync.id);
 
-        net.store
-            .tags()
-            .set(format!("sync-{}", sync.id), root.hash_and_format())
+        if changed || !tagged {
+            let root = Collection::from_iter(
+                index
+                    .values()
+                    .map(|entry: &Entry| (entry.path.clone(), entry.hash)),
+            )
+            .store(&net.store)
             .await
             .map_err(fail)?;
 
+            net.store
+                .tags()
+                .set(format!("sync-{}", sync.id), root.hash_and_format())
+                .await
+                .map_err(fail)?;
+
+            self.sync_hashes
+                .lock()
+                .unwrap()
+                .insert(sync.id, index.values().map(|entry| entry.hash).collect());
+        }
+
         drop(held);
 
-        self.sync_hashes
-            .lock()
-            .unwrap()
-            .insert(sync.id, index.values().map(|entry| entry.hash).collect());
-
-        let changed = index != ledger.index;
         let files = index.len() as u64;
 
         ledger.index = index;
-        self.keep_ledger(sync.id, ledger)?;
 
         if self
             .find_sync(sync.id)
@@ -414,6 +491,35 @@ impl Node {
 
         std::fs::create_dir_all(folder)?;
 
+        let stamp = |path: &Path| -> Result<()> {
+            File::options()
+                .write(true)
+                .open(path)?
+                .set_modified(UNIX_EPOCH + Duration::from_millis(entry.modified))?;
+
+            Ok(())
+        };
+
+        // a plain export keeps the downloaded copy in the blob store, doubling the disk use of every new file
+        if expected.is_none() && !target.exists() {
+            let moved = net
+                .store
+                .blobs()
+                .export_with_opts(ExportOptions {
+                    hash: entry.hash,
+                    mode: ExportMode::TryReference,
+                    target: target.to_path_buf(),
+                })
+                .await;
+
+            match moved {
+                Ok(_) => return stamp(target).map(|_| true),
+                Err(_) => {
+                    let _ = std::fs::remove_file(target);
+                }
+            }
+        }
+
         let staging = folder.join(format!("{STAGING}{}", Uuid::new_v4()));
 
         let placed: Result<bool> = async {
@@ -423,10 +529,7 @@ impl Node {
                 .await
                 .map_err(fail)?;
 
-            File::options()
-                .write(true)
-                .open(&staging)?
-                .set_modified(UNIX_EPOCH + Duration::from_millis(entry.modified))?;
+            stamp(&staging)?;
 
             if !unchanged(target, expected) {
                 return Ok(false);
@@ -451,7 +554,7 @@ impl Node {
         key: String,
         action: Action,
         ledger: &mut Ledger,
-    ) -> Result<()> {
+    ) -> Result<bool> {
         let folder = Path::new(&sync.folder);
         let local = ledger.index.get(&key).cloned();
 
@@ -465,27 +568,31 @@ impl Node {
             Action::Wait => {}
             Action::Recycle => {
                 let Some(local) = local else {
-                    return Ok(());
+                    return Ok(false);
                 };
 
                 let target = located(folder, &local.path)?;
 
-                if unchanged(&target, Some(&local)) {
-                    recycle(target).await?;
-                    ledger.index.remove(&key);
-                    ledger.base.remove(&key);
+                if !unchanged(&target, Some(&local)) {
+                    return Ok(false);
                 }
+
+                recycle(target).await?;
+                ledger.index.remove(&key);
+                ledger.base.remove(&key);
+
+                return Ok(true);
             }
             Action::Take(entry) => {
                 let name = local
                     .as_ref()
                     .map_or_else(|| entry.path.clone(), |local| local.path.clone());
                 let target = located(folder, &name)?;
-
-                if self
+                let placed = self
                     .fetch_to(sync.device, &entry, &target, local.as_ref())
-                    .await?
-                {
+                    .await?;
+
+                if placed {
                     ledger.base.insert(key.clone(), entry.hash);
                     ledger.index.insert(
                         key,
@@ -495,13 +602,18 @@ impl Node {
                         },
                     );
                 }
+
+                return Ok(placed);
             }
             Action::Restore(entry) => {
                 let target = located(folder, &entry.path)?;
+                let placed = self.fetch_to(sync.device, &entry, &target, None).await?;
 
-                if self.fetch_to(sync.device, &entry, &target, None).await? {
+                if placed {
                     ledger.index.insert(key, entry);
                 }
+
+                return Ok(placed);
             }
             Action::CopyTheirs(entry) => {
                 let copy = conflict_name(&entry.path, &sync.device);
@@ -513,19 +625,18 @@ impl Node {
                 if !present {
                     let destination = free_path(folder, &copy)?;
 
-                    self.fetch_to(sync.device, &entry, &destination, None)
-                        .await?;
+                    return self.fetch_to(sync.device, &entry, &destination, None).await;
                 }
             }
             Action::ParkMine(entry) => {
                 let Some(local) = local else {
-                    return Ok(());
+                    return Ok(false);
                 };
 
                 let target = located(folder, &local.path)?;
 
                 if !unchanged(&target, Some(&local)) {
-                    return Ok(());
+                    return Ok(false);
                 }
 
                 let parked = free_path(folder, &conflict_name(&local.path, &self.id))?;
@@ -542,13 +653,20 @@ impl Node {
                         },
                     );
                 }
+
+                return Ok(true);
             }
         }
 
-        Ok(())
+        Ok(false)
     }
 
-    async fn reconcile(self: &Arc<Self>, sync: &Sync, ledger: &mut Ledger) -> Result<()> {
+    async fn reconcile(
+        self: &Arc<Self>,
+        sync: &Sync,
+        ledger: &mut Ledger,
+        touched: &mut bool,
+    ) -> Result<()> {
         let entries = match self
             .call(sync.device, Request::SyncIndex { sync: sync.id })
             .await?
@@ -593,8 +711,11 @@ impl Node {
         let mut first = None;
 
         for (key, action) in removals.into_iter().chain(writes) {
-            if let Err(error) = self.apply(sync, key, action, ledger).await {
-                first.get_or_insert(error);
+            match self.apply(sync, key, action, ledger).await {
+                Ok(wrote) => *touched |= wrote,
+                Err(error) => {
+                    first.get_or_insert(error);
+                }
             }
         }
 
@@ -602,13 +723,29 @@ impl Node {
     }
 
     async fn round(self: &Arc<Self>, sync: &Sync) -> Result<bool> {
-        let mut ledger = self.ledger(sync.id).unwrap_or_default();
+        let mut stored = self.ledger(sync.id);
+        let mut ledger = stored.clone().unwrap_or_default();
         let edited = self.scan(sync, &mut ledger).await?;
-        let reconciled = self.reconcile(sync, &mut ledger).await;
 
-        self.keep_ledger(sync.id, &ledger)?;
+        // the peer reads this ledger as our index while the downloads below run
+        if edited {
+            self.keep_ledger(sync.id, &ledger)?;
+            stored = Some(ledger.clone());
+        }
 
-        let settled = self.scan(sync, &mut ledger).await?;
+        let mut touched = false;
+        let reconciled = self.reconcile(sync, &mut ledger, &mut touched).await;
+        let settled = if touched {
+            self.scan(sync, &mut ledger).await
+        } else {
+            Ok(false)
+        };
+
+        if stored.as_ref() != Some(&ledger) {
+            self.keep_ledger(sync.id, &ledger)?;
+        }
+
+        let settled = settled?;
 
         reconciled.map(|_| edited || settled)
     }
@@ -626,10 +763,12 @@ impl Node {
 
         match self.round(&sync).await {
             Ok(changed) => {
-                self.mark(id, |sync| {
-                    sync.synced_at = Some(now());
-                    sync.error = None;
-                });
+                if changed || sync.synced_at.is_none() || sync.error.is_some() {
+                    self.mark(id, |sync| {
+                        sync.synced_at = Some(now());
+                        sync.error = None;
+                    });
+                }
 
                 if first || changed {
                     let _ = self
@@ -688,7 +827,7 @@ impl Node {
         let slot = self.slots.lock().unwrap().remove(&id);
 
         if let Some(slot) = slot {
-            slot.watcher.store(true, Ordering::Relaxed);
+            slot.watcher.set();
             slot.task.abort();
 
             let _ = slot.task.await;

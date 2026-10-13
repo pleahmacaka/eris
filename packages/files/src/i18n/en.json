@@ -200,7 +200,11 @@
       "items": "{count} items",
       "more": "+{count} more",
       "archive": "{count} items in archive",
-      "documentFailed": "Cannot open document"
+      "documentFailed": "Cannot open document",
+      "tensors": "{count} tensors",
+      "parameters": "{count} parameters",
+      "rows": "{count} rows",
+      "columns": "{count} columns"
     },
     "errors": {
       "denied": "Access denied",
@@ -277,7 +281,10 @@
           "red": "Red",
           "primary": "Accent"
         }
-      }
+      },
+      "archiveBackend": "Archive engine",
+      "archiveBandizip": "Bandizip",
+      "archiveBuiltin": "Built-in library"
     },
     "sidebar": {
       "title": "Sidebar",
@@ -404,11 +411,15 @@
     },
     "decor": {
       "empty": "(empty)",
-      "hoursLeft": "{hours}h left",
-      "due": "Cleanup pending",
+      "deleteIn": "Deletes in {hours}h",
+      "due": "Deletion pending",
+      "deleteAfter": "Delete {hours}h after download",
+      "keep": "Cancel deletion",
+      "deleteNow": "Delete now",
       "cleanupHint": "Downloaded installers move to the Recycle Bin after {hours} hours.",
-      "repo": "Git repo",
-      "submodule": "Submodule"
+      "repo": "Git",
+      "submodule": "Submodule",
+      "forkOf": "Fork of {upstream}"
     },
     "git": {
       "needFolder": "Open a folder to clone into.",
@@ -439,6 +450,10 @@
       "readme": "README",
       "rendered": "Rendered",
       "raw": "Raw"
+    },
+    "clipboard": {
+      "copied": "{count, plural, one {Copied # item} other {Copied # items}}",
+      "cut": "{count, plural, one {Cut # item} other {Cut # items}}"
     }
   },
   "terminal": {

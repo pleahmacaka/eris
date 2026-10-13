@@ -173,7 +173,12 @@ const EXTENSIONS: Record<string, string> = {
 export const isBrand = (icon: string) => icon.startsWith("simple-icons:")
 
 export const ideIcon = (item: Item) => {
-  if (item.drive || item.key.startsWith("pidl:") || hasOwnIcon(item)) {
+  if (
+    item.drive ||
+    item.place ||
+    item.key.startsWith("pidl:") ||
+    hasOwnIcon(item)
+  ) {
     return null
   }
 

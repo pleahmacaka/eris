@@ -200,7 +200,11 @@
       "items": "{count}個の項目",
       "more": "ほか{count}個",
       "archive": "アーカイブ内の項目 {count}個",
-      "documentFailed": "文書を開けません"
+      "documentFailed": "文書を開けません",
+      "tensors": "テンソル {count} 個",
+      "parameters": "パラメーター {count} 個",
+      "rows": "{count} 行",
+      "columns": "{count} 列"
     },
     "errors": {
       "denied": "アクセス拒否",
@@ -277,7 +281,10 @@
           "red": "赤",
           "primary": "アクセント"
         }
-      }
+      },
+      "archiveBackend": "圧縮エンジン",
+      "archiveBandizip": "Bandizip 連携中",
+      "archiveBuiltin": "内蔵ライブラリ"
     },
     "sidebar": {
       "title": "サイドバー",
@@ -404,11 +411,15 @@
     },
     "decor": {
       "empty": "(空のフォルダー)",
-      "hoursLeft": "残り{hours}時間",
-      "due": "整理待ち",
+      "deleteIn": "{hours}時間後に削除",
+      "due": "削除待ち",
+      "deleteAfter": "ダウンロードの{hours}時間後に削除",
+      "keep": "削除をキャンセル",
+      "deleteNow": "今すぐ削除",
       "cleanupHint": "ダウンロードしたインストーラーは{hours}時間後にごみ箱へ移動します。",
-      "repo": "Git リポジトリ",
-      "submodule": "サブモジュール"
+      "repo": "Git",
+      "submodule": "サブモジュール",
+      "forkOf": "{upstream} のフォーク"
     },
     "git": {
       "needFolder": "フォルダーを開いてからクローンしてください。",
@@ -439,6 +450,10 @@
       "readme": "README",
       "rendered": "レンダリング",
       "raw": "原文"
+    },
+    "clipboard": {
+      "copied": "{count} 個の項目をコピー済み",
+      "cut": "{count} 個の項目を切り取り済み"
     }
   },
   "terminal": {

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-inspect-tensors"
+description = "Enables the inspect_tensors command without any pre-configured scope."
+commands.allow = ["inspect_tensors"]
+
+[[permission]]
+identifier = "deny-inspect-tensors"
+description = "Denies the inspect_tensors command without any pre-configured scope."
+commands.deny = ["inspect_tensors"]

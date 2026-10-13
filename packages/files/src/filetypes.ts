@@ -1,6 +1,13 @@
 import { extensionOf } from "./locations"
 
-export type FileKind = "image" | "video" | "audio" | "pdf" | "text" | "model"
+export type FileKind =
+  | "image"
+  | "video"
+  | "audio"
+  | "pdf"
+  | "text"
+  | "model"
+  | "tensors"
 
 const KINDS: Record<FileKind, string[]> = {
   image: [
@@ -29,6 +36,16 @@ const KINDS: Record<FileKind, string[]> = {
   ],
   pdf: [".pdf"],
   model: [".obj", ".mjb"],
+  tensors: [
+    ".safetensors",
+    ".pt",
+    ".pth",
+    ".ckpt",
+    ".onnx",
+    ".npz",
+    ".npy",
+    ".parquet",
+  ],
   text: [
     ".txt",
     ".md",

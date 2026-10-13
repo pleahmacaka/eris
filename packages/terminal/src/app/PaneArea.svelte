@@ -216,6 +216,7 @@
         {fontFamily}
         {fontSize}
         active={visible && shown && focused}
+        shown={visible && shown}
         ontitle={title => (item.pane.title = title || item.pane.title)}
         oninput={data => share(item.tab, item.pane.id, data)}
         onexit={() => closePane(item.pane.id)}

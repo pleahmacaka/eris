@@ -24,6 +24,7 @@ use crate::{com, listing};
 const ICON_WORKERS: usize = 4;
 const THUMB_WORKERS: usize = 2;
 const CACHE_BUDGET: usize = 64 * 1024 * 1024;
+const THUMB_QUEUE: usize = 256;
 const ICON_FLAGS: SIIGBF = SIIGBF(SIIGBF_ICONONLY.0 | SIIGBF_BIGGERSIZEOK.0);
 
 type Image = Arc<Vec<u8>>;
@@ -53,10 +54,35 @@ impl Job {
 struct Cache {
     entries: HashMap<String, (String, Image)>,
     order: VecDeque<String>,
+    holders: HashMap<usize, usize>,
     bytes: usize,
 }
 
 impl Cache {
+    fn hold(&mut self, image: &Image) {
+        let holders = self.holders.entry(Arc::as_ptr(image) as usize).or_default();
+
+        if *holders == 0 {
+            self.bytes += image.len();
+        }
+
+        *holders += 1;
+    }
+
+    fn release(&mut self, image: &Image) {
+        let address = Arc::as_ptr(image) as usize;
+        let Some(holders) = self.holders.get_mut(&address) else {
+            return;
+        };
+
+        *holders -= 1;
+
+        if *holders == 0 {
+            self.holders.remove(&address);
+            self.bytes -= image.len();
+        }
+    }
+
     fn get(&self, slot: &str, version: &str) -> Option<Image> {
         self.entries
             .get(slot)
@@ -65,10 +91,10 @@ impl Cache {
     }
 
     fn put(&mut self, slot: String, version: String, image: Image) {
-        self.bytes += image.len();
+        self.hold(&image);
 
         match self.entries.insert(slot.clone(), (version, image)) {
-            Some((_, replaced)) => self.bytes -= replaced.len(),
+            Some((_, replaced)) => self.release(&replaced),
             None => self.order.push_back(slot),
         }
 
@@ -78,22 +104,42 @@ impl Cache {
             };
 
             if let Some((_, evicted)) = self.entries.remove(&oldest) {
-                self.bytes -= evicted.len();
+                self.release(&evicted);
             }
         }
     }
 }
 
-#[derive(Default)]
 struct Lane {
     jobs: Mutex<Vec<Job>>,
     ready: Condvar,
+    limit: usize,
 }
 
 impl Lane {
+    fn new(limit: usize) -> Self {
+        Self {
+            jobs: Mutex::default(),
+            ready: Condvar::new(),
+            limit,
+        }
+    }
+
+    // requests scrolled past long ago would only delay the visible ones; the page retries them on remount
     fn push(&self, job: Job) {
-        self.jobs.lock().unwrap().push(job);
+        let dropped = {
+            let mut jobs = self.jobs.lock().unwrap();
+
+            jobs.push(job);
+
+            (jobs.len() > self.limit).then(|| jobs.remove(0))
+        };
+
         self.ready.notify_one();
+
+        if let Some(job) = dropped {
+            answer(&job, None);
+        }
     }
 
     // the newest request is what the user scrolled to, so it renders before older ones
@@ -118,7 +164,6 @@ impl Lane {
     }
 }
 
-#[derive(Default)]
 struct Thumbs {
     cache: Mutex<Cache>,
     pending: Mutex<HashMap<String, Vec<UriSchemeResponder>>>,
@@ -126,7 +171,12 @@ struct Thumbs {
     thumbs: Lane,
 }
 
-static THUMBS: LazyLock<Thumbs> = LazyLock::new(Thumbs::default);
+static THUMBS: LazyLock<Thumbs> = LazyLock::new(|| Thumbs {
+    cache: Mutex::default(),
+    pending: Mutex::default(),
+    icons: Lane::new(usize::MAX),
+    thumbs: Lane::new(THUMB_QUEUE),
+});
 
 fn thumbs() -> &'static Thumbs {
     static WORKERS: Once = Once::new();
@@ -231,6 +281,31 @@ fn missing() -> Response<Vec<u8>> {
         .unwrap_or_default()
 }
 
+fn dropped() -> Response<Vec<u8>> {
+    Response::builder()
+        .status(StatusCode::SERVICE_UNAVAILABLE)
+        .header(header::CACHE_CONTROL, "no-store")
+        .body(Vec::new())
+        .unwrap_or_default()
+}
+
+fn answer(job: &Job, rendered: Option<Option<Image>>) {
+    let waiting = thumbs()
+        .pending
+        .lock()
+        .unwrap()
+        .remove(&job.waiting())
+        .unwrap_or_default();
+
+    for responder in waiting {
+        responder.respond(match &rendered {
+            Some(Some(image)) => png(image.clone()),
+            Some(None) => missing(),
+            None => dropped(),
+        });
+    }
+}
+
 fn draw(job: &Job) -> Option<Image> {
     match job.kind {
         Kind::Icon => render(&job.key, job.size, ICON_FLAGS).map(Arc::new),
@@ -253,16 +328,7 @@ fn work(job: Job) {
             .put(job.slot.clone(), job.version.clone(), image.clone());
     }
 
-    let waiting = thumbs()
-        .pending
-        .lock()
-        .unwrap()
-        .remove(&job.waiting())
-        .unwrap_or_default();
-
-    for responder in waiting {
-        responder.respond(rendered.clone().map(png).unwrap_or_else(missing));
-    }
+    answer(&job, Some(rendered));
 }
 
 pub fn serve(
@@ -328,11 +394,15 @@ fn render(key: &str, size: i32, flags: SIIGBF) -> Option<Vec<u8>> {
     })?;
 
     let bitmap = unsafe { factory.GetImage(SIZE { cx: size, cy: size }, flags) }.ok()?;
-    let pixels = rgba(bitmap);
+    let png = bitmap_png(bitmap);
 
     let _ = unsafe { DeleteObject(HGDIOBJ(bitmap.0)) };
 
-    let (width, height, pixels) = pixels?;
+    png
+}
+
+pub(crate) fn bitmap_png(bitmap: HBITMAP) -> Option<Vec<u8>> {
+    let (width, height, pixels) = rgba(bitmap)?;
     let mut out = Vec::new();
 
     PngEncoder::new_with_quality(&mut out, CompressionType::Fast, FilterType::NoFilter)

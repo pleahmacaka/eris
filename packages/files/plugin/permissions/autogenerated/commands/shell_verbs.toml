@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-shell-verbs"
+description = "Enables the shell_verbs command without any pre-configured scope."
+commands.allow = ["shell_verbs"]
+
+[[permission]]
+identifier = "deny-shell-verbs"
+description = "Denies the shell_verbs command without any pre-configured scope."
+commands.deny = ["shell_verbs"]

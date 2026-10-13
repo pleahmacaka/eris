@@ -74,6 +74,7 @@ export type Prefs = {
   cleanupHours: number
   cleanupSince: number
   cleanupColor: CleanupColor
+  cleanupKeep: string[]
   folderPane: FolderPane
   readmeRaw: boolean
   trustedRepos: string[]
@@ -159,7 +160,8 @@ const defaults: Prefs = {
   cleanupHours: 24,
   cleanupSince: 0,
   cleanupColor: "orange",
-  folderPane: "git",
+  cleanupKeep: [],
+  folderPane: "readme",
   readmeRaw: false,
   trustedRepos: [],
 }

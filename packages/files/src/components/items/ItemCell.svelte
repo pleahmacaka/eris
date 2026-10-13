@@ -11,7 +11,7 @@
   import { middleClick } from "../middleClick"
   import { prefs, SORT_KEYS } from "../../store/prefs.svelte"
   import { cellText, kindText } from "./cells"
-  import { DUPLICATE_TINTS, GIT_TONES } from "./decor"
+  import { duplicateTint, GIT_TONES } from "./decor"
   import ItemBadges from "./ItemBadges.svelte"
   import ItemIcon from "./ItemIcon.svelte"
   import RenameField from "./RenameField.svelte"
@@ -82,7 +82,7 @@
       {shown}
     </span>
 
-    <ItemBadges {item} view={insight} />
+    <ItemBadges {explorer} {item} view={insight} />
   {/if}
 {/snippet}
 
@@ -101,10 +101,12 @@
       : selected
         ? "bg-primary/20"
         : tint !== undefined
-          ? DUPLICATE_TINTS[tint % DUPLICATE_TINTS.length]
+          ? "bg-(--tint)/15 hover:bg-(--tint)/25"
           : "hover:bg-base-content/5",
     tab.focus === item.key && "ring-1 ring-primary/50 ring-inset",
-    (item.attrs & HIDDEN) !== 0 && "opacity-60",
+    explorer.cut.has(item.key)
+      ? "opacity-50"
+      : (item.attrs & HIDDEN) !== 0 && "opacity-60",
     view === "details" && "mx-1 grid items-center text-sm",
     (view === "list" || view === "small") &&
       "mx-0.5 flex items-center gap-2 px-2 text-sm",
@@ -113,6 +115,7 @@
       "m-0.5 flex flex-col items-center gap-1 px-1 pt-2 text-xs",
   ]}
   style:grid-template-columns={view === "details" ? template : undefined}
+  style:--tint={tint === undefined ? undefined : duplicateTint(tint)}
   onpointerdown={e => {
     e.stopPropagation()
     onpress(item, e)

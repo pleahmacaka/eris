@@ -25,8 +25,8 @@ use crate::address::describe;
 use crate::com;
 use crate::error::{Error, Result};
 
-const FIRST_COMMAND: u32 = 1;
-const LAST_COMMAND: u32 = 0x7FFF;
+pub(crate) const FIRST_COMMAND: u32 = 1;
+pub(crate) const LAST_COMMAND: u32 = 0x7FFF;
 const SUBCLASS_ID: usize = 0xE515;
 
 thread_local! {
@@ -220,7 +220,11 @@ unsafe extern "system" fn forward(
     unsafe { DefSubclassProc(hwnd, message, wparam, lparam) }
 }
 
-fn context_menu(owner: HWND, keys: &[String], folder: Option<&str>) -> Result<IContextMenu> {
+pub(crate) fn context_menu(
+    owner: HWND,
+    keys: &[String],
+    folder: Option<&str>,
+) -> Result<IContextMenu> {
     if keys.is_empty() {
         let item = com::item(folder.ok_or(Error::Missing)?)?;
         let parent: IShellFolder = unsafe { item.BindToHandler(None, &BHID_SFObject) }?;
@@ -233,7 +237,7 @@ fn context_menu(owner: HWND, keys: &[String], folder: Option<&str>) -> Result<IC
     Ok(unsafe { array.BindToHandler(None, &BHID_SFUIObject) }?)
 }
 
-fn verb_of(menu: &IContextMenu, offset: u32) -> String {
+pub(crate) fn verb_of(menu: &IContextMenu, offset: u32) -> String {
     let mut buffer = [0u16; 128];
 
     let found = unsafe {
@@ -253,7 +257,7 @@ fn verb_of(menu: &IContextMenu, offset: u32) -> String {
     com::wide(&buffer)
 }
 
-fn invoke(
+pub(crate) fn invoke(
     menu: &IContextMenu,
     owner: HWND,
     verb: PCSTR,

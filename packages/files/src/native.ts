@@ -72,6 +72,17 @@ export type DefaultApp = { supported: boolean; enabled: boolean }
 
 export type Model = { obj: string; mtl: string | null }
 
+export type Tensor = { name: string; dtype: string; shape: number[] }
+
+export type Tensors = {
+  format: string
+  tensors: Tensor[]
+  total: number
+  parameters: number
+  rows: number | null
+  metadata: [string, string][]
+}
+
 export type IconMode = "icon" | "item" | "thumb"
 
 export type Packed = {
@@ -89,10 +100,15 @@ export type ArchiveListing = {
 
 export type GitChange = { code: string; path: string }
 
+export type GitRemote = { name: string; url: string }
+
+export type GitHead = { branch: string; remotes: GitRemote[] }
+
 export type GitRepo = {
   root: string
   prefix: string
   superproject: string | null
+  head?: GitHead | null
 }
 
 export type GitStatus = GitRepo & {
@@ -103,14 +119,26 @@ export type GitStatus = GitRepo & {
   changes: GitChange[]
 }
 
-export type Probe = { empty: string[]; repos: string[]; submodules: string[] }
+export type Probe = {
+  empty: string[]
+  repos: string[]
+  submodules: string[]
+  heads?: Record<string, GitHead>
+}
 
 export type GitSync = "fetch" | "pull" | "push"
 
-export type CleanupPlan = { folder: string; hours: number; since: number }
+export type CleanupPlan = {
+  folder: string
+  hours: number
+  since: number
+  keep: string[]
+}
 
 export type GitCommit = {
   hash: string
+  parents: string[]
+  refs: string[]
   subject: string
   author: string
   time: number
@@ -225,6 +253,18 @@ export const nativeMenu = (
 export const invokeVerb = (items: string[], verb: string) =>
   call<void>("invoke_verb", { items, verb })
 
+export type ShellVerb = { verb: string; label: string; icon: string | null }
+
+export const shellVerbs = (items: string[], folder: string | null) =>
+  call<ShellVerb[]>("shell_verbs", { items, folder })
+
+export const runShellVerb = (
+  items: string[],
+  folder: string | null,
+  verb: string,
+  label: string,
+) => call<void>("run_shell_verb", { items, folder, verb, label })
+
 export const startDrag = (items: string[]) =>
   call<void>("start_drag", { items })
 
@@ -258,6 +298,9 @@ export const previewText = (path: string) =>
   call<string>("preview_text", { path })
 
 export const modelFiles = (path: string) => call<Model>("model_files", { path })
+
+export const inspectTensors = (path: string) =>
+  call<Tensors>("inspect_tensors", { path })
 
 export const openViewer = (path: string) => call<void>("open_viewer", { path })
 
@@ -297,8 +340,8 @@ export const cleanupPlan = (plan: CleanupPlan | null) =>
 export const gitRepo = (path: string) =>
   call<GitRepo | null>("git_repo", { path })
 
-export const gitStatus = (path: string, whole: boolean) =>
-  call<GitStatus | null>("git_status", { path, whole })
+export const gitStatus = (path: string, whole: boolean, repo: GitRepo) =>
+  call<GitStatus>("git_status", { path, whole, repo })
 
 export const gitLog = (root: string) => call<GitCommit[]>("git_log", { root })
 

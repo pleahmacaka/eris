@@ -187,6 +187,10 @@
   })
 
   $effect(() => {
+    tab.revisit()
+  })
+
+  $effect(() => {
     current
       .setTitle(`${explorer.title(tab, $t)} - Eris Files`)
       .catch(() => undefined)
@@ -194,10 +198,16 @@
 
   $effect(() => {
     const stops = [
+      current.onFocusChanged(e => {
+        if (e.payload) {
+          explorer.forgetCut().catch(() => undefined)
+        }
+      }),
       current.listen<string>("dir-changed", e => {
         const id = Number(e.payload)
+        const changed = explorer.tabs.find(entry => entry.id === id)
 
-        explorer.tabs.find(entry => entry.id === id)?.changed()
+        changed?.changed(changed === explorer.tab)
       }),
       getCurrentWebview().onDragDropEvent(e => {
         const { payload } = e
@@ -305,3 +315,9 @@
 <PrivacyPrompt />
 
 <ShareHost {explorer} />
+
+<style>
+  :global(.toast.toast-bottom) {
+    bottom: calc(var(--spacing) * 9);
+  }
+</style>

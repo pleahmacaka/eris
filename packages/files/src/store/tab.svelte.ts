@@ -206,17 +206,36 @@ const load = async (location: string, useCache: boolean): Promise<Loaded> => {
   }
 
   const prefetched = useCache ? takePrefetched(location) : null
-  const listing = await (prefetched ?? listOnline(normalize(location)))
+  const listing = await (prefetched?.listing ?? listOnline(normalize(location)))
 
   return {
     ...plain,
     location: normalize(listing.path),
     items: fromListing(listing),
-    cached: !!prefetched,
+    cached: !!prefetched && !prefetched.fresh,
   }
 }
 
+const sameItems = (old: Item[], next: Item[]) =>
+  old.length === next.length &&
+  old.every((item, index) => {
+    const other = next[index]
+
+    return (
+      item.key === other.key &&
+      item.size === other.size &&
+      item.modified === other.modified &&
+      item.created === other.created &&
+      item.attrs === other.attrs &&
+      item.dir === other.dir &&
+      item.link === other.link &&
+      item.kind === other.kind
+    )
+  })
+
 const CHANGE_SETTLE = 250
+
+const SEARCH_PUBLISH = 250
 
 let tabs = 0
 
@@ -269,6 +288,8 @@ export class Tab {
 
   #settle: ReturnType<typeof setTimeout> | undefined
 
+  #stale = false
+
   async open(location: string, options: OpenOptions = {}) {
     if (!(await confirmPrivate(location, this.location))) {
       return
@@ -292,11 +313,17 @@ export class Tab {
         return
       }
 
+      const same = !!options.keep && sameItems(this.items, loaded.items)
+
       this.location = loaded.location
       this.kind = loaded.kind
       this.shellName = loaded.shellName
-      this.items = loaded.items
       this.error = null
+
+      if (!same) {
+        this.items = loaded.items
+      }
+
       this.#record(loaded.location, options.record ?? true)
       this.#watch()
 
@@ -304,13 +331,13 @@ export class Tab {
 
       if (options.select) {
         this.select([options.select])
-      } else if (options.keep) {
+      } else if (options.keep && !same) {
         const keep = (key: string | null) => (key && keys.has(key) ? key : null)
 
         this.selection = new Set([...previous].filter(key => keys.has(key)))
         this.focus = keep(this.focus)
         this.anchor = keep(this.anchor)
-      } else {
+      } else if (!options.keep) {
         this.select([])
       }
 
@@ -372,7 +399,13 @@ export class Tab {
     }
   }
 
-  changed() {
+  changed(shown = true) {
+    if (!shown) {
+      this.#stale = true
+
+      return
+    }
+
     clearTimeout(this.#settle)
 
     this.#settle = setTimeout(() => {
@@ -380,6 +413,13 @@ export class Tab {
         this.refresh()
       }
     }, CHANGE_SETTLE)
+  }
+
+  revisit() {
+    if (this.#stale) {
+      this.#stale = false
+      this.changed()
+    }
   }
 
   dispose() {
@@ -476,13 +516,33 @@ export class Tab {
     this.results = []
     this.searching = true
 
-    searchDir(this.location, query, token, hits => {
+    const found: Item[] = []
+    let timer: ReturnType<typeof setTimeout> | undefined
+
+    const publish = () => {
+      timer = undefined
+
       if (this.#token === token) {
-        this.results = [...(this.results ?? []), ...hits.map(fromHit)]
+        this.results = [...found]
       }
+    }
+
+    searchDir(this.location, query, token, hits => {
+      if (this.#token !== token) {
+        return
+      }
+
+      for (const hit of hits) {
+        found.push(fromHit(hit))
+      }
+
+      timer ??= setTimeout(publish, SEARCH_PUBLISH)
     })
       .catch(() => undefined)
       .finally(() => {
+        clearTimeout(timer)
+        publish()
+
         if (this.#token === token) {
           this.searching = false
         }

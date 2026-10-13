@@ -48,9 +48,16 @@ export const clipSelection = async (
 ) => {
   const paths = context.selected.map(item => item.path)
 
-  if (paths.length) {
-    await services.native.setClipboard(paths, cut).catch(services.fail)
+  if (!paths.length) {
+    return false
   }
+
+  const placed = await services.native
+    .setClipboard(paths, cut)
+    .then(() => true)
+    .catch(services.failed)
+
+  return !!placed
 }
 
 export const copySelectionPath = (

@@ -24,6 +24,7 @@ export type Item = {
   parent: string | null
   drive: Drive | null
   packed?: string
+  place?: boolean
 }
 
 const blank = {
@@ -114,6 +115,7 @@ export const fromFolder = (path: string, name: string, kind: string): Item => ({
   size: 0,
   modified: 0,
   kind,
+  place: true,
 })
 
 export const fromDrive = (drive: Drive, name: string, kind: string): Item => ({

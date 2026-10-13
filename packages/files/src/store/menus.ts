@@ -1,5 +1,10 @@
 import { tr } from "@eris/i18n"
-import { type MenuAction, type MenuItem, openContextMenu } from "@eris/ui"
+import {
+  contextMenu,
+  type MenuAction,
+  type MenuItem,
+  openContextMenu,
+} from "@eris/ui"
 import { openShare, share } from "../components/share/share.svelte"
 import type { Item } from "../items"
 import {
@@ -20,13 +25,16 @@ import {
   mapNetworkDrive,
   nativeMenu,
   openWith,
+  type ShellVerb,
 } from "../native"
 import { archives, isArchive, splitArchive } from "./archive.svelte"
+import { CLEANUP_HOURS, keepInstaller } from "./cleanup.svelte"
 import { hintOf, menuItem } from "./commands"
 import { type Explorer, fail } from "./explorer.svelte"
 import { nameDrive, refreshPlaces } from "./places.svelte"
 import { prefs, type SidebarSection, VIEW_ICONS, VIEWS } from "./prefs.svelte"
 import { confirmPrivate, isMarked, toggleMark } from "./privacy.svelte"
+import { loadShellVerbs, targetOf, withShellVerbs } from "./shell-verbs"
 import {
   hidePath,
   isPinned,
@@ -85,8 +93,29 @@ const privateItem = (path: string): MenuAction => {
   }
 }
 
-const bandizip = (key: string, values?: Record<string, string>) =>
-  tr(`explorer.bandizip.${key}`, values)
+const VERB_WAIT = 120
+
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+const NAME_HEAD = 14
+
+const NAME_TAIL = 8
+
+const clipName = (name: string) => {
+  const chars = [...name]
+
+  if (chars.length <= NAME_HEAD + NAME_TAIL + 1) {
+    return name
+  }
+
+  return `${chars.slice(0, NAME_HEAD).join("")}…${chars.slice(-NAME_TAIL).join("")}`
+}
+
+const bandizip = (key: string, name?: string) =>
+  tr(
+    `explorer.bandizip.${key}`,
+    name === undefined ? undefined : { name: clipName(name) },
+  )
 
 const stemOf = (item: Item) =>
   item.dir
@@ -112,7 +141,7 @@ const extractMenu = (x: Explorer, archivesToExtract: Item[]): MenuItem[] => {
     },
     {
       label: single
-        ? bandizip("extractNamed", { name: stemOf(single) })
+        ? bandizip("extractNamed", stemOf(single))
         : bandizip("extractEach"),
       icon: "lucide:folder-output",
       action: run("extractNamed"),
@@ -139,12 +168,12 @@ const bandizipMenu = (x: Explorer): MenuItem[] => {
   return compact([
     "separator",
     {
-      label: bandizip("compressZip", { name }),
+      label: bandizip("compressZip", name),
       icon: "lucide:file-archive",
       action: run("compressZip"),
     },
     {
-      label: bandizip("compress7z", { name }),
+      label: bandizip("compress7z", name),
       icon: "lucide:file-archive",
       action: run("compress7z"),
     },
@@ -329,6 +358,42 @@ const backgroundMenu = (
   ]
 }
 
+export const openCleanupMenu = (
+  x: Explorer,
+  anchor: HTMLElement,
+  item: Item,
+) => {
+  const rect = anchor.getBoundingClientRect()
+
+  openContextMenu({
+    x: rect.left,
+    y: rect.bottom,
+    placement: "down",
+    items: [
+      ...CLEANUP_HOURS.map(hours => ({
+        label: tr("explorer.decor.deleteAfter", { hours }),
+        icon: hours === prefs.cleanupHours ? "lucide:check" : "lucide:clock",
+        action: () => (prefs.cleanupHours = hours),
+      })),
+      "separator",
+      {
+        label: tr("explorer.decor.keep"),
+        icon: "lucide:undo-2",
+        action: () => keepInstaller(item),
+      },
+      {
+        label: tr("explorer.decor.deleteNow"),
+        icon: "lucide:trash-2",
+        action: () => {
+          x.tab.select([item.key])
+
+          return x.remove(false)
+        },
+      },
+    ],
+  })
+}
+
 export const openMenu = async (
   x: Explorer,
   e: MouseEvent,
@@ -342,14 +407,35 @@ export const openMenu = async (
     x.tab.select([item.key])
   }
 
+  const shell = x.filesystem && x.tab.kind === "folder" && !x.inBin
+  const target = targetOf(x.selected, x.tab.location)
+  const loading = shell
+    ? loadShellVerbs(x.selected, target).catch(() => [])
+    : null
   const canPaste = await clipboardHasFiles().catch(() => false)
+  const ready = loading
+    ? await Promise.race([loading, wait(VERB_WAIT).then(() => null)])
+    : null
+  const items = item ? itemMenu(x) : backgroundMenu(x, canPaste, e)
+  const extend = (verbs: ShellVerb[]) =>
+    withShellVerbs(items, verbs, target, clipName, fail)
 
   openContextMenu({
     x: e.clientX,
     y: e.clientY,
     placement: "down",
-    items: item ? itemMenu(x) : backgroundMenu(x, canPaste, e),
+    items: ready ? extend(ready) : items,
   })
+
+  const opened = contextMenu.request
+
+  if (loading && !ready) {
+    loading.then(verbs => {
+      if (opened && contextMenu.request === opened) {
+        opened.items = extend(verbs)
+      }
+    })
+  }
 }
 
 export type Place = {

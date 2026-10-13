@@ -13,6 +13,7 @@
     fontFamily?: string
     fontSize?: number
     active?: boolean
+    shown?: boolean
     onexit?: (code: number) => void
     onpty?: (id: number) => void
     ontitle?: (title: string) => void
@@ -27,6 +28,7 @@
     fontFamily = DEFAULT_FONT,
     fontSize = 14,
     active = true,
+    shown = true,
     onexit,
     onpty,
     ontitle,
@@ -137,7 +139,7 @@
         fontFamily: fontStack(start.fontFamily),
         fontSize: start.fontSize,
         theme: terminalTheme(),
-        cursorBlink: true,
+        cursorBlink: untrack(() => active),
       })
 
       fit = new ghostty.FitAddon()
@@ -237,6 +239,34 @@
       screen.options.fontSize = size
       fit?.fit()
     })
+  })
+
+  $effect(() => {
+    if (term) {
+      term.options.cursorBlink = active
+    }
+  })
+
+  $effect(() => {
+    const screen = term
+
+    if (!screen) {
+      return
+    }
+
+    if (shown) {
+      screen["startRenderLoop"]()
+
+      return
+    }
+
+    // ghostty-web redraws every frame until disposed and restarts the loop after each resize
+    const pause = () => screen["cancelRenderLoop"]()
+    const resized = screen.onResize(() => queueMicrotask(pause))
+
+    pause()
+
+    return () => resized.dispose()
   })
 
   $effect(() => {

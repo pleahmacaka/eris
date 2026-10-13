@@ -1,25 +1,58 @@
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Duration;
 
 use tauri::{AppHandle, Emitter, WebviewWindow};
 use windows::core::HSTRING;
-use windows::Win32::Foundation::WAIT_OBJECT_0;
+use windows::Win32::Foundation::{CloseHandle, HANDLE, WAIT_OBJECT_0, WAIT_TIMEOUT};
 use windows::Win32::Storage::FileSystem::{
     FindCloseChangeNotification, FindFirstChangeNotificationW, FindNextChangeNotification,
     FILE_NOTIFY_CHANGE_ATTRIBUTES, FILE_NOTIFY_CHANGE_DIR_NAME, FILE_NOTIFY_CHANGE_FILE_NAME,
     FILE_NOTIFY_CHANGE_LAST_WRITE, FILE_NOTIFY_CHANGE_SIZE,
 };
-use windows::Win32::System::Threading::WaitForSingleObject;
+use windows::Win32::System::Threading::{
+    CreateEventW, SetEvent, WaitForMultipleObjects, WaitForSingleObject, INFINITE,
+};
 
-fn watchers() -> &'static Mutex<HashMap<String, Arc<AtomicBool>>> {
-    static WATCHERS: OnceLock<Mutex<HashMap<String, Arc<AtomicBool>>>> = OnceLock::new();
+pub(crate) struct Stop(HANDLE);
+
+// an event handle may be signalled and waited on from any thread
+unsafe impl Send for Stop {}
+unsafe impl Sync for Stop {}
+
+impl Stop {
+    fn new() -> Arc<Self> {
+        Arc::new(Self(
+            unsafe { CreateEventW(None, true, false, None) }.unwrap_or_default(),
+        ))
+    }
+
+    pub(crate) fn set(&self) {
+        let _ = unsafe { SetEvent(self.0) };
+    }
+
+    fn wait(&self, timeout: Duration) -> bool {
+        (unsafe { WaitForSingleObject(self.0, timeout.as_millis() as u32) }) != WAIT_TIMEOUT
+    }
+
+    fn changed(&self, handle: HANDLE) -> bool {
+        (unsafe { WaitForMultipleObjects(&[handle, self.0], false, INFINITE) }) == WAIT_OBJECT_0
+    }
+}
+
+impl Drop for Stop {
+    fn drop(&mut self) {
+        let _ = unsafe { CloseHandle(self.0) };
+    }
+}
+
+fn watchers() -> &'static Mutex<HashMap<String, Arc<Stop>>> {
+    static WATCHERS: OnceLock<Mutex<HashMap<String, Arc<Stop>>>> = OnceLock::new();
 
     WATCHERS.get_or_init(Default::default)
 }
 
-fn spawn(app: AppHandle, label: String, slot: String, path: String, stop: Arc<AtomicBool>) {
+fn spawn(app: AppHandle, label: String, slot: String, path: String, stop: Arc<Stop>) {
     std::thread::spawn(move || {
         let filter = FILE_NOTIFY_CHANGE_FILE_NAME
             | FILE_NOTIFY_CHANGE_DIR_NAME
@@ -33,11 +66,7 @@ fn spawn(app: AppHandle, label: String, slot: String, path: String, stop: Arc<At
             return;
         };
 
-        while !stop.load(Ordering::Relaxed) {
-            if unsafe { WaitForSingleObject(handle, 400) } != WAIT_OBJECT_0 {
-                continue;
-            }
-
+        while stop.changed(handle) {
             std::thread::sleep(Duration::from_millis(150));
 
             let _ = app.emit_to(label.as_str(), "dir-changed", &slot);
@@ -59,14 +88,14 @@ pub fn watch_dir(app: AppHandle, window: WebviewWindow, slot: String, path: Opti
     let mut active = watchers().lock().unwrap();
 
     if let Some(previous) = active.remove(&key) {
-        previous.store(true, Ordering::Relaxed);
+        previous.set();
     }
 
     let Some(path) = path else {
         return;
     };
 
-    let stop = Arc::new(AtomicBool::new(false));
+    let stop = Stop::new();
 
     active.insert(key, stop.clone());
     spawn(app, label, slot, path, stop);
@@ -79,7 +108,7 @@ pub fn forget(label: &str) {
         let owned = key.starts_with(&prefix);
 
         if owned {
-            stop.store(true, Ordering::Relaxed);
+            stop.set();
         }
 
         !owned
@@ -90,8 +119,8 @@ pub(crate) fn watch_tree(
     path: std::path::PathBuf,
     settle: Duration,
     on_change: impl Fn() + Send + 'static,
-) -> Arc<AtomicBool> {
-    let stop = Arc::new(AtomicBool::new(false));
+) -> Arc<Stop> {
+    let stop = Stop::new();
     let stopped = stop.clone();
 
     std::thread::spawn(move || {
@@ -103,11 +132,14 @@ pub(crate) fn watch_tree(
         let quiet = settle.as_millis() as u32;
         let mut missed = false;
 
-        while !stopped.load(Ordering::Relaxed) {
+        while !stopped.wait(Duration::ZERO) {
             let Ok(handle) = (unsafe { FindFirstChangeNotificationW(&folder, true, filter) })
             else {
                 missed = true;
-                std::thread::sleep(Duration::from_secs(5));
+
+                if stopped.wait(Duration::from_secs(5)) {
+                    break;
+                }
 
                 continue;
             };
@@ -118,11 +150,7 @@ pub(crate) fn watch_tree(
 
             let mut armed = true;
 
-            while armed && !stopped.load(Ordering::Relaxed) {
-                if unsafe { WaitForSingleObject(handle, 400) } != WAIT_OBJECT_0 {
-                    continue;
-                }
-
+            while armed && stopped.changed(handle) {
                 armed = unsafe { FindNextChangeNotification(handle) }.is_ok();
 
                 while armed && unsafe { WaitForSingleObject(handle, quiet) } == WAIT_OBJECT_0 {

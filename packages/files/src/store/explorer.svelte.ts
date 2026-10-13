@@ -98,6 +98,8 @@ export class Explorer {
 
   dropKey = $state<string | null>(null)
 
+  cut = $state.raw(new Set<string>())
+
   dropHint = $state<{
     x: number
     y: number
@@ -213,7 +215,25 @@ export class Explorer {
   }
 
   async clip(cut: boolean) {
-    return transferring.clipSelection(this, cut, transferServices)
+    const keys = this.selected.map(item => item.key)
+
+    if (!(await transferring.clipSelection(this, cut, transferServices))) {
+      return
+    }
+
+    this.cut = new Set(cut ? keys : [])
+    toast(
+      tr(`explorer.clipboard.${cut ? "cut" : "copied"}`, {
+        count: keys.length,
+      }),
+      "success",
+    )
+  }
+
+  async forgetCut() {
+    if (this.cut.size && !(await native.clipboardHasFiles())) {
+      this.cut = new Set()
+    }
   }
 
   copyPath() {
@@ -221,7 +241,11 @@ export class Explorer {
   }
 
   async paste() {
-    return transferring.paste(this, transferServices)
+    await transferring.paste(this, transferServices)
+
+    if (this.cut.size) {
+      this.cut = new Set()
+    }
   }
 
   dropPlan(paths: string[], target: string | null = null) {

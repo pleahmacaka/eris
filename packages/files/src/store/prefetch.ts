@@ -6,6 +6,7 @@ import { places } from "./places.svelte"
 
 const HOVER_REST = 80
 const LIFE = 15_000
+const FRESH = 1000
 const LIMIT = 24
 const WARM_ICONS = 40
 
@@ -23,7 +24,11 @@ export const takePrefetched = (location: string) => {
 
   cache.delete(path)
 
-  return hit && Date.now() - hit.at < LIFE ? hit.listing : null
+  if (!hit || Date.now() - hit.at >= LIFE) {
+    return null
+  }
+
+  return { listing: hit.listing, fresh: Date.now() - hit.at < FRESH }
 }
 
 export const prefetch = (location: string) => {
@@ -50,9 +55,17 @@ export const prefetch = (location: string) => {
 
   cache.set(path, { at: Date.now(), listing })
 
+  setTimeout(() => {
+    if (cache.get(path)?.listing === listing) {
+      cache.delete(path)
+    }
+  }, LIFE)
+
   listing
     .then(found => {
-      for (const item of fromListing(found).slice(0, WARM_ICONS)) {
+      const warm = { ...found, entries: found.entries.slice(0, WARM_ICONS) }
+
+      for (const item of fromListing(warm)) {
         new Image().src = iconSource(item, iconPixels(1))
       }
     })

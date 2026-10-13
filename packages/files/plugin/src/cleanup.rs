@@ -75,13 +75,102 @@ fn version_strings(_path: &str) -> Vec<String> {
     Vec::new()
 }
 
+const MSI_MAGIC: [u8; 8] = [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
+
+const IMAGE_MARKERS: [&[u8]; 4] = [
+    b"Nullsoft.NSIS",
+    b"JR.Inno.Setup",
+    b"Inno Setup",
+    b"InstallShield",
+];
+
+const OVERLAY_MARKERS: [&[u8]; 2] = [b"NullsoftInst", b"Inno Setup Setup Data"];
+
+const IMAGE_SCAN: u64 = 16 << 20;
+const OVERLAY_SCAN: u64 = 1 << 20;
+
+fn contains_any(bytes: &[u8], markers: &[&[u8]]) -> bool {
+    markers
+        .iter()
+        .any(|marker| memchr::memmem::find(bytes, marker).is_some())
+}
+
+fn is_msi(path: &Path) -> bool {
+    let mut head = [0u8; 8];
+
+    std::fs::File::open(path)
+        .and_then(|mut file| std::io::Read::read_exact(&mut file, &mut head))
+        .is_ok_and(|()| head == MSI_MAGIC)
+}
+
+fn built_by_installer_engine(path: &Path) -> bool {
+    use object::{Object, ObjectSection, ReadRef};
+
+    let Ok(file) = std::fs::File::open(path) else {
+        return false;
+    };
+    let cache = object::ReadCache::new(file);
+    let Ok(pe) = object::File::parse(&cache) else {
+        return false;
+    };
+
+    if pe.format() != object::BinaryFormat::Pe {
+        return false;
+    }
+
+    if pe
+        .sections()
+        .any(|section| section.name() == Ok(".wixburn"))
+    {
+        return true;
+    }
+
+    let image_end = pe
+        .sections()
+        .filter_map(|section| section.file_range())
+        .map(|(offset, size)| offset + size)
+        .max()
+        .unwrap_or(0);
+    let file_end = cache.len().unwrap_or(0);
+    let window = |start: u64, size: u64| {
+        let size = size.min(file_end.saturating_sub(start));
+
+        cache.read_bytes_at(start, size).unwrap_or_default()
+    };
+
+    contains_any(window(0, image_end.min(IMAGE_SCAN)), &IMAGE_MARKERS)
+        || contains_any(window(image_end, OVERLAY_SCAN), &OVERLAY_MARKERS)
+}
+
 fn is_installer(path: &str) -> bool {
-    let name = Path::new(path)
+    let path = Path::new(path);
+    let name = path
         .file_name()
-        .map(|name| name.to_string_lossy().into_owned())
+        .map(|name| name.to_string_lossy().to_lowercase())
         .unwrap_or_default();
 
-    marked(&name) || version_strings(path).iter().any(|text| marked(text))
+    if name.contains("uninstall") {
+        return false;
+    }
+
+    match installer_extension(path) {
+        Some("msi") => is_msi(path),
+        Some("exe") => {
+            built_by_installer_engine(path)
+                || version_strings(&path.to_string_lossy())
+                    .iter()
+                    .any(|text| marked(text))
+        }
+        _ => false,
+    }
+}
+
+fn installer_extension(path: &Path) -> Option<&'static str> {
+    let extension = path.extension()?;
+
+    ["exe", "msi"]
+        .into_iter()
+        .find(|known| extension.eq_ignore_ascii_case(known))
 }
 
 #[tauri::command]
@@ -101,6 +190,7 @@ pub struct Plan {
     folder: String,
     hours: u64,
     since: u64,
+    keep: Vec<String>,
 }
 
 const HOUR: u64 = 3_600_000;
@@ -138,16 +228,19 @@ fn due(plan: &Plan) -> Vec<String> {
         .filter_map(|entry| {
             let path = entry.path();
             let meta = entry.metadata().ok()?;
-            let executable = path
-                .extension()
-                .is_some_and(|extension| extension.eq_ignore_ascii_case("exe"));
 
-            if !meta.is_file() || !executable || cloud_only(&meta) {
+            if !meta.is_file() || installer_extension(&path).is_none() || cloud_only(&meta) {
                 return None;
             }
 
-            let born = meta.created().or_else(|_| meta.modified()).ok()?;
-            let deadline = millis(born).max(plan.since) + plan.hours * HOUR;
+            let born = millis(meta.created().or_else(|_| meta.modified()).ok()?);
+            let key = format!("{}|{born}", entry.file_name().to_string_lossy());
+
+            if plan.keep.contains(&key) {
+                return None;
+            }
+
+            let deadline = born.max(plan.since) + plan.hours * HOUR;
 
             (now >= deadline).then(|| path.to_string_lossy().into_owned())
         })

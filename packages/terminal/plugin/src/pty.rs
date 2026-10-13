@@ -16,7 +16,7 @@ use crate::shells;
 
 const READ_CHUNK: usize = 64 * 1024;
 const BATCH_LIMIT: usize = 1024 * 1024;
-const FRAME: Duration = Duration::from_millis(4);
+const FRAME: Duration = Duration::from_millis(12);
 const REPLAY_LIMIT: usize = 1024 * 1024;
 
 #[derive(Default)]

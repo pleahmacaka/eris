@@ -200,7 +200,11 @@
       "items": "{count} 个项目",
       "more": "另外 {count} 个",
       "archive": "压缩包内 {count} 个项目",
-      "documentFailed": "无法打开文档"
+      "documentFailed": "无法打开文档",
+      "tensors": "{count} 个张量",
+      "parameters": "{count} 个参数",
+      "rows": "{count} 行",
+      "columns": "{count} 列"
     },
     "errors": {
       "denied": "拒绝访问",
@@ -277,7 +281,10 @@
           "red": "红色",
           "primary": "强调色"
         }
-      }
+      },
+      "archiveBackend": "压缩引擎",
+      "archiveBandizip": "已连接 Bandizip",
+      "archiveBuiltin": "内置库"
     },
     "sidebar": {
       "title": "侧边栏",
@@ -404,11 +411,15 @@
     },
     "decor": {
       "empty": "(空文件夹)",
-      "hoursLeft": "剩余 {hours} 小时",
-      "due": "等待清理",
+      "deleteIn": "{hours} 小时后删除",
+      "due": "等待删除",
+      "deleteAfter": "下载 {hours} 小时后删除",
+      "keep": "取消删除",
+      "deleteNow": "立即删除",
       "cleanupHint": "下载的安装程序将在 {hours} 小时后移到回收站。",
-      "repo": "Git 仓库",
-      "submodule": "子模块"
+      "repo": "Git",
+      "submodule": "子模块",
+      "forkOf": "复刻自 {upstream}"
     },
     "git": {
       "needFolder": "请先打开一个文件夹再克隆。",
@@ -439,6 +450,10 @@
       "readme": "README",
       "rendered": "渲染",
       "raw": "原文"
+    },
+    "clipboard": {
+      "copied": "已复制 {count} 个项目",
+      "cut": "已剪切 {count} 个项目"
     }
   },
   "terminal": {

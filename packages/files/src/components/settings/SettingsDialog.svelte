@@ -16,6 +16,7 @@
   import DecorSettings from "./DecorSettings.svelte"
   import DefaultAppRows from "./DefaultAppRows.svelte"
   import SidebarSettings from "./SidebarSettings.svelte"
+  import { archives } from "../../store/archive.svelte"
   import type { Explorer } from "../../store/explorer.svelte"
   import { prefs, resetPrefs } from "../../store/prefs.svelte"
 
@@ -150,6 +151,17 @@
       {:else}
         <Section title="Eris Files">
           <Row label={$t("explorer.settings.version")} value={version}>
+            <span></span>
+          </Row>
+
+          <Row
+            label={$t("explorer.settings.archiveBackend")}
+            value={$t(
+              archives.bandizip
+                ? "explorer.settings.archiveBandizip"
+                : "explorer.settings.archiveBuiltin",
+            )}
+          >
             <span></span>
           </Row>
 

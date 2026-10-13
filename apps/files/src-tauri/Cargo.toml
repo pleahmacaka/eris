@@ -7,7 +7,7 @@ rust-version = "1.95"
 
 [lib]
 name = "files_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 eris-window-kit = { version = "0.1.0", path = "../../../packages/window-kit" }

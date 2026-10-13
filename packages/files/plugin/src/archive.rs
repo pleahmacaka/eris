@@ -6,6 +6,8 @@ use std::io::BufReader;
 use std::os::windows::process::CommandExt;
 use std::path::{Component, Path, PathBuf, MAIN_SEPARATOR, MAIN_SEPARATOR_STR};
 use std::process::{Command, Stdio};
+use std::sync::OnceLock;
+use std::time::{Duration, SystemTime};
 
 use chrono::{Local, NaiveDate, NaiveDateTime, TimeZone};
 use serde::{Deserialize, Serialize};
@@ -48,13 +50,15 @@ pub enum Job {
     CompressEach,
 }
 
+const SCRATCH_LIFE: Duration = Duration::from_secs(24 * 60 * 60);
+
 #[cfg(not(windows))]
-fn bandizip() -> Option<PathBuf> {
+fn find_bandizip() -> Option<PathBuf> {
     None
 }
 
 #[cfg(windows)]
-fn bandizip() -> Option<PathBuf> {
+fn find_bandizip() -> Option<PathBuf> {
     let folder: String = RegKey::predef(HKEY_LOCAL_MACHINE)
         .open_subkey(r"SOFTWARE\Bandizip")
         .ok()?
@@ -63,6 +67,12 @@ fn bandizip() -> Option<PathBuf> {
     let console = Path::new(&folder).join("bz.exe");
 
     console.is_file().then_some(console)
+}
+
+pub(crate) fn bandizip() -> Option<&'static Path> {
+    static FOUND: OnceLock<Option<PathBuf>> = OnceLock::new();
+
+    FOUND.get_or_init(find_bandizip).as_deref()
 }
 
 // bz.exe is the console build, so the free edition's window and its ad popup never open
@@ -239,6 +249,25 @@ fn listing(path: &Path) -> Result<Vec<Packed>> {
 
 fn scratch_root() -> PathBuf {
     std::env::temp_dir().join("eris-archive")
+}
+
+pub fn prune_scratch() {
+    let Ok(folders) = std::fs::read_dir(scratch_root()) else {
+        return;
+    };
+
+    for folder in folders.flatten() {
+        let stale = folder
+            .metadata()
+            .and_then(|meta| meta.modified())
+            .ok()
+            .and_then(|modified| SystemTime::now().duration_since(modified).ok())
+            .is_some_and(|age| age > SCRATCH_LIFE);
+
+        if stale && folder.file_type().is_ok_and(|kind| kind.is_dir()) {
+            let _ = std::fs::remove_dir_all(folder.path());
+        }
+    }
 }
 
 // the folder icon comes from a real plain folder, since an archive's inner folders have no shell item

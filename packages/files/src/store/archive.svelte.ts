@@ -63,6 +63,8 @@ export const splitArchive = (location: string) => {
   }
 }
 
+const LISTINGS_KEPT = 6
+
 const listings = new Map<string, Promise<ArchiveListing>>()
 
 export const archiveListing = (path: string, fresh: boolean) => {
@@ -79,7 +81,15 @@ export const archiveListing = (path: string, fresh: boolean) => {
     return listing
   })
 
+  listings.delete(key)
   listings.set(key, pending)
+
+  const oldest = listings.keys().next().value
+
+  if (listings.size > LISTINGS_KEPT && oldest !== undefined) {
+    listings.delete(oldest)
+  }
+
   pending.catch(() => listings.delete(key))
 
   return pending

@@ -46,10 +46,15 @@ mod share;
 
 pub use share::endpoint_id;
 #[cfg(desktop)]
+mod tensors;
+#[cfg(desktop)]
 #[cfg_attr(not(windows), path = "unix/thumbs.rs")]
 mod thumbs;
 #[cfg(desktop)]
 mod transcribe;
+#[cfg(desktop)]
+#[cfg_attr(not(windows), path = "unix/verbs.rs")]
+mod verbs;
 #[cfg(desktop)]
 #[cfg_attr(not(windows), path = "unix/watch.rs")]
 mod watch;
@@ -140,6 +145,10 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             #[cfg(desktop)]
             actions::invoke_verb,
             #[cfg(desktop)]
+            verbs::shell_verbs,
+            #[cfg(desktop)]
+            verbs::run_shell_verb,
+            #[cfg(desktop)]
             ops::transfer_items,
             #[cfg(desktop)]
             ops::delete_items,
@@ -163,6 +172,8 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             preview::is_mujoco,
             #[cfg(desktop)]
             preview::open_viewer,
+            #[cfg(desktop)]
+            tensors::inspect_tensors,
             audio::audio_waveform,
             #[cfg(desktop)]
             inspect::identical_files,
@@ -265,6 +276,8 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             #[cfg(desktop)]
             app.manage(eris_window_kit::Intents::<launch::Intent>::default());
             share::start(app);
+            #[cfg(desktop)]
+            std::thread::spawn(archive::prune_scratch);
 
             if !cfg!(debug_assertions) {
                 default_app::repoint(&host);

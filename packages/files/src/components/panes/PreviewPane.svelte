@@ -1,5 +1,6 @@
 <script lang="ts">
   import { currentLocale } from "@eris/i18n"
+  import { untrack } from "svelte"
   import { Splitter } from "@eris/ui"
   import { t } from "svelte-i18n"
   import { docKind } from "@eris/doc-preview"
@@ -7,6 +8,7 @@
   import DocumentPeek from "./DocumentPeek.svelte"
   import FolderPane from "./FolderPane.svelte"
   import FolderPeek from "./FolderPeek.svelte"
+  import TensorPeek from "./TensorPeek.svelte"
   import ZoomImage from "./ZoomImage.svelte"
   import { formatBytes, formatDate } from "../../format"
   import { fromArchive, fromListing, type Item, packedEntry } from "../../items"
@@ -16,30 +18,38 @@
     allowPreview,
     assetUrl,
     extractEntry,
-    listArchive,
+    inspectTensors,
     listDir,
     previewText,
+    type Tensors,
   } from "../../native"
-  import { isArchive } from "../../store/archive.svelte"
+  import { archiveListing, isArchive } from "../../store/archive.svelte"
   import { prefs } from "../../store/prefs.svelte"
   import { confirmPrivate } from "../../store/privacy.svelte"
   import type { Tab } from "../../store/tab.svelte"
 
-  type Kind = Exclude<FileKind, "model"> | "document" | "folder" | "archive"
+  type FileView = Exclude<FileKind, "model"> | "document"
 
-  type Shown = {
-    key: string
-    kind: Kind | null
-    url: string
-    text: string
-    children: Item[]
-  }
+  type Content =
+    | { kind: null }
+    | { kind: "folder" | "archive"; children: Item[] }
+    | { kind: "text"; text: string }
+    | { kind: "tensors"; tensors: Tensors }
+    | { kind: Exclude<FileView, "text" | "tensors">; url: string }
+
+  type Shown = Content & { key: string }
+
+  const NOTHING: Content = { kind: null }
 
   let { item, tab }: { item: Item | null; tab: Tab } = $props()
 
-  let shown = $state<Shown | null>(null)
+  let shown = $state.raw<Shown | null>(null)
 
-  const previewKind = (target: Item): Kind | null => {
+  const version = $derived(
+    item ? `${item.key}\0${item.modified}\0${item.size}` : null,
+  )
+
+  const previewKind = (target: Item): FileView | null => {
     if (docKind(target.name)) {
       return "document"
     }
@@ -51,7 +61,7 @@
 
   const children = async (target: Item) => {
     if (target.packed) {
-      const listing = await listArchive(target.packed)
+      const listing = await archiveListing(target.packed, false)
 
       return fromArchive(target.path, target.packed, packedEntry(target), listing)
     }
@@ -60,24 +70,22 @@
       return fromListing(await listDir(target.path))
     }
 
-    return fromArchive(target.path, target.path, "", await listArchive(target.path))
+    return fromArchive(target.path, target.path, "", await archiveListing(target.path, false))
   }
 
-  const load = async (target: Item): Promise<Shown> => {
-    const blank = { key: target.key, kind: null, url: "", text: "", children: [] }
-
+  const load = async (target: Item): Promise<Content> => {
     if (!(await confirmPrivate(target.path, parentOf(target.path) ?? ""))) {
-      return blank
+      return NOTHING
     }
 
     if (target.dir || (!target.packed && isArchive(target.name))) {
-      return { ...blank, kind: target.dir ? "folder" : "archive", children: await children(target) }
+      return { kind: target.dir ? "folder" : "archive", children: await children(target) }
     }
 
     const kind = previewKind(target)
 
     if (!kind) {
-      return blank
+      return NOTHING
     }
 
     const path = target.packed ? await extractEntry(target.packed, packedEntry(target)) : target.path
@@ -85,16 +93,22 @@
     if (kind === "text") {
       const text = await previewText(path).catch(() => "")
 
-      return text ? { ...blank, kind, text } : blank
+      return text ? { kind, text } : NOTHING
+    }
+
+    if (kind === "tensors") {
+      const tensors = await inspectTensors(path).catch(() => null)
+
+      return tensors ? { kind, tensors } : NOTHING
     }
 
     await allowPreview(path)
 
-    return { ...blank, kind, url: assetUrl(path) }
+    return { kind, url: assetUrl(path) }
   }
 
   $effect(() => {
-    const target = item
+    const target = version ? untrack(() => item) : null
 
     if (!target || isVirtual(target.path)) {
       shown = null
@@ -105,10 +119,10 @@
     let live = true
 
     load(target)
-      .catch(() => ({ key: target.key, kind: null, url: "", text: "", children: [] }))
-      .then(next => {
+      .catch(() => NOTHING)
+      .then(content => {
         if (live) {
-          shown = next
+          shown = { ...content, key: target.key }
         }
       })
 
@@ -170,6 +184,8 @@
             values: { count: current.children.length },
           })}
         />
+      {:else if current?.kind === "tensors"}
+        <TensorPeek tensors={current.tensors} />
       {:else if current?.kind === "document"}
         <DocumentPeek url={current.url} name={item.name} />
       {:else if current?.kind === "image"}

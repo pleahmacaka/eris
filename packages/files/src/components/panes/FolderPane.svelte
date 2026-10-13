@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
+  import { hostOf } from "../../hosts"
   import { type FolderPane, prefs } from "../../store/prefs.svelte"
   import type { Tab } from "../../store/tab.svelte"
   import GitPanel from "./GitPanel.svelte"
@@ -17,11 +18,13 @@
   ]
 
   const MODES: [FolderPane, string][] = [
-    ["git", "lucide:git-branch"],
     ["readme", "lucide:book-open"],
+    ["git", "lucide:git-branch"],
   ]
 
   const repo = $derived(tab.insight.view.repo)
+
+  const host = $derived(hostOf(repo?.head))
 
   const readme = $derived(
     tab.kind === "folder"
@@ -51,12 +54,12 @@
           "btn btn-square btn-sm",
           mode === id ? "btn-soft btn-primary" : "btn-ghost",
         ]}
-        title={$t(`explorer.folderPane.${id}`)}
+        title={id === "git" && host.name ? host.name : $t(`explorer.folderPane.${id}`)}
         aria-label={$t(`explorer.folderPane.${id}`)}
         aria-pressed={mode === id}
         onclick={() => (prefs.folderPane = id)}
       >
-        <Icon {icon} class="size-4" />
+        <Icon icon={id === "git" ? host.icon : icon} class="size-4" />
       </button>
     {/each}
 

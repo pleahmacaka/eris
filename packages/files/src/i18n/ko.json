@@ -200,7 +200,11 @@
       "items": "항목 {count}개",
       "more": "외 {count}개",
       "archive": "압축 파일 항목 {count}개",
-      "documentFailed": "문서를 열 수 없음"
+      "documentFailed": "문서를 열 수 없음",
+      "tensors": "텐서 {count}개",
+      "parameters": "매개변수 {count}개",
+      "rows": "행 {count}개",
+      "columns": "열 {count}개"
     },
     "errors": {
       "denied": "접근 권한 없음",
@@ -277,7 +281,10 @@
           "red": "빨강",
           "primary": "강조색"
         }
-      }
+      },
+      "archiveBackend": "압축 엔진",
+      "archiveBandizip": "Bandizip 연결됨",
+      "archiveBuiltin": "내장 라이브러리"
     },
     "sidebar": {
       "title": "사이드바",
@@ -404,11 +411,15 @@
     },
     "decor": {
       "empty": "(빈 폴더)",
-      "hoursLeft": "{hours}시간 남음",
-      "due": "정리 대기",
+      "deleteIn": "{hours}시간 후 삭제",
+      "due": "삭제 대기",
+      "deleteAfter": "다운로드 {hours}시간 후 삭제",
+      "keep": "삭제 취소",
+      "deleteNow": "지금 삭제",
       "cleanupHint": "다운로드한 설치 파일은 {hours}시간 뒤 휴지통으로 이동합니다.",
-      "repo": "Git 저장소",
-      "submodule": "서브모듈"
+      "repo": "Git",
+      "submodule": "서브모듈",
+      "forkOf": "{upstream}의 포크"
     },
     "git": {
       "needFolder": "폴더를 연 상태에서 클론하세요.",
@@ -439,6 +450,10 @@
       "readme": "README",
       "rendered": "렌더링",
       "raw": "원문"
+    },
+    "clipboard": {
+      "copied": "항목 {count}개 복사됨",
+      "cut": "항목 {count}개 잘라냄"
     }
   },
   "terminal": {

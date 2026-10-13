@@ -11,6 +11,19 @@ use tauri::{AppHandle, Emitter, WebviewWindow};
 const BURST: Duration = Duration::from_millis(150);
 const POLL: Duration = Duration::from_millis(400);
 
+#[derive(Default)]
+pub(crate) struct Stop(AtomicBool);
+
+impl Stop {
+    pub(crate) fn set(&self) {
+        self.0.store(true, Ordering::Relaxed);
+    }
+
+    fn is_set(&self) -> bool {
+        self.0.load(Ordering::Relaxed)
+    }
+}
+
 fn watchers() -> &'static Mutex<HashMap<String, RecommendedWatcher>> {
     static WATCHERS: OnceLock<Mutex<HashMap<String, RecommendedWatcher>>> = OnceLock::new();
 
@@ -80,8 +93,8 @@ pub(crate) fn watch_tree(
     path: PathBuf,
     settle: Duration,
     on_change: impl Fn() + Send + 'static,
-) -> Arc<AtomicBool> {
-    let stop = Arc::new(AtomicBool::new(false));
+) -> Arc<Stop> {
+    let stop = Arc::new(Stop::default());
     let stopped = stop.clone();
 
     std::thread::spawn(move || {
@@ -93,12 +106,12 @@ pub(crate) fn watch_tree(
             return;
         };
 
-        while !stopped.load(Ordering::Relaxed) {
+        while !stopped.is_set() {
             match receiver.recv_timeout(POLL) {
                 Ok(()) => {
                     while receiver.recv_timeout(settle).is_ok() {}
 
-                    if !stopped.load(Ordering::Relaxed) {
+                    if !stopped.is_set() {
                         on_change();
                     }
                 }

@@ -8,6 +8,9 @@ import { prefs } from "./prefs.svelte"
 const HOUR = 3_600_000
 const TICK = 60_000
 const CACHE_LIMIT = 2000
+const KEEP_LIMIT = 200
+
+const INSTALLER_EXTENSIONS = new Set([".exe", ".msi"])
 
 export const CLEANUP_HOURS = [6, 12, 24, 48, 72]
 
@@ -20,12 +23,23 @@ export const enableCleanup = (on: boolean) => {
   prefs.cleanupSince = on ? Date.now() : 0
 }
 
+const bornOf = (item: Item) => item.created || item.modified
+
 const deadlineOf = (item: Item) =>
-  Math.max(item.created || item.modified, prefs.cleanupSince) +
-  prefs.cleanupHours * HOUR
+  Math.max(bornOf(item), prefs.cleanupSince) + prefs.cleanupHours * HOUR
 
 export const hoursLeft = (item: Item) =>
   Math.max(0, Math.ceil((deadlineOf(item) - clock.now) / HOUR))
+
+const keepKey = (item: Item) => `${item.name}|${bornOf(item)}`
+
+export const isKept = (item: Item) => prefs.cleanupKeep.includes(keepKey(item))
+
+export const keepInstaller = (item: Item) => {
+  if (!isKept(item)) {
+    prefs.cleanupKeep = [...prefs.cleanupKeep, keepKey(item)].slice(-KEEP_LIMIT)
+  }
+}
 
 const downloadsPath = () =>
   places.known.find(known => known.id === "downloads")?.path ?? null
@@ -43,7 +57,7 @@ export const findInstallers = async (items: Item[]) => {
     item =>
       !item.dir &&
       !(item.attrs & CLOUD_ONLY) &&
-      extensionOf(item.name) === ".exe",
+      INSTALLER_EXTENSIONS.has(extensionOf(item.name)),
   )
   const unknown = executables.filter(item => !verdicts.has(verdictKey(item)))
 
@@ -84,7 +98,12 @@ export const syncCleanupPlan = () => {
   const folder = downloadsPath()
   const plan =
     prefs.cleanup && folder
-      ? { folder, hours: prefs.cleanupHours, since: prefs.cleanupSince }
+      ? {
+          folder,
+          hours: prefs.cleanupHours,
+          since: prefs.cleanupSince,
+          keep: prefs.cleanupKeep,
+        }
       : null
 
   cleanupPlan(plan).catch(() => undefined)

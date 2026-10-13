@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-run-shell-verb"
+description = "Enables the run_shell_verb command without any pre-configured scope."
+commands.allow = ["run_shell_verb"]
+
+[[permission]]
+identifier = "deny-run-shell-verb"
+description = "Denies the run_shell_verb command without any pre-configured scope."
+commands.deny = ["run_shell_verb"]

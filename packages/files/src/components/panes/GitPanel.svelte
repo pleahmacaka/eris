@@ -1,9 +1,11 @@
 <script lang="ts">
   import { currentLocale } from "@eris/i18n"
   import Icon from "@iconify/svelte"
+  import { untrack } from "svelte"
   import { t } from "svelte-i18n"
   import { formatDate } from "../../format"
   import { type ChangeGroup, changeGroups } from "../../git"
+  import { commitGraph } from "../../gitgraph"
   import {
     type GitCommit,
     type GitSync,
@@ -18,6 +20,7 @@
   import { trustRepo } from "../../store/trust"
   import { GIT_TONES } from "../items/decor"
   import RepoChip from "../items/RepoChip.svelte"
+  import CommitGraph from "./CommitGraph.svelte"
 
   type Action = {
     one: string
@@ -68,6 +71,21 @@
 
   const ready = $derived(busy === null && staged && message.trim() !== "")
 
+  const graph = $derived(commitGraph(commits))
+
+  const history = $derived(
+    status &&
+      [
+        status.root,
+        status.branch,
+        status.ahead,
+        status.behind,
+        status.changes.length,
+      ].join("\0"),
+  )
+
+  const lanes = $derived(Math.max(1, ...graph.map(row => row.width)))
+
   $effect(() => {
     const owner = insight
 
@@ -79,7 +97,7 @@
   })
 
   $effect(() => {
-    const root = status?.root
+    const root = history && untrack(() => status?.root)
     let live = true
 
     if (!root) {
@@ -160,11 +178,7 @@
 {:else if status}
 <div class="flex min-h-0 grow flex-col gap-3 overflow-auto text-sm">
   <div class="flex items-center gap-2">
-    <Icon icon="lucide:git-branch" class="size-4 shrink-0 text-base-content/60" />
-
-    <span class="truncate font-medium" title={status.upstream ?? undefined}>
-      {status.branch}
-    </span>
+    <RepoChip kind="repo" head={status.head} title={status.upstream ?? undefined} />
 
     {#if status.superproject}
       <RepoChip kind="submodule" title={status.superproject} />
@@ -276,10 +290,19 @@
         {$t("explorer.git.history")}
       </div>
 
-      <ul class="flex flex-col gap-1">
-        {#each commits as entry (entry.hash)}
-          <li class="flex flex-col rounded-field px-1.5 py-1 hover:bg-base-content/5">
-            <span class="truncate" title={entry.subject}>{entry.subject}</span>
+      <ul class="flex flex-col">
+        {#each commits as entry, index (entry.hash)}
+          <li class="flex h-11 items-stretch gap-2 rounded-field pr-1.5 hover:bg-base-content/5">
+            <CommitGraph row={graph[index]} {lanes} />
+
+            <span class="flex min-w-0 grow flex-col justify-center">
+            <span class="flex min-w-0 items-center gap-1">
+              {#each entry.refs as name (name)}
+                <span class="badge badge-xs shrink-0 badge-soft badge-primary">{name}</span>
+              {/each}
+
+              <span class="truncate" title={entry.subject}>{entry.subject}</span>
+            </span>
 
             <span class="flex gap-2 text-xs text-base-content/50">
               <span class="shrink-0 tabular-nums">{entry.hash}</span>
@@ -289,6 +312,7 @@
               <span class="shrink-0 tabular-nums">
                 {formatDate(entry.time, currentLocale())}
               </span>
+            </span>
             </span>
           </li>
         {/each}
