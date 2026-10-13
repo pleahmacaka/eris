@@ -30,7 +30,6 @@
     onmenu,
   }: Props = $props()
 
-  const SWEEP = 15_000
   const TRAY_ICON = "application/x-eris-tray-icon"
 
   let icons = $state<TrayIcon[]>([])
@@ -42,11 +41,9 @@
   $effect(() => {
     refresh()
 
-    const timer = setInterval(refresh, SWEEP)
     const stop = onTrayIcons(refresh)
 
     return () => {
-      clearInterval(timer)
       stop.then(off => off()).catch(() => undefined)
       onmenu?.(null)
     }

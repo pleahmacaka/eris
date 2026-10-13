@@ -11,7 +11,7 @@ pub struct TrayIcon {
     pub promoted: bool,
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn notify_icons() -> Vec<TrayIcon> {
     win::icons()
 }
@@ -800,23 +800,30 @@ mod win {
 
     // Shell_NotifyIcon delivers to the first window of the class in z order, so stay above the shell's
     fn keep_front(host: isize) {
-        std::thread::spawn(move || loop {
-            std::thread::sleep(std::time::Duration::from_secs(5));
+        std::thread::spawn(move || {
+            for tick in 1u64.. {
+                std::thread::sleep(std::time::Duration::from_secs(5));
 
-            if !hosting(host) {
-                return;
-            }
+                if !hosting(host) {
+                    return;
+                }
 
-            unsafe {
-                let _ = SetWindowPos(
-                    HWND(host as _),
-                    Some(HWND_TOPMOST),
-                    0,
-                    0,
-                    0,
-                    0,
-                    SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE,
-                );
+                // an app that dies never deletes its icon, and only a snapshot prunes it
+                if tick % 3 == 0 {
+                    publish();
+                }
+
+                unsafe {
+                    let _ = SetWindowPos(
+                        HWND(host as _),
+                        Some(HWND_TOPMOST),
+                        0,
+                        0,
+                        0,
+                        0,
+                        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE,
+                    );
+                }
             }
         });
     }

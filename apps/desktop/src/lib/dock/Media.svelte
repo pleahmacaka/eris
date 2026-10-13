@@ -1,10 +1,12 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { listen } from "@tauri-apps/api/event"
   import type { MenuBox } from "./layout.svelte"
   import { t } from "svelte-i18n"
   import * as native from "#lib/native/index.js"
   import { type MediaAction, mediaCommand, type MediaStatus, mediaStatus } from "#lib/native/media.js"
   import type { DockEdge, SpectrumStyle } from "@eris/settings"
+  import { dockAwake } from "./dock.svelte"
   import Spectrum from "./Spectrum.svelte"
 
   type Props = {
@@ -23,7 +25,7 @@
     onmenu,
   }: Props = $props()
 
-  const POLL = 3_000
+  const POLL = 30_000
   const SETTLE = 1_000
   const STEP = 0.05
 
@@ -43,6 +45,18 @@
   }
 
   $effect(() => {
+    const stop = listen("media-changed", () => void refresh())
+
+    return () => {
+      stop.then(off => off()).catch(() => undefined)
+    }
+  })
+
+  $effect(() => {
+    if (!dockAwake.visible) {
+      return
+    }
+
     refresh()
 
     const timer = setInterval(refresh, POLL)
@@ -76,6 +90,8 @@
     // SMTC acks delivery, not playback, so a read here still returns the old status
     if (action !== "playpause") {
       await refresh()
+    } else {
+      setTimeout(() => void refresh(), SETTLE)
     }
   }
 

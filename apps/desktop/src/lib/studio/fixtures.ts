@@ -333,6 +333,7 @@ export const fixtures: Record<string, (args: Args) => unknown> = {
   }),
   "plugin:eris-files|share_take_attention": () => false,
   "plugin:eris-files|bandizip_available": () => false,
+  "plugin:eris-files|shell_verbs": () => [],
   "plugin:eris-files|list_dir": a => ({
     path: String(a.path),
     entries: folderEntries,

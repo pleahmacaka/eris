@@ -44,7 +44,6 @@
     "updater:default",
     "clipboard-manager:allow-write-text",
     "clipboard-manager:allow-read-text",
-    "mcp-bridge:default",
     {
       "identifier": "http:default",
       "allow": [

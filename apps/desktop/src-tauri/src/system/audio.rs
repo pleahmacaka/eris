@@ -102,13 +102,29 @@ pub(crate) mod win {
 
     use std::ffi::c_void;
 
+    thread_local! {
+        static ENUMERATOR: std::cell::OnceCell<IMMDeviceEnumerator> = const { std::cell::OnceCell::new() };
+    }
+
+    // an apartment object stays on its creating thread, so each pool thread keeps its own
+    fn enumerator() -> windows::core::Result<IMMDeviceEnumerator> {
+        ENUMERATOR.with(|cell| {
+            if let Some(enumerator) = cell.get() {
+                return Ok(enumerator.clone());
+            }
+
+            let enumerator: IMMDeviceEnumerator =
+                unsafe { CoCreateInstance(&MMDeviceEnumerator, None, CLSCTX_ALL) }?;
+
+            Ok(cell.get_or_init(|| enumerator).clone())
+        })
+    }
+
     fn endpoint() -> windows::core::Result<IAudioEndpointVolume> {
         unsafe {
             let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
 
-            let enumerator: IMMDeviceEnumerator =
-                CoCreateInstance(&MMDeviceEnumerator, None, CLSCTX_ALL)?;
-            let device = enumerator.GetDefaultAudioEndpoint(eRender, eConsole)?;
+            let device = enumerator()?.GetDefaultAudioEndpoint(eRender, eConsole)?;
 
             device.Activate(CLSCTX_ALL, None)
         }

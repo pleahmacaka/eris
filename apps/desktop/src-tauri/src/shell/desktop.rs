@@ -59,6 +59,7 @@ pub fn watch(app: tauri::AppHandle) {
 
 mod win {
     use std::collections::{HashMap, HashSet};
+    use std::sync::mpsc::{channel, Receiver, RecvTimeoutError, Sender};
     use std::sync::{Mutex, OnceLock};
     use std::time::{Duration, Instant};
 
@@ -86,14 +87,15 @@ mod win {
         IPropertyStore, SHGetPropertyStoreForWindow,
     };
     use windows::Win32::UI::WindowsAndMessaging::{
-        BringWindowToTop, DispatchMessageW, EnumWindows, GetClassNameW, GetForegroundWindow,
-        GetLastActivePopup, GetMessageW, GetShellWindow, GetWindow, GetWindowLongPtrW,
-        GetWindowTextW, GetWindowThreadProcessId, IsHungAppWindow, IsIconic, IsWindow,
-        IsWindowVisible, PostMessageW, SetForegroundWindow, ShowWindowAsync, EVENT_OBJECT_CLOAKED,
-        EVENT_OBJECT_CREATE, EVENT_OBJECT_HIDE, EVENT_OBJECT_NAMECHANGE, EVENT_OBJECT_UNCLOAKED,
-        EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_MINIMIZEEND, EVENT_SYSTEM_MINIMIZESTART, GWL_EXSTYLE,
-        GW_OWNER, MSG, SW_MINIMIZE, SW_RESTORE, WINEVENT_OUTOFCONTEXT, WINEVENT_SKIPOWNPROCESS,
-        WM_CLOSE, WS_EX_APPWINDOW, WS_EX_TOOLWINDOW,
+        BringWindowToTop, DispatchMessageW, EnumWindows, GetAncestor, GetClassNameW,
+        GetForegroundWindow, GetLastActivePopup, GetMessageW, GetShellWindow, GetWindow,
+        GetWindowLongPtrW, GetWindowTextW, GetWindowThreadProcessId, IsHungAppWindow, IsIconic,
+        IsWindow, IsWindowVisible, PostMessageW, SetForegroundWindow, ShowWindowAsync,
+        EVENT_OBJECT_CLOAKED, EVENT_OBJECT_CREATE, EVENT_OBJECT_HIDE, EVENT_OBJECT_NAMECHANGE,
+        EVENT_OBJECT_UNCLOAKED, EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_MINIMIZEEND,
+        EVENT_SYSTEM_MINIMIZESTART, GA_ROOT, GWL_EXSTYLE, GW_OWNER, MSG, SW_MINIMIZE, SW_RESTORE,
+        WINEVENT_OUTOFCONTEXT, WINEVENT_SKIPOWNPROCESS, WM_CLOSE, WS_EX_APPWINDOW,
+        WS_EX_TOOLWINDOW,
     };
 
     use super::WindowEntry;
@@ -330,85 +332,57 @@ mod win {
         entries
     }
 
-    #[cfg(test)]
-    mod ancestry_tests {
-        use super::*;
+    const OBJID_WINDOW: i32 = 0;
+    const COALESCE: Duration = Duration::from_millis(120);
+    const MAX_WAIT: Duration = Duration::from_millis(800);
 
-        #[test]
-        fn only_live_processes_supply_identity() {
-            use std::os::windows::process::CommandExt;
-            use windows::Win32::System::Threading::CREATE_NO_WINDOW;
+    static APP: OnceLock<AppHandle> = OnceLock::new();
+    static CHANGES: OnceLock<Sender<()>> = OnceLock::new();
+    static LAST_FOREGROUND: Mutex<Option<Instant>> = Mutex::new(None);
 
-            assert!(process_identity(std::process::id()).is_some());
-            let mut child = std::process::Command::new(std::env::current_exe().unwrap())
-                .arg("--list")
-                .stdout(std::process::Stdio::null())
-                .creation_flags(CREATE_NO_WINDOW.0)
-                .spawn()
-                .unwrap();
-            child.wait().unwrap();
-            assert!(process_identity(child.id()).is_none());
+    // a closed window is already gone when its hide or destroy arrives, so only a live child is skipped
+    fn child_window(hwnd: HWND) -> bool {
+        unsafe { IsWindow(Some(hwnd)).as_bool() && GetAncestor(hwnd, GA_ROOT) != hwnd }
+    }
+
+    fn foreground_changed() {
+        let mut last = LAST_FOREGROUND.lock().unwrap();
+        let now = Instant::now();
+
+        if last.is_some_and(|at| now.duration_since(at) < COALESCE) {
+            return;
         }
 
-        fn identity(pid: u32) -> Option<ProcessIdentity> {
-            Some(ProcessIdentity {
-                path: format!("{pid}.exe"),
-                created: pid as u64,
-            })
-        }
+        *last = Some(now);
+        drop(last);
 
-        #[test]
-        fn follows_live_older_parents() {
-            let parents = HashMap::from([(3, 2), (2, 1)]);
-            assert_eq!(ancestors(3, &parents, None, identity), ["2.exe", "1.exe"]);
-        }
-
-        #[test]
-        fn rejects_recycled_parent_pids_and_missing_processes() {
-            assert!(ancestors(2, &HashMap::from([(2, 3)]), None, identity).is_empty());
-            assert!(ancestors(3, &HashMap::from([(3, 2)]), None, |pid| {
-                if pid == 2 {
-                    None
-                } else {
-                    identity(pid)
-                }
-            })
-            .is_empty());
-        }
-
-        #[test]
-        fn stops_cycles_and_bounds_depth() {
-            assert_eq!(
-                ancestors(3, &HashMap::from([(3, 2), (2, 3)]), None, identity),
-                ["2.exe"]
-            );
-            let parents = (2..=30).map(|pid| (pid, pid - 1)).collect();
-            assert_eq!(ancestors(30, &parents, None, identity).len(), 16);
-        }
-
-        #[test]
-        fn the_desktop_shell_is_not_inherited_as_an_app_launcher() {
-            let parents = HashMap::from([(3, 2), (2, 1)]);
-            assert_eq!(ancestors(3, &parents, Some("1.EXE"), identity), ["2.exe"]);
-            assert!(ancestors(2, &parents, Some("1.exe"), identity).is_empty());
-            // Another process with the shell's executable is the same boundary.
-            assert!(ancestors(3, &parents, Some("shell.exe"), |pid| {
-                let mut found = identity(pid)?;
-                if pid == 2 {
-                    found.path = "SHELL.exe".into();
-                }
-                Some(found)
-            })
-            .is_empty());
+        if let Some(app) = APP.get() {
+            let _ = app.emit("foreground-changed", ());
         }
     }
 
-    const OBJID_WINDOW: i32 = 0;
-    const COALESCE: Duration = Duration::from_millis(120);
+    // a burst ends with the change that matters, so wait for quiet but never longer than MAX_WAIT
+    fn settle(app: AppHandle, changes: Receiver<()>) {
+        while changes.recv().is_ok() {
+            let first = Instant::now();
 
-    static APP: OnceLock<AppHandle> = OnceLock::new();
-    static LAST_EMIT: Mutex<Option<Instant>> = Mutex::new(None);
-    static LAST_FOREGROUND: Mutex<Option<Instant>> = Mutex::new(None);
+            loop {
+                let left = MAX_WAIT.saturating_sub(first.elapsed());
+
+                if left.is_zero() {
+                    break;
+                }
+
+                match changes.recv_timeout(COALESCE.min(left)) {
+                    Ok(()) => {}
+                    Err(RecvTimeoutError::Timeout) => break,
+                    Err(RecvTimeoutError::Disconnected) => return,
+                }
+            }
+
+            let _ = app.emit("windows-changed", ());
+        }
+    }
 
     unsafe extern "system" fn on_event(
         _hook: HWINEVENTHOOK,
@@ -424,36 +398,29 @@ mod win {
         }
 
         // the taskbar is unfocusable, so dock popups learn about outside focus from here
-        let foreground = event == EVENT_SYSTEM_FOREGROUND;
-        let last = if foreground {
-            &LAST_FOREGROUND
-        } else {
-            &LAST_EMIT
-        };
-        let mut guard = last.lock().unwrap();
-        let now = Instant::now();
+        if event == EVENT_SYSTEM_FOREGROUND {
+            foreground_changed();
 
-        if guard.is_some_and(|at| now.duration_since(at) < COALESCE) {
             return;
         }
 
-        *guard = Some(now);
-        drop(guard);
+        if child_window(hwnd) {
+            return;
+        }
 
-        if let Some(app) = APP.get() {
-            let name = if foreground {
-                "foreground-changed"
-            } else {
-                "windows-changed"
-            };
-
-            let _ = app.emit(name, ());
+        if let Some(changes) = CHANGES.get() {
+            let _ = changes.send(());
         }
     }
 
     // window lifecycle events arrive through a message loop, so the hook lives on its own thread
     pub fn watch(app: AppHandle) {
-        let _ = APP.set(app);
+        let (sender, changes) = channel();
+
+        let _ = CHANGES.set(sender);
+        let _ = APP.set(app.clone());
+
+        std::thread::spawn(move || settle(app, changes));
 
         std::thread::spawn(|| unsafe {
             let flags = WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS;
@@ -569,6 +536,79 @@ mod win {
             if attached {
                 let _ = AttachThreadInput(me, front, false);
             }
+        }
+    }
+
+    #[cfg(test)]
+    mod ancestry_tests {
+        use super::*;
+
+        #[test]
+        fn only_live_processes_supply_identity() {
+            use std::os::windows::process::CommandExt;
+            use windows::Win32::System::Threading::CREATE_NO_WINDOW;
+
+            assert!(process_identity(std::process::id()).is_some());
+            let mut child = std::process::Command::new(std::env::current_exe().unwrap())
+                .arg("--list")
+                .stdout(std::process::Stdio::null())
+                .creation_flags(CREATE_NO_WINDOW.0)
+                .spawn()
+                .unwrap();
+            child.wait().unwrap();
+            assert!(process_identity(child.id()).is_none());
+        }
+
+        fn identity(pid: u32) -> Option<ProcessIdentity> {
+            Some(ProcessIdentity {
+                path: format!("{pid}.exe"),
+                created: pid as u64,
+            })
+        }
+
+        #[test]
+        fn follows_live_older_parents() {
+            let parents = HashMap::from([(3, 2), (2, 1)]);
+            assert_eq!(ancestors(3, &parents, None, identity), ["2.exe", "1.exe"]);
+        }
+
+        #[test]
+        fn rejects_recycled_parent_pids_and_missing_processes() {
+            assert!(ancestors(2, &HashMap::from([(2, 3)]), None, identity).is_empty());
+            assert!(ancestors(3, &HashMap::from([(3, 2)]), None, |pid| {
+                if pid == 2 {
+                    None
+                } else {
+                    identity(pid)
+                }
+            })
+            .is_empty());
+        }
+
+        #[test]
+        fn stops_cycles_and_bounds_depth() {
+            assert_eq!(
+                ancestors(3, &HashMap::from([(3, 2), (2, 3)]), None, identity),
+                ["2.exe"]
+            );
+            let parents = (2..=30).map(|pid| (pid, pid - 1)).collect();
+            assert_eq!(ancestors(30, &parents, None, identity).len(), 16);
+        }
+
+        #[test]
+        fn the_desktop_shell_is_not_inherited_as_an_app_launcher() {
+            let parents = HashMap::from([(3, 2), (2, 1)]);
+            assert_eq!(ancestors(3, &parents, Some("1.EXE"), identity), ["2.exe"]);
+            assert!(ancestors(2, &parents, Some("1.exe"), identity).is_empty());
+            // Another process with the shell's executable is the same boundary.
+            assert!(ancestors(3, &parents, Some("shell.exe"), |pid| {
+                let mut found = identity(pid)?;
+                if pid == 2 {
+                    found.path = "SHELL.exe".into();
+                }
+                Some(found)
+            })
+            .is_empty());
         }
     }
 }

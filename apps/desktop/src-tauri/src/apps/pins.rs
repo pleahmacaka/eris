@@ -167,13 +167,75 @@ pub fn read_favorites() -> Option<Vec<u8>> {
     win::read("Favorites")
 }
 
+pub fn watch(changed: impl FnMut()) {
+    win::watch(changed);
+}
+
 mod win {
     use windows::core::{w, HSTRING, PCWSTR};
+    use windows::Win32::Foundation::{CloseHandle, HANDLE};
     use windows::Win32::System::Registry::{
-        RegGetValueW, RegSetKeyValueW, HKEY_CURRENT_USER, REG_BINARY, RRF_RT_REG_BINARY,
+        RegCloseKey, RegGetValueW, RegNotifyChangeKeyValue, RegOpenKeyExW, RegSetKeyValueW, HKEY,
+        HKEY_CURRENT_USER, KEY_NOTIFY, REG_BINARY, REG_NOTIFY_CHANGE_LAST_SET, RRF_RT_REG_BINARY,
     };
+    use windows::Win32::System::Threading::CreateEventW;
+
+    use crate::apps::launcher::{close_folder, folder_handle, rearm_folder, watch_signals};
 
     const TASKBAND: PCWSTR = w!(r"Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband");
+    const SETTLE_MS: u32 = 300;
+
+    fn taskband_key() -> Option<HKEY> {
+        let mut key = HKEY::default();
+
+        unsafe { RegOpenKeyExW(HKEY_CURRENT_USER, TASKBAND, None, KEY_NOTIFY, &mut key) }
+            .ok()
+            .ok()?;
+
+        Some(key)
+    }
+
+    fn arm(key: HKEY, event: HANDLE) -> bool {
+        unsafe {
+            RegNotifyChangeKeyValue(key, false, REG_NOTIFY_CHANGE_LAST_SET, Some(event), true)
+        }
+        .is_ok()
+    }
+
+    pub fn watch(changed: impl FnMut()) {
+        let registry = taskband_key().and_then(|key| {
+            let event = unsafe { CreateEventW(None, false, false, None) }.ok()?;
+
+            arm(key, event).then_some((key, event))
+        });
+        let folder = super::folder().and_then(|folder| folder_handle(&folder, false));
+        let handles: Vec<HANDLE> = registry
+            .map(|(_, event)| event)
+            .into_iter()
+            .chain(folder)
+            .collect();
+
+        watch_signals(
+            &handles,
+            SETTLE_MS,
+            |index| match registry {
+                Some((key, event)) if index == 0 => arm(key, event),
+                _ => rearm_folder(handles[index]),
+            },
+            changed,
+        );
+
+        if let Some(folder) = folder {
+            close_folder(folder);
+        }
+
+        if let Some((key, event)) = registry {
+            unsafe {
+                let _ = RegCloseKey(key);
+                let _ = CloseHandle(event);
+            }
+        }
+    }
 
     pub fn read(name: &str) -> Option<Vec<u8>> {
         let name = HSTRING::from(name);

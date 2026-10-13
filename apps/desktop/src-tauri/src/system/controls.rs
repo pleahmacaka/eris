@@ -41,9 +41,9 @@ pub fn power_action(action: String) -> Result<(), String> {
     }
 }
 
-#[tauri::command(async)]
-pub fn empty_recycle_bin() -> Result<(), String> {
-    win::empty_recycle_bin()
+#[tauri::command]
+pub async fn empty_recycle_bin() -> Result<(), String> {
+    crate::system::blocking(win::empty_recycle_bin).await
 }
 
 #[tauri::command]

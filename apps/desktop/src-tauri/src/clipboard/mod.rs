@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use std::sync::atomic::Ordering;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
@@ -13,6 +13,10 @@ mod win;
 
 const LIMIT: usize = 200;
 const MAX_TEXT: usize = 100_000;
+const SAVE_DELAY: Duration = Duration::from_secs(1);
+
+static UNSAVED: AtomicBool = AtomicBool::new(false);
+static WRITING: Mutex<()> = Mutex::new(());
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ClipEntry {
@@ -22,10 +26,11 @@ pub struct ClipEntry {
     pub pinned: bool,
 }
 
-fn history() -> &'static Mutex<Vec<ClipEntry>> {
+// an edit before the saved list is read would persist an empty history over it, so every access loads first
+fn history(app: &AppHandle) -> &'static Mutex<Vec<ClipEntry>> {
     static HISTORY: OnceLock<Mutex<Vec<ClipEntry>>> = OnceLock::new();
 
-    HISTORY.get_or_init(Default::default)
+    HISTORY.get_or_init(|| Mutex::new(load(app)))
 }
 
 fn file(app: &AppHandle) -> Option<PathBuf> {
@@ -39,25 +44,38 @@ fn now() -> u64 {
         .unwrap_or_default()
 }
 
-fn load(app: &AppHandle) {
-    let Some(saved) = file(app)
+fn load(app: &AppHandle) -> Vec<ClipEntry> {
+    file(app)
         .and_then(|path| std::fs::read(path).ok())
         .and_then(|bytes| serde_json::from_slice::<Vec<ClipEntry>>(&bytes).ok())
-    else {
-        return;
-    };
-
-    *history().lock().unwrap() = saved;
+        .unwrap_or_default()
 }
 
 fn persist(app: &AppHandle) {
+    if UNSAVED.swap(true, Ordering::Relaxed) {
+        return;
+    }
+
+    let app = app.clone();
+
+    std::thread::spawn(move || {
+        std::thread::sleep(SAVE_DELAY);
+        flush(&app);
+    });
+}
+
+pub fn flush(app: &AppHandle) {
+    let _writing = WRITING.lock().unwrap();
+
+    if !UNSAVED.swap(false, Ordering::Relaxed) {
+        return;
+    }
+
     let Some(path) = file(app) else {
         return;
     };
 
-    let entries = history().lock().unwrap();
-
-    let Ok(bytes) = serde_json::to_vec(&*entries) else {
+    let Ok(bytes) = serde_json::to_vec(&*history(app).lock().unwrap()) else {
         return;
     };
 
@@ -72,7 +90,7 @@ fn persist(app: &AppHandle) {
 
 fn push(app: &AppHandle, text: String) {
     {
-        let mut entries = history().lock().unwrap();
+        let mut entries = history(app).lock().unwrap();
         let pinned = entries
             .iter()
             .find(|entry| entry.text == text)
@@ -108,9 +126,9 @@ fn read_text(app: &AppHandle) -> Option<String> {
 }
 
 pub fn watch(app: AppHandle) {
-    load(&app);
-
     std::thread::spawn(move || {
+        history(&app);
+
         let mut last = win::sequence();
 
         loop {
@@ -135,8 +153,8 @@ pub fn watch(app: AppHandle) {
     });
 }
 
-fn find(id: &str) -> Option<ClipEntry> {
-    history()
+fn find(app: &AppHandle, id: &str) -> Option<ClipEntry> {
+    history(app)
         .lock()
         .unwrap()
         .iter()
@@ -144,14 +162,14 @@ fn find(id: &str) -> Option<ClipEntry> {
         .cloned()
 }
 
-#[tauri::command]
-pub fn clipboard_history() -> Vec<ClipEntry> {
-    history().lock().unwrap().clone()
+#[tauri::command(async)]
+pub fn clipboard_history(app: AppHandle) -> Vec<ClipEntry> {
+    history(&app).lock().unwrap().clone()
 }
 
 #[tauri::command]
 pub fn clipboard_copy(app: AppHandle, id: String) -> Result<(), String> {
-    let entry = find(&id).ok_or("clipboard entry is gone")?;
+    let entry = find(&app, &id).ok_or("clipboard entry is gone")?;
 
     app.clipboard()
         .write_text(entry.text)
@@ -178,13 +196,13 @@ pub fn clipboard_paste(app: AppHandle, id: String) -> Result<(), String> {
 
 #[tauri::command]
 pub fn clipboard_remove(app: AppHandle, id: String) {
-    history().lock().unwrap().retain(|entry| entry.id != id);
+    history(&app).lock().unwrap().retain(|entry| entry.id != id);
     persist(&app);
 }
 
 #[tauri::command]
 pub fn clipboard_pin(app: AppHandle, id: String, pinned: bool) {
-    if let Some(entry) = history()
+    if let Some(entry) = history(&app)
         .lock()
         .unwrap()
         .iter_mut()
@@ -198,7 +216,7 @@ pub fn clipboard_pin(app: AppHandle, id: String, pinned: bool) {
 
 #[tauri::command]
 pub fn clipboard_clear(app: AppHandle) {
-    history().lock().unwrap().retain(|entry| entry.pinned);
+    history(&app).lock().unwrap().retain(|entry| entry.pinned);
     persist(&app);
 }
 

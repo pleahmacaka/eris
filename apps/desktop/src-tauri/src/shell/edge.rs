@@ -1,11 +1,20 @@
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::OnceLock;
+use std::thread::Thread;
 
 use tauri::AppHandle;
 
 static MAXIMIZED: AtomicBool = AtomicBool::new(false);
+static WATCHER: OnceLock<Thread> = OnceLock::new();
 
 pub fn watch(app: AppHandle) {
     win::watch(app);
+}
+
+pub fn wake() {
+    if let Some(watcher) = WATCHER.get() {
+        watcher.unpark();
+    }
 }
 
 #[tauri::command]
@@ -57,7 +66,11 @@ mod win {
             .and_then(|window| window.hwnd().ok())
             .map(|preview| preview.0 as isize);
 
-        std::thread::spawn(move || run(app, HWND(dock as _), preview.map(|hwnd| HWND(hwnd as _))));
+        let watcher = std::thread::spawn(move || {
+            run(app, HWND(dock as _), preview.map(|hwnd| HWND(hwnd as _)))
+        });
+
+        let _ = super::WATCHER.set(watcher.thread().clone());
     }
 
     fn run(app: AppHandle, dock: HWND, preview: Option<HWND>) {
@@ -68,16 +81,17 @@ mod win {
         let mut left_band: Option<Instant> = None;
 
         loop {
-            std::thread::sleep(TICK);
-
             if !crate::shell::features::DOCK_ON.load(Ordering::Relaxed) {
                 at_edge = false;
                 fullscreen = false;
                 revealed = false;
                 lifted = false;
                 left_band = None;
+                std::thread::park();
                 continue;
             }
+
+            std::thread::sleep(TICK);
 
             let screen = screen();
             let cursor = cursor();

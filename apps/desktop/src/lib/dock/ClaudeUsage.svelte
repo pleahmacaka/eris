@@ -2,6 +2,7 @@
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
   import { claudeIcon } from "./claudeIcon"
+  import { dockAwake } from "./dock.svelte"
   import { http } from "#lib/http.js"
   import { type ClaudeUsage, claudeUsage } from "#lib/native/index.js"
 
@@ -37,6 +38,10 @@
   }
 
   $effect(() => {
+    if (!dockAwake.visible) {
+      return
+    }
+
     refresh()
 
     const timer = setInterval(refresh, remote ? REMOTE_POLL : LOCAL_POLL)

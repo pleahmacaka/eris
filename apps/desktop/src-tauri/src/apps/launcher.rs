@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Mutex;
+use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
 use serde::Serialize;
@@ -10,7 +10,7 @@ use tauri::{AppHandle, Emitter};
 const TTL: Duration = Duration::from_secs(300);
 const EXPLORER_APP_ID: &str = "Microsoft.Windows.Explorer";
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, PartialEq, Serialize)]
 pub struct AppEntry {
     pub id: String,
     pub name: String,
@@ -24,7 +24,10 @@ pub struct AppEntry {
 }
 
 static CACHE: Mutex<Option<(Instant, Vec<AppEntry>)>> = Mutex::new(None);
+static COLD_SCAN: Mutex<()> = Mutex::new(());
 static REFRESHING: AtomicBool = AtomicBool::new(false);
+static PINS: Mutex<Option<Vec<AppEntry>>> = Mutex::new(None);
+static APP: OnceLock<AppHandle> = OnceLock::new();
 
 pub fn stable_id(path: &str) -> String {
     let mut hash: u64 = 0xcbf2_9ce4_8422_2325;
@@ -192,17 +195,40 @@ fn refresh_in_background() {
 
     std::thread::spawn(|| {
         let apps = scan();
+        let previous = CACHE
+            .lock()
+            .unwrap()
+            .replace((Instant::now(), apps.clone()));
 
-        *CACHE.lock().unwrap() = Some((Instant::now(), apps));
         REFRESHING.store(false, Ordering::Relaxed);
+
+        if previous.is_none_or(|(_, previous)| previous != apps) {
+            if let Some(app) = APP.get() {
+                let _ = app.emit("apps-changed", ());
+            }
+        }
     });
 }
 
 pub fn watch(app: AppHandle) {
+    let _ = APP.set(app.clone());
+    let pins = app.clone();
+
     std::thread::spawn(move || {
         win::watch_folders(&roots(), || {
             *CACHE.lock().unwrap() = Some((Instant::now(), scan()));
             let _ = app.emit("apps-changed", ());
+        });
+    });
+
+    std::thread::spawn(move || {
+        crate::apps::pins::watch(|| {
+            let next = scan_pins();
+            let changed = PINS.lock().unwrap().replace(next.clone()) != Some(next);
+
+            if changed {
+                let _ = pins.emit("pins-changed", ());
+            }
         });
     });
 }
@@ -219,6 +245,12 @@ pub fn list_apps() -> Vec<AppEntry> {
             apps
         }
         None => {
+            let _scanning = COLD_SCAN.lock().unwrap();
+
+            if let Some((_, apps)) = CACHE.lock().unwrap().clone() {
+                return apps;
+            }
+
             let apps = scan();
 
             *CACHE.lock().unwrap() = Some((Instant::now(), apps.clone()));
@@ -230,6 +262,10 @@ pub fn list_apps() -> Vec<AppEntry> {
 
 #[tauri::command(async)]
 pub fn pinned_apps() -> Vec<AppEntry> {
+    PINS.lock().unwrap().get_or_insert_with(scan_pins).clone()
+}
+
+fn scan_pins() -> Vec<AppEntry> {
     let Some(root) = crate::apps::pins::folder() else {
         return Vec::new();
     };
@@ -262,15 +298,18 @@ fn file_name(path: &str) -> String {
         .unwrap_or_default()
 }
 
-#[tauri::command(async)]
-pub fn launch_app(app: AppHandle, path: String, admin: bool) -> Result<(), String> {
-    if !admin && opens_explorer(&path) && crate::apps::files::open_instead(&app, None) {
-        return Ok(());
-    }
+#[tauri::command]
+pub async fn launch_app(app: AppHandle, path: String, admin: bool) -> Result<(), String> {
+    crate::system::blocking(move || {
+        if !admin && opens_explorer(&path) && crate::apps::files::open_instead(&app, None) {
+            return Ok(());
+        }
 
-    let verb = if admin { "runas" } else { "open" };
+        let verb = if admin { "runas" } else { "open" };
 
-    shell_execute(verb, &path, None, true)
+        shell_execute(verb, &path, None, true)
+    })
+    .await
 }
 
 #[tauri::command(async)]
@@ -289,6 +328,8 @@ pub fn open_location(app: AppHandle, path: String) -> Result<(), String> {
     )
 }
 
+pub(crate) use win::{close_folder, folder_handle, rearm_folder, watch_signals};
+
 pub fn shortcut_target(path: &str) -> Option<String> {
     win::shortcut_target(path)
 }
@@ -303,14 +344,15 @@ pub fn shell_execute(
 }
 
 mod win {
-    use std::path::PathBuf;
+    use std::path::{Path, PathBuf};
 
     use windows::core::{w, Interface, HSTRING, PCWSTR};
     use windows::Win32::Foundation::{LocalFree, HANDLE, HLOCAL, WAIT_EVENT, WAIT_OBJECT_0};
     use windows::Win32::Storage::EnhancedStorage::PKEY_AppUserModel_ID;
     use windows::Win32::Storage::FileSystem::{
         FindCloseChangeNotification, FindFirstChangeNotificationW, FindNextChangeNotification,
-        FILE_NOTIFY_CHANGE_DIR_NAME, FILE_NOTIFY_CHANGE_FILE_NAME, FILE_NOTIFY_CHANGE_LAST_WRITE,
+        FILE_NOTIFY_CHANGE, FILE_NOTIFY_CHANGE_DIR_NAME, FILE_NOTIFY_CHANGE_FILE_NAME,
+        FILE_NOTIFY_CHANGE_LAST_WRITE,
     };
     use windows::Win32::System::Com::StructuredStorage::{
         PropVariantClear, PropVariantToStringAlloc,
@@ -554,25 +596,58 @@ mod win {
     // installers write shortcuts in bursts, so rescan once the folders stay quiet
     const SETTLE_MS: u32 = 1_500;
 
-    pub fn watch_folders(roots: &[(PathBuf, usize)], mut changed: impl FnMut()) {
-        let filter = FILE_NOTIFY_CHANGE_FILE_NAME
-            | FILE_NOTIFY_CHANGE_DIR_NAME
-            | FILE_NOTIFY_CHANGE_LAST_WRITE;
+    const FOLDER_CHANGES: FILE_NOTIFY_CHANGE = FILE_NOTIFY_CHANGE(
+        FILE_NOTIFY_CHANGE_FILE_NAME.0
+            | FILE_NOTIFY_CHANGE_DIR_NAME.0
+            | FILE_NOTIFY_CHANGE_LAST_WRITE.0,
+    );
+
+    pub fn folder_handle(root: &Path, subtree: bool) -> Option<HANDLE> {
+        unsafe {
+            FindFirstChangeNotificationW(&HSTRING::from(root.as_os_str()), subtree, FOLDER_CHANGES)
+        }
+        .ok()
+    }
+
+    pub fn rearm_folder(handle: HANDLE) -> bool {
+        unsafe { FindNextChangeNotification(handle) }.is_ok()
+    }
+
+    pub fn close_folder(handle: HANDLE) {
+        let _ = unsafe { FindCloseChangeNotification(handle) };
+    }
+
+    pub fn watch_folders(roots: &[(PathBuf, usize)], changed: impl FnMut()) {
         let handles: Vec<HANDLE> = roots
             .iter()
-            .filter_map(|(root, depth)| unsafe {
-                FindFirstChangeNotificationW(&HSTRING::from(root.as_os_str()), *depth > 1, filter)
-                    .ok()
-            })
+            .filter_map(|(root, depth)| folder_handle(root, *depth > 1))
             .collect();
 
+        watch_signals(
+            &handles,
+            SETTLE_MS,
+            |index| rearm_folder(handles[index]),
+            changed,
+        );
+
+        for handle in handles {
+            close_folder(handle);
+        }
+    }
+
+    pub fn watch_signals(
+        handles: &[HANDLE],
+        settle: u32,
+        rearm: impl Fn(usize) -> bool,
+        mut changed: impl FnMut(),
+    ) {
         if handles.is_empty() {
             return;
         }
 
         let wait = |timeout: u32| {
             signaled(
-                unsafe { WaitForMultipleObjects(&handles, false, timeout) },
+                unsafe { WaitForMultipleObjects(handles, false, timeout) },
                 handles.len(),
             )
         };
@@ -581,18 +656,14 @@ mod win {
             let mut pending = Some(first);
 
             while let Some(index) = pending {
-                if unsafe { FindNextChangeNotification(handles[index]) }.is_err() {
+                if !rearm(index) {
                     break 'watch;
                 }
 
-                pending = wait(SETTLE_MS);
+                pending = wait(settle);
             }
 
             changed();
-        }
-
-        for handle in handles {
-            let _ = unsafe { FindCloseChangeNotification(handle) };
         }
     }
 

@@ -1,15 +1,18 @@
 import { get } from "svelte/store"
-import { addMessages, init, locale, t } from "svelte-i18n"
+import { addMessages, init, locale, register, t } from "svelte-i18n"
 import en from "./en.json"
-import ja from "./ja.json"
-import ko from "./ko.json"
-import zh from "./zh.json"
 
 export type Language = "system" | "en" | "ko" | "ja" | "zh"
 
 export type Locale = Exclude<Language, "system">
 
 export const LANGUAGES: Language[] = ["system", "en", "ko", "ja", "zh"]
+
+const LOADERS = {
+  ko: () => import("./ko.json"),
+  ja: () => import("./ja.json"),
+  zh: () => import("./zh.json"),
+}
 
 let started = false
 
@@ -66,19 +69,18 @@ export const tr = (key: string, values?: Record<string, string | number>) => {
 export const currentLocale = (): string =>
   started ? (get(locale) ?? "en") : "en"
 
-export const setupI18n = (language: Language) => {
-  const next = resolveLanguage(language)
+// a locale still loading leaves svelte-i18n without one and every lookup throws, so English stays current until it lands
+export const setupI18n = async (language: Language) => {
+  if (!started) {
+    addMessages("en", en)
 
-  if (started) {
-    locale.set(next)
+    for (const [name, loader] of Object.entries(LOADERS)) {
+      register(name, loader)
+    }
 
-    return
+    init({ fallbackLocale: "en", initialLocale: "en" })
+    started = true
   }
 
-  addMessages("en", en)
-  addMessages("ko", ko)
-  addMessages("ja", ja)
-  addMessages("zh", zh)
-  init({ fallbackLocale: "en", initialLocale: next })
-  started = true
+  await locale.set(resolveLanguage(language))
 }

@@ -12,19 +12,21 @@ pub struct InputLanguage {
     pub layouts: usize,
 }
 
-#[tauri::command(async)]
-pub fn radios() -> Result<Vec<RadioInfo>, String> {
-    win::radios()
+use crate::system::blocking;
+
+#[tauri::command]
+pub async fn radios() -> Result<Vec<RadioInfo>, String> {
+    blocking(win::radios).await
 }
 
-#[tauri::command(async)]
-pub fn set_radio(kind: String, on: bool) -> Result<(), String> {
-    win::set_radio(&kind, on)
+#[tauri::command]
+pub async fn set_radio(kind: String, on: bool) -> Result<(), String> {
+    blocking(move || win::set_radio(&kind, on)).await
 }
 
-#[tauri::command(async)]
-pub fn bluetooth_devices() -> Result<Vec<String>, String> {
-    win::bluetooth_devices()
+#[tauri::command]
+pub async fn bluetooth_devices() -> Result<Vec<String>, String> {
+    blocking(win::bluetooth_devices).await
 }
 
 #[tauri::command(async)]
@@ -41,7 +43,7 @@ pub fn quick_action(action: String) -> Result<(), String> {
     }
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn input_language() -> Option<InputLanguage> {
     win::input_language()
 }

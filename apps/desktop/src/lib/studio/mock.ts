@@ -248,6 +248,10 @@ export const installMocks = (path: string) => {
     "plugin:store|length": a => Object.keys(read(a)).length,
     "plugin:store|save": () => null,
     "plugin:store|reload": () => null,
+    data_entries: a =>
+      Object.entries(readStore("data.json"))
+        .filter(([key]) => key.startsWith(String(a.prefix)))
+        .map(([, value]) => value),
 
     "plugin:app|version": () => pkg.version,
     "plugin:app|name": () => "eris",

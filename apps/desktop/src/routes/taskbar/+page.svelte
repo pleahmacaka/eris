@@ -22,7 +22,6 @@
 
   const HIDE_SLIDE = 120
   const RESYNC = 50
-  const VISIBILITY_POLL = 2_000
   const REOPEN_GUARD = 400
 
   document.documentElement.dataset.surface = "dock"
@@ -184,7 +183,6 @@
     const stopDock = startDock()
     const stopTimers = startTimerWatch()
     const stopEditWatch = watchEdit()
-    const poll = setInterval(refreshVisibility, VISIBILITY_POLL)
 
     refreshVisibility()
 
@@ -194,7 +192,6 @@
       stopDock()
       stopTimers()
       stopEditWatch()
-      clearInterval(poll)
 
       for (const stop of stops) {
         stop.then(fn => fn())

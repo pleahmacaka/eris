@@ -53,7 +53,22 @@ pub(crate) fn start_dock(app: &AppHandle) {
 
         if !EDGE_WATCHING.swap(true, Ordering::Relaxed) {
             edge::watch(handle);
+        } else {
+            edge::wake();
         }
+    });
+}
+
+// the top bar is a lazy window that retires once hidden, so the shell rebuilds it whenever the setting wants it
+pub(crate) fn sync_topbar(app: &AppHandle) {
+    if !appbar::topbar_on(app) || app.get_webview_window("topbar").is_some() {
+        return;
+    }
+
+    let app = app.clone();
+
+    std::thread::spawn(move || {
+        windowing::window_for(&app, "topbar");
     });
 }
 
@@ -77,6 +92,7 @@ pub fn suspend_shell(app: AppHandle) {
         .map(|(label, _)| label)
         .collect();
 
+    crate::clipboard::flush(&app);
     release_shell(&app);
 }
 

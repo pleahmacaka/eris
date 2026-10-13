@@ -4,6 +4,7 @@
   import { t } from "svelte-i18n"
   import { type Meters, runCommand, systemMeters } from "#lib/native/system.js"
   import type { DockEdge } from "@eris/settings"
+  import { dockAwake } from "./dock.svelte"
   import Network from "./Network.svelte"
 
   type Props = {
@@ -36,6 +37,10 @@
   }
 
   $effect(() => {
+    if (!dockAwake.visible) {
+      return
+    }
+
     refresh()
 
     const timer = setInterval(refresh, showMeters ? POLL : IDLE_POLL)

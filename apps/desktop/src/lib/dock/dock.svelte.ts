@@ -1,9 +1,11 @@
 import { updateDevice } from "@eris/settings"
+import { untrack } from "svelte"
 import {
   type AppEntry,
   appIcon,
   listApps,
   onAppsChanged,
+  onPinsChanged,
   pinnedApps,
 } from "#lib/native/apps.js"
 import {
@@ -23,8 +25,7 @@ export type DockGroup = {
   windows: WindowEntry[]
 }
 
-const WINDOWS_POLL = 1_500
-const PIN_POLL = 4_000
+const WINDOWS_POLL = 30_000
 
 const icons = new Map<string, Promise<string | null>>()
 
@@ -143,22 +144,49 @@ export const groupWindows = (
 
 export const dockAwake = $state({ visible: true })
 
-export const dock = $state<{
-  pinned: AppEntry[]
-  apps: AppEntry[]
-  windows: WindowEntry[]
-}>({
-  pinned: [],
-  apps: [],
-  windows: [],
-})
+class DockState {
+  pinned = $state.raw<AppEntry[]>([])
 
-export const refreshDock = async () => {
+  apps = $state.raw<AppEntry[]>([])
+
+  windows = $state.raw<WindowEntry[]>([])
+}
+
+export const dock = new DockState()
+
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
+
+let refreshing: Promise<void> | undefined
+let again = false
+
+const readWindows = async () => {
+  do {
+    again = false
+
+    const next = await listWindows().catch(() => [])
+
+    if (!same(next, dock.windows)) {
+      dock.windows = next
+    }
+  } while (again)
+}
+
+export const refreshDock = () => {
   if (!dockAwake.visible) {
-    return
+    return Promise.resolve()
   }
 
-  dock.windows = await listWindows().catch(() => [])
+  if (refreshing) {
+    again = true
+
+    return refreshing
+  }
+
+  refreshing = readWindows().finally(() => {
+    refreshing = undefined
+  })
+
+  return refreshing
 }
 
 export const startDock = () => {
@@ -167,7 +195,9 @@ export const startDock = () => {
   const refreshPins = () =>
     pinnedApps()
       .then(list => {
-        dock.pinned = list
+        if (!same(list, dock.pinned)) {
+          dock.pinned = list
+        }
       })
       .catch(() => undefined)
 
@@ -180,18 +210,24 @@ export const startDock = () => {
 
   refreshPins()
   refreshApps()
-  refresh()
 
   const timer = setInterval(refresh, WINDOWS_POLL)
-  const pinTimer = setInterval(refreshPins, PIN_POLL)
+  const stopWake = $effect.root(() => {
+    $effect(() => {
+      if (dockAwake.visible) {
+        untrack(refresh)
+      }
+    })
+  })
   const stops = [
     onWindowsChanged(() => void refresh()),
     onAppsChanged(() => void refreshApps()),
+    onPinsChanged(() => void refreshPins()),
   ]
 
   return () => {
     clearInterval(timer)
-    clearInterval(pinTimer)
+    stopWake()
 
     for (const stop of stops) {
       stop.then(off => off()).catch(() => undefined)

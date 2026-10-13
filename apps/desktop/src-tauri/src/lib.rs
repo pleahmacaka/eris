@@ -1,15 +1,18 @@
 use std::sync::atomic::Ordering;
 
-use tauri::{AppHandle, DeviceEventFilter, Manager, WindowEvent};
+use tauri::{AppHandle, DeviceEventFilter, Listener, Manager, WindowEvent};
 use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
 use tauri_plugin_store::StoreExt;
 
-use crate::shell::features::{release_shell, start_dock, stored_features, DOCK_ON, LAUNCHER_ON};
+use crate::shell::features::{
+    release_shell, start_dock, stored_features, sync_topbar, DOCK_ON, LAUNCHER_ON,
+};
 use crate::shell::shortcuts::set_launcher_shortcut;
 
 mod apps;
 mod clipboard;
 mod commands;
+mod data;
 mod note;
 mod notifications;
 mod shell;
@@ -52,6 +55,8 @@ fn follow_exe(app: &AppHandle) {
 }
 
 fn open(app: &AppHandle) {
+    sync_topbar(app);
+
     if eris_window_kit::headless() {
         return;
     }
@@ -177,12 +182,19 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(commands::handler());
 
-    #[cfg(debug_assertions)]
+    #[cfg(feature = "mcp-bridge")]
     let builder = builder.plugin(tauri_plugin_mcp_bridge::init());
 
     builder
         .setup(move |app| {
             let handle = app.handle().clone();
+
+            #[cfg(feature = "mcp-bridge")]
+            app.add_capability(
+                tauri::ipc::CapabilityBuilder::new("mcp-bridge")
+                    .window("*")
+                    .permission("mcp-bridge:default"),
+            )?;
 
             if !cfg!(debug_assertions) {
                 follow_exe(&handle);
@@ -198,6 +210,23 @@ pub fn run() {
             }
             desktop::watch(handle.clone());
             launcher::watch(handle.clone());
+
+            handle.listen_any("store://change", {
+                let handle = handle.clone();
+
+                move |event| {
+                    let device = serde_json::from_str::<serde_json::Value>(event.payload())
+                        .is_ok_and(|change| change["key"] == "device");
+
+                    // the store emits while it holds its own locks, so reading it here would deadlock
+                    if device {
+                        let handle = handle.clone();
+
+                        std::thread::spawn(move || sync_topbar(&handle));
+                    }
+                }
+            });
+
             share::watch(handle.clone());
             if let Some(id) = tauri_plugin_eris_files::endpoint_id(&handle) {
                 p2p::set_files(id);
@@ -239,7 +268,10 @@ pub fn run() {
         .expect("error while building tauri application")
         .run(|app, event| match event {
             tauri::RunEvent::Ready => open(app),
-            tauri::RunEvent::Exit => release_shell(app),
+            tauri::RunEvent::Exit => {
+                clipboard::flush(app);
+                release_shell(app);
+            }
             _ => {}
         });
 }

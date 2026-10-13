@@ -2,6 +2,7 @@
   import { listen } from "@tauri-apps/api/event"
   import * as native from "#lib/native/index.js"
   import type { SpectrumStyle } from "@eris/settings"
+  import { dockAwake } from "./dock.svelte"
 
   type Props = {
     style?: SpectrumStyle
@@ -19,9 +20,15 @@
     width = 4,
   }: Props = $props()
 
-  let levels = $state<number[]>([])
+  const DOT = 6
+
+  let levels = $state.raw<number[]>([])
 
   $effect(() => {
+    if (!dockAwake.visible) {
+      return
+    }
+
     native.spectrumStart().catch(() => undefined)
 
     const stop = listen<number[]>("spectrum", e => {
@@ -50,6 +57,11 @@
   })
 
   const size = (level: number) => Math.max(2, Math.round(level * height))
+
+  const scale = (level: number) => size(level) / height
+
+  const dot = (level: number) =>
+    `translateY(${-Math.round(level * (height - 4))}px) scaleY(${(Math.round(level * 4) + 2) / DOT})`
 </script>
 
 <div
@@ -61,11 +73,11 @@
   {#each shown as level, index (index)}
     {#if style === "dots"}
       <span
-        class="shrink-0 rounded-full bg-primary transition-[height,opacity] duration-75"
+        class="shrink-0 origin-bottom rounded-full bg-primary transition-[transform,opacity] duration-75"
         style:width="{width}px"
-        style:height="{Math.max(2, Math.round(level * 4) + 2)}px"
+        style:height="{DOT}px"
         style:opacity={0.25 + level * 0.75}
-        style:margin-bottom="{Math.round(level * (height - 4))}px"
+        style:transform={dot(level)}
       ></span>
     {:else if style === "mirror"}
       <span
@@ -74,26 +86,30 @@
         style:height="{height}px"
       >
         <span
-          class="w-full rounded-full bg-primary/70 transition-[height] duration-75"
-          style:height="{size(level) / 2}px"
+          class="w-full origin-bottom rounded-full bg-primary/70 transition-transform duration-75"
+          style:height="{height / 2}px"
+          style:transform="scaleY({scale(level)})"
         ></span>
 
         <span
-          class="w-full rounded-full bg-primary/40 transition-[height] duration-75"
-          style:height="{size(level) / 2}px"
+          class="w-full origin-top rounded-full bg-primary/40 transition-transform duration-75"
+          style:height="{height / 2}px"
+          style:transform="scaleY({scale(level)})"
         ></span>
       </span>
     {:else if style === "wave"}
       <span
-        class="shrink-0 rounded-full bg-gradient-to-t from-primary/30 to-primary transition-[height] duration-100"
+        class="shrink-0 origin-bottom rounded-full bg-gradient-to-t from-primary/30 to-primary transition-transform duration-100"
         style:width="{width}px"
-        style:height="{size(level)}px"
+        style:height="{height}px"
+        style:transform="scaleY({scale(level)})"
       ></span>
     {:else}
       <span
-        class="shrink-0 rounded-sm bg-primary transition-[height] duration-75"
+        class="shrink-0 origin-bottom rounded-sm bg-primary transition-transform duration-75"
         style:width="{width}px"
-        style:height="{size(level)}px"
+        style:height="{height}px"
+        style:transform="scaleY({scale(level)})"
         style:opacity={0.45 + level * 0.55}
       ></span>
     {/if}

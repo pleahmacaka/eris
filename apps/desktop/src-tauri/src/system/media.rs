@@ -2,6 +2,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 
 use serde::Serialize;
+use tauri::AppHandle;
 
 #[derive(Clone, Serialize)]
 pub struct MediaStatus {
@@ -16,12 +17,12 @@ static POLL_IN_FLIGHT: AtomicBool = AtomicBool::new(false);
 static LAST_STATUS: Mutex<Option<MediaStatus>> = Mutex::new(None);
 
 #[tauri::command]
-pub async fn media_status() -> Option<MediaStatus> {
+pub async fn media_status(app: AppHandle) -> Option<MediaStatus> {
     if POLL_IN_FLIGHT.swap(true, Ordering::Relaxed) {
         return LAST_STATUS.lock().unwrap().clone();
     }
 
-    let status = tauri::async_runtime::spawn_blocking(win::status)
+    let status = tauri::async_runtime::spawn_blocking(move || win::status(app))
         .await
         .ok()
         .flatten();
@@ -64,9 +65,12 @@ fn app_name(id: &str) -> String {
 }
 
 mod win {
+    use std::sync::{Mutex, OnceLock};
     use std::thread::sleep;
     use std::time::{Duration, Instant};
 
+    use tauri::{AppHandle, Emitter};
+    use windows::Foundation::TypedEventHandler;
     use windows::Media::Control::{
         GlobalSystemMediaTransportControlsSession as Session,
         GlobalSystemMediaTransportControlsSessionManager as Manager,
@@ -74,6 +78,16 @@ mod win {
     };
 
     use super::{app_name, MediaStatus};
+
+    struct Bound {
+        session: Session,
+        properties: i64,
+        playback: i64,
+    }
+
+    static APP: OnceLock<AppHandle> = OnceLock::new();
+    static MANAGER: Mutex<Option<Manager>> = Mutex::new(None);
+    static BOUND: Mutex<Option<Bound>> = Mutex::new(None);
 
     const BUDGET: Duration = Duration::from_millis(1500);
     const STEP: Duration = Duration::from_millis(5);
@@ -98,7 +112,104 @@ mod win {
         }};
     }
 
-    pub fn status() -> Option<MediaStatus> {
+    fn changed() {
+        if let Some(app) = APP.get() {
+            let _ = app.emit("media-changed", ());
+        }
+    }
+
+    fn release(bound: Bound) {
+        let _ = bound.session.RemoveMediaPropertiesChanged(bound.properties);
+        let _ = bound.session.RemovePlaybackInfoChanged(bound.playback);
+    }
+
+    fn bind(manager: &Manager) {
+        let current = manager.GetCurrentSession().ok();
+        let mut bound = BOUND.lock().unwrap();
+
+        if bound.as_ref().map(|bound| &bound.session) == current.as_ref() {
+            return;
+        }
+
+        if let Some(old) = bound.take() {
+            release(old);
+        }
+
+        let Some(session) = current else {
+            return;
+        };
+
+        let properties = session.MediaPropertiesChanged(&TypedEventHandler::new(|_, _| {
+            changed();
+
+            Ok(())
+        }));
+        let playback = session.PlaybackInfoChanged(&TypedEventHandler::new(|_, _| {
+            changed();
+
+            Ok(())
+        }));
+
+        if let (Ok(properties), Ok(playback)) = (properties, playback) {
+            *bound = Some(Bound {
+                session,
+                properties,
+                playback,
+            });
+        }
+    }
+
+    fn rebind() {
+        std::thread::spawn(|| {
+            if let Some(manager) = MANAGER.lock().unwrap().clone() {
+                bind(&manager);
+            }
+
+            changed();
+        });
+    }
+
+    // the manager owns the change events, so one instance lives for the process instead of one per poll
+    fn manager() -> Option<Manager> {
+        let mut cached = MANAGER.lock().unwrap();
+
+        if let Some(manager) = cached.as_ref() {
+            return Some(manager.clone());
+        }
+
+        let manager = settle!(Manager::RequestAsync().ok()?)?;
+
+        manager
+            .SessionsChanged(&TypedEventHandler::new(|_, _| {
+                rebind();
+
+                Ok(())
+            }))
+            .ok()?;
+        manager
+            .CurrentSessionChanged(&TypedEventHandler::new(|_, _| {
+                rebind();
+
+                Ok(())
+            }))
+            .ok()?;
+
+        bind(&manager);
+        *cached = Some(manager.clone());
+
+        Some(manager)
+    }
+
+    fn forget() {
+        *MANAGER.lock().unwrap() = None;
+
+        if let Some(bound) = BOUND.lock().unwrap().take() {
+            release(bound);
+        }
+    }
+
+    pub fn status(app: AppHandle) -> Option<MediaStatus> {
+        let _ = APP.set(app);
         let session = session()?;
         let properties = settle!(session.TryGetMediaPropertiesAsync().ok()?)?;
         let title = properties.Title().ok()?.to_string();
@@ -139,9 +250,16 @@ mod win {
     }
 
     fn session() -> Option<Session> {
-        settle!(Manager::RequestAsync().ok()?)?
-            .GetCurrentSession()
-            .ok()
+        match manager()?.GetCurrentSession() {
+            Ok(session) => Some(session),
+            Err(error) => {
+                if error.code().is_err() {
+                    forget();
+                }
+
+                None
+            }
+        }
     }
 
     fn text(value: windows::core::Result<windows::core::HSTRING>) -> String {

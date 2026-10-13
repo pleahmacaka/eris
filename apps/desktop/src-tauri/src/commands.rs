@@ -5,10 +5,11 @@ use crate::apps::{icons, launcher, pins};
 use crate::notifications::{notices, tray};
 use crate::shell::{appbar, desktop, edge, edit, features, preview, shortcuts, windowing, winkey};
 use crate::system::{audio, controls, media, meters, monitors, quick, share, spectrum};
-use crate::{clipboard, note, p2p, theme_link, usage};
+use crate::{clipboard, data, note, p2p, theme_link, usage};
 
 pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
     tauri::generate_handler![
+        data::data_entries,
         launcher::list_apps,
         launcher::pinned_apps,
         launcher::launch_app,

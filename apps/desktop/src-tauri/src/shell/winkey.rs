@@ -120,34 +120,48 @@ pub fn set_win_key_capture(enabled: bool) {
     CAPTURE.store(enabled, Ordering::Relaxed);
     *KEYS.lock().unwrap() = Keys::IDLE;
     release();
+    win::reconcile();
 }
 
 pub use win::{chord, install, release};
 
 mod win {
-    use std::sync::atomic::{AtomicU16, Ordering};
+    use std::sync::atomic::{AtomicU16, AtomicU32, Ordering};
     use std::sync::mpsc::{sync_channel, SyncSender};
     use std::sync::OnceLock;
 
     use tauri::AppHandle;
     use windows::Win32::Foundation::{LPARAM, LRESULT, WPARAM};
+    use windows::Win32::System::Threading::GetCurrentThreadId;
     use windows::Win32::UI::Input::KeyboardAndMouse::{
         GetAsyncKeyState, SendInput, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT, KEYBD_EVENT_FLAGS,
         KEYEVENTF_EXTENDEDKEY, KEYEVENTF_KEYUP, VIRTUAL_KEY, VK_LWIN, VK_RWIN,
     };
     use windows::Win32::UI::WindowsAndMessaging::{
-        CallNextHookEx, DispatchMessageW, GetMessageW, SetWindowsHookExW, TranslateMessage,
-        UnhookWindowsHookEx, KBDLLHOOKSTRUCT, LLKHF_EXTENDED, MSG, WH_KEYBOARD_LL, WM_KEYDOWN,
-        WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP,
+        CallNextHookEx, DispatchMessageW, GetMessageW, PeekMessageW, PostThreadMessageW,
+        SetWindowsHookExW, TranslateMessage, UnhookWindowsHookEx, KBDLLHOOKSTRUCT, LLKHF_EXTENDED,
+        MSG, PM_NOREMOVE, WH_KEYBOARD_LL, WM_APP, WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP,
     };
 
     use super::{now, WinUp, CAPTURE, KEYS, LWIN_BIT, RWIN_BIT};
 
     const TAG: usize = 0x4552_4953;
     const RELEASE_TRIES: usize = 2;
+    const RECONCILE: u32 = WM_APP + 1;
 
     static EVENTS: OnceLock<SyncSender<()>> = OnceLock::new();
     static OPEN_KEY: AtomicU16 = AtomicU16::new(0);
+    static THREAD: AtomicU32 = AtomicU32::new(0);
+
+    pub fn reconcile() {
+        let thread = THREAD.load(Ordering::SeqCst);
+
+        if thread != 0 {
+            unsafe {
+                let _ = PostThreadMessageW(thread, RECONCILE, WPARAM(0), LPARAM(0));
+            }
+        }
+    }
 
     fn stroke(key: VIRTUAL_KEY, scan: u16, flags: KEYBD_EVENT_FLAGS) -> INPUT {
         INPUT {
@@ -361,25 +375,44 @@ mod win {
         });
 
         std::thread::spawn(|| unsafe {
-            let hook = match SetWindowsHookExW(WH_KEYBOARD_LL, Some(keyboard_hook), None, 0) {
-                Ok(handle) => handle,
-                Err(error) => {
-                    log::warn!("keyboard hook failed: {error}");
-
-                    return;
-                }
-            };
-
-            log::info!("hook installed");
-
             let mut message = MSG::default();
+            let mut hook = None;
 
-            while GetMessageW(&mut message, None, 0, 0).as_bool() {
+            // a thread message posted before the queue exists is dropped
+            let _ = PeekMessageW(&mut message, None, 0, 0, PM_NOREMOVE);
+            THREAD.store(GetCurrentThreadId(), Ordering::SeqCst);
+
+            loop {
+                match (CAPTURE.load(Ordering::Relaxed), hook) {
+                    (true, None) => {
+                        hook = match SetWindowsHookExW(WH_KEYBOARD_LL, Some(keyboard_hook), None, 0)
+                        {
+                            Ok(handle) => Some(handle),
+                            Err(error) => {
+                                log::warn!("keyboard hook failed: {error}");
+
+                                None
+                            }
+                        };
+                    }
+                    (false, Some(installed)) => {
+                        let _ = UnhookWindowsHookEx(installed);
+                        hook = None;
+                    }
+                    _ => {}
+                }
+
+                if !GetMessageW(&mut message, None, 0, 0).as_bool() {
+                    break;
+                }
+
                 let _ = TranslateMessage(&message);
                 DispatchMessageW(&message);
             }
 
-            let _ = UnhookWindowsHookEx(hook);
+            if let Some(installed) = hook {
+                let _ = UnhookWindowsHookEx(installed);
+            }
         });
     }
 }

@@ -27,11 +27,17 @@
   let now = $state(new Date())
 
   $effect(() => {
-    const timer = setInterval(() => {
-      now = new Date()
-    }, 1000)
+    const step = showSeconds ? 1_000 : 60_000
+    let timer: ReturnType<typeof setTimeout> | undefined
 
-    return () => clearInterval(timer)
+    const tick = () => {
+      now = new Date()
+      timer = setTimeout(tick, step - (Date.now() % step))
+    }
+
+    tick()
+
+    return () => clearTimeout(timer)
   })
 
   const tag = $derived($locale ?? "en")

@@ -4,5 +4,6 @@ import { registerTerminalMessages } from "@eris/terminal"
 export const ssr = false
 export const prerender = true
 
-setupI18n("system")
 registerTerminalMessages()
+
+export const load = () => setupI18n("system")

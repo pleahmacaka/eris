@@ -1,5 +1,6 @@
 import { listen } from "@tauri-apps/api/event"
 import * as native from "#lib/native/index.js"
+import { dockAwake } from "../dock.svelte"
 
 // Each Tray owns its polling and subscription; effects are disposed with its
 // component. Opening the panel and mute actions update the same local snapshot.
@@ -9,6 +10,9 @@ export class TrayStatus {
 
   constructor(notificationsEnabled: () => boolean) {
     $effect(() => {
+      if (!dockAwake.visible) {
+        return
+      }
       this.refresh()
       const timer = setInterval(this.refresh, 5_000)
       return () => clearInterval(timer)

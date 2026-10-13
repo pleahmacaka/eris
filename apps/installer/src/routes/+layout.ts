@@ -4,5 +4,6 @@ import { registerInstallerMessages } from "#lib/i18n/index.js"
 export const ssr = false
 export const prerender = true
 
-setupI18n("system")
 registerInstallerMessages()
+
+export const load = () => setupI18n("system")

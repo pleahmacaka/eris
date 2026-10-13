@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
 use std::path::PathBuf;
 use std::sync::{Mutex, OnceLock};
 use std::time::UNIX_EPOCH;
@@ -84,14 +85,39 @@ fn data_url(png: Vec<u8>) -> String {
     )
 }
 
+const ENCODED_LIMIT: usize = 256;
+
+// animated tray icons cycle through a few frames, so each frame is encoded once
 pub fn icon_url(handle: isize) -> Option<String> {
+    static ENCODED: OnceLock<Mutex<HashMap<u64, String>>> = OnceLock::new();
+
     let (width, height, pixels) = win::icon_pixels(handle)?;
+    let mut hasher = std::hash::DefaultHasher::new();
+
+    (width, height, &pixels).hash(&mut hasher);
+
+    let key = hasher.finish();
+    let encoded = ENCODED.get_or_init(Default::default);
+
+    if let Some(url) = encoded.lock().unwrap().get(&key) {
+        return Some(url.clone());
+    }
+
     let image = image::RgbaImage::from_raw(width, height, pixels)?;
     let mut png = std::io::Cursor::new(Vec::new());
 
     image.write_to(&mut png, image::ImageFormat::Png).ok()?;
 
-    Some(data_url(png.into_inner()))
+    let url = data_url(png.into_inner());
+    let mut encoded = encoded.lock().unwrap();
+
+    if encoded.len() >= ENCODED_LIMIT {
+        encoded.clear();
+    }
+
+    encoded.insert(key, url.clone());
+
+    Some(url)
 }
 
 #[tauri::command(async)]

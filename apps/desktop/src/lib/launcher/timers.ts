@@ -23,6 +23,7 @@ const FILE = "launcher.json"
 const KEY = "timers"
 const TICK = 1000
 const STALE = 60_000
+const MAX_WAIT = 60_000
 
 const UNIT_MS: Record<string, number> = {
   s: 1000,
@@ -159,6 +160,7 @@ let watch: (() => void) | undefined
 let queue: Promise<unknown> = Promise.resolve()
 let ticking = false
 let pulse: ReturnType<typeof setInterval> | undefined
+let alarm: ReturnType<typeof setTimeout> | undefined
 
 const listeners = new Set<(items: Timer[]) => void>()
 const fired = new Set<string>()
@@ -184,6 +186,23 @@ const managePulse = () => {
   }
 }
 
+const arm = () => {
+  clearTimeout(alarm)
+  alarm = undefined
+
+  if (!watch || timers.length === 0) {
+    return
+  }
+
+  const next = Math.min(...timers.map(t => t.fireAt))
+  const wait = next - Date.now()
+
+  alarm = setTimeout(
+    () => void tickTimers().finally(arm),
+    wait > 0 ? Math.min(wait, MAX_WAIT) : TICK,
+  )
+}
+
 const read = async () => {
   const store = await load(FILE)
 
@@ -199,6 +218,7 @@ const apply = async (change: (items: Timer[]) => Timer[]) => {
 
   timers = next
   notify()
+  arm()
   await emit(TIMER_EVENT)
 }
 
@@ -213,6 +233,7 @@ const mutate = (change: (items: Timer[]) => Timer[]) => {
 const refresh = async () => {
   timers = await read()
   notify()
+  arm()
 }
 
 const connect = () => {
@@ -322,15 +343,14 @@ export const startTimerWatch = () => {
     return watch
   }
 
+  watch = () => {
+    watch = undefined
+    arm()
+  }
+
   loadTimers()
   connect()
-
-  const interval = setInterval(tickTimers, TICK)
-
-  watch = () => {
-    clearInterval(interval)
-    watch = undefined
-  }
+  arm()
 
   return watch
 }

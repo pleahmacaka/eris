@@ -24,6 +24,8 @@ import type { Timer } from "./timers"
 
 export const MENU_WIDTH = 208
 
+const APPS_STALE = 300_000
+
 type MenuAnchor = { id: string; x: number; y: number }
 
 export class Launcher {
@@ -31,15 +33,15 @@ export class Launcher {
 
   device = $state<DeviceSettings>(defaultDevice)
 
-  apps = $state<AppEntry[]>([])
+  apps = $state.raw<AppEntry[]>([])
 
-  clips = $state<ClipEntry[]>([])
+  clips = $state.raw<ClipEntry[]>([])
 
-  pinned = $state<AppEntry[]>([])
+  pinned = $state.raw<AppEntry[]>([])
 
-  windows = $state<WindowEntry[]>([])
+  windows = $state.raw<WindowEntry[]>([])
 
-  timers = $state<Timer[]>([])
+  timers = $state.raw<Timer[]>([])
 
   icons = $state<Record<string, string>>({})
 
@@ -66,6 +68,8 @@ export class Launcher {
   list = $state<HTMLElement>()
 
   private i18n = fromStore(t)
+
+  private appsAt = 0
 
   get t() {
     return this.i18n.current
@@ -167,6 +171,8 @@ export class Launcher {
   }
 
   async refreshApps() {
+    this.appsAt = Date.now()
+
     const [all, taskbar] = await Promise.all([
       listApps().catch(() => [] as AppEntry[]),
       pinnedApps().catch(() => [] as AppEntry[]),
@@ -185,10 +191,14 @@ export class Launcher {
   }
 
   refresh() {
+    return Promise.all([this.refreshApps(), this.refreshWindows()])
+  }
+
+  // the app list rescans itself only when read after it went stale, so an open still reads it now and then
+  reopen() {
     return Promise.all([
-      this.refreshApps(),
+      Date.now() - this.appsAt > APPS_STALE ? this.refreshApps() : undefined,
       this.refreshWindows(),
-      this.refreshClips(),
     ])
   }
 

@@ -96,6 +96,7 @@ mod win {
 
     const WINDOW: usize = 1024;
     const TICK: Duration = Duration::from_millis(33);
+    const EMIT_EVERY: Duration = Duration::from_millis(40);
     const BUFFER_NANOS: i64 = 2_000_000;
     const FOLLOW: Duration = Duration::from_secs(1);
     const RETRY: Duration = Duration::from_secs(1);
@@ -203,6 +204,7 @@ mod win {
             let mut filled = 0usize;
             let mut previous = [0.0f32; BANDS];
             let mut checked = Instant::now();
+            let mut emitted: Option<Instant> = None;
 
             while current(generation) {
                 if checked.elapsed() >= FOLLOW {
@@ -267,7 +269,11 @@ mod win {
                         if filled == WINDOW {
                             let bands = bands_from(&window, rate, &mut previous);
 
-                            let _ = app.emit("spectrum", bands);
+                            if emitted.is_none_or(|at| at.elapsed() >= EMIT_EVERY) {
+                                emitted = Some(Instant::now());
+                                let _ = app.emit("spectrum", bands);
+                            }
+
                             filled = 0;
                         }
                     }

@@ -2,7 +2,7 @@ import type { LocalItem } from "@eris/sync/merge"
 import type { Collection } from "./store"
 
 export const live = <T extends LocalItem>(col: Collection<T>) => {
-  let items = $state<T[]>([])
+  let items = $state.raw<T[]>([])
   let ready = $state(false)
 
   const stop = col.subscribe(next => {

@@ -21,6 +21,8 @@ export const onAppsChanged = (run: () => void) => listen("apps-changed", run)
 
 export const pinnedApps = () => invoke<AppEntry[]>("pinned_apps")
 
+export const onPinsChanged = (run: () => void) => listen("pins-changed", run)
+
 export const reorderPins = (paths: string[]) =>
   invoke<void>("reorder_pins", { paths })
 

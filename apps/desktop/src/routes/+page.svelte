@@ -15,7 +15,7 @@
     SearchBox,
     subscribeTimers,
   } from "#lib/launcher/index.js"
-  import { onAppsChanged } from "#lib/native/apps.js"
+  import { onAppsChanged, onPinsChanged } from "#lib/native/apps.js"
   import { onWindowShown } from "#lib/native/windows.js"
 
   const launcher = new Launcher()
@@ -49,10 +49,11 @@
       onWindowShown("main", () => {
         launcher.setQuery("")
         launcher.usage += 1
-        launcher.refresh()
+        launcher.reopen()
         launcher.input?.focus()
       }),
       onAppsChanged(() => launcher.refreshApps()),
+      onPinsChanged(() => launcher.refreshApps()),
       listen<string>("launcher-query", e => {
         launcher.setQuery(e.payload)
         launcher.input?.focus()

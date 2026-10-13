@@ -26,6 +26,7 @@ import {
   type SyncRecord,
   TOMBSTONE_TTL,
 } from "@eris/sync/protocol"
+import { invoke } from "@tauri-apps/api/core"
 import { emit, listen } from "@tauri-apps/api/event"
 import { load, type Store } from "@tauri-apps/plugin-store"
 
@@ -72,8 +73,11 @@ const prefixed = <T>(entries: [string, unknown][], prefix: string) =>
     .filter(([key]) => key.startsWith(prefix))
     .map(([, value]) => value as T)
 
-const valuesByPrefix = async <T>(prefix: string) =>
-  prefixed<T>(await (await store()).entries(), prefix)
+const valuesByPrefix = async <T>(prefix: string) => {
+  await store()
+
+  return invoke<T[]>("data_entries", { prefix })
+}
 
 const notify = (collection: SyncedCollection, remote = false) =>
   emit(DATA_EVENT, { collection, remote } satisfies DataChange)
