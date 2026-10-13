@@ -12,7 +12,7 @@
     },
     "apps/desktop": {
       "name": "eris",
-      "version": "0.3.12",
+      "version": "0.3.13",
       "dependencies": {
         "@eris/auth": "workspace:*",
         "@eris/bridge": "workspace:*",
@@ -66,11 +66,10 @@
     },
     "apps/files": {
       "name": "eris-files",
-      "version": "0.3.12",
+      "version": "0.3.13",
       "dependencies": {
         "@eris/files": "workspace:*",
         "@eris/i18n": "workspace:*",
-        "@eris/settings": "workspace:*",
         "@eris/terminal": "workspace:*",
         "@eris/ui": "workspace:*",
         "@iconify-json/lucide": "^1.2.143",
@@ -98,7 +97,7 @@
     },
     "apps/installer": {
       "name": "eris-installer",
-      "version": "0.3.12",
+      "version": "0.3.13",
       "dependencies": {
         "@eris/i18n": "workspace:*",
         "@eris/settings": "workspace:*",
@@ -127,10 +126,9 @@
     },
     "apps/terminal": {
       "name": "eris-terminal",
-      "version": "0.3.12",
+      "version": "0.3.13",
       "dependencies": {
         "@eris/i18n": "workspace:*",
-        "@eris/settings": "workspace:*",
         "@eris/terminal": "workspace:*",
         "@eris/ui": "workspace:*",
         "@iconify-json/lucide": "^1.2.143",

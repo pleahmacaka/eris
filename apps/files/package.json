@@ -14,7 +14,6 @@
   "dependencies": {
     "@eris/files": "workspace:*",
     "@eris/i18n": "workspace:*",
-    "@eris/settings": "workspace:*",
     "@eris/terminal": "workspace:*",
     "@eris/ui": "workspace:*",
     "@iconify-json/lucide": "^1.2.143",

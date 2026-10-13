@@ -1,9 +1,13 @@
 import { resolve } from "node:path"
 
 export const apps = {
-  desktop: { port: 9310, schemes: ["eris-dev", "eris-files-dev"] },
-  files: { port: 9311, schemes: ["eris-files-dev"] },
-  terminal: { port: 9312, schemes: ["eris-terminal-dev"] },
+  desktop: {
+    port: 9310,
+    schemes: ["eris-dev", "eris-files-dev"],
+    features: ["mcp-bridge"],
+  },
+  files: { port: 9311, schemes: ["eris-files-dev"], features: [] },
+  terminal: { port: 9312, schemes: ["eris-terminal-dev"], features: [] },
 } as const
 
 export type AppName = keyof typeof apps

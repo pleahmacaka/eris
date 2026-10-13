@@ -91,17 +91,32 @@ pub fn child<'a, R: Runtime>(
         .on_new_window(open_links_externally)
         .visible(false);
 
-    let shared = app
-        .config()
-        .app
-        .windows
-        .iter()
-        .find_map(|window| window.additional_browser_args.clone());
-
-    match shared {
+    match browser_args(app) {
         Some(args) => builder.additional_browser_args(&args),
         None => builder,
     }
+}
+
+// WebView2 154+ ignores WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS once a host passes its own arguments
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+fn browser_args<R: Runtime>(app: &AppHandle<R>) -> Option<String> {
+    app.config()
+        .app
+        .windows
+        .iter()
+        .find_map(|window| window.additional_browser_args.clone())
+        .or_else(dev_browser_args)
+}
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+fn dev_browser_args() -> Option<String> {
+    if !cfg!(debug_assertions) {
+        return None;
+    }
+
+    std::env::var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS")
+        .ok()
+        .filter(|args| !args.trim().is_empty())
 }
 
 pub fn open_links_externally<R: Runtime>(url: Url, _: NewWindowFeatures) -> NewWindowResponse<R> {

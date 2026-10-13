@@ -13,6 +13,10 @@ Defaults to desktop. Windows dev launches expose app-local WebView2 CDP on
 --headless keeps app windows hidden (Windows only).
 Uses a separate .dev application identity and dev-only deep-link schemes.`
 
+// Tauri windows that set no arguments get these from wry; setting any replaces them, so dev args carry them too.
+const WRY_DEFAULT_ARGS =
+  "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --autoplay-policy=no-user-gesture-required"
+
 export function parseDevArgs(args: string[]) {
   const remaining = [...args]
   const app =
@@ -71,23 +75,23 @@ export async function devPlan(
     requireWindows(platform)
   }
   const config = await readAppConfig(options.app)
+  const debugArgs = `--remote-debugging-port=${apps[options.app].port} --remote-debugging-address=127.0.0.1`
+  const hidden = options.headless ? { visible: false, focus: false } : {}
   const override = {
     identifier: `${config.identifier}.dev`,
     productName: `${config.productName} Dev`,
     plugins: {
       "deep-link": { desktop: { schemes: apps[options.app].schemes } },
     },
-    ...(options.headless
-      ? {
-          app: {
-            windows: config.app.windows.map(window => ({
-              ...window,
-              visible: false,
-              focus: false,
-            })),
-          },
-        }
-      : {}),
+    app: {
+      windows: config.app.windows.map(window => ({
+        ...window,
+        ...hidden,
+        ...(platform === "win32" && {
+          additionalBrowserArgs: `${window.additionalBrowserArgs ?? WRY_DEFAULT_ARGS} ${debugArgs}`,
+        }),
+      })),
+    },
   }
   const args = [...options.args]
   const separator = args.indexOf("--")
@@ -96,6 +100,7 @@ export async function devPlan(
     0,
     "--config",
     JSON.stringify(override),
+    ...apps[options.app].features.flatMap(feature => ["--features", feature]),
   )
   const env = { ...inherited }
   delete env.ERIS_DEV_HEADLESS
@@ -104,8 +109,13 @@ export async function devPlan(
     .replace(/--remote-debugging-(?:port|address)(?:=|\s+)\S+/g, "")
     .trim()
   if (platform === "win32") {
-    env.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS =
-      `${browserArgs} --remote-debugging-port=${apps[options.app].port} --remote-debugging-address=127.0.0.1`.trim()
+    env.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = [
+      WRY_DEFAULT_ARGS,
+      browserArgs,
+      debugArgs,
+    ]
+      .filter(Boolean)
+      .join(" ")
   } else if (browserArgs) {
     env.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = browserArgs
   } else {

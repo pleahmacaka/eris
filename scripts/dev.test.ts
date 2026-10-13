@@ -39,6 +39,9 @@ describe("dev runner", () => {
       expect(override.app.windows).toEqual(
         config.app.windows.map(window => ({
           ...window,
+          additionalBrowserArgs: expect.stringContaining(
+            `--remote-debugging-port=${apps[app].port}`,
+          ),
           visible: false,
           focus: false,
         })),
@@ -64,9 +67,13 @@ describe("dev runner", () => {
       expect(override.plugins["deep-link"].desktop.schemes).toEqual(
         apps[app].schemes,
       )
-      expect(override.app).toBeUndefined()
-      expect(plan.env.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS).toBe(
-        `--disable-gpu --remote-debugging-port=${apps[app].port} --remote-debugging-address=127.0.0.1`,
+      for (const window of override.app.windows) {
+        expect(window.additionalBrowserArgs).toEndWith(
+          `--remote-debugging-port=${apps[app].port} --remote-debugging-address=127.0.0.1`,
+        )
+      }
+      expect(plan.env.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS).toEndWith(
+        ` --disable-gpu --remote-debugging-port=${apps[app].port} --remote-debugging-address=127.0.0.1`,
       )
       expect(plan.env.ERIS_DEV_HEADLESS).toBeUndefined()
       expect(plan.env.KEEP).toBe("yes")
