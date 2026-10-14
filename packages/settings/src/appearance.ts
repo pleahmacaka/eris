@@ -139,7 +139,10 @@ export const applyAppearance = async (
   }
 
   if (root.dataset.surface === "window") {
-    const glass = background === "glass"
+    const translucent = a.surfaceOpacity < 1
+    const glass = background === "glass" || translucent
+
+    root.dataset.translucent = String(translucent)
 
     root.dataset.frame = glass || restingShadow ? "native" : "css"
 
