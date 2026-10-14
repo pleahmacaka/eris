@@ -1,0 +1,31 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Eris Dev",
+  "mainBinaryName": "eris-dev",
+  "identifier": "com.arixlab.eris.windows.dev-channel",
+  "bundle": {
+    "createUpdaterArtifacts": false,
+    "icon": [
+      "icons/dev/32x32.png",
+      "icons/dev/128x128.png",
+      "icons/dev/128x128@2x.png",
+      "icons/dev/icon.icns",
+      "icons/dev/icon.ico"
+    ],
+    "windows": {
+      "nsis": {
+        "installerHooks": null
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": []
+    },
+    "deep-link": {
+      "desktop": {
+        "schemes": ["eris-dev-channel", "eris-files-dev-channel"]
+      }
+    }
+  }
+}

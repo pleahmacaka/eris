@@ -2,11 +2,11 @@ use std::sync::Mutex;
 
 use tauri::{AppHandle, Emitter};
 
-const PREFIX: &str = if cfg!(debug_assertions) {
-    "eris-dev://theme"
-} else {
-    "eris://theme"
-};
+const PREFIX: &str = eris_window_kit::by_channel(
+    "eris://theme",
+    "eris-dev-channel://theme",
+    "eris-dev://theme",
+);
 
 static PENDING: Mutex<Option<String>> = Mutex::new(None);
 

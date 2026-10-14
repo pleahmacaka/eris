@@ -1,0 +1,26 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Eris Files Dev",
+  "mainBinaryName": "eris-files-dev",
+  "identifier": "com.arixlab.eris.files.dev-channel",
+  "bundle": {
+    "icon": [
+      "icons/dev/32x32.png",
+      "icons/dev/128x128.png",
+      "icons/dev/128x128@2x.png",
+      "icons/dev/icon.ico"
+    ],
+    "windows": {
+      "nsis": {
+        "installerHooks": null
+      }
+    }
+  },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["eris-files-dev-channel"]
+      }
+    }
+  }
+}

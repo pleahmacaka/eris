@@ -11,6 +11,11 @@ use tauri::State;
 use crate::error::{Error, Result};
 use crate::Host;
 
+const OWNS_KEYS: bool = !matches!(
+    eris_window_kit::CHANNEL,
+    eris_window_kit::Channel::DevChannel
+);
+
 pub use registry::{
     disable_with, enable_with, register_with, registered_with, status_with, unregister_with,
     DefaultState, Registry, MODEL_TYPES,
@@ -29,6 +34,13 @@ fn exe() -> Result<PathBuf> {
 
 #[cfg(windows)]
 fn report() -> DefaultApp {
+    if !OWNS_KEYS {
+        return DefaultApp {
+            supported: false,
+            enabled: false,
+        };
+    }
+
     let enabled = exe()
         .map(|exe| status_with(&win::WinRegistry::current_user(), &exe) == DefaultState::Enabled)
         .unwrap_or(false);
@@ -75,6 +87,10 @@ pub fn default_app_status() -> DefaultApp {
 #[cfg(windows)]
 #[tauri::command]
 pub fn set_default_app(host: State<'_, Host>, enabled: bool) -> Result<DefaultApp> {
+    if !OWNS_KEYS {
+        return Err(Error::Unsupported);
+    }
+
     let exe = exe()?;
     let mut registry = win::WinRegistry::current_user();
 
@@ -96,6 +112,10 @@ pub fn set_default_app(_host: State<'_, Host>, _enabled: bool) -> Result<Default
 
 #[cfg(windows)]
 fn open_settings(host: &Host) -> Result<()> {
+    if !OWNS_KEYS {
+        return Err(Error::Unsupported);
+    }
+
     let exe = exe()?;
 
     register(&mut win::WinRegistry::current_user(), host, &exe)?;
@@ -145,6 +165,10 @@ pub fn cli(host: &Host, args: &[String]) -> Option<i32> {
 
     if flag != "--default-app" {
         return None;
+    }
+
+    if !OWNS_KEYS {
+        return Some(1);
     }
 
     let exe = exe().ok()?;
