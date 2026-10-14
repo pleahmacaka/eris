@@ -41,11 +41,15 @@ impl Default for TaskbarLayout {
 static TOP: AtomicBool = AtomicBool::new(false);
 static DESKTOP: AtomicBool = AtomicBool::new(false);
 static REVEAL: AtomicBool = AtomicBool::new(false);
-static SUSPENDED: AtomicBool = AtomicBool::new(false);
 static LAST: LazyLock<Mutex<HashMap<String, (TaskbarLayout, bool)>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
-static PARKED: LazyLock<Mutex<HashMap<String, (TaskbarLayout, bool)>>> =
-    LazyLock::new(|| Mutex::new(HashMap::new()));
+static PARKED: LazyLock<Mutex<Parked>> = LazyLock::new(|| Mutex::new(Parked::default()));
+
+#[derive(Default)]
+struct Parked {
+    suspended: bool,
+    bars: HashMap<String, (TaskbarLayout, bool)>,
+}
 static SCREEN: Mutex<Option<[i32; 4]>> = Mutex::new(None);
 
 pub fn edge_is_top() -> bool {
@@ -178,13 +182,17 @@ fn apply_as(
         return Ok(());
     }
 
-    if SUSPENDED.load(Ordering::Relaxed) {
-        PARKED
-            .lock()
-            .unwrap()
-            .insert(window.label().to_string(), (layout.clone(), primary));
+    {
+        let mut parked = PARKED.lock().unwrap();
+        let entry = (window.label().to_string(), (layout.clone(), primary));
 
-        return Ok(());
+        if parked.suspended {
+            parked.bars.insert(entry.0, entry.1);
+
+            return Ok(());
+        }
+
+        LAST.lock().unwrap().insert(entry.0, entry.1);
     }
 
     if primary {
@@ -192,10 +200,6 @@ fn apply_as(
         DESKTOP.store(layout.desktop, Ordering::Relaxed);
         REVEAL.store(layout.desktop && layout.auto_hide, Ordering::Relaxed);
     }
-
-    LAST.lock()
-        .unwrap()
-        .insert(window.label().to_string(), (layout.clone(), primary));
 
     let Some(screen) = monitors::resolve(window, layout.monitor.as_deref())? else {
         return Ok(());
@@ -230,8 +234,14 @@ pub fn release(window: &WebviewWindow) {
         return;
     }
 
-    LAST.lock().unwrap().remove(window.label());
+    PARKED.lock().unwrap().bars.remove(window.label());
 
+    if LAST.lock().unwrap().remove(window.label()).is_some() {
+        unregister(window);
+    }
+}
+
+fn unregister(window: &WebviewWindow) {
     if window.label() == "taskbar" {
         *SCREEN.lock().unwrap() = None;
         TOP.store(false, Ordering::Relaxed);
@@ -243,23 +253,33 @@ pub fn release(window: &WebviewWindow) {
 }
 
 pub fn release_all(app: &AppHandle) {
-    SUSPENDED.store(true, Ordering::Relaxed);
+    let applied = {
+        let mut parked = PARKED.lock().unwrap();
 
-    let applied = std::mem::take(&mut *LAST.lock().unwrap());
+        parked.suspended = true;
+        std::mem::take(&mut *LAST.lock().unwrap())
+    };
 
-    PARKED.lock().unwrap().extend(applied);
-
-    for label in ["taskbar", "topbar"] {
+    for label in applied.keys() {
         if let Some(bar) = app.get_webview_window(label) {
-            release(&bar);
+            unregister(&bar);
         }
+    }
+
+    let mut parked = PARKED.lock().unwrap();
+
+    for (label, entry) in applied {
+        parked.bars.entry(label).or_insert(entry);
     }
 }
 
 pub fn restore_all(app: &AppHandle) {
-    SUSPENDED.store(false, Ordering::Relaxed);
+    let parked = {
+        let mut parked = PARKED.lock().unwrap();
 
-    let parked = std::mem::take(&mut *PARKED.lock().unwrap());
+        parked.suspended = false;
+        std::mem::take(&mut parked.bars)
+    };
 
     for (label, (layout, primary)) in parked {
         if let Some(bar) = app.get_webview_window(&label) {

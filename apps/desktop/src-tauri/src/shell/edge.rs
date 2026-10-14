@@ -81,7 +81,7 @@ mod win {
         let mut left_band: Option<Instant> = None;
 
         loop {
-            if !crate::shell::features::DOCK_ON.load(Ordering::Relaxed) {
+            if !crate::shell::features::dock_on() {
                 at_edge = false;
                 fullscreen = false;
                 revealed = false;

@@ -123,12 +123,13 @@ pub fn set_win_key_capture(enabled: bool) {
     win::reconcile();
 }
 
-pub use win::{chord, install, release};
+pub use win::{chord, install, release, settle};
 
 mod win {
     use std::sync::atomic::{AtomicU16, AtomicU32, Ordering};
-    use std::sync::mpsc::{sync_channel, SyncSender};
-    use std::sync::OnceLock;
+    use std::sync::mpsc::{channel, sync_channel, Sender, SyncSender};
+    use std::sync::{Mutex, OnceLock};
+    use std::time::Duration;
 
     use tauri::AppHandle;
     use windows::Win32::Foundation::{LPARAM, LRESULT, WPARAM};
@@ -152,6 +153,22 @@ mod win {
     static EVENTS: OnceLock<SyncSender<()>> = OnceLock::new();
     static OPEN_KEY: AtomicU16 = AtomicU16::new(0);
     static THREAD: AtomicU32 = AtomicU32::new(0);
+    static SETTLED: Mutex<Option<Sender<()>>> = Mutex::new(None);
+
+    const SETTLE_LIMIT: Duration = Duration::from_secs(2);
+
+    pub fn settle() {
+        if THREAD.load(Ordering::SeqCst) == 0 {
+            return;
+        }
+
+        let (done, settled) = channel();
+
+        *SETTLED.lock().unwrap() = Some(done);
+        reconcile();
+
+        let _ = settled.recv_timeout(SETTLE_LIMIT);
+    }
 
     pub fn reconcile() {
         let thread = THREAD.load(Ordering::SeqCst);
@@ -383,7 +400,10 @@ mod win {
             THREAD.store(GetCurrentThreadId(), Ordering::SeqCst);
 
             loop {
-                match (CAPTURE.load(Ordering::Relaxed), hook) {
+                let settled = SETTLED.lock().unwrap().take();
+                let capture = CAPTURE.load(Ordering::Relaxed) && !crate::shell::features::held();
+
+                match (capture, hook) {
                     (true, None) => {
                         hook = match SetWindowsHookExW(WH_KEYBOARD_LL, Some(keyboard_hook), None, 0)
                         {
@@ -400,6 +420,10 @@ mod win {
                         hook = None;
                     }
                     _ => {}
+                }
+
+                if let Some(done) = settled {
+                    let _ = done.send(());
                 }
 
                 if !GetMessageW(&mut message, None, 0, 0).as_bool() {

@@ -281,6 +281,7 @@ pub(crate) fn window_for(app: &AppHandle, label: &str) -> Option<WebviewWindow> 
     }
 
     let config = lazy_config(app, label)?;
+
     let builder = tauri::WebviewWindowBuilder::from_config(app, &config).ok()?;
     let builder = if label == "studio" {
         builder
@@ -290,7 +291,7 @@ pub(crate) fn window_for(app: &AppHandle, label: &str) -> Option<WebviewWindow> 
         builder
     };
 
-    let window = builder.build().ok()?;
+    let window = eris_window_kit::build(builder).ok()?;
 
     UNPAINTED.lock().unwrap().insert(label.to_string());
 
@@ -298,7 +299,7 @@ pub(crate) fn window_for(app: &AppHandle, label: &str) -> Option<WebviewWindow> 
 }
 
 fn reveal(window: &WebviewWindow) {
-    if eris_window_kit::headless() {
+    if eris_window_kit::headless() || crate::shell::features::dock_deferred(window.label()) {
         return;
     }
 

@@ -22,7 +22,6 @@ mod usage;
 
 use apps::{files, launcher};
 use eris_p2p as p2p;
-use notifications::tray;
 use shell::{desktop, windowing, winkey};
 use system::share;
 
@@ -130,7 +129,9 @@ pub fn run() {
         )
     };
 
-    if !cfg!(debug_assertions) {
+    let stable = eris_window_kit::CHANNEL == eris_window_kit::Channel::Stable;
+
+    if stable {
         adopt_previous_data();
     }
 
@@ -196,7 +197,7 @@ pub fn run() {
                     .permission("mcp-bridge:default"),
             )?;
 
-            if !cfg!(debug_assertions) {
+            if stable {
                 follow_exe(&handle);
             }
 
@@ -204,7 +205,7 @@ pub fn run() {
             handle.set_device_event_filter(DeviceEventFilter::Always);
 
             if !eris_window_kit::headless() {
-                tray::host(handle.clone());
+                shell::priority::start(&handle);
                 winkey::install(handle.clone());
                 clipboard::watch(handle.clone());
             }
