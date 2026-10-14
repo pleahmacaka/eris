@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.15](https://github.com/pleahmacaka/eris/compare/0.3.14...0.3.15) (2026-10-14)
+
+
+### Features
+
+* add local dev channel builds ([776feb3](https://github.com/pleahmacaka/eris/commit/776feb3f048b754433116e16082b10f7eea8d78f))
+* blur behind translucent windows ([93ec379](https://github.com/pleahmacaka/eris/commit/93ec379ec31107255fbb14b6d57308c7f1d6da93))
+* **desktop:** add a wheel time picker for events ([7ce208e](https://github.com/pleahmacaka/eris/commit/7ce208ee0046ab695aedd2cbe5a20c275fa7867d))
+* **desktop:** hand shell features to the dev build and back ([b28a906](https://github.com/pleahmacaka/eris/commit/b28a906a669ea1261623691b1cc27485b6c8fc35))
+* **desktop:** open windows settings pages from the launcher ([a424af5](https://github.com/pleahmacaka/eris/commit/a424af5f41169456c2bbfc32cfe4fec0c1bb7248))
+* **files:** add popup menus, menu settings and properties ([51840f0](https://github.com/pleahmacaka/eris/commit/51840f0858461d970560a89f5c079f3097f1b9bc))
+
 ## [0.3.14](https://github.com/pleahmacaka/eris/compare/0.3.13...0.3.14) (2026-10-13)
 
 
