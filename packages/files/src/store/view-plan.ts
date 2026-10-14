@@ -1,4 +1,4 @@
-import { normalize, sameLocation, THIS_PC } from "../locations"
+import { isControlPanel, normalize, sameLocation, THIS_PC } from "../locations"
 import type { Known, KnownId } from "../native"
 import type { FolderType, Prefs } from "./prefs.svelte"
 
@@ -25,12 +25,13 @@ export const viewPlan = (
   const folder = own ?? prefs.folders[type]
   const group = own?.group ?? prefs.groups[key] ?? folder.group
   const arrangeable = !(location === THIS_PC && !results)
+  const tiled = !arrangeable || (!own && isControlPanel(location))
 
   return {
     own,
     folder,
     group,
     arrangeable,
-    view: arrangeable ? folder.view : ("tiles" as const),
+    view: tiled ? ("tiles" as const) : folder.view,
   }
 }

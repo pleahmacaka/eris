@@ -22,19 +22,39 @@ import {
   clipboardHasFiles,
   disconnectDrive,
   disconnectNetworkDrive,
+  invokeVerb,
   mapNetworkDrive,
   nativeMenu,
   openWith,
   type ShellVerb,
 } from "../native"
 import { archives, isArchive, splitArchive } from "./archive.svelte"
-import { CLEANUP_HOURS, keepInstaller } from "./cleanup.svelte"
-import { hintOf, menuItem } from "./commands"
+import {
+  customCleanup,
+  DELAYS,
+  delayInstaller,
+  hoursLeft,
+  keepInstaller,
+} from "./cleanup.svelte"
+import { hintOf } from "./commands"
 import { type Explorer, fail } from "./explorer.svelte"
+import { commandEntry, entry, entryIcon, LOCKED_ITEMS } from "./menu-entries"
 import { nameDrive, refreshPlaces } from "./places.svelte"
-import { prefs, type SidebarSection, VIEW_ICONS, VIEWS } from "./prefs.svelte"
+import {
+  MENU_SECTIONS,
+  type MenuSection,
+  prefs,
+  type SidebarSection,
+  VIEW_ICONS,
+  VIEWS,
+} from "./prefs.svelte"
 import { confirmPrivate, isMarked, toggleMark } from "./privacy.svelte"
-import { loadShellVerbs, targetOf, withShellVerbs } from "./shell-verbs"
+import {
+  loadShellVerbs,
+  rememberVerbs,
+  shellItems,
+  targetOf,
+} from "./shell-verbs"
 import {
   hidePath,
   isPinned,
@@ -43,54 +63,79 @@ import {
   toggleSection,
 } from "./sidebar"
 
-type Entry = MenuItem | false | null | undefined
+type Entry = MenuAction | false | null | undefined
 
 const command = (key: string) => tr(`explorer.commands.${key}`)
 
 const compact = (entries: Entry[]) =>
-  entries.filter((entry): entry is MenuItem => !!entry)
+  entries.filter((entry): entry is MenuAction => !!entry)
 
 export const NETWORK_ACTIONS = [
-  { key: "mapDrive", icon: "lucide:hard-drive-upload", run: mapNetworkDrive },
-  { key: "unmapDrive", icon: "lucide:unplug", run: disconnectNetworkDrive },
-  {
-    key: "addNetworkLocation",
-    icon: "lucide:folder-plus",
-    run: addNetworkLocation,
-  },
-]
+  { key: "mapDrive", run: mapNetworkDrive },
+  { key: "unmapDrive", run: disconnectNetworkDrive },
+  { key: "addNetworkLocation", run: addNetworkLocation },
+].map(action => ({ ...action, icon: entryIcon(action.key) }))
 
 const networkMenu = (x: Explorer): MenuAction[] =>
-  NETWORK_ACTIONS.map(entry => ({
-    label: command(entry.key),
-    icon: entry.icon,
-    action: () => x.changePlaces(entry.run),
-  }))
+  NETWORK_ACTIONS.map(action =>
+    entry(action.key, () => x.changePlaces(action.run)),
+  )
 
-const moreOptions = (action: () => unknown): MenuAction => ({
-  label: command("moreOptions"),
-  icon: "lucide:ellipsis",
-  action,
-})
+const moreOptions = (action: () => unknown): MenuAction =>
+  entry("moreOptions", action)
 
 const pinItem = (x: Explorer, path: string): MenuAction => {
   const pinned = isPinned(path)
 
-  return {
+  return entry("pin", () => x.pin(path, pinned), {
     label: command(pinned ? "unpin" : "pin"),
     icon: pinned ? "lucide:pin-off" : "lucide:pin",
-    action: () => x.pin(path, pinned),
-  }
+  })
 }
 
 const privateItem = (path: string): MenuAction => {
   const marked = isMarked(path)
 
-  return {
+  return entry("private", () => toggleMark(path), {
     label: command(marked ? "unmarkPrivate" : "markPrivate"),
     icon: marked ? "lucide:eye" : "lucide:eye-off",
-    action: () => toggleMark(path),
-  }
+  })
+}
+
+const hideDeviceItem = (x: Explorer, path: string): MenuAction => {
+  const hidden = prefs.hiddenDevices.includes(path)
+
+  return entry(
+    "hideDevice",
+    () => {
+      prefs.hiddenDevices = hidden
+        ? prefs.hiddenDevices.filter(entry => entry !== path)
+        : [...prefs.hiddenDevices, path]
+
+      return x.tab.refresh()
+    },
+    {
+      label: command(hidden ? "unhideDevice" : "hideDevice"),
+      icon: hidden ? "lucide:eye" : "lucide:eye-off",
+    },
+  )
+}
+
+const hiddenDevicesItem = (x: Explorer): MenuAction => {
+  const shown = prefs.showHiddenDevices
+
+  return entry(
+    "hiddenDevices",
+    () => {
+      prefs.showHiddenDevices = !shown
+
+      return x.tab.refresh()
+    },
+    {
+      label: command(shown ? "hideHiddenDevices" : "showHiddenDevices"),
+      icon: shown ? "lucide:eye-off" : "lucide:eye",
+    },
+  )
 }
 
 const VERB_WAIT = 120
@@ -122,34 +167,23 @@ const stemOf = (item: Item) =>
     ? item.name
     : item.name.slice(0, item.name.length - extensionOf(item.name).length)
 
-const extractMenu = (x: Explorer, archivesToExtract: Item[]): MenuItem[] => {
-  const paths = archivesToExtract.map(item => item.path)
+const extractMenu = (x: Explorer, packed: Item[]): MenuAction[] => {
+  const paths = packed.map(item => item.path)
   const run = (job: BandizipJob) => () => x.bandizip(job, paths)
-  const [single] = archivesToExtract.length === 1 ? archivesToExtract : []
+  const [single] = packed.length === 1 ? packed : []
 
   return [
-    "separator",
-    {
-      label: bandizip("extractHere"),
-      icon: "lucide:package-open",
-      action: run("extractHere"),
-    },
-    {
-      label: bandizip("extractAuto"),
-      icon: "lucide:wand-sparkles",
-      action: run("extractAuto"),
-    },
-    {
+    entry("extractHere", run("extractHere")),
+    entry("extractAuto", run("extractAuto")),
+    entry("extractNamed", run("extractNamed"), {
       label: single
         ? bandizip("extractNamed", stemOf(single))
         : bandizip("extractEach"),
-      icon: "lucide:folder-output",
-      action: run("extractNamed"),
-    },
+    }),
   ]
 }
 
-const bandizipMenu = (x: Explorer): MenuItem[] => {
+const bandizipMenu = (x: Explorer): MenuAction[] => {
   const selection = x.selected
 
   if (!archives.bandizip || !x.filesystem || !selection.length) {
@@ -166,30 +200,23 @@ const bandizipMenu = (x: Explorer): MenuItem[] => {
     selection.length === 1 ? stemOf(selection[0]) : baseName(x.tab.location)
 
   return compact([
-    "separator",
-    {
+    entry("compressZip", run("compressZip"), {
       label: bandizip("compressZip", name),
-      icon: "lucide:file-archive",
-      action: run("compressZip"),
-    },
-    {
+    }),
+    entry("compress7z", run("compress7z"), {
       label: bandizip("compress7z", name),
-      icon: "lucide:file-archive",
-      action: run("compress7z"),
-    },
-    selection.length > 1 && {
-      label: bandizip("compressEach"),
-      icon: "lucide:files",
-      action: run("compressEach"),
-    },
+    }),
+    selection.length > 1 && entry("compressEach", run("compressEach")),
   ])
 }
 
-const archiveTabMenu = (x: Explorer, items: MenuItem[]): MenuItem[] => {
+type Sections = Partial<Record<MenuSection, Entry[]>>
+
+const archiveTabMenu = (x: Explorer, open: MenuAction[]): Sections => {
   const packed = splitArchive(x.tab.location)
 
   if (!packed || !archives.bandizip) {
-    return items
+    return { open }
   }
 
   const archive = {
@@ -198,10 +225,41 @@ const archiveTabMenu = (x: Explorer, items: MenuItem[]): MenuItem[] => {
     dir: false,
   } as Item
 
-  return [...items, ...extractMenu(x, [archive])]
+  return { open, archive: extractMenu(x, [archive]) }
 }
 
-const itemMenu = (x: Explorer): MenuItem[] => {
+const visible = (section: MenuSection, items: MenuAction[]) => {
+  const { order, hidden } = prefs.menuItems[section]
+  const idOf = (item: MenuAction) => item.id ?? ""
+  const rank = (item: MenuAction) => {
+    const at = order.indexOf(idOf(item))
+
+    return at === -1 ? order.length : at
+  }
+
+  return items
+    .filter(
+      item => !hidden.includes(idOf(item)) || LOCKED_ITEMS.includes(idOf(item)),
+    )
+    .sort((a, b) => rank(a) - rank(b))
+}
+
+const builtIns = (layout: Sections) =>
+  MENU_SECTIONS.flatMap(section => compact(layout[section] ?? []))
+
+const arrange = (layout: Sections, shell: MenuAction[]): MenuItem[] => {
+  const { order, hidden } = prefs.menuLayout
+  const groups = order
+    .filter(id => !hidden.includes(id) || id === "properties")
+    .map(id => visible(id, id === "shell" ? shell : compact(layout[id] ?? [])))
+    .filter(group => group.length > 0)
+
+  return groups.flatMap((group, index): MenuItem[] =>
+    index === 0 ? group : ["separator", ...group],
+  )
+}
+
+const itemMenu = (x: Explorer): Sections => {
   const selection = x.selected
   const keys = selection.map(item => item.key)
   const single = selection.length === 1 ? selection[0] : null
@@ -210,123 +268,111 @@ const itemMenu = (x: Explorer): MenuItem[] => {
   const more = moreOptions(() => x.more(keys))
 
   if (x.tab.kind === "archive") {
-    return archiveTabMenu(x, [menuItem("open", x)])
+    return archiveTabMenu(x, [commandEntry("open", x)])
   }
 
   if (x.inBin) {
-    return [
-      menuItem("restore", x),
-      menuItem("deletePermanently", x),
-      "separator",
-      menuItem("properties", x),
-      more,
-    ]
+    return {
+      edit: [commandEntry("restore", x), commandEntry("deletePermanently", x)],
+      properties: [commandEntry("properties", x), more],
+    }
   }
 
-  return compact([
-    menuItem("open", x),
-    single?.dir && {
-      label: command("openInNewTab"),
-      icon: "lucide:panel-top",
-      action: () => x.openInTab(single.path),
-    },
-    single?.dir && {
-      label: command("openInNewWindow"),
-      icon: "lucide:app-window",
-      action: () => x.openWindow(single.path),
-    },
-    single &&
-      !single.dir &&
-      !isVirtual(single.path) && {
-        label: command("openWith"),
-        icon: "lucide:layout-grid",
-        action: async () =>
-          (await confirmPrivate(single.path, x.tab.location)) &&
-          openWith(single.path).catch(fail),
-      },
-    ...bandizipMenu(x),
-    "separator",
-    menuItem("cut", x),
-    menuItem("copy", x),
-    menuItem("copyPath", x),
-    x.filesystem && {
-      label: tr("share.action"),
-      icon: "lucide:share-2",
-      action: () => openShare(selection.map(item => item.path)),
-    },
-    folder &&
-      x.filesystem && {
-        label: tr("share.sync.menu"),
-        icon: "lucide:folder-sync",
-        action: () => {
+  return {
+    open: [
+      commandEntry("open", x),
+      single?.dir && entry("openInNewTab", () => x.openInTab(single.path)),
+      single?.dir && entry("openInNewWindow", () => x.openWindow(single.path)),
+      single &&
+        !single.dir &&
+        !isVirtual(single.path) &&
+        entry(
+          "openWith",
+          async () =>
+            (await confirmPrivate(single.path, x.tab.location)) &&
+            openWith(single.path).catch(fail),
+        ),
+    ],
+    archive: bandizipMenu(x),
+    edit: [
+      commandEntry("cut", x),
+      commandEntry("copy", x),
+      commandEntry("copyPath", x),
+      x.filesystem &&
+        entry("share", () => openShare(selection.map(item => item.path))),
+      folder &&
+        x.filesystem &&
+        entry("syncFolder", () => {
           share.syncFolder = folder.path
           x.go(SHARED)
-        },
-      },
-    menuItem("rename", x),
-    drive &&
-      drive.path in prefs.driveNames && {
-        label: command("resetName"),
-        icon: "lucide:rotate-ccw",
-        action: () => {
+        }),
+      commandEntry("rename", x),
+      drive &&
+        drive.path in prefs.driveNames &&
+        entry("resetName", () => {
           nameDrive(drive, "")
 
           return x.tab.refresh()
-        },
-      },
-    menuItem("delete", x),
-    "separator",
-    folder && pinItem(x, folder.path),
-    single &&
-      x.filesystem &&
-      !isVirtual(single.path) &&
-      privateItem(single.path),
-    single?.drive?.kind === "network" && {
-      label: command("disconnect"),
-      icon: "lucide:unplug",
-      action: () => x.changePlaces(() => disconnectDrive(single.path)),
-    },
-    menuItem("properties", x),
-    more,
-  ])
+        }),
+      commandEntry("delete", x),
+    ],
+    organize: [
+      folder && pinItem(x, folder.path),
+      single &&
+        x.filesystem &&
+        !isVirtual(single.path) &&
+        privateItem(single.path),
+      drive && x.tab.location === THIS_PC && hideDeviceItem(x, drive.path),
+      drive?.kind === "removable" &&
+        entry("eject", () =>
+          x.changePlaces(() => invokeVerb([drive.path], "eject")),
+        ),
+      drive?.kind === "network" &&
+        entry("disconnect", () =>
+          x.changePlaces(() => disconnectDrive(drive.path)),
+        ),
+    ],
+    properties: [commandEntry("properties", x), more],
+  }
 }
 
-const viewMenu = (x: Explorer, e: MouseEvent): MenuAction => ({
-  label: command("view"),
-  icon: VIEW_ICONS[x.view],
-  action: () =>
-    openContextMenu({
-      x: e.clientX,
-      y: e.clientY,
-      placement: "down",
-      items: [
-        ...VIEWS.map(mode => ({
-          label: tr(`explorer.views.${mode}`),
-          icon: mode === x.view ? "lucide:check" : VIEW_ICONS[mode],
-          hint: hintOf(`view.${mode}`),
-          action: () => x.setView(mode),
-        })),
-        "separator",
-        {
-          label: tr("explorer.views.dateGroups"),
-          icon: x.group === "modified" ? "lucide:check" : "lucide:calendar",
-          action: () => x.toggleDateGroups(),
-        },
-        {
-          label: tr("explorer.views.folderOnly"),
-          icon: x.own ? "lucide:check" : "lucide:folder-cog",
-          action: () => x.toggleFolderOnly(),
-        },
-      ],
-    }),
-})
+const viewMenu = (x: Explorer, e: MouseEvent): MenuAction =>
+  entry(
+    "view",
+    () =>
+      openContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        placement: "down",
+        items: [
+          ...VIEWS.map(mode => ({
+            label: tr(`explorer.views.${mode}`),
+            icon: mode === x.view ? "lucide:check" : VIEW_ICONS[mode],
+            hint: hintOf(`view.${mode}`),
+            action: () => x.setView(mode),
+          })),
+          "separator",
+          {
+            label: tr("explorer.views.dateGroups"),
+            icon: x.group === "modified" ? "lucide:check" : "lucide:calendar",
+            action: () => x.toggleDateGroups(),
+          },
+          {
+            label: tr("explorer.views.folderOnly"),
+            icon: x.own ? "lucide:check" : "lucide:folder-cog",
+            action: () => x.toggleFolderOnly(),
+          },
+        ],
+      }),
+    { icon: VIEW_ICONS[x.view] },
+  )
 
 const backgroundMenu = (
   x: Explorer,
   canPaste: boolean,
   e: MouseEvent,
-): MenuItem[] => {
-  const refresh = menuItem("refresh", x)
+): Sections => {
+  const refresh = commandEntry("refresh", x)
   const more = moreOptions(() => x.more([]))
   const view = x.arrangeable ? [viewMenu(x, e)] : []
 
@@ -335,27 +381,33 @@ const backgroundMenu = (
   }
 
   if (x.inBin) {
-    return [menuItem("emptyBin", x), ...view, refresh, more]
+    return {
+      open: [...view, refresh],
+      edit: [commandEntry("emptyBin", x)],
+      properties: [more],
+    }
   }
 
   if (x.tab.location === THIS_PC) {
-    return [refresh, "separator", ...networkMenu(x), more]
+    return {
+      open: [refresh, prefs.hiddenDevices.length > 0 && hiddenDevicesItem(x)],
+      organize: networkMenu(x),
+      properties: [more],
+    }
   }
 
   if (!x.filesystem) {
-    return [...view, refresh, more]
+    return { open: [...view, refresh], properties: [more] }
   }
 
-  return [
-    ...view,
-    refresh,
-    "separator",
-    { ...menuItem("paste", x), disabled: !canPaste },
-    menuItem("newFolder", x),
-    "separator",
-    menuItem("properties", x),
-    more,
-  ]
+  return {
+    open: [...view, refresh],
+    edit: [
+      { ...commandEntry("paste", x), disabled: !canPaste },
+      commandEntry("newFolder", x),
+    ],
+    properties: [commandEntry("properties", x), more],
+  }
 }
 
 export const openCleanupMenu = (
@@ -364,17 +416,26 @@ export const openCleanupMenu = (
   item: Item,
 ) => {
   const rect = anchor.getBoundingClientRect()
+  const left = hoursLeft(item)
 
   openContextMenu({
     x: rect.left,
     y: rect.bottom,
     placement: "down",
+    anchor,
     items: [
-      ...CLEANUP_HOURS.map(hours => ({
-        label: tr("explorer.decor.deleteAfter", { hours }),
-        icon: hours === prefs.cleanupHours ? "lucide:check" : "lucide:clock",
-        action: () => (prefs.cleanupHours = hours),
+      ...DELAYS.map(({ hours, label }) => ({
+        label: tr(`explorer.decor.${label}`, { hours }),
+        icon: hours === left ? "lucide:check" : "lucide:clock",
+        action: () => delayInstaller(item, hours),
       })),
+      {
+        label: tr("explorer.decor.deleteAfterCustom"),
+        icon: "lucide:pencil",
+        action: () => {
+          customCleanup.item = item
+        },
+      },
       "separator",
       {
         label: tr("explorer.decor.keep"),
@@ -394,6 +455,17 @@ export const openCleanupMenu = (
   })
 }
 
+const verbsFor = (x: Explorer, selection = x.selected) =>
+  x.filesystem && x.tab.kind === "folder" && !x.inBin
+    ? loadShellVerbs(selection, targetOf(selection, x.tab.location)).catch(
+        () => [],
+      )
+    : null
+
+export const warmMenu = (x: Explorer, selection: Item[]) => {
+  verbsFor(x, selection)
+}
+
 export const openMenu = async (
   x: Explorer,
   e: MouseEvent,
@@ -407,24 +479,25 @@ export const openMenu = async (
     x.tab.select([item.key])
   }
 
-  const shell = x.filesystem && x.tab.kind === "folder" && !x.inBin
   const target = targetOf(x.selected, x.tab.location)
-  const loading = shell
-    ? loadShellVerbs(x.selected, target).catch(() => [])
-    : null
-  const canPaste = await clipboardHasFiles().catch(() => false)
-  const ready = loading
-    ? await Promise.race([loading, wait(VERB_WAIT).then(() => null)])
-    : null
-  const items = item ? itemMenu(x) : backgroundMenu(x, canPaste, e)
-  const extend = (verbs: ShellVerb[]) =>
-    withShellVerbs(items, verbs, target, clipName, fail)
+  const loading = verbsFor(x)
+  const [canPaste, ready] = await Promise.all([
+    item ? false : clipboardHasFiles().catch(() => false),
+    loading && Promise.race([loading, wait(VERB_WAIT).then(() => null)]),
+  ])
+  const layout = item ? itemMenu(x) : backgroundMenu(x, canPaste, e)
+  const own = builtIns(layout)
+  const extend = (verbs: ShellVerb[]) => {
+    rememberVerbs(verbs)
+
+    return arrange(layout, shellItems(own, verbs, target, clipName, fail))
+  }
 
   openContextMenu({
     x: e.clientX,
     y: e.clientY,
     placement: "down",
-    items: ready ? extend(ready) : items,
+    items: extend(ready ?? []),
   })
 
   const opened = contextMenu.request
@@ -465,45 +538,32 @@ const placeMenu = (x: Explorer, place: Place): MenuItem[] => {
     }
   }
 
-  return compact([
-    {
-      label: command("open"),
-      icon: "lucide:square-arrow-out-up-right",
-      action: () => x.go(location),
-    },
-    {
-      label: command("openInNewTab"),
-      icon: "lucide:panel-top",
-      action: () => x.openInTab(location),
-    },
-    {
-      label: command("openInNewWindow"),
-      icon: "lucide:app-window",
-      action: () => x.openWindow(location),
-    },
+  return [
+    ...compact([
+      entry("open", () => x.go(location)),
+      entry("openInNewTab", () => x.openInTab(location)),
+      entry("openInNewWindow", () => x.openWindow(location)),
+    ]),
     "separator",
-    !SINGLE.includes(location) && !isVirtual(location) && pinItem(x, location),
-    (section === "network" ||
-      (section === "drives" && location !== THIS_PC)) && {
-      label: command("rename"),
-      icon: "lucide:pencil",
-      action: () => x.renamePlace(location),
-    },
-    hide && {
-      label: tr("explorer.sidebar.hide"),
-      icon: "lucide:eye-off",
-      action: () =>
-        hide === "section" ? toggleSection(section) : hidePath(location),
-    },
-    own && {
-      label: command("properties"),
-      icon: "lucide:info",
-      action: () => x.properties([location]),
-    },
-    own && moreOptions(showNative),
+    ...compact([
+      !SINGLE.includes(location) &&
+        !isVirtual(location) &&
+        pinItem(x, location),
+      (section === "network" ||
+        (section === "drives" && location !== THIS_PC)) &&
+        entry("rename", () => x.renamePlace(location)),
+      hide && {
+        label: tr("explorer.sidebar.hide"),
+        icon: "lucide:eye-off",
+        action: () =>
+          hide === "section" ? toggleSection(section) : hidePath(location),
+      },
+      own && entry("properties", () => x.properties([location])),
+      own && moreOptions(showNative),
+    ]),
     "separator",
     customize(x),
-  ])
+  ]
 }
 
 const sectionsMenu = (x: Explorer): MenuItem[] => [

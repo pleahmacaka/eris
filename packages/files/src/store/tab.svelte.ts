@@ -10,6 +10,7 @@ import {
   type Item,
 } from "../items"
 import {
+  HIDDEN,
   HOME,
   isUnc,
   isVirtual,
@@ -34,6 +35,7 @@ import { archiveListing, splitArchive } from "./archive.svelte"
 import { Insight } from "./insight.svelte"
 import { driveName, places, refreshPlaces } from "./places.svelte"
 import { takePrefetched } from "./prefetch"
+import { prefs } from "./prefs.svelte"
 import { confirmPrivate } from "./privacy.svelte"
 
 export type TabKind = "folder" | "virtual" | "audio" | "shared" | "archive"
@@ -59,13 +61,19 @@ const thisPcItems = (): Item[] => {
       ),
     )
 
-  const disks = places.drives.map(drive =>
-    fromDrive(
-      drive,
-      driveName(drive, key => tr(key)),
-      tr(`explorer.drive.${drive.kind === "fixed" ? "local" : drive.kind}`),
-    ),
-  )
+  const disks = places.drives
+    .filter(
+      drive =>
+        prefs.showHiddenDevices || !prefs.hiddenDevices.includes(drive.path),
+    )
+    .map(drive => ({
+      ...fromDrive(
+        drive,
+        driveName(drive, key => tr(key)),
+        tr(`explorer.drive.${drive.kind === "fixed" ? "local" : drive.kind}`),
+      ),
+      attrs: prefs.hiddenDevices.includes(drive.path) ? HIDDEN : 0,
+    }))
 
   const network = places.network.map(place =>
     fromFolder(place.path, place.name, tr("explorer.places.networkLocation")),

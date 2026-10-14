@@ -258,9 +258,16 @@ fn search(root: String, query: String, token: u32, batch: Channel<Vec<Hit>>) {
     live().lock().unwrap().remove(&token);
 }
 
-fn measure(roots: Vec<String>, token: u32) -> Option<u64> {
+#[derive(Default, Serialize)]
+pub struct Tally {
+    bytes: u64,
+    files: u64,
+    folders: u64,
+}
+
+fn tally(roots: Vec<String>, token: u32) -> Option<Tally> {
     let mut queue = VecDeque::from(roots);
-    let mut total = 0;
+    let mut tally = Tally::default();
 
     while let Some(dir) = queue.pop_front() {
         if !live().lock().unwrap().contains(&token) {
@@ -269,23 +276,33 @@ fn measure(roots: Vec<String>, token: u32) -> Option<u64> {
 
         let _ = scan(&dir, |item| {
             if !item.dir {
-                total += item.size;
-            } else if !item.link {
-                queue.push_back(child(&dir, &item.name));
+                tally.files += 1;
+                tally.bytes += item.size;
+            } else {
+                tally.folders += 1;
+
+                if !item.link {
+                    queue.push_back(child(&dir, &item.name));
+                }
             }
         });
     }
 
     live().lock().unwrap().remove(&token);
 
-    Some(total)
+    Some(tally)
 }
 
 #[tauri::command]
 pub async fn measure_dirs(paths: Vec<String>, token: u32) -> Result<Option<u64>> {
+    Ok(tally_dirs(paths, token).await?.map(|tally| tally.bytes))
+}
+
+#[tauri::command]
+pub async fn tally_dirs(paths: Vec<String>, token: u32) -> Result<Option<Tally>> {
     live().lock().unwrap().insert(token);
 
-    Ok(tauri::async_runtime::spawn_blocking(move || measure(paths, token)).await?)
+    Ok(tauri::async_runtime::spawn_blocking(move || tally(paths, token)).await?)
 }
 
 #[tauri::command]

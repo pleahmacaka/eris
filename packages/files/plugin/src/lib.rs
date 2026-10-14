@@ -31,6 +31,9 @@ mod launch;
 #[cfg_attr(not(windows), path = "unix/listing.rs")]
 mod listing;
 #[cfg(desktop)]
+#[cfg_attr(not(windows), path = "unix/menu.rs")]
+mod menu;
+#[cfg(desktop)]
 #[cfg_attr(not(windows), path = "unix/network.rs")]
 mod network;
 #[cfg(desktop)]
@@ -42,6 +45,8 @@ mod places;
 #[cfg(desktop)]
 mod preview;
 mod privacy;
+#[cfg(desktop)]
+mod properties;
 mod share;
 
 pub use share::endpoint_id;
@@ -60,11 +65,11 @@ mod verbs;
 mod watch;
 
 pub(crate) const IDENTIFIER: &str = "com.arixlab.eris.files";
-const SCHEME: &str = if cfg!(debug_assertions) {
-    "eris-files-dev://"
-} else {
-    "eris-files://"
-};
+const SCHEME: &str = eris_window_kit::by_channel(
+    "eris-files://",
+    "eris-files-dev-channel://",
+    "eris-files-dev://",
+);
 
 pub type PeerList = fn(&AppHandle) -> Vec<(String, String)>;
 
@@ -72,6 +77,7 @@ pub type PeerList = fn(&AppHandle) -> Vec<(String, String)>;
 pub struct Host {
     pub main_route: &'static str,
     pub viewer_route: &'static str,
+    pub menu_route: &'static str,
     pub marker: Option<&'static str>,
     pub app_name: &'static str,
     pub prog_prefix: &'static str,
@@ -81,6 +87,7 @@ pub struct Host {
 pub const STANDALONE: Host = Host {
     main_route: "/",
     viewer_route: "/viewer",
+    menu_route: "/menu",
     marker: None,
     app_name: "Eris Files",
     prog_prefix: "ErisFiles",
@@ -113,6 +120,18 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             listing::cancel_search,
             #[cfg(desktop)]
             listing::measure_dirs,
+            #[cfg(desktop)]
+            listing::tally_dirs,
+            #[cfg(desktop)]
+            properties::stat_items,
+            #[cfg(desktop)]
+            menu::menu_prepare,
+            #[cfg(desktop)]
+            menu::menu_ready,
+            #[cfg(desktop)]
+            menu::menu_place,
+            #[cfg(desktop)]
+            menu::menu_hide,
             #[cfg(desktop)]
             archive::list_archive,
             #[cfg(desktop)]
@@ -189,6 +208,7 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             git::git_log,
             #[cfg(desktop)]
             git::git_repo,
+            git::git_user,
             #[cfg(desktop)]
             git::git_stage,
             #[cfg(desktop)]
@@ -278,8 +298,10 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             share::start(app);
             #[cfg(desktop)]
             std::thread::spawn(archive::prune_scratch);
+            #[cfg(desktop)]
+            places::watch_drives(app.clone());
 
-            if !cfg!(debug_assertions) {
+            if eris_window_kit::CHANNEL == eris_window_kit::Channel::Stable {
                 default_app::repoint(&host);
             }
 

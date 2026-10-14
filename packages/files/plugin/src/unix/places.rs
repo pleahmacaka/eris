@@ -128,3 +128,5 @@ pub fn explorer_settings() -> ExplorerSettings {
         show_extensions: true,
     }
 }
+
+pub fn watch_drives<R: tauri::Runtime>(_app: tauri::AppHandle<R>) {}

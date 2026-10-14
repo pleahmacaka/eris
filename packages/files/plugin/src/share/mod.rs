@@ -157,10 +157,9 @@ pub fn take_links(app: &AppHandle, args: &mut Vec<String>) -> bool {
 
 #[cfg(desktop)]
 pub fn focus_window(app: &AppHandle) -> bool {
-    let window = app
-        .webview_windows()
-        .into_values()
-        .find(|window| window.label().starts_with("files-"));
+    let window = app.webview_windows().into_values().find(|window| {
+        window.label().starts_with("files-") && window.label() != crate::menu::LABEL
+    });
 
     window.is_some_and(|window| {
         #[cfg(desktop)]

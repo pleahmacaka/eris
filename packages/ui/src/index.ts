@@ -35,8 +35,10 @@ export {
 } from "./lib/layout/pointer"
 export { isAction, type MenuAction, type MenuItem } from "./lib/menus/menu"
 export {
+  type ContextMenuRequest,
   closeContextMenu,
   contextMenu,
+  type MenuPresenter,
   openContextMenu,
 } from "./lib/store/context.svelte"
 export { revealSection } from "./lib/store/sections.svelte"

@@ -37,6 +37,18 @@ const isServer = (location: string) =>
   isUnc(location) &&
   trimSlashes(location).slice(2).split("\\").filter(Boolean).length === 1
 
+const CONTROL_PANELS = [
+  "SHELL:CONTROLPANELFOLDER",
+  "::{26EE0668-A00A-44D7-9371-BEB064C98683}",
+  "::{21EC2020-3AEA-1069-A2DD-08002B30309D}",
+]
+
+export const isControlPanel = (location: string) => {
+  const upper = location.toUpperCase()
+
+  return CONTROL_PANELS.some(panel => upper.startsWith(panel))
+}
+
 export const isVirtual = (location: string) =>
   location.startsWith("::") ||
   location.toLowerCase().startsWith("shell:") ||

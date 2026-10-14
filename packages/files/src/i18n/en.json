@@ -149,7 +149,12 @@
       "unmapDrive": "Disconnect network drive",
       "addNetworkLocation": "Add a network location",
       "markPrivate": "Ask before showing while sharing",
-      "unmarkPrivate": "Stop asking while sharing"
+      "unmarkPrivate": "Stop asking while sharing",
+      "eject": "Eject",
+      "hideDevice": "Hide",
+      "unhideDevice": "Unhide",
+      "showHiddenDevices": "Show hidden devices",
+      "hideHiddenDevices": "Hide hidden devices"
     },
     "sort": {
       "name": "Name",
@@ -241,7 +246,8 @@
         "devices": "Devices",
         "account": "Account",
         "about": "About",
-        "decor": "File display"
+        "decor": "File display",
+        "contextMenu": "Context menu"
       },
       "display": "Display",
       "toolbar": "Toolbar",
@@ -284,7 +290,55 @@
       },
       "archiveBackend": "Archive engine",
       "archiveBandizip": "Bandizip",
-      "archiveBuiltin": "Built-in library"
+      "archiveBuiltin": "Built-in library",
+      "order": {
+        "show": "Show {name}",
+        "hint": "Drag to reorder."
+      },
+      "repoChip": {
+        "title": "Git quick action",
+        "parts": {
+          "host": "Host name",
+          "repo": "Repository name",
+          "branch": "Branch",
+          "fork": "Fork",
+          "logo": "Host logo"
+        }
+      },
+      "contextMenu": {
+        "title": "Menu layout",
+        "sections": {
+          "open": "Open",
+          "shell": "App entries",
+          "archive": "Archive",
+          "edit": "Edit",
+          "organize": "Organize",
+          "properties": "Properties"
+        },
+        "hints": {
+          "open": "Open, open in new tab, open with",
+          "shell": "Entries from installed apps, such as Run as administrator",
+          "archive": "Compress to ZIP or 7z, extract",
+          "edit": "Cut, copy, share, rename, delete",
+          "organize": "Pin, screen sharing check, disconnect",
+          "properties": "Properties, show more options"
+        },
+        "shellEmpty": "Open a file menu once to list this PC's app entries.",
+        "items": {
+          "extractNamed": "Extract to folder",
+          "compressZip": "Compress to ZIP",
+          "compress7z": "Compress to 7z"
+        }
+      },
+      "gitHosts": {
+        "title": "Git hosts",
+        "hint": "Set a name and logo for each domain.",
+        "logo": "Logo",
+        "domain": "Domain",
+        "name": "Name",
+        "remove": "Remove host",
+        "add": "Add host"
+      }
     },
     "sidebar": {
       "title": "Sidebar",
@@ -413,13 +467,21 @@
       "empty": "(empty)",
       "deleteIn": "Deletes in {hours}h",
       "due": "Deletion pending",
-      "deleteAfter": "Delete {hours}h after download",
       "keep": "Cancel deletion",
       "deleteNow": "Delete now",
       "cleanupHint": "Downloaded installers move to the Recycle Bin after {hours} hours.",
       "repo": "Git",
       "submodule": "Submodule",
-      "forkOf": "Fork of {upstream}"
+      "forkOf": "Fork of {upstream}",
+      "deleteAfterDay": "Delete in 1 day",
+      "deleteAfterWeek": "Delete in a week",
+      "deleteAfterCustom": "Custom",
+      "deleteInDays": "Delete in {days} days",
+      "customTitle": "Set deletion time",
+      "customLabel": "Time until deletion",
+      "hoursUnit": "Hours",
+      "daysUnit": "Days",
+      "apply": "Apply"
     },
     "git": {
       "needFolder": "Open a folder to clone into.",
@@ -454,6 +516,30 @@
     "clipboard": {
       "copied": "{count, plural, one {Copied # item} other {Copied # items}}",
       "cut": "{count, plural, one {Cut # item} other {Cut # items}}"
+    },
+    "properties": {
+      "items": "{count} items",
+      "mixed": "Multiple types",
+      "location": "Location",
+      "size": "Size",
+      "bytes": "{size} ({bytes} bytes)",
+      "measuring": "Measuring",
+      "contents": "Contains",
+      "contentsValue": "{files} files, {folders} folders",
+      "created": "Created",
+      "modified": "Modified",
+      "accessed": "Accessed",
+      "attributes": "Attributes",
+      "readonly": "Read-only",
+      "hidden": "Hidden",
+      "system": "System",
+      "compressed": "Compressed",
+      "encrypted": "Encrypted",
+      "link": "Symbolic link",
+      "used": "Used space",
+      "free": "Free space",
+      "total": "Capacity",
+      "close": "Close"
     }
   },
   "terminal": {

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-stat-items"
+description = "Enables the stat_items command without any pre-configured scope."
+commands.allow = ["stat_items"]
+
+[[permission]]
+identifier = "deny-stat-items"
+description = "Denies the stat_items command without any pre-configured scope."
+commands.deny = ["stat_items"]

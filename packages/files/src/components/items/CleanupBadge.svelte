@@ -12,7 +12,9 @@
     cleanupBadge(prefs.cleanupColor),
   ]}
 >
-  {hours > 0
-    ? $t("explorer.decor.deleteIn", { values: { hours } })
-    : $t("explorer.decor.due")}
+  {hours > 48
+    ? $t("explorer.decor.deleteInDays", { values: { days: Math.ceil(hours / 24) } })
+    : hours > 0
+      ? $t("explorer.decor.deleteIn", { values: { hours } })
+      : $t("explorer.decor.due")}
 </span>

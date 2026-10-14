@@ -109,20 +109,77 @@
 
   let open = $state(false)
 
+  const external = $derived(
+    contextMenu.request !== null && contextMenu.presenter?.ready === true,
+  )
+
+  const FORWARDED = ["ArrowUp", "ArrowDown", "Enter"]
+
   $effect(() => {
     open = contextMenu.request !== null
+  })
+
+  $effect(() => {
+    const { request, presenter } = contextMenu
+
+    if (request && external) {
+      presenter?.show(request, dense)
+    } else {
+      presenter?.hide()
+    }
+  })
+
+  const onkeydown = (e: KeyboardEvent) => {
+    if (!external) {
+      return
+    }
+
+    if (e.key === "Escape") {
+      e.preventDefault()
+      closeContextMenu()
+    } else if (FORWARDED.includes(e.key)) {
+      e.preventDefault()
+      contextMenu.presenter?.key(e.key)
+    }
+  }
+
+  const onmousedown = (e: MouseEvent) => {
+    const anchor = contextMenu.request?.anchor
+
+    if (external && !anchor?.contains(e.target as Node)) {
+      closeContextMenu()
+    }
+  }
+
+  const dismiss = () => {
+    if (external) {
+      closeContextMenu()
+    }
+  }
+
+  $effect(() => {
+    window.addEventListener("eris-close-menus", dismiss)
+
+    return () => window.removeEventListener("eris-close-menus", dismiss)
   })
 </script>
 
 <svelte:document {oncontextmenu} />
 
-{#if contextMenu.request}
+<svelte:window
+  {onkeydown}
+  {onmousedown}
+  onblur={dismiss}
+/>
+
+{#if contextMenu.request && !external}
   <ContextMenu
     bind:open
     items={contextMenu.request.items}
     x={contextMenu.request.x}
     y={contextMenu.request.y}
     placement={contextMenu.request.placement ?? "down"}
+    anchor={contextMenu.request.anchor}
     {dense}
     onclose={closeContextMenu}
   />

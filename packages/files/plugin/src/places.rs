@@ -293,3 +293,23 @@ pub fn explorer_settings() -> ExplorerSettings {
         show_extensions: bits & 0b10 != 0,
     }
 }
+
+// ponytail: polls the drive-letter mask, so swapping media inside an existing letter goes unnoticed; listen for WM_DEVICECHANGE if that matters
+pub fn watch_drives<R: tauri::Runtime>(app: tauri::AppHandle<R>) {
+    use tauri::Emitter;
+
+    std::thread::spawn(move || {
+        let mut last = unsafe { GetLogicalDrives() };
+
+        loop {
+            std::thread::sleep(Duration::from_secs(1));
+
+            let mask = unsafe { GetLogicalDrives() };
+
+            if mask != last {
+                last = mask;
+                let _ = app.emit("drives-changed", ());
+            }
+        }
+    });
+}

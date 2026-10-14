@@ -62,10 +62,12 @@ pub fn parse(args: &[String]) -> Launch {
 
 fn track(window: &WebviewWindow) {
     let label = window.label().to_string();
+    let app = window.app_handle().clone();
 
     window.on_window_event(move |event| {
         if let WindowEvent::Destroyed = event {
             crate::watch::forget(&label);
+            crate::menu::release(&app, &label);
         }
     });
 }

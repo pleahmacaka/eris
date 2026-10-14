@@ -46,6 +46,92 @@ export type Sidebar = {
   order: string[]
 }
 
+export type Arrangement<T extends string> = { order: T[]; hidden: T[] }
+
+export type RepoPart = "logo" | "host" | "repo" | "branch" | "fork"
+
+export type GitHost = { domain: string; name: string; logo: string | null }
+
+export type RememberedVerb = { id: string; label: string; icon: string | null }
+
+export type MenuSection =
+  | "open"
+  | "shell"
+  | "archive"
+  | "edit"
+  | "organize"
+  | "properties"
+
+export const REPO_PARTS: RepoPart[] = ["logo", "host", "repo", "branch", "fork"]
+
+export const MENU_SECTIONS: MenuSection[] = [
+  "open",
+  "shell",
+  "archive",
+  "edit",
+  "organize",
+  "properties",
+]
+
+export const MENU_ITEMS: Record<MenuSection, string[]> = {
+  open: [
+    "open",
+    "openInNewTab",
+    "openInNewWindow",
+    "openWith",
+    "view",
+    "refresh",
+    "hiddenDevices",
+  ],
+  shell: [],
+  archive: [
+    "extractHere",
+    "extractAuto",
+    "extractNamed",
+    "compressZip",
+    "compress7z",
+    "compressEach",
+  ],
+  edit: [
+    "cut",
+    "copy",
+    "paste",
+    "copyPath",
+    "share",
+    "syncFolder",
+    "rename",
+    "resetName",
+    "delete",
+    "restore",
+    "deletePermanently",
+    "newFolder",
+    "emptyBin",
+  ],
+  organize: [
+    "pin",
+    "private",
+    "hideDevice",
+    "eject",
+    "disconnect",
+    "mapDrive",
+    "unmapDrive",
+    "addNetworkLocation",
+  ],
+  properties: ["properties", "moreOptions"],
+}
+
+const arrangement = <T extends string>(
+  ids: T[],
+  saved?: Partial<Arrangement<T>>,
+): Arrangement<T> => {
+  const order = (saved?.order ?? []).filter(id => ids.includes(id))
+
+  return {
+    order: [...order, ...ids.filter(id => !order.includes(id))],
+    hidden: (saved?.hidden ?? []).filter(id => ids.includes(id)),
+  }
+}
+
 export type Prefs = {
   folders: Record<FolderType, FolderView>
   showHidden: boolean
@@ -75,9 +161,17 @@ export type Prefs = {
   cleanupSince: number
   cleanupColor: CleanupColor
   cleanupKeep: string[]
+  cleanupDeadlines: Record<string, number>
   folderPane: FolderPane
   readmeRaw: boolean
   trustedRepos: string[]
+  repoChip: Arrangement<RepoPart>
+  gitHosts: GitHost[]
+  menuLayout: Arrangement<MenuSection>
+  menuItems: Record<MenuSection, Arrangement<string>>
+  shellVerbs: RememberedVerb[]
+  hiddenDevices: string[]
+  showHiddenDevices: boolean
 }
 
 export const VIEWS: ViewMode[] = [
@@ -132,6 +226,21 @@ const folders = (saved?: Partial<Prefs["folders"]>): Prefs["folders"] => ({
   videos: { ...FOLDER_VIEWS.videos, ...saved?.videos },
 })
 
+const menuItems = (
+  saved?: Partial<Prefs["menuItems"]>,
+  verbs: RememberedVerb[] = [],
+): Prefs["menuItems"] => ({
+  open: arrangement(MENU_ITEMS.open, saved?.open),
+  shell: arrangement(
+    verbs.map(verb => verb.id),
+    saved?.shell,
+  ),
+  archive: arrangement(MENU_ITEMS.archive, saved?.archive),
+  edit: arrangement(MENU_ITEMS.edit, saved?.edit),
+  organize: arrangement(MENU_ITEMS.organize, saved?.organize),
+  properties: arrangement(MENU_ITEMS.properties, saved?.properties),
+})
+
 const defaults: Prefs = {
   folders: folders(),
   showHidden: false,
@@ -161,9 +270,17 @@ const defaults: Prefs = {
   cleanupSince: 0,
   cleanupColor: "orange",
   cleanupKeep: [],
+  cleanupDeadlines: {},
   folderPane: "readme",
   readmeRaw: false,
   trustedRepos: [],
+  repoChip: arrangement(REPO_PARTS, { hidden: ["host"] }),
+  gitHosts: [],
+  menuLayout: arrangement(MENU_SECTIONS),
+  menuItems: menuItems(),
+  shellVerbs: [],
+  hiddenDevices: [],
+  showHiddenDevices: false,
 }
 
 const fresh = localStorage.getItem(KEY) === null
@@ -175,6 +292,9 @@ export const prefs = persisted(KEY, defaults, saved => ({
   folders: folders(saved.folders),
   columns: { ...defaults.columns, ...saved.columns },
   sidebar: { ...defaults.sidebar, ...saved.sidebar },
+  repoChip: arrangement(REPO_PARTS, saved.repoChip ?? defaults.repoChip),
+  menuLayout: arrangement(MENU_SECTIONS, saved.menuLayout),
+  menuItems: menuItems(saved.menuItems, saved.shellVerbs),
   look: {
     ...standaloneLook,
     mode: saved.mode ?? standaloneLook.mode,

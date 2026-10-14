@@ -15,6 +15,7 @@
   import TerminalSettings from "../terminal/TerminalSettings.svelte"
   import DecorSettings from "./DecorSettings.svelte"
   import DefaultAppRows from "./DefaultAppRows.svelte"
+  import MenuSettings from "./MenuSettings.svelte"
   import SidebarSettings from "./SidebarSettings.svelte"
   import { archives } from "../../store/archive.svelte"
   import type { Explorer } from "../../store/explorer.svelte"
@@ -38,6 +39,7 @@
     ["appearance", "lucide:palette"],
     ["decor", "lucide:highlighter"],
     ["sidebar", "lucide:panel-left"],
+    ["contextMenu", "lucide:square-menu"],
     ["defaultApp", "lucide:folder-check"],
     ["terminal", "lucide:square-terminal"],
     ["transcribe", "lucide:audio-lines"],
@@ -132,6 +134,8 @@
         <DecorSettings />
       {:else if page === "sidebar"}
         <SidebarSettings />
+      {:else if page === "contextMenu"}
+        <MenuSettings />
       {:else if page === "defaultApp"}
         <Section title={$t("explorer.settings.defaultApp")}>
           <DefaultAppRows />

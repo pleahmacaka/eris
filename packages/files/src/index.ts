@@ -1,4 +1,5 @@
 export { default as Explorer } from "./components/Explorer.svelte"
+export { default as MenuPopup } from "./components/menu/MenuPopup.svelte"
 export { registerFilesMessages } from "./i18n"
 export { default as MobileApp } from "./MobileApp.svelte"
 export { prefs } from "./store/prefs.svelte"

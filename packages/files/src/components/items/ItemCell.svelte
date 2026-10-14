@@ -176,7 +176,10 @@
           {item.drive.connected ? item.kind : $t("explorer.drive.disconnected")}
         </span>
       {:else}
-        <span class="truncate text-xs text-base-content/60">
+        <span
+          class="truncate text-xs text-base-content/60"
+          title={kindText(item, results)}
+        >
           {kindText(item, results)}
         </span>
 

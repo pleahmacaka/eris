@@ -58,10 +58,14 @@
     {/each}
   </div>
 
-  <div class="flex items-center px-1">
+  <div class="flex items-center px-1 pt-1.5">
     <button
       type="button"
-      class="btn btn-ghost btn-square btn-sm"
+      class={[
+        "grid size-7 cursor-pointer place-items-center rounded-field",
+        "text-base-content/70 transition-colors",
+        "hover:bg-base-content/5 hover:text-base-content",
+      ]}
       aria-label={$t("explorer.tabs.new")}
       title={$t("explorer.tabs.new")}
       onclick={() => explorer.newTab()}

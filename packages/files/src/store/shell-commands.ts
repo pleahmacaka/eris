@@ -1,5 +1,5 @@
 import type { Item } from "../items"
-import { THIS_PC } from "../locations"
+import { isVirtual, THIS_PC } from "../locations"
 import type * as native from "../native"
 import type { CommandErrors } from "./command-errors"
 import type { Tab } from "./tab.svelte"
@@ -27,6 +27,7 @@ export type ShellServices = CommandErrors & {
   refreshPlaces: () => Promise<void>
   pinnedKey: (location: string) => string | undefined
   newFolderName: () => string
+  openProperties: (paths: string[]) => void
 }
 
 export const openWindow = (location: string, services: ShellServices) => {
@@ -72,9 +73,17 @@ export const properties = (
   keys: string[],
   services: ShellServices,
 ) => {
-  services.native
-    .showProperties(keys.length ? keys : [context.tab.location])
-    .catch(services.fail)
+  const paths = keys.length ? keys : [context.tab.location]
+  const own =
+    context.filesystem &&
+    !context.inBin &&
+    paths.every(path => !isVirtual(path) && !path.startsWith("pidl:"))
+
+  if (own) {
+    services.openProperties(paths)
+  } else {
+    services.native.showProperties(paths).catch(services.fail)
+  }
 }
 
 export const more = async (

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-menu-ready"
+description = "Enables the menu_ready command without any pre-configured scope."
+commands.allow = ["menu_ready"]
+
+[[permission]]
+identifier = "deny-menu-ready"
+description = "Denies the menu_ready command without any pre-configured scope."
+commands.deny = ["menu_ready"]

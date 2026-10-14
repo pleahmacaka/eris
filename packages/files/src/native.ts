@@ -133,6 +133,7 @@ export type CleanupPlan = {
   hours: number
   since: number
   keep: string[]
+  deadlines: Record<string, number>
 }
 
 export type GitCommit = {
@@ -183,6 +184,28 @@ export const cancelSearch = (token: number) =>
 
 export const measureDirs = (paths: string[], token: number) =>
   call<number | null>("measure_dirs", { paths, token })
+
+export type Tally = { bytes: number; files: number; folders: number }
+
+export const tallyDirs = (paths: string[], token: number) =>
+  call<Tally | null>("tally_dirs", { paths, token })
+
+export type Stat = {
+  path: string
+  name: string
+  dir: boolean
+  size: number
+  modified: number
+  created: number
+  accessed: number
+  attrs: number
+  link: boolean
+  readonly: boolean
+  kind: string
+}
+
+export const statItems = (paths: string[]) =>
+  call<Stat[]>("stat_items", { paths })
 
 export const randomToken = () => crypto.getRandomValues(new Uint32Array(1))[0]
 
@@ -339,6 +362,8 @@ export const cleanupPlan = (plan: CleanupPlan | null) =>
 
 export const gitRepo = (path: string) =>
   call<GitRepo | null>("git_repo", { path })
+
+export const gitUser = () => call<string | null>("git_user")
 
 export const gitStatus = (path: string, whole: boolean, repo: GitRepo) =>
   call<GitStatus>("git_status", { path, whole, repo })

@@ -14,6 +14,14 @@ const INSTALLER_EXTENSIONS = new Set([".exe", ".msi"])
 
 export const CLEANUP_HOURS = [6, 12, 24, 48, 72]
 
+export const DELAYS = [
+  { hours: 1, label: "deleteIn" },
+  { hours: 6, label: "deleteIn" },
+  { hours: 12, label: "deleteIn" },
+  { hours: 24, label: "deleteAfterDay" },
+  { hours: 168, label: "deleteAfterWeek" },
+]
+
 export const clock = $state({ now: Date.now() })
 
 const verdicts = new Map<string, boolean>()
@@ -25,13 +33,30 @@ export const enableCleanup = (on: boolean) => {
 
 const bornOf = (item: Item) => item.created || item.modified
 
+const keepKey = (item: Item) => `${item.name}|${bornOf(item)}`
+
 const deadlineOf = (item: Item) =>
+  prefs.cleanupDeadlines[keepKey(item)] ??
   Math.max(bornOf(item), prefs.cleanupSince) + prefs.cleanupHours * HOUR
 
+// each window ticks its own clock once a minute, so a deadline set in another window can sit up to a tick ahead
 export const hoursLeft = (item: Item) =>
-  Math.max(0, Math.ceil((deadlineOf(item) - clock.now) / HOUR))
+  Math.max(0, Math.ceil((deadlineOf(item) - clock.now - TICK) / HOUR))
 
-const keepKey = (item: Item) => `${item.name}|${bornOf(item)}`
+export const customCleanup = $state<{ item: Item | null }>({ item: null })
+
+export const delayInstaller = (item: Item, hours: number) => {
+  clock.now = Date.now()
+
+  const entries = Object.entries(prefs.cleanupDeadlines).filter(
+    ([key]) => key !== keepKey(item),
+  )
+
+  prefs.cleanupDeadlines = Object.fromEntries([
+    ...entries.slice(-(KEEP_LIMIT - 1)),
+    [keepKey(item), clock.now + hours * HOUR],
+  ])
+}
 
 export const isKept = (item: Item) => prefs.cleanupKeep.includes(keepKey(item))
 
@@ -103,6 +128,7 @@ export const syncCleanupPlan = () => {
           hours: prefs.cleanupHours,
           since: prefs.cleanupSince,
           keep: prefs.cleanupKeep,
+          deadlines: prefs.cleanupDeadlines,
         }
       : null
 

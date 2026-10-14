@@ -29,7 +29,7 @@
 {/if}
 
 {#if repo}
-  <RepoChip kind={repo} head={view.heads.get(item.key)} />
+  <RepoChip kind={repo} head={view.heads.get(item.key)} folder={item.name} />
 {/if}
 
 {#if prefs.cleanup && view.installers.has(item.key) && !isKept(item)}
@@ -37,7 +37,7 @@
     type="button"
     class="flex shrink-0 cursor-pointer hover:brightness-125"
     title={$t("explorer.decor.cleanupHint", {
-      values: { hours: prefs.cleanupHours },
+      values: { hours: hoursLeft(item) },
     })}
     onpointerdown={e => e.stopPropagation()}
     ondblclick={e => e.stopPropagation()}

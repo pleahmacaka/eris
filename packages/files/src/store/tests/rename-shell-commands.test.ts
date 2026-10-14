@@ -48,6 +48,7 @@ const shellServices = () =>
     refreshPlaces: mock(async () => {}),
     pinnedKey: () => undefined,
     newFolderName: () => "New folder",
+    openProperties: mock((_paths: string[]) => {}),
   }) satisfies ShellServices
 
 const context = () => ({

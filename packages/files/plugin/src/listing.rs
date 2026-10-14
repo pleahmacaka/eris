@@ -9,7 +9,9 @@ use wildmatch::WildMatch;
 use windows::core::Interface;
 use windows::core::HSTRING;
 use windows::Win32::Foundation::{ERROR_FILE_NOT_FOUND, FILETIME};
-use windows::Win32::Storage::EnhancedStorage::{PKEY_DateModified, PKEY_ItemTypeText, PKEY_Size};
+use windows::Win32::Storage::EnhancedStorage::{
+    PKEY_Comment, PKEY_DateModified, PKEY_ItemTypeText, PKEY_Size,
+};
 use windows::Win32::Storage::FileSystem::{
     FindClose, FindExInfoBasic, FindExSearchNameMatch, FindFirstFileExW, FindNextFileW,
     FILE_ATTRIBUTE_DIRECTORY, FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_REPARSE_POINT,
@@ -25,6 +27,11 @@ use crate::com;
 use crate::error::Result;
 
 const SEARCH_LIMIT: usize = 20_000;
+
+const CONTROL_PANELS: [&str; 2] = [
+    "::{26EE0668-A00A-44D7-9371-BEB064C98683}",
+    "::{21EC2020-3AEA-1069-A2DD-08002B30309D}",
+];
 
 #[derive(Serialize)]
 pub struct Entry {
@@ -311,9 +318,16 @@ fn search(root: String, query: String, token: u32, batch: Channel<Vec<Hit>>) {
     live().lock().unwrap().remove(&token);
 }
 
-fn measure(roots: Vec<String>, token: u32) -> Option<u64> {
+#[derive(Default, Serialize)]
+pub struct Tally {
+    bytes: u64,
+    files: u64,
+    folders: u64,
+}
+
+fn tally(roots: Vec<String>, token: u32) -> Option<Tally> {
     let mut queue = VecDeque::from(roots);
-    let mut total = 0;
+    let mut tally = Tally::default();
 
     while let Some(dir) = queue.pop_front() {
         if !live().lock().unwrap().contains(&token) {
@@ -324,23 +338,33 @@ fn measure(roots: Vec<String>, token: u32) -> Option<u64> {
             let item = entry(data);
 
             if !item.dir {
-                total += item.size;
-            } else if item.attrs & FILE_ATTRIBUTE_REPARSE_POINT.0 == 0 {
-                queue.push_back(format!("{}\\{}", dir.trim_end_matches('\\'), item.name));
+                tally.files += 1;
+                tally.bytes += item.size;
+            } else {
+                tally.folders += 1;
+
+                if item.attrs & FILE_ATTRIBUTE_REPARSE_POINT.0 == 0 {
+                    queue.push_back(format!("{}\\{}", dir.trim_end_matches('\\'), item.name));
+                }
             }
         });
     }
 
     live().lock().unwrap().remove(&token);
 
-    Some(total)
+    Some(tally)
 }
 
 #[tauri::command]
 pub async fn measure_dirs(paths: Vec<String>, token: u32) -> Result<Option<u64>> {
+    Ok(tally_dirs(paths, token).await?.map(|tally| tally.bytes))
+}
+
+#[tauri::command]
+pub async fn tally_dirs(paths: Vec<String>, token: u32) -> Result<Option<Tally>> {
     live().lock().unwrap().insert(token);
 
-    Ok(tauri::async_runtime::spawn_blocking(move || measure(paths, token)).await?)
+    Ok(tauri::async_runtime::spawn_blocking(move || tally(paths, token)).await?)
 }
 
 #[tauri::command]
@@ -369,15 +393,24 @@ fn shell_entry(item: &IShellItem) -> Option<ShellEntry> {
         .map(millis)
         .unwrap_or_default();
 
+    let path = com::display(item, SIGDN_DESKTOPABSOLUTEPARSING);
+    let applet = CONTROL_PANELS
+        .iter()
+        .any(|panel| path.to_uppercase().starts_with(panel));
+    let property = if applet {
+        &PKEY_Comment
+    } else {
+        &PKEY_ItemTypeText
+    };
     let kind = rich
         .as_ref()
-        .and_then(|rich| unsafe { rich.GetString(&PKEY_ItemTypeText) }.ok())
+        .and_then(|rich| unsafe { rich.GetString(property) }.ok())
         .map(com::take)
         .unwrap_or_default();
 
     Some(ShellEntry {
         key,
-        path: com::display(item, SIGDN_DESKTOPABSOLUTEPARSING),
+        path,
         name: com::display(item, SIGDN_NORMALDISPLAY),
         dir,
         size,

@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::path::Path;
 use std::sync::{Mutex, Once};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -191,6 +192,8 @@ pub struct Plan {
     hours: u64,
     since: u64,
     keep: Vec<String>,
+    #[serde(default)]
+    deadlines: HashMap<String, u64>,
 }
 
 const HOUR: u64 = 3_600_000;
@@ -240,7 +243,11 @@ fn due(plan: &Plan) -> Vec<String> {
                 return None;
             }
 
-            let deadline = born.max(plan.since) + plan.hours * HOUR;
+            let deadline = plan
+                .deadlines
+                .get(&key)
+                .copied()
+                .unwrap_or_else(|| born.max(plan.since) + plan.hours * HOUR);
 
             (now >= deadline).then(|| path.to_string_lossy().into_owned())
         })

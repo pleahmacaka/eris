@@ -149,7 +149,12 @@
       "unmapDrive": "네트워크 드라이브 연결 해제",
       "addNetworkLocation": "네트워크 위치 추가",
       "markPrivate": "화면 공유 시 확인",
-      "unmarkPrivate": "화면 공유 시 확인 해제"
+      "unmarkPrivate": "화면 공유 시 확인 해제",
+      "eject": "꺼내기",
+      "hideDevice": "숨기기",
+      "unhideDevice": "숨김 해제",
+      "showHiddenDevices": "숨겨진 장치 표시",
+      "hideHiddenDevices": "숨겨진 장치 숨기기"
     },
     "sort": {
       "name": "이름",
@@ -241,7 +246,8 @@
         "devices": "기기",
         "account": "계정",
         "about": "정보",
-        "decor": "파일 표시"
+        "decor": "파일 표시",
+        "contextMenu": "컨텍스트 메뉴"
       },
       "display": "표시",
       "toolbar": "도구 상자",
@@ -284,7 +290,55 @@
       },
       "archiveBackend": "압축 엔진",
       "archiveBandizip": "Bandizip 연결됨",
-      "archiveBuiltin": "내장 라이브러리"
+      "archiveBuiltin": "내장 라이브러리",
+      "order": {
+        "show": "{name} 표시",
+        "hint": "끌어서 순서를 변경하세요."
+      },
+      "repoChip": {
+        "title": "Git 퀵 액션",
+        "parts": {
+          "host": "호스팅 서비스 이름",
+          "repo": "저장소 이름",
+          "branch": "브랜치",
+          "fork": "포크",
+          "logo": "호스팅 서비스 로고"
+        }
+      },
+      "contextMenu": {
+        "title": "메뉴 구성",
+        "sections": {
+          "open": "열기",
+          "shell": "앱 메뉴 항목",
+          "archive": "압축",
+          "edit": "편집",
+          "organize": "정리",
+          "properties": "속성"
+        },
+        "hints": {
+          "open": "열기, 새 탭에서 열기, 연결 프로그램",
+          "shell": "관리자 권한으로 실행 같은 설치된 앱의 항목",
+          "archive": "ZIP, 7z 압축과 압축 풀기",
+          "edit": "잘라내기, 복사, 공유, 이름 바꾸기, 삭제",
+          "organize": "고정, 화면 공유 시 확인, 연결 해제",
+          "properties": "속성, 추가 옵션 표시"
+        },
+        "shellEmpty": "파일 메뉴를 한 번 열면 이 PC의 앱 항목이 표시됩니다.",
+        "items": {
+          "extractNamed": "폴더에 압축 풀기",
+          "compressZip": "ZIP으로 압축",
+          "compress7z": "7z로 압축"
+        }
+      },
+      "gitHosts": {
+        "title": "Git 호스트",
+        "hint": "도메인별 이름과 로고를 지정하세요.",
+        "logo": "로고",
+        "domain": "도메인",
+        "name": "이름",
+        "remove": "호스트 삭제",
+        "add": "호스트 추가"
+      }
     },
     "sidebar": {
       "title": "사이드바",
@@ -413,13 +467,21 @@
       "empty": "(빈 폴더)",
       "deleteIn": "{hours}시간 후 삭제",
       "due": "삭제 대기",
-      "deleteAfter": "다운로드 {hours}시간 후 삭제",
       "keep": "삭제 취소",
       "deleteNow": "지금 삭제",
       "cleanupHint": "다운로드한 설치 파일은 {hours}시간 뒤 휴지통으로 이동합니다.",
       "repo": "Git",
       "submodule": "서브모듈",
-      "forkOf": "{upstream}의 포크"
+      "forkOf": "{upstream}의 포크",
+      "deleteAfterDay": "1일 후 삭제",
+      "deleteAfterWeek": "일주일 후 삭제",
+      "deleteAfterCustom": "직접 입력",
+      "deleteInDays": "{days}일 후 삭제",
+      "customTitle": "삭제 시점 지정",
+      "customLabel": "삭제까지 남은 시간",
+      "hoursUnit": "시간",
+      "daysUnit": "일",
+      "apply": "적용"
     },
     "git": {
       "needFolder": "폴더를 연 상태에서 클론하세요.",
@@ -454,6 +516,30 @@
     "clipboard": {
       "copied": "항목 {count}개 복사됨",
       "cut": "항목 {count}개 잘라냄"
+    },
+    "properties": {
+      "items": "항목 {count}개",
+      "mixed": "여러 종류",
+      "location": "위치",
+      "size": "크기",
+      "bytes": "{size} ({bytes}바이트)",
+      "measuring": "계산 중",
+      "contents": "내용",
+      "contentsValue": "파일 {files}개, 폴더 {folders}개",
+      "created": "만든 날짜",
+      "modified": "수정한 날짜",
+      "accessed": "액세스한 날짜",
+      "attributes": "특성",
+      "readonly": "읽기 전용",
+      "hidden": "숨김",
+      "system": "시스템",
+      "compressed": "압축",
+      "encrypted": "암호화",
+      "link": "심볼릭 링크",
+      "used": "사용 중인 공간",
+      "free": "사용 가능한 공간",
+      "total": "용량",
+      "close": "닫기"
     }
   },
   "terminal": {

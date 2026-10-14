@@ -353,6 +353,17 @@ pub async fn git_repo(path: String) -> Result<Option<Repo>> {
 }
 
 #[tauri::command]
+pub async fn git_user() -> Result<Option<String>> {
+    blocking(|| {
+        Ok(run(".", ["config", "--global", "user.name"])
+            .ok()
+            .map(|name| name.trim().to_string())
+            .filter(|name| !name.is_empty()))
+    })
+    .await
+}
+
+#[tauri::command]
 pub async fn git_status(path: String, whole: bool, repo: Repo) -> Result<Status> {
     blocking(move || status(&path, whole, repo)).await
 }

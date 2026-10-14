@@ -1,10 +1,15 @@
 import { trim } from "es-toolkit"
+import { imageIcon } from "./image-icon"
 import type { GitHead } from "./native"
+import type { GitHost } from "./store/prefs.svelte"
 
 export type RepoHost = {
   name: string | null
+  domain: string | null
   icon: string
   slug: string | null
+  path: string | null
+  web: string | null
   fork: string | null
 }
 
@@ -95,39 +100,57 @@ export const parseRemote = (url: string) => {
   }
 }
 
-const slugOf = (path: string) => {
+const repoPath = (path: string) => {
   const trimmed = trim(path, "/")
 
-  return (
-    trimmed.endsWith(".git") ? trimmed.slice(0, -4) : trimmed
-  ).toLowerCase()
+  return trimmed.endsWith(".git") ? trimmed.slice(0, -4) : trimmed
 }
+
+const slugOf = (path: string) => repoPath(path).toLowerCase()
 
 const remoteUrl = (head: GitHead, name: string) =>
   head.remotes.find(remote => remote.name === name)?.url
 
-export const hostOf = (head: GitHead | null | undefined): RepoHost => {
+export const hostOf = (
+  head: GitHead | null | undefined,
+  custom: GitHost[] = [],
+): RepoHost => {
   const url = head && (remoteUrl(head, "origin") ?? head.remotes[0]?.url)
   const origin = url ? parseRemote(url) : null
 
   if (!head || !origin) {
-    return { name: null, icon: GENERIC, slug: null, fork: null }
+    return {
+      name: null,
+      domain: null,
+      icon: GENERIC,
+      slug: null,
+      path: null,
+      web: null,
+      fork: null,
+    }
   }
 
+  const own = custom.find(
+    entry => entry.domain && within(origin.host, entry.domain.toLowerCase()),
+  )
   const provider = PROVIDERS.find(
     entry =>
       entry.domains.some(domain => within(origin.host, domain)) ||
       entry.marks.some(mark => origin.host.includes(mark)),
   )
-  const slug = slugOf(origin.path)
+  const path = repoPath(origin.path)
+  const slug = path.toLowerCase()
   const upstreamUrl = remoteUrl(head, "upstream")
   const upstream = upstreamUrl ? parseRemote(upstreamUrl) : null
   const parent = upstream ? slugOf(upstream.path) : null
 
   return {
-    name: provider?.name ?? null,
-    icon: provider?.icon ?? GENERIC,
+    name: own?.name || provider?.name || null,
+    domain: origin.host,
+    icon: own?.logo ? imageIcon(own.logo) : (provider?.icon ?? GENERIC),
     slug,
+    path,
+    web: path ? `https://${origin.host}/${path}` : null,
     fork: parent && parent !== slug ? parent : null,
   }
 }

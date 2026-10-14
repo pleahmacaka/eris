@@ -149,7 +149,12 @@
       "unmapDrive": "ネットワーク ドライブの切断",
       "addNetworkLocation": "ネットワークの場所の追加",
       "markPrivate": "画面共有時に確認",
-      "unmarkPrivate": "画面共有時の確認を解除"
+      "unmarkPrivate": "画面共有時の確認を解除",
+      "eject": "取り出し",
+      "hideDevice": "非表示",
+      "unhideDevice": "非表示を解除",
+      "showHiddenDevices": "非表示のデバイスを表示",
+      "hideHiddenDevices": "非表示のデバイスを隠す"
     },
     "sort": {
       "name": "名前",
@@ -241,7 +246,8 @@
         "devices": "デバイス",
         "account": "アカウント",
         "about": "情報",
-        "decor": "ファイル表示"
+        "decor": "ファイル表示",
+        "contextMenu": "コンテキストメニュー"
       },
       "display": "表示",
       "toolbar": "ツールバー",
@@ -284,7 +290,55 @@
       },
       "archiveBackend": "圧縮エンジン",
       "archiveBandizip": "Bandizip 連携中",
-      "archiveBuiltin": "内蔵ライブラリ"
+      "archiveBuiltin": "内蔵ライブラリ",
+      "order": {
+        "show": "{name}を表示",
+        "hint": "ドラッグして並べ替えます。"
+      },
+      "repoChip": {
+        "title": "Git クイックアクション",
+        "parts": {
+          "host": "ホスティングサービス名",
+          "repo": "リポジトリ名",
+          "branch": "ブランチ",
+          "fork": "フォーク",
+          "logo": "ホスティングサービスのロゴ"
+        }
+      },
+      "contextMenu": {
+        "title": "メニュー構成",
+        "sections": {
+          "open": "開く",
+          "shell": "アプリの項目",
+          "archive": "圧縮",
+          "edit": "編集",
+          "organize": "整理",
+          "properties": "プロパティ"
+        },
+        "hints": {
+          "open": "開く、新しいタブで開く、プログラムから開く",
+          "shell": "管理者として実行など、インストール済みアプリの項目",
+          "archive": "ZIP、7z への圧縮と展開",
+          "edit": "切り取り、コピー、共有、名前の変更、削除",
+          "organize": "ピン留め、画面共有時の確認、切断",
+          "properties": "プロパティ、その他のオプションを表示"
+        },
+        "shellEmpty": "ファイルのメニューを一度開くと、この PC のアプリ項目が表示されます。",
+        "items": {
+          "extractNamed": "フォルダーに展開",
+          "compressZip": "ZIP に圧縮",
+          "compress7z": "7z に圧縮"
+        }
+      },
+      "gitHosts": {
+        "title": "Git ホスト",
+        "hint": "ドメインごとに名前とロゴを設定してください。",
+        "logo": "ロゴ",
+        "domain": "ドメイン",
+        "name": "名前",
+        "remove": "ホストを削除",
+        "add": "ホストを追加"
+      }
     },
     "sidebar": {
       "title": "サイドバー",
@@ -413,13 +467,21 @@
       "empty": "(空のフォルダー)",
       "deleteIn": "{hours}時間後に削除",
       "due": "削除待ち",
-      "deleteAfter": "ダウンロードの{hours}時間後に削除",
       "keep": "削除をキャンセル",
       "deleteNow": "今すぐ削除",
       "cleanupHint": "ダウンロードしたインストーラーは{hours}時間後にごみ箱へ移動します。",
       "repo": "Git",
       "submodule": "サブモジュール",
-      "forkOf": "{upstream} のフォーク"
+      "forkOf": "{upstream} のフォーク",
+      "deleteAfterDay": "1日後に削除",
+      "deleteAfterWeek": "1週間後に削除",
+      "deleteAfterCustom": "カスタム",
+      "deleteInDays": "{days}日後に削除",
+      "customTitle": "削除のタイミング",
+      "customLabel": "削除までの時間",
+      "hoursUnit": "時間",
+      "daysUnit": "日",
+      "apply": "適用"
     },
     "git": {
       "needFolder": "フォルダーを開いてからクローンしてください。",
@@ -454,6 +516,30 @@
     "clipboard": {
       "copied": "{count} 個の項目をコピー済み",
       "cut": "{count} 個の項目を切り取り済み"
+    },
+    "properties": {
+      "items": "{count} 個の項目",
+      "mixed": "複数の種類",
+      "location": "場所",
+      "size": "サイズ",
+      "bytes": "{size} ({bytes} バイト)",
+      "measuring": "計算中",
+      "contents": "内容",
+      "contentsValue": "ファイル {files} 個、フォルダー {folders} 個",
+      "created": "作成日時",
+      "modified": "更新日時",
+      "accessed": "アクセス日時",
+      "attributes": "属性",
+      "readonly": "読み取り専用",
+      "hidden": "隠しファイル",
+      "system": "システム",
+      "compressed": "圧縮",
+      "encrypted": "暗号化",
+      "link": "シンボリックリンク",
+      "used": "使用領域",
+      "free": "空き領域",
+      "total": "容量",
+      "close": "閉じる"
     }
   },
   "terminal": {

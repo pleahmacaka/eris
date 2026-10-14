@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-menu-hide"
+description = "Enables the menu_hide command without any pre-configured scope."
+commands.allow = ["menu_hide"]
+
+[[permission]]
+identifier = "deny-menu-hide"
+description = "Denies the menu_hide command without any pre-configured scope."
+commands.deny = ["menu_hide"]

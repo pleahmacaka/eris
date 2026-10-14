@@ -17,6 +17,7 @@ import {
   type ViewMode,
 } from "./prefs.svelte"
 import { confirmAll, confirmPrivate } from "./privacy.svelte"
+import { openProperties } from "./properties.svelte"
 import * as renaming from "./rename-commands"
 import * as shell from "./shell-commands"
 import { pinnedEntry } from "./sidebar"
@@ -69,6 +70,7 @@ const shellServices: shell.ShellServices = {
   refreshPlaces,
   pinnedKey: location => pinnedEntry(location)?.key,
   newFolderName: () => tr("explorer.commands.newFolder"),
+  openProperties,
 }
 
 const sectionOf = (item: Item) => {

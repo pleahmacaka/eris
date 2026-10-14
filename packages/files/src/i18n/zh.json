@@ -149,7 +149,12 @@
       "unmapDrive": "断开网络驱动器",
       "addNetworkLocation": "添加一个网络位置",
       "markPrivate": "共享屏幕时确认",
-      "unmarkPrivate": "取消共享屏幕时确认"
+      "unmarkPrivate": "取消共享屏幕时确认",
+      "eject": "弹出",
+      "hideDevice": "隐藏",
+      "unhideDevice": "取消隐藏",
+      "showHiddenDevices": "显示隐藏的设备",
+      "hideHiddenDevices": "隐藏已隐藏的设备"
     },
     "sort": {
       "name": "名称",
@@ -241,7 +246,8 @@
         "devices": "设备",
         "account": "账户",
         "about": "关于",
-        "decor": "文件显示"
+        "decor": "文件显示",
+        "contextMenu": "右键菜单"
       },
       "display": "显示",
       "toolbar": "工具栏",
@@ -284,7 +290,55 @@
       },
       "archiveBackend": "压缩引擎",
       "archiveBandizip": "已连接 Bandizip",
-      "archiveBuiltin": "内置库"
+      "archiveBuiltin": "内置库",
+      "order": {
+        "show": "显示{name}",
+        "hint": "拖动以调整顺序。"
+      },
+      "repoChip": {
+        "title": "Git 快捷操作",
+        "parts": {
+          "host": "托管服务名称",
+          "repo": "仓库名称",
+          "branch": "分支",
+          "fork": "派生",
+          "logo": "托管服务图标"
+        }
+      },
+      "contextMenu": {
+        "title": "菜单布局",
+        "sections": {
+          "open": "打开",
+          "shell": "应用菜单项",
+          "archive": "压缩",
+          "edit": "编辑",
+          "organize": "整理",
+          "properties": "属性"
+        },
+        "hints": {
+          "open": "打开、在新标签页中打开、打开方式",
+          "shell": "以管理员身份运行等已安装应用的菜单项",
+          "archive": "压缩为 ZIP 或 7z、解压",
+          "edit": "剪切、复制、共享、重命名、删除",
+          "organize": "固定、屏幕共享时确认、断开连接",
+          "properties": "属性、显示更多选项"
+        },
+        "shellEmpty": "打开一次文件菜单即可列出此电脑的应用项。",
+        "items": {
+          "extractNamed": "解压到文件夹",
+          "compressZip": "压缩为 ZIP",
+          "compress7z": "压缩为 7z"
+        }
+      },
+      "gitHosts": {
+        "title": "Git 主机",
+        "hint": "为每个域名设置名称和图标。",
+        "logo": "图标",
+        "domain": "域名",
+        "name": "名称",
+        "remove": "删除主机",
+        "add": "添加主机"
+      }
     },
     "sidebar": {
       "title": "侧边栏",
@@ -413,13 +467,21 @@
       "empty": "(空文件夹)",
       "deleteIn": "{hours} 小时后删除",
       "due": "等待删除",
-      "deleteAfter": "下载 {hours} 小时后删除",
       "keep": "取消删除",
       "deleteNow": "立即删除",
       "cleanupHint": "下载的安装程序将在 {hours} 小时后移到回收站。",
       "repo": "Git",
       "submodule": "子模块",
-      "forkOf": "复刻自 {upstream}"
+      "forkOf": "复刻自 {upstream}",
+      "deleteAfterDay": "1 天后删除",
+      "deleteAfterWeek": "一周后删除",
+      "deleteAfterCustom": "自定义",
+      "deleteInDays": "{days} 天后删除",
+      "customTitle": "设置删除时间",
+      "customLabel": "距离删除的时间",
+      "hoursUnit": "小时",
+      "daysUnit": "天",
+      "apply": "应用"
     },
     "git": {
       "needFolder": "请先打开一个文件夹再克隆。",
@@ -454,6 +516,30 @@
     "clipboard": {
       "copied": "已复制 {count} 个项目",
       "cut": "已剪切 {count} 个项目"
+    },
+    "properties": {
+      "items": "{count} 个项目",
+      "mixed": "多种类型",
+      "location": "位置",
+      "size": "大小",
+      "bytes": "{size}（{bytes} 字节）",
+      "measuring": "正在计算",
+      "contents": "包含",
+      "contentsValue": "{files} 个文件，{folders} 个文件夹",
+      "created": "创建时间",
+      "modified": "修改时间",
+      "accessed": "访问时间",
+      "attributes": "属性",
+      "readonly": "只读",
+      "hidden": "隐藏",
+      "system": "系统",
+      "compressed": "压缩",
+      "encrypted": "加密",
+      "link": "符号链接",
+      "used": "已用空间",
+      "free": "可用空间",
+      "total": "容量",
+      "close": "关闭"
     }
   },
   "terminal": {

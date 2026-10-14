@@ -1,4 +1,5 @@
 export type MenuAction = {
+  id?: string
   label: string
   icon?: string
   action: () => unknown

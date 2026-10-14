@@ -3,10 +3,30 @@
   import { t } from "svelte-i18n"
   import { CLEANUP_HOURS, enableCleanup } from "../../store/cleanup.svelte"
   import { prefs } from "../../store/prefs.svelte"
+  import type { GitHead } from "../../native"
   import CleanupBadge from "../items/CleanupBadge.svelte"
   import { CLEANUP_COLORS } from "../items/decor"
+  import RepoChip from "../items/RepoChip.svelte"
+  import GitHostSettings from "./GitHostSettings.svelte"
+  import OrderList from "./OrderList.svelte"
 
   type Toggle = "duplicates" | "gitColors" | "emptyFolders"
+
+  const SAMPLE: GitHead = {
+    branch: "main",
+    remotes: [
+      { name: "origin", url: "https://github.com/octocat/hello-world" },
+      { name: "upstream", url: "https://github.com/github/hello-world" },
+    ],
+  }
+
+  const PART_ICONS = {
+    logo: "simple-icons:github",
+    host: "lucide:globe",
+    repo: "lucide:book-marked",
+    branch: "lucide:git-branch",
+    fork: "lucide:git-fork",
+  }
 </script>
 
 {#snippet switchRow(key: Toggle)}
@@ -39,6 +59,26 @@
   {@render switchRow("gitColors")}
   {@render switchRow("emptyFolders")}
 </Section>
+
+<Section title={$t("explorer.settings.repoChip.title")}>
+  <Row
+    label={$t("explorer.settings.repoChip.title")}
+    hint={$t("explorer.settings.order.hint")}
+  >
+    <span class="flex" inert>
+      <RepoChip kind="repo" head={SAMPLE} />
+    </span>
+  </Row>
+
+  <OrderList
+    bind:arrangement={prefs.repoChip}
+    label={$t("explorer.settings.repoChip.title")}
+    labelOf={id => $t(`explorer.settings.repoChip.parts.${id}`)}
+    iconOf={id => PART_ICONS[id]}
+  />
+</Section>
+
+<GitHostSettings />
 
 <Section title={$t("explorer.settings.cleanup.title")}>
   <Row

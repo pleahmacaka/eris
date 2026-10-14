@@ -1,8 +1,9 @@
-import { isAction, type MenuItem } from "@eris/ui"
-import { addIcon } from "@iconify/svelte"
+import type { MenuAction } from "@eris/ui"
+import { imageIcon } from "../image-icon"
 import type { Item } from "../items"
 import { extensionOf } from "../locations"
 import { runShellVerb, type ShellVerb, shellVerbs } from "../native"
+import { prefs, type RememberedVerb } from "./prefs.svelte"
 
 const LIFE = 60_000
 
@@ -10,7 +11,7 @@ const FALLBACK_ICON = "lucide:puzzle"
 
 const cache = new Map<string, { at: number; verbs: Promise<ShellVerb[]> }>()
 
-const icons = new Map<string, string>()
+const REMEMBERED = 60
 
 export type VerbTarget = { keys: string[]; folder: string | null }
 
@@ -47,25 +48,8 @@ export const loadShellVerbs = (selection: Item[], target: VerbTarget) => {
   return verbs
 }
 
-const iconOf = (verb: ShellVerb) => {
-  if (!verb.icon) {
-    return FALLBACK_ICON
-  }
-
-  let name = icons.get(verb.icon)
-
-  if (!name) {
-    name = `shell-verb:v${icons.size}`
-    addIcon(name, {
-      body: `<image href="${verb.icon}" width="16" height="16"/>`,
-      width: 16,
-      height: 16,
-    })
-    icons.set(verb.icon, name)
-  }
-
-  return name
-}
+export const verbIcon = (icon: string | null) =>
+  icon ? imageIcon(icon) : FALLBACK_ICON
 
 const comparable = (label: string) => {
   const text = label.trim().toLowerCase()
@@ -74,32 +58,49 @@ const comparable = (label: string) => {
   return text.slice(0, text.length - dots)
 }
 
-export const withShellVerbs = (
-  items: MenuItem[],
+const verbId = (verb: ShellVerb) =>
+  `shell:${verb.verb || comparable(verb.label)}`
+
+export const rememberVerbs = (verbs: ShellVerb[]) => {
+  const known = new Set(prefs.shellVerbs.map(verb => verb.id))
+  const fresh: RememberedVerb[] = []
+
+  for (const verb of verbs) {
+    const id = verbId(verb)
+
+    if (!known.has(id) && prefs.shellVerbs.length + fresh.length < REMEMBERED) {
+      known.add(id)
+      fresh.push({ id, label: verb.label, icon: verb.icon })
+    }
+  }
+
+  if (fresh.length > 0) {
+    prefs.shellVerbs = [...prefs.shellVerbs, ...fresh]
+    prefs.menuItems.shell.order = [
+      ...prefs.menuItems.shell.order,
+      ...fresh.map(verb => verb.id),
+    ]
+  }
+}
+
+export const shellItems = (
+  own: MenuAction[],
   verbs: ShellVerb[],
   target: VerbTarget,
   clip: (label: string) => string,
   fail: (reason: unknown) => void,
-): MenuItem[] => {
-  const own = new Set(
-    items.filter(isAction).map(entry => comparable(entry.label)),
-  )
-  const extra = verbs
-    .filter(verb => !own.has(comparable(verb.label)))
+): MenuAction[] => {
+  const taken = new Set(own.map(entry => comparable(entry.label)))
+
+  return verbs
+    .filter(verb => !taken.has(comparable(verb.label)))
     .map(verb => ({
+      id: verbId(verb),
       label: clip(verb.label),
-      icon: iconOf(verb),
+      icon: verbIcon(verb.icon),
       action: () =>
         runShellVerb(target.keys, target.folder, verb.verb, verb.label).catch(
           fail,
         ),
     }))
-
-  if (!extra.length) {
-    return items
-  }
-
-  const last = items.length - 1
-
-  return [...items.slice(0, last), "separator", ...extra, ...items.slice(last)]
 }

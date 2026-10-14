@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-tally-dirs"
+description = "Enables the tally_dirs command without any pre-configured scope."
+commands.allow = ["tally_dirs"]
+
+[[permission]]
+identifier = "deny-tally-dirs"
+description = "Denies the tally_dirs command without any pre-configured scope."
+commands.deny = ["tally_dirs"]

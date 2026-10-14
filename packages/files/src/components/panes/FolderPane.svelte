@@ -24,7 +24,7 @@
 
   const repo = $derived(tab.insight.view.repo)
 
-  const host = $derived(hostOf(repo?.head))
+  const host = $derived(hostOf(repo?.head, prefs.gitHosts))
 
   const readme = $derived(
     tab.kind === "folder"

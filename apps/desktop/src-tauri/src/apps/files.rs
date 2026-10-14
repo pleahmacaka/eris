@@ -4,6 +4,7 @@ use tauri_plugin_eris_files::Host;
 pub const HOST: Host = Host {
     main_route: "/files",
     viewer_route: "/files/viewer",
+    menu_route: "/files/menu",
     marker: Some("--files"),
     app_name: "Eris",
     prog_prefix: "Eris",

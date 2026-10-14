@@ -1,15 +1,19 @@
 <script lang="ts">
   import { contextMenu } from "@eris/ui"
+  import { listen } from "@tauri-apps/api/event"
   import { getCurrentWebview } from "@tauri-apps/api/webview"
   import { getCurrentWindow } from "@tauri-apps/api/window"
   import { t } from "svelte-i18n"
   import { isAudio } from "../filetypes"
-  import { isVirtual, parentOf } from "../locations"
+  import { isVirtual, parentOf, THIS_PC } from "../locations"
   import { startCleanup, syncCleanupPlan } from "../store/cleanup.svelte"
   import { BINDINGS, comboOf, runCommand } from "../store/commands"
   import type { Explorer } from "../store/explorer.svelte"
-  import { openMenu } from "../store/menus"
+  import { presentMenus } from "../store/menu-popup.svelte"
+  import { openMenu, warmMenu } from "../store/menus"
+  import { refreshPlaces } from "../store/places.svelte"
   import { prefs } from "../store/prefs.svelte"
+  import { propertiesView } from "../store/properties.svelte"
   import { terminalPrefs } from "../store/terminal.svelte"
   import AudioView from "./audio/AudioView.svelte"
   import ItemsView from "./items/ItemsView.svelte"
@@ -24,6 +28,8 @@
   import CommandBar from "./toolbar/CommandBar.svelte"
   import NavBar from "./toolbar/NavBar.svelte"
   import DropHint from "./window/DropHint.svelte"
+  import CleanupPrompt from "./window/CleanupPrompt.svelte"
+  import PropertiesDialog from "./window/PropertiesDialog.svelte"
   import PrivacyPrompt from "./window/PrivacyPrompt.svelte"
   import TitleBar from "./window/TitleBar.svelte"
 
@@ -41,8 +47,15 @@
     explorer.selected.length === 1 ? explorer.selected[0] : null,
   )
 
+  const WARM_DELAY = 150
+
+  const POPUP_IDLE = 2000
+
   const busy = () =>
-    contextMenu.request !== null || explorer.settingsOpen || explorer.setupOpen
+    contextMenu.request !== null ||
+    propertiesView.paths.length > 0 ||
+    explorer.settingsOpen ||
+    explorer.setupOpen
 
   const keyboardMenu = () => {
     const focus = tab.focus
@@ -180,6 +193,27 @@
 
   $effect(startCleanup)
 
+  $effect(() => {
+    const timer = setTimeout(warmMenu, WARM_DELAY, explorer, explorer.selected)
+
+    return () => clearTimeout(timer)
+  })
+
+  $effect(() => {
+    let stop: (() => void) | null = null
+    const idle = requestIdleCallback(
+      () => {
+        stop = presentMenus()
+      },
+      { timeout: POPUP_IDLE },
+    )
+
+    return () => {
+      cancelIdleCallback(idle)
+      stop?.()
+    }
+  })
+
   $effect(syncCleanupPlan)
 
   $effect(() => {
@@ -208,6 +242,13 @@
         const changed = explorer.tabs.find(entry => entry.id === id)
 
         changed?.changed(changed === explorer.tab)
+      }),
+      listen("drives-changed", () => {
+        refreshPlaces()
+
+        if (explorer.tab.location === THIS_PC) {
+          explorer.tab.refresh().catch(() => undefined)
+        }
       }),
       getCurrentWebview().onDragDropEvent(e => {
         const { payload } = e
@@ -313,6 +354,9 @@
 {/if}
 
 <PrivacyPrompt />
+<CleanupPrompt />
+
+<PropertiesDialog />
 
 <ShareHost {explorer} />
 

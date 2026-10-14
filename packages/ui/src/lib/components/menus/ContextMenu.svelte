@@ -15,6 +15,8 @@
     width?: number
     dense?: boolean
     label?: string
+    anchor?: Element
+    pinned?: boolean
     onclose?: () => void
     onsize?: (rect: DOMRect) => void
   }
@@ -30,6 +32,8 @@
     width = 224,
     dense = false,
     label,
+    anchor,
+    pinned = false,
     onclose,
     onsize,
   }: Props = $props()
@@ -110,7 +114,9 @@
   }
 
   const onmousedown = (e: MouseEvent) => {
-    if (open && list && !list.contains(e.target as Node)) {
+    const target = e.target as Node
+
+    if (open && list && !list.contains(target) && !anchor?.contains(target)) {
       close()
     }
   }
@@ -132,7 +138,10 @@
       return
     }
 
-    if (floating) {
+    if (floating && pinned) {
+      left = x ?? 0
+      top = y ?? 0
+    } else if (floating) {
       const box = list.getBoundingClientRect()
 
       left = Math.min(Math.max(EDGE, x ?? 0), viewportWidth - box.width - EDGE)
