@@ -133,5 +133,19 @@
         {/each}
       </select>
     </Row>
+
+    <Row
+      label={$t("settings.rows.timePicker")}
+      {...calendarRow("timePicker")}
+    >
+      <Segmented
+        label={$t("settings.rows.timePicker")}
+        bind:value={profile.calendar.timePicker}
+        options={[
+          { value: "wheel", label: $t("settings.options.wheel") },
+          { value: "clock", label: $t("settings.options.clock") },
+        ]}
+      />
+    </Row>
   </Section>
 </fieldset>

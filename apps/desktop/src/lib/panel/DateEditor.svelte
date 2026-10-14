@@ -1,15 +1,20 @@
 <script lang="ts">
+  import type { TimePicker } from "@eris/settings"
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
+  import ClockField from "./ClockField.svelte"
   import DateField from "./DateField.svelte"
   import type { Draft } from "./draft"
-  import TimeField from "./TimeField.svelte"
+  import WheelField from "./WheelField.svelte"
 
-  const { draft, change, weekStart }: {
+  const { draft, change, weekStart, timePicker }: {
     draft: Draft
     change: (next: Partial<Draft>) => void
     weekStart: 0 | 1
+    timePicker: TimePicker
   } = $props()
+
+  const TimeField = $derived(timePicker === "clock" ? ClockField : WheelField)
 </script>
 
 <DateField

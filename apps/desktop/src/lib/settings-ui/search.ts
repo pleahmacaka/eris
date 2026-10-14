@@ -192,6 +192,7 @@ export const index: SearchEntry[] = [
   entry("calendar", "holidayRegion", "country holidays public region"),
   entry("calendar", "weekNumbers", "grid"),
   entry("calendar", "defaultReminder", "notification minutes alert"),
+  entry("calendar", "timePicker", "wheel clock time picker"),
   entry("calendar", "panelStart", "compact full expand size open"),
   entry("calendar", "sortBy", "order manual due priority"),
 

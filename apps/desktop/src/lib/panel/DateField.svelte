@@ -3,6 +3,7 @@
   import { parseLocal } from "@eris/data"
   import { currentLocale } from "@eris/i18n"
   import Icon from "@iconify/svelte"
+  import { on } from "svelte/events"
   import { longDay } from "#lib/calendar/index.js"
 
   let {
@@ -29,6 +30,8 @@
 
     popover?.hidePopover()
   }
+
+  const listen = (node: HTMLElement) => on(node, "change", pick)
 </script>
 
 <button
@@ -51,13 +54,14 @@
   style:position-anchor="--date-{id}"
   style:position-try-fallbacks="flip-block"
 >
+  <!-- cally's change event does not bubble, so a delegated onchange never fires -->
   <calendar-date
     bind:this={calendar}
     class="cally"
     {value}
     locale={currentLocale()}
     first-day-of-week={weekStart}
-    onchange={pick}
+    {@attach listen}
   >
     <span slot="previous" class="flex" aria-hidden="true">
       <Icon icon="lucide:chevron-left" class="size-4" />

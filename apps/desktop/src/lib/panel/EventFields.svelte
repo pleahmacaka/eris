@@ -95,6 +95,7 @@
       {draft}
       change={editor.change}
       weekStart={panel.profile.calendar.weekStartsOn}
+      timePicker={panel.profile.calendar.timePicker}
     />
   {:else if field === "repeat"}
     <div class="flex flex-col">

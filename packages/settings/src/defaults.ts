@@ -184,6 +184,7 @@ export const defaultProfile: Profile = {
     weekStartsOn: 0,
     showWeekNumbers: false,
     reminderMinutes: 10,
+    timePicker: "wheel",
     region: "system",
     tags: [
       { id: "todo", name: "", hideWhileSharing: false },

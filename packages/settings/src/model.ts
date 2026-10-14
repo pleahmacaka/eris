@@ -33,6 +33,8 @@ export type DockWidget = {
 export type WebSearchEngine = "google" | "duckduckgo" | "bing" | "naver"
 export type TerminalApp = "auto" | "eris" | "wt" | "pwsh" | "powershell" | "cmd"
 export type TodoSort = "manual" | "due" | "priority"
+
+export type TimePicker = "wheel" | "clock"
 export type EventTag = {
   id: string
   name: string
@@ -186,6 +188,7 @@ export type Profile = {
     weekStartsOn: 0 | 1
     showWeekNumbers: boolean
     reminderMinutes: number
+    timePicker: TimePicker
     region: string
     tags: EventTag[]
   }

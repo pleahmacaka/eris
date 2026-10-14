@@ -47,6 +47,7 @@ export {
   type TerminalApp,
   type ThemeMode,
   type ThemePrefs,
+  type TimePicker,
   type TodoSort,
   type TraySlot,
   type WebSearchEngine,
