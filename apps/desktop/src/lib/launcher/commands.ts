@@ -16,6 +16,7 @@ import {
   showWindow,
 } from "../native"
 import { sections } from "../settings-ui/search"
+import { WINDOWS_PAGES } from "./windows-settings"
 
 const command = (
   id: string,
@@ -68,19 +69,16 @@ const power = (id: PowerAction, icon: string, keywords: string[] = []) =>
     keywords,
   )
 
-const windowsPage = (
-  id: string,
-  title: string,
-  icon: string,
-  keywords: string[] = [],
-) =>
-  command(
-    `ms-${id}`,
-    tr(`launcher.commands.${title}`),
-    tr("launcher.subtitles.windowsSettings"),
-    icon,
-    () => openUrl(`ms-settings:${id}`),
-    [...keywords, "settings"],
+const windowsPages = () =>
+  WINDOWS_PAGES.map(page =>
+    command(
+      `ms-${page.id}`,
+      tr(`launcher.windowsSettings.${page.id}`),
+      tr("launcher.subtitles.windowsSettings"),
+      page.icon,
+      () => openUrl(`ms-settings:${page.id}`),
+      [...page.keywords, "settings"],
+    ),
   )
 
 const windowsApp = (
@@ -181,22 +179,6 @@ export const systemCommands = (): Result[] => [
     ),
     stay: true,
   },
-  windowsPage("display", "display", "lucide:monitor", ["screen", "resolution"]),
-  windowsPage("bluetooth", "bluetooth", "lucide:bluetooth", ["devices"]),
-  windowsPage("network-wifi", "wifi", "lucide:wifi", ["wifi", "network"]),
-  windowsPage("sound", "sound", "lucide:volume-2", ["audio", "volume"]),
-  windowsPage("notifications", "notifications", "lucide:bell"),
-  windowsPage("personalization", "personalization", "lucide:palette", [
-    "wallpaper",
-    "theme",
-  ]),
-  windowsPage("appsfeatures", "apps", "lucide:layout-grid", [
-    "installed",
-    "uninstall",
-  ]),
-  windowsPage("windowsupdate", "update", "lucide:refresh-cw", [
-    "windows update",
-  ]),
   command(
     "taskmgr",
     tr("launcher.commands.taskmgr"),
@@ -243,48 +225,6 @@ export const systemCommands = (): Result[] => [
     "snippingtool",
     ["screenshot", "snip", "capture"],
   ),
-  windowsPage("clipboard", "clipboard", "lucide:clipboard-list", [
-    "clipboard history",
-    "paste",
-  ]),
-  windowsPage("quiethours", "quiethours", "lucide:moon-star", [
-    "do not disturb",
-    "dnd",
-    "quiet hours",
-  ]),
-  windowsPage("printers", "printers", "lucide:printer", ["scanner", "print"]),
-  windowsPage("defaultapps", "defaultapps", "lucide:app-window", [
-    "default browser",
-    "file associations",
-  ]),
-  windowsPage("storagesense", "storage", "lucide:hard-drive", [
-    "disk space",
-    "cleanup",
-  ]),
-  windowsPage("powersleep", "powersleep", "lucide:battery-charging", [
-    "battery",
-    "sleep",
-    "power plan",
-  ]),
-  windowsPage("mousetouchpad", "mouse", "lucide:mouse", [
-    "pointer",
-    "cursor",
-    "touchpad",
-  ]),
-  windowsPage("keyboard", "keyboard", "lucide:keyboard", ["typing", "keys"]),
-  windowsPage("dateandtime", "dateandtime", "lucide:clock", [
-    "clock",
-    "timezone",
-  ]),
-  windowsPage("regionlanguage", "regionlanguage", "lucide:languages", [
-    "locale",
-    "keyboard layout",
-  ]),
-  windowsPage("startupapps", "startupapps", "lucide:rocket", [
-    "autostart",
-    "boot",
-    "login",
-  ]),
   command(
     "windowsdefender",
     tr("launcher.commands.security"),
@@ -352,6 +292,7 @@ export const systemCommands = (): Result[] => [
     "shell:MyComputerFolder",
     ["my computer", "drives", "computer"],
   ),
+  ...windowsPages(),
 ]
 
 export const settingsLinks = (): Result[] =>
