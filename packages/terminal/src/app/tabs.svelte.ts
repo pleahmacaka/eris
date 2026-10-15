@@ -1,6 +1,7 @@
 import { getCurrentWindow } from "@tauri-apps/api/window"
 import { untrack } from "svelte"
 import { kill, type Shell, shells } from "../pty"
+import { serialTarget } from "../shell-icons"
 import {
   insert,
   isSplit,
@@ -61,7 +62,7 @@ export const loadShells = async () => {
 }
 
 export const shellName = (id: string) =>
-  session.shells.find(shell => shell.id === id)?.name ?? id
+  session.shells.find(shell => shell.id === id)?.name ?? serialTarget(id) ?? id
 
 const newPane = (shell: string, cwd: string | null): Pane => ({
   id: newId(),

@@ -10,7 +10,10 @@
     springTo,
     unspring,
   } from "./drag.svelte"
+  import { type SerialPort, serialPorts } from "../pty"
+  import { shellIcon } from "../shell-icons"
   import { type Pane, panesOf } from "./layout"
+  import { prefs } from "./prefs.svelte"
   import {
     closePane,
     closeTab,
@@ -25,6 +28,8 @@
   type Renaming = { kind: "tab" | "pane"; id: number }
 
   let renaming = $state<Renaming | null>(null)
+  let ports = $state<SerialPort[]>([])
+  let flip = $state(false)
   let pulling = $state<number | null>(null)
   let pulled = false
 
@@ -106,6 +111,26 @@
     window.addEventListener("pointerup", up)
   }
 
+  const openShells = (e: FocusEvent) => {
+    const node = e.currentTarget as HTMLElement
+    const menu = node.querySelector("ul")
+
+    if (menu) {
+      flip = node.getBoundingClientRect().left + menu.offsetWidth > window.innerWidth
+    }
+
+    serialPorts()
+      .then(found => (ports = found))
+      .catch(() => (ports = []))
+  }
+
+  const openShell = (e: MouseEvent, shell: string) => {
+    const button = e.currentTarget as HTMLElement
+
+    button.blur()
+    openTab({ shell })
+  }
+
   const renameItem = (target: Renaming): MenuItem => ({
     label: $t("terminal.tabs.rename"),
     icon: "lucide:pencil",
@@ -135,6 +160,12 @@
       }
     }}
   />
+{/snippet}
+
+{#snippet glyph(shell: string)}
+  {@const look = shellIcon(shell)}
+
+  <Icon icon={look.icon} class="size-4 shrink-0" style={look.color ? `color: ${look.color}` : undefined} />
 {/snippet}
 
 {#snippet closeButton(label: string, close: () => void, shown: boolean)}
@@ -201,7 +232,7 @@
         onauxclick={e => e.button === 1 && closeTab(index)}
         onkeydown={() => undefined}
       >
-        <Icon icon="lucide:square-terminal" class="size-4 shrink-0" />
+        {@render glyph(pane.shell)}
 
         {#if isRenaming("pane", pane.id)}
           {@render nameField(paneLabel(pane))}
@@ -312,7 +343,7 @@
             onauxclick={e => e.button === 1 && closePane(pane.id)}
             onkeydown={() => undefined}
           >
-            <Icon icon="lucide:square-terminal" class="size-4 shrink-0" />
+            {@render glyph(pane.shell)}
 
             {#if isRenaming("pane", pane.id)}
               {@render nameField(paneLabel(pane))}
@@ -346,7 +377,7 @@
     <Icon icon="lucide:plus" class="size-4" />
   </button>
 
-  <div class="dropdown dropdown-end">
+  <div class={["dropdown", flip && "dropdown-end"]} onfocusin={openShells}>
     <button
       type="button"
       class="btn btn-ghost btn-square btn-sm"
@@ -364,18 +395,56 @@
     >
       {#each session.shells as shell (shell.id)}
         <li>
-          <button
-            type="button"
-            onclick={e => {
-              e.currentTarget.blur()
-              openTab({ shell: shell.id })
-            }}
-          >
-            <Icon icon="lucide:square-terminal" class="size-4" />
+          <button type="button" onclick={e => openShell(e, shell.id)}>
+            {@render glyph(shell.id)}
             {shell.name}
           </button>
         </li>
       {/each}
+
+      <li class="menu-title p-0"><hr class="border-base-content/10" /></li>
+
+      <li class="group/serial relative">
+        <button type="button" aria-haspopup="menu">
+          <Icon icon="lucide:usb" class="size-4" />
+          <span class="grow">{$t("terminal.tabs.serial")}</span>
+          <Icon icon="lucide:chevron-right" class={["size-3.5 opacity-60", flip && "rotate-180"]} />
+        </button>
+
+        <menu
+          role="menu"
+          class={[
+            "menu absolute top-0 z-20 hidden w-72 rounded-box border p-1",
+            "border-base-content/10 bg-base-200 shadow-lg before:hidden",
+            "group-focus-within/serial:flex group-hover/serial:flex",
+            "after:absolute after:inset-y-0 after:w-1",
+            flip
+              ? "end-full ms-0 me-1 after:-end-1"
+              : "start-full ms-1 after:-start-1",
+          ]}
+        >
+          {#each ports as port (port.id)}
+            <li>
+              <button
+                type="button"
+                title={port.detail ? `${port.name} ${port.detail}` : port.name}
+                onclick={e => openShell(e, `${port.id}@${prefs.baud}`)}
+              >
+                {@render glyph(port.id)}
+                <span class="shrink-0 font-medium">{port.name}</span>
+
+                {#if port.detail}
+                  <span class="min-w-0 truncate text-base-content/60">{port.detail}</span>
+                {/if}
+              </button>
+            </li>
+          {:else}
+            <li class="menu-disabled">
+              <span>{$t("terminal.tabs.noPorts")}</span>
+            </li>
+          {/each}
+        </menu>
+      </li>
     </ul>
   </div>
 </div>

@@ -2,6 +2,7 @@ use tauri::plugin::{Builder, TauriPlugin};
 use tauri::{Manager, Runtime, WindowEvent};
 
 mod pty;
+mod serial;
 mod shells;
 mod windows;
 
@@ -19,6 +20,7 @@ pub fn init<R: Runtime>(route: &str) -> TauriPlugin<R> {
             pty::attach,
             pty::detach,
             shells::shells,
+            serial::serial_ports,
             windows::take_intent,
             windows::new_window,
         ])

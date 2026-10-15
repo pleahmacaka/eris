@@ -10,7 +10,9 @@
       "rename": "名前を変更",
       "workspace": "workspace",
       "closePane": "ターミナルを閉じる",
-      "group": "{name} グループ"
+      "group": "{name} グループ",
+      "serial": "シリアルポート",
+      "noPorts": "ポートなし"
     },
     "window": {
       "minimize": "最小化",
@@ -36,7 +38,8 @@
       "resetAction": "リセット",
       "resetTitle": "設定をリセットしますか?",
       "resetBody": "シェル、フォント、外観の設定が既定値に戻ります。",
-      "appearanceHosted": "Eris の外観設定に従います。"
+      "appearanceHosted": "Eris の外観設定に従います。",
+      "baud": "シリアル通信速度"
     },
     "panes": {
       "sync": "入力の同期",

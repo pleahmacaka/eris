@@ -10,7 +10,9 @@
       "rename": "Rename",
       "workspace": "workspace",
       "closePane": "Close terminal",
-      "group": "{name} group"
+      "group": "{name} group",
+      "serial": "Serial ports",
+      "noPorts": "No ports"
     },
     "window": {
       "minimize": "Minimize",
@@ -36,7 +38,8 @@
       "resetAction": "Reset",
       "resetTitle": "Reset settings?",
       "resetBody": "Shell, font and appearance settings return to their defaults.",
-      "appearanceHosted": "Follows the appearance set in Eris."
+      "appearanceHosted": "Follows the appearance set in Eris.",
+      "baud": "Serial baud rate"
     },
     "panes": {
       "sync": "Input sync",

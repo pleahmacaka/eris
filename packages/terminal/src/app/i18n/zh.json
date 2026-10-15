@@ -10,7 +10,9 @@
       "rename": "重命名",
       "workspace": "workspace",
       "closePane": "关闭终端",
-      "group": "{name} 分组"
+      "group": "{name} 分组",
+      "serial": "串口",
+      "noPorts": "无端口"
     },
     "window": {
       "minimize": "最小化",
@@ -36,7 +38,8 @@
       "resetAction": "重置",
       "resetTitle": "要重置设置吗?",
       "resetBody": "Shell、字体和外观设置将恢复为默认值。",
-      "appearanceHosted": "跟随 Eris 中的外观设置。"
+      "appearanceHosted": "跟随 Eris 中的外观设置。",
+      "baud": "串口波特率"
     },
     "panes": {
       "sync": "输入同步",

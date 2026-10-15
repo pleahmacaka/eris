@@ -12,7 +12,7 @@ use serde::Deserialize;
 use tauri::ipc::{Channel, InvokeResponseBody, Response};
 use tauri::{Manager, Runtime, State, Window};
 
-use crate::shells;
+use crate::{serial, shells};
 
 const READ_CHUNK: usize = 64 * 1024;
 const BATCH_LIMIT: usize = 1024 * 1024;
@@ -86,11 +86,18 @@ impl Sink {
     }
 }
 
+enum Device {
+    Pty {
+        master: Box<dyn MasterPty + Send>,
+        killer: Box<dyn ChildKiller + Send + Sync>,
+    },
+    Serial(serial::Guard),
+}
+
 struct Session {
     window: String,
-    master: Box<dyn MasterPty + Send>,
+    device: Device,
     input: Sender<Vec<u8>>,
-    killer: Box<dyn ChildKiller + Send + Sync>,
     sink: Arc<Mutex<Sink>>,
 }
 
@@ -124,10 +131,12 @@ impl Sessions {
 }
 
 // ClosePseudoConsole can wait on conhost, so it never runs on the main thread
-fn close(mut session: Session) {
-    thread::spawn(move || {
-        let _ = session.killer.kill();
-        drop(session);
+fn close(session: Session) {
+    thread::spawn(move || match session.device {
+        Device::Pty { mut killer, .. } => {
+            let _ = killer.kill();
+        }
+        Device::Serial(guard) => drop(guard),
     });
 }
 
@@ -204,6 +213,28 @@ pub fn spawn<R: Runtime>(
     sessions: State<'_, Sessions>,
     spawn: Spawn,
 ) -> Result<u32, String> {
+    if let Some((port, baud)) = serial::parse(&spawn.shell) {
+        let opened = serial::open(port, baud)?;
+        let open = opened.guard.flag();
+        let (id, sink, pumping) = register(
+            &window,
+            &sessions,
+            Device::Serial(opened.guard),
+            opened.reader,
+            opened.writer,
+        );
+        let app = window.app_handle().clone();
+
+        thread::spawn(move || {
+            let _ = pumping.join();
+            let code = if open.load(Ordering::Relaxed) { 1 } else { 0 };
+
+            finish(&app, id, &sink, code);
+        });
+
+        return Ok(id);
+    }
+
     let shell = shells::find(&spawn.shell).ok_or("unknown shell")?;
     let cwd = spawn.cwd.filter(|dir| Path::new(dir).is_dir());
     let pair = native_pty_system()
@@ -231,21 +262,17 @@ pub fn spawn<R: Runtime>(
 
     let reader = pair.master.try_clone_reader().map_err(|e| e.to_string())?;
     let writer = pair.master.take_writer().map_err(|e| e.to_string())?;
-    let id = sessions.next.fetch_add(1, Ordering::Relaxed);
-    let sink = Arc::new(Mutex::new(Sink::default()));
-
-    sessions.open.lock().unwrap().insert(
-        id,
-        Session {
-            window: window.label().to_string(),
+    let killer = child.clone_killer();
+    let (id, sink, pumping) = register(
+        &window,
+        &sessions,
+        Device::Pty {
             master: pair.master,
-            input: feed(writer),
-            killer: child.clone_killer(),
-            sink: sink.clone(),
+            killer,
         },
+        reader,
+        writer,
     );
-
-    let pumping = pump(reader, sink.clone());
     let app = window.app_handle().clone();
 
     thread::spawn(move || {
@@ -256,12 +283,41 @@ pub fn spawn<R: Runtime>(
 
         let _ = pumping.join();
 
-        if let Some(exit) = &sink.lock().unwrap().exit {
-            let _ = exit.send(code);
-        }
+        finish(&app, id, &sink, code);
     });
 
     Ok(id)
+}
+
+fn register<R: Runtime>(
+    window: &Window<R>,
+    sessions: &Sessions,
+    device: Device,
+    reader: Box<dyn Read + Send>,
+    writer: Box<dyn Write + Send>,
+) -> (u32, Arc<Mutex<Sink>>, JoinHandle<()>) {
+    let id = sessions.next.fetch_add(1, Ordering::Relaxed);
+    let sink = Arc::new(Mutex::new(Sink::default()));
+
+    sessions.open.lock().unwrap().insert(
+        id,
+        Session {
+            window: window.label().to_string(),
+            device,
+            input: feed(writer),
+            sink: sink.clone(),
+        },
+    );
+
+    (id, sink.clone(), pump(reader, sink))
+}
+
+fn finish<R: Runtime>(app: &tauri::AppHandle<R>, id: u32, sink: &Mutex<Sink>, code: u32) {
+    drop(app.state::<Sessions>().take(id));
+
+    if let Some(exit) = &sink.lock().unwrap().exit {
+        let _ = exit.send(code);
+    }
 }
 
 #[tauri::command]
@@ -298,8 +354,12 @@ pub fn write(sessions: State<'_, Sessions>, id: u32, data: String) {
 
 #[tauri::command]
 pub fn resize(sessions: State<'_, Sessions>, id: u32, cols: u16, rows: u16) {
-    if let Some(session) = sessions.open.lock().unwrap().get(&id) {
-        let _ = session.master.resize(size(cols, rows));
+    if let Some(Session {
+        device: Device::Pty { master, .. },
+        ..
+    }) = sessions.open.lock().unwrap().get(&id)
+    {
+        let _ = master.resize(size(cols, rows));
     }
 }
 

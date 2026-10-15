@@ -6,6 +6,7 @@ const COMMANDS: &[&str] = &[
     "attach",
     "detach",
     "shells",
+    "serial_ports",
     "take_intent",
     "new_window",
 ];

@@ -8,6 +8,7 @@ permissions = [
   "allow-attach",
   "allow-detach",
   "allow-shells",
+  "allow-serial-ports",
   "allow-take-intent",
   "allow-new-window",
 ]

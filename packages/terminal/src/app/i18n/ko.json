@@ -10,7 +10,9 @@
       "rename": "이름 바꾸기",
       "workspace": "workspace",
       "closePane": "터미널 닫기",
-      "group": "{name} 그룹"
+      "group": "{name} 그룹",
+      "serial": "시리얼 포트",
+      "noPorts": "포트 없음"
     },
     "window": {
       "minimize": "최소화",
@@ -36,7 +38,8 @@
       "resetAction": "초기화",
       "resetTitle": "설정을 초기화할까요?",
       "resetBody": "셸, 글꼴, 모양 설정이 기본값으로 돌아갑니다.",
-      "appearanceHosted": "Eris 설정의 모양을 따릅니다."
+      "appearanceHosted": "Eris 설정의 모양을 따릅니다.",
+      "baud": "시리얼 통신 속도"
     },
     "panes": {
       "sync": "입력 동기화",

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-serial-ports"
+description = "Enables the serial_ports command without any pre-configured scope."
+commands.allow = ["serial_ports"]
+
+[[permission]]
+identifier = "deny-serial-ports"
+description = "Denies the serial_ports command without any pre-configured scope."
+commands.deny = ["serial_ports"]

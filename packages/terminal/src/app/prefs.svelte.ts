@@ -4,6 +4,7 @@ import { DEFAULT_FONT } from "../ready"
 
 export type Prefs = {
   shell: string | null
+  baud: number
   fontFamily: string
   fontSize: number
   followEris: boolean
@@ -15,6 +16,7 @@ const KEY = "eris-terminal.prefs"
 
 const defaults: Prefs = {
   shell: null,
+  baud: 115200,
   fontFamily: DEFAULT_FONT,
   fontSize: 14,
   followEris: true,

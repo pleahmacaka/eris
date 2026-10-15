@@ -13,6 +13,8 @@
   import { prefs, resetPrefs } from "./prefs.svelte"
   import { defaultShell, session } from "./tabs.svelte"
 
+  const BAUDS = [9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600]
+
   let { standalone = false }: { standalone?: boolean } = $props()
 
   const PAGES: [string, string][] = [
@@ -74,6 +76,18 @@
             >
               {#each session.shells as shell (shell.id)}
                 <option value={shell.id}>{shell.name}</option>
+              {/each}
+            </select>
+          </Row>
+
+          <Row label={$t("terminal.settings.baud")}>
+            <select
+              class="select select-sm w-48"
+              aria-label={$t("terminal.settings.baud")}
+              bind:value={prefs.baud}
+            >
+              {#each BAUDS as baud (baud)}
+                <option value={baud}>{baud}</option>
               {/each}
             </select>
           </Row>

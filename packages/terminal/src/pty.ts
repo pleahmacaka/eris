@@ -2,6 +2,8 @@ import { Channel, invoke } from "@tauri-apps/api/core"
 
 export type Shell = { id: string; name: string }
 
+export type SerialPort = { id: string; name: string; detail: string | null }
+
 export type SpawnOptions = {
   shell: string
   cwd: string | null
@@ -23,6 +25,8 @@ export type Attachment = {
 const command = (name: string) => `plugin:eris-terminal|${name}`
 
 export const shells = () => invoke<Shell[]>(command("shells"))
+
+export const serialPorts = () => invoke<SerialPort[]>(command("serial_ports"))
 
 export const spawn = (spawn: SpawnOptions) =>
   invoke<number>(command("spawn"), { spawn })
