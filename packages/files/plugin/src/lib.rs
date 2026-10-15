@@ -133,6 +133,8 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             #[cfg(desktop)]
             menu::menu_hide,
             #[cfg(desktop)]
+            menu::menu_owner_active,
+            #[cfg(desktop)]
             archive::list_archive,
             #[cfg(desktop)]
             archive::extract_entry,

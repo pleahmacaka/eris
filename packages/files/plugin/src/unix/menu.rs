@@ -24,4 +24,9 @@ pub async fn menu_place(_placement: Placement) -> Result<()> {
 #[tauri::command]
 pub fn menu_hide() {}
 
+#[tauri::command]
+pub fn menu_owner_active() -> bool {
+    false
+}
+
 pub fn release(_app: &AppHandle, _closing: &str) {}

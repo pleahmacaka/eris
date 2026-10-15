@@ -5,8 +5,10 @@ use tauri::{AppHandle, Manager, Webview, WebviewWindow, WindowEvent};
 use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, WPARAM};
 use windows::Win32::UI::Shell::{DefSubclassProc, SetWindowSubclass};
 use windows::Win32::UI::WindowsAndMessaging::{
-    SetWindowPos, ShowWindow, HWND_TOPMOST, MA_NOACTIVATE, SWP_FRAMECHANGED, SWP_NOACTIVATE,
-    SWP_NOMOVE, SWP_NOSIZE, SWP_NOZORDER, SWP_SHOWWINDOW, SW_HIDE, WM_MOUSEACTIVATE, WM_NCCALCSIZE,
+    GetForegroundWindow, GetWindowLongPtrW, SetWindowLongPtrW, SetWindowPos, ShowWindow,
+    GWL_EXSTYLE, HWND_TOPMOST, MA_NOACTIVATE, SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOMOVE,
+    SWP_NOSIZE, SWP_NOZORDER, SWP_SHOWWINDOW, SW_HIDE, WM_MOUSEACTIVATE, WM_NCCALCSIZE,
+    WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW,
 };
 
 use crate::error::{Error, Result};
@@ -62,6 +64,7 @@ pub async fn menu_prepare(app: AppHandle) -> Result<bool> {
 
     let route = app.state::<Host>().menu_route;
     let builder = eris_window_kit::child(&app, LABEL, route)
+        .title("Eris Files Menu")
         .focusable(false)
         .focused(false)
         .skip_taskbar(true)
@@ -76,6 +79,13 @@ pub async fn menu_prepare(app: AppHandle) -> Result<bool> {
     // subclassing only works from the thread that owns the window
     window.run_on_main_thread(move || unsafe {
         let hwnd = com::owner(raw);
+        // skip_taskbar alone leaves the popup in Alt+Tab and Task View as an empty "Tauri App" card
+        let style = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
+        SetWindowLongPtrW(
+            hwnd,
+            GWL_EXSTYLE,
+            style | (WS_EX_TOOLWINDOW.0 | WS_EX_NOACTIVATE.0) as isize,
+        );
         let _ = SetWindowSubclass(hwnd, Some(on_message), 1, 0);
         let _ = SetWindowPos(
             hwnd,
@@ -199,6 +209,17 @@ pub fn menu_hide(window: WebviewWindow) -> Result<()> {
     let _ = unsafe { ShowWindow(window.hwnd()?, SW_HIDE) };
 
     Ok(())
+}
+
+// clicking the popup moves keyboard focus into its webview, so the owner's blur alone cannot tell it from switching apps
+#[tauri::command]
+pub fn menu_owner_active(app: AppHandle, window: WebviewWindow) -> Result<bool> {
+    let foreground = unsafe { GetForegroundWindow() };
+    let popup = app
+        .get_webview_window(LABEL)
+        .and_then(|menu| menu.hwnd().ok());
+
+    Ok(foreground == window.hwnd()? || Some(foreground) == popup)
 }
 
 pub fn release(app: &AppHandle, closing: &str) {

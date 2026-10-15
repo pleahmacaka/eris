@@ -10,6 +10,7 @@ const COMMANDS: &[&str] = &[
     "menu_ready",
     "menu_place",
     "menu_hide",
+    "menu_owner_active",
     "list_archive",
     "extract_entry",
     "bandizip_available",

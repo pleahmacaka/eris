@@ -119,17 +119,21 @@
 {/if}
 
 <style>
-  :global(html),
-  :global(body),
-  :global(.siri-shell) {
+  :global(:root[data-surface="popup"]),
+  :global(:root[data-surface="popup"] body),
+  :global(:root[data-surface="popup"] .siri-shell) {
     background: transparent !important;
   }
 
-  :global(.siri-aura) {
+  :global(:root[data-surface="popup"] .siri-shell) {
+    opacity: 1;
+  }
+
+  :global(:root[data-surface="popup"] .siri-aura) {
     display: none;
   }
 
-  :global([role="menu"].eris-card) {
+  :global(:root[data-surface="popup"] [role="menu"].eris-card) {
     background-color: var(--color-base-100);
     backdrop-filter: none;
   }

@@ -751,6 +751,18 @@
           "markdownDescription": "Denies the menu_hide command without any pre-configured scope."
         },
         {
+          "description": "Enables the menu_owner_active command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-menu-owner-active",
+          "markdownDescription": "Enables the menu_owner_active command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the menu_owner_active command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-menu-owner-active",
+          "markdownDescription": "Denies the menu_owner_active command without any pre-configured scope."
+        },
+        {
           "description": "Enables the menu_place command without any pre-configured scope.",
           "type": "string",
           "const": "allow-menu-place",

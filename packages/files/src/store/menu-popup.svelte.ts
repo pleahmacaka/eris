@@ -71,6 +71,7 @@ class Popup implements MenuPresenter {
       listen("files-menu:ready", () => {
         this.ready = true
       }),
+      this.#watchBlur(),
     ]
 
     call<boolean>("menu_prepare")
@@ -119,6 +120,22 @@ class Popup implements MenuPresenter {
     }
   }
 
+  #watchBlur() {
+    const blur = () => {
+      if (!this.#request) {
+        return
+      }
+
+      call<boolean>("menu_owner_active")
+        .then(active => active || closeContextMenu())
+        .catch(closeContextMenu)
+    }
+
+    window.addEventListener("blur", blur)
+
+    return Promise.resolve(() => window.removeEventListener("blur", blur))
+  }
+
   #pick({ seq, index }: PopupPick) {
     const item = this.#items[index]
 
@@ -127,7 +144,13 @@ class Popup implements MenuPresenter {
     }
 
     closeContextMenu()
-    Promise.resolve(item.action()).catch(() => undefined)
+
+    // the click landed on the popup, so the owner must take the foreground back before an action opens a system dialog
+    this.#owner
+      .setFocus()
+      .catch(() => undefined)
+      .then(() => item.action())
+      .catch(() => undefined)
   }
 }
 

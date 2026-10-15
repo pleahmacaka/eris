@@ -166,11 +166,7 @@
 
 <svelte:document {oncontextmenu} />
 
-<svelte:window
-  {onkeydown}
-  {onmousedown}
-  onblur={dismiss}
-/>
+<svelte:window {onkeydown} {onmousedown} />
 
 {#if contextMenu.request && !external}
   <ContextMenu

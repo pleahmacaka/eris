@@ -12,6 +12,7 @@ permissions = [
   "allow-menu-ready",
   "allow-menu-place",
   "allow-menu-hide",
+  "allow-menu-owner-active",
   "allow-list-archive",
   "allow-extract-entry",
   "allow-bandizip-available",
