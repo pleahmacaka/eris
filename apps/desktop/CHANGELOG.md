@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.3.16](https://github.com/pleahmacaka/eris/compare/0.3.15...0.3.16) (2026-10-15)
+
+
+### Features
+
+* **desktop:** name the app Eris and end tasks from the dock ([bd84131](https://github.com/pleahmacaka/eris/commit/bd8413179a7f6c6da4084f1ceef3ef333d263812))
+* **files:** add hex preview, package scripts and colored fallback icons ([0d5ec0b](https://github.com/pleahmacaka/eris/commit/0d5ec0bc367d4aed7f7755fb529b5d16fb1c7d37))
+* **iconify-subset:** self-register and watch new files ([eb1d359](https://github.com/pleahmacaka/eris/commit/eb1d35999b20e090c3cafbd3573743d882a6dd17))
+* **terminal:** add serial monitor and shell icons ([0c7ecb7](https://github.com/pleahmacaka/eris/commit/0c7ecb7db7223f3b05a5cf35316091a13219e82e))
+* **terminal:** move tabs across windows and fix input ([d8affb4](https://github.com/pleahmacaka/eris/commit/d8affb49ef7494babe27169a4c583b20ba7f059d))
+
+
+### Bug Fixes
+
+* **files:** keep popup menus self-contained and focused ([e5be88b](https://github.com/pleahmacaka/eris/commit/e5be88bdc17039b05a8f286e31d18ff2a0d54196))
+
 ## [0.3.15](https://github.com/pleahmacaka/eris/compare/0.3.14...0.3.15) (2026-10-14)
 
 
