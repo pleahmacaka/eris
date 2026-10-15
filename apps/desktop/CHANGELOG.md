@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.18](https://github.com/pleahmacaka/eris/compare/0.3.17...0.3.18) (2026-10-15)
+
+
+### Bug Fixes
+
+* **files:** keep popup menu out of alt+tab ([0c51ed4](https://github.com/pleahmacaka/eris/commit/0c51ed4b00c64f6d2a53e8b4f59940ce3a820adb))
+* **notices:** close panel on second bell click ([d795bbb](https://github.com/pleahmacaka/eris/commit/d795bbb87b3c4800e10d624c37f1793dd9e7f5af))
+* **tray:** ignore guid without nif_guid and drop shell volume icon ([a1391bd](https://github.com/pleahmacaka/eris/commit/a1391bda09e65eb5fc94dde2c9bc0e591120c96a))
+
 ## [0.3.17](https://github.com/pleahmacaka/eris/compare/0.3.16...0.3.17) (2026-10-15)
 
 
