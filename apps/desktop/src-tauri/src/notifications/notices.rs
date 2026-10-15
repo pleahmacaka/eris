@@ -68,8 +68,12 @@ pub fn notices_dismiss(app: AppHandle, ids: Vec<i64>) {
 
 #[tauri::command]
 pub fn notices_open_panel(app: AppHandle, window: WebviewWindow, anchor: Option<[f64; 4]>) {
+    if windowing::just_hidden("notices") {
+        return;
+    }
+
     windowing::set_anchor("notices", &window, anchor);
-    windowing::show(&app, "notices");
+    windowing::toggle(&app, "notices");
 }
 
 // a foreground toast activates through the sender's COM activator, which only the shell can reach, so reopen the app instead

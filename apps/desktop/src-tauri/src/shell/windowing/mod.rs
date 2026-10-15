@@ -17,6 +17,8 @@ const LAZY_KEEP: Duration = Duration::from_secs(120);
 const BUILD_RETRY: Duration = Duration::from_millis(120);
 
 static BLUR_HIDDEN_AT: Mutex<Option<Instant>> = Mutex::new(None);
+static HIDDEN_AT: LazyLock<Mutex<HashMap<String, Instant>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
 static FADES: LazyLock<Mutex<HashMap<String, u64>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 static RETIRING: LazyLock<Mutex<HashMap<String, u64>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -132,8 +134,24 @@ pub fn window_ready(window: WebviewWindow) {
 
 pub fn hide(app: &AppHandle, label: &str) {
     if let Some(window) = app.get_webview_window(label) {
+        if window.is_visible().unwrap_or(false) {
+            HIDDEN_AT
+                .lock()
+                .unwrap()
+                .insert(label.to_string(), Instant::now());
+        }
+
         conceal(&window);
     }
+}
+
+// a click on the opener blurs the open window first, so the click that follows must not reopen it
+pub fn just_hidden(label: &str) -> bool {
+    HIDDEN_AT
+        .lock()
+        .unwrap()
+        .remove(label)
+        .is_some_and(|at| at.elapsed() < BLUR_TOGGLE_GUARD)
 }
 
 pub fn hide_on_blur(window: &WebviewWindow) {
