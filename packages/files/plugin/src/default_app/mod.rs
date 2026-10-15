@@ -11,6 +11,7 @@ use tauri::State;
 use crate::error::{Error, Result};
 use crate::Host;
 
+#[cfg(windows)]
 const OWNS_KEYS: bool = !matches!(
     eris_window_kit::CHANNEL,
     eris_window_kit::Channel::DevChannel

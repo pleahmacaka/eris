@@ -222,6 +222,7 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             git::git_log,
             #[cfg(desktop)]
             git::git_repo,
+            #[cfg(desktop)]
             git::git_user,
             #[cfg(desktop)]
             git::git_stage,
