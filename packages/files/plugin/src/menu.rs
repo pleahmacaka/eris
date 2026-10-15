@@ -6,9 +6,9 @@ use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, WPARAM};
 use windows::Win32::UI::Shell::{DefSubclassProc, SetWindowSubclass};
 use windows::Win32::UI::WindowsAndMessaging::{
     GetForegroundWindow, GetWindowLongPtrW, SetWindowLongPtrW, SetWindowPos, ShowWindow,
-    GWL_EXSTYLE, HWND_TOPMOST, MA_NOACTIVATE, SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOMOVE,
-    SWP_NOSIZE, SWP_NOZORDER, SWP_SHOWWINDOW, SW_HIDE, WM_MOUSEACTIVATE, WM_NCCALCSIZE,
-    WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW,
+    GWL_EXSTYLE, HWND_TOPMOST, MA_NOACTIVATE, STYLESTRUCT, SWP_FRAMECHANGED, SWP_NOACTIVATE,
+    SWP_NOMOVE, SWP_NOSIZE, SWP_NOZORDER, SWP_SHOWWINDOW, SW_HIDE, WM_MOUSEACTIVATE, WM_NCCALCSIZE,
+    WM_STYLECHANGING, WS_EX_APPWINDOW, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW,
 };
 
 use crate::error::{Error, Result};
@@ -36,6 +36,11 @@ pub struct Placed {
     height: i32,
 }
 
+// skip_taskbar alone leaves the popup in Alt+Tab and Task View as an empty card
+fn popup_style(style: u32) -> u32 {
+    (style | WS_EX_TOOLWINDOW.0 | WS_EX_NOACTIVATE.0) & !WS_EX_APPWINDOW.0
+}
+
 unsafe extern "system" fn on_message(
     hwnd: HWND,
     message: u32,
@@ -51,6 +56,13 @@ unsafe extern "system" fn on_message(
     // tao keeps an invisible resize frame on undecorated windows, which would swallow clicks beside the menu
     if message == WM_NCCALCSIZE && wparam.0 != 0 {
         return LRESULT(0);
+    }
+
+    // tao rewrites the extended style from its own flags whenever a show, shadow or topmost flag changes
+    if message == WM_STYLECHANGING && wparam.0 as i32 == GWL_EXSTYLE.0 {
+        let change = unsafe { &mut *(lparam.0 as *mut STYLESTRUCT) };
+
+        change.styleNew = popup_style(change.styleNew);
     }
 
     unsafe { DefSubclassProc(hwnd, message, wparam, lparam) }
@@ -79,14 +91,10 @@ pub async fn menu_prepare(app: AppHandle) -> Result<bool> {
     // subclassing only works from the thread that owns the window
     window.run_on_main_thread(move || unsafe {
         let hwnd = com::owner(raw);
-        // skip_taskbar alone leaves the popup in Alt+Tab and Task View as an empty "Tauri App" card
-        let style = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
-        SetWindowLongPtrW(
-            hwnd,
-            GWL_EXSTYLE,
-            style | (WS_EX_TOOLWINDOW.0 | WS_EX_NOACTIVATE.0) as isize,
-        );
+        let style = GetWindowLongPtrW(hwnd, GWL_EXSTYLE) as u32;
+
         let _ = SetWindowSubclass(hwnd, Some(on_message), 1, 0);
+        SetWindowLongPtrW(hwnd, GWL_EXSTYLE, popup_style(style) as isize);
         let _ = SetWindowPos(
             hwnd,
             None,

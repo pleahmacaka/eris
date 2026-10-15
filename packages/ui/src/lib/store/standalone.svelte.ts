@@ -11,7 +11,15 @@ import { tick } from "svelte"
 
 export const erisStyle = $state<ErisStyle>({ linked: false, profile: null })
 
-export const followEris = (prefs: ThemePrefs, command = "eris_style") => {
+type FollowOptions = {
+  command?: string
+  reveal?: boolean
+}
+
+export const followEris = (
+  prefs: ThemePrefs,
+  { command = "eris_style", reveal = true }: FollowOptions = {},
+) => {
   $effect(() => {
     const look = standaloneAppearance(erisStyle, prefs)
     const scheme = window.matchMedia("(prefers-color-scheme: dark)")
@@ -33,7 +41,7 @@ export const followEris = (prefs: ThemePrefs, command = "eris_style") => {
         return tick()
       })
       .finally(() => {
-        if (!Reflect.get(window, "__ERIS_HEADLESS__")) {
+        if (reveal && !Reflect.get(window, "__ERIS_HEADLESS__")) {
           return current.show().then(() => current.setFocus())
         }
       })
