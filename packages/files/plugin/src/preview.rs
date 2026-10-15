@@ -161,3 +161,73 @@ mod tests {
         assert_eq!(root_element("<!-- unterminated"), None);
     }
 }
+
+const HEX_PAGE: u64 = 64 * 1024;
+
+const SEARCH_CHUNK: usize = 1024 * 1024;
+
+#[tauri::command(async)]
+pub fn read_bytes(path: String, offset: u64, length: u64) -> Result<tauri::ipc::Response> {
+    use std::io::{Seek, SeekFrom};
+
+    let mut file = std::fs::File::open(&path)?;
+    let mut bytes = Vec::new();
+
+    file.seek(SeekFrom::Start(offset))?;
+    file.take(length.min(HEX_PAGE)).read_to_end(&mut bytes)?;
+
+    Ok(tauri::ipc::Response::new(bytes))
+}
+
+// scans forward from `from` and wraps to the start, carrying the needle's tail across chunk edges
+#[tauri::command(async)]
+pub fn find_bytes(path: String, needle: Vec<u8>, from: u64) -> Result<Option<u64>> {
+    use std::io::{Seek, SeekFrom};
+
+    if needle.is_empty() {
+        return Ok(None);
+    }
+
+    let mut file = std::fs::File::open(&path)?;
+    let size = file.metadata()?.len();
+    let start = from.min(size);
+
+    let mut scan = |begin: u64, end: u64| -> Result<Option<u64>> {
+        file.seek(SeekFrom::Start(begin))?;
+
+        let mut base = begin;
+        let mut carry: Vec<u8> = Vec::new();
+        let mut chunk = vec![0; SEARCH_CHUNK];
+
+        while base < end {
+            let want = (end - base).min(SEARCH_CHUNK as u64) as usize;
+            let read = file.read(&mut chunk[..want])?;
+
+            if read == 0 {
+                break;
+            }
+
+            let mut window = std::mem::take(&mut carry);
+            let window_start = base - window.len() as u64;
+
+            window.extend_from_slice(&chunk[..read]);
+
+            if let Some(at) = window.windows(needle.len()).position(|part| part == needle) {
+                return Ok(Some(window_start + at as u64));
+            }
+
+            let keep = (needle.len() - 1).min(window.len());
+
+            carry = window[window.len() - keep..].to_vec();
+            base += read as u64;
+        }
+
+        Ok(None)
+    };
+
+    if let Some(found) = scan(start, size)? {
+        return Ok(Some(found));
+    }
+
+    scan(0, (start + needle.len() as u64).min(size))
+}

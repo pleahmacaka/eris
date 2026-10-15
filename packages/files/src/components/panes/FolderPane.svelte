@@ -6,6 +6,7 @@
   import type { Tab } from "../../store/tab.svelte"
   import GitPanel from "./GitPanel.svelte"
   import ReadmeView from "./ReadmeView.svelte"
+  import ScriptsView from "./ScriptsView.svelte"
 
   let { tab }: { tab: Tab } = $props()
 
@@ -20,6 +21,7 @@
   const MODES: [FolderPane, string][] = [
     ["readme", "lucide:book-open"],
     ["git", "lucide:git-branch"],
+    ["scripts", "material-icon-theme:nodejs"],
   ]
 
   const repo = $derived(tab.insight.view.repo)
@@ -34,9 +36,19 @@
       : undefined,
   )
 
-  const available = $derived(
-    MODES.filter(([mode]) => (mode === "git" ? !!repo : !!readme)),
+  const manifest = $derived(
+    tab.kind === "folder"
+      ? tab.items.find(item => !item.dir && item.name.toLowerCase() === "package.json")
+      : undefined,
   )
+
+  const shown: Record<FolderPane, () => boolean> = {
+    readme: () => !!readme,
+    git: () => !!repo,
+    scripts: () => !!manifest,
+  }
+
+  const available = $derived(MODES.filter(([mode]) => shown[mode]()))
 
   const mode = $derived(
     available.find(([id]) => id === prefs.folderPane)?.[0] ??
@@ -80,6 +92,10 @@
   <div class="flex min-h-0 grow flex-col overflow-hidden rounded-box bg-base-content/5 p-2">
     {#if mode === "git" && repo}
       <GitPanel insight={tab.insight} />
+    {:else if mode === "scripts" && manifest}
+      {#key manifest.modified}
+        <ScriptsView dir={tab.location} />
+      {/key}
     {:else if readme}
       <ReadmeView path={readme.path} name={readme.name} raw={prefs.readmeRaw} />
     {/if}

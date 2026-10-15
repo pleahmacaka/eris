@@ -17,11 +17,9 @@ export type GroupKey = "none" | "modified" | "kind"
 
 export type FolderType = "general" | "downloads" | "pictures" | "videos"
 
-export type IconStyle = "system" | "ide"
-
 export type CleanupColor = "orange" | "red" | "amber" | "primary"
 
-export type FolderPane = "git" | "readme"
+export type FolderPane = "git" | "readme" | "scripts"
 
 export type FolderView = {
   view: ViewMode
@@ -152,7 +150,6 @@ export type Prefs = {
   privatePaths: string[]
   groups: Record<string, GroupKey>
   folderViews: Record<string, FolderView>
-  iconStyle: IconStyle
   duplicates: boolean
   gitColors: boolean
   emptyFolders: boolean
@@ -261,7 +258,6 @@ const defaults: Prefs = {
   privatePaths: [],
   groups: {},
   folderViews: {},
-  iconStyle: "ide",
   duplicates: true,
   gitColors: true,
   emptyFolders: true,

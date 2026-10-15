@@ -264,9 +264,6 @@
       "previewPaneHint": "選択したファイルを右側でプレビューします。",
       "decor": {
         "title": "ファイル表示",
-        "iconStyle": "アイコンスタイル",
-        "iconSystem": "システム",
-        "iconIde": "IDE",
         "duplicates": "重複ファイルの強調",
         "duplicatesHint": "内容が同じファイルを同じ背景色で表示します。",
         "gitColors": "Git ステータスの色",
@@ -450,7 +447,6 @@
         "compact": "折りたたみ",
         "on": "使用",
         "off": "使用しない",
-        "icons": "アイコン",
         "cleanup": "インストーラーの整理"
       },
       "tidy": {
@@ -511,7 +507,8 @@
       "git": "Git",
       "readme": "README",
       "rendered": "レンダリング",
-      "raw": "原文"
+      "raw": "原文",
+      "scripts": "スクリプト"
     },
     "clipboard": {
       "copied": "{count} 個の項目をコピー済み",
@@ -540,6 +537,20 @@
       "free": "空き領域",
       "total": "容量",
       "close": "閉じる"
+    },
+    "scripts": {
+      "detected": "{manager} で実行",
+      "fallback": "パッケージマネージャー未検出、既定の {manager} を使用",
+      "empty": "スクリプトなし",
+      "manager": "既定のパッケージマネージャー",
+      "managerHint": "lockfile も packageManager もないプロジェクトで使います。"
+    },
+    "hex": {
+      "search": "HEX またはテキストを検索",
+      "notFound": "一致なし",
+      "toggle": "HEX 表示",
+      "modeHex": "HEX",
+      "modeText": "テキスト"
     }
   },
   "terminal": {

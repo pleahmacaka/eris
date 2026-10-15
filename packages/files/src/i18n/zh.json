@@ -264,9 +264,6 @@
       "previewPaneHint": "在右侧预览所选文件。",
       "decor": {
         "title": "文件显示",
-        "iconStyle": "图标样式",
-        "iconSystem": "系统",
-        "iconIde": "IDE",
         "duplicates": "突出显示重复文件",
         "duplicatesHint": "内容相同的文件使用相同的背景色。",
         "gitColors": "Git 状态颜色",
@@ -450,7 +447,6 @@
         "compact": "折叠",
         "on": "开启",
         "off": "关闭",
-        "icons": "图标",
         "cleanup": "安装程序清理"
       },
       "tidy": {
@@ -511,7 +507,8 @@
       "git": "Git",
       "readme": "README",
       "rendered": "渲染",
-      "raw": "原文"
+      "raw": "原文",
+      "scripts": "脚本"
     },
     "clipboard": {
       "copied": "已复制 {count} 个项目",
@@ -540,6 +537,20 @@
       "free": "可用空间",
       "total": "容量",
       "close": "关闭"
+    },
+    "scripts": {
+      "detected": "使用 {manager} 运行",
+      "fallback": "未检测到包管理器，使用默认的 {manager}",
+      "empty": "无脚本",
+      "manager": "默认包管理器",
+      "managerHint": "项目没有 lockfile 或 packageManager 字段时使用。"
+    },
+    "hex": {
+      "search": "搜索十六进制或文本",
+      "notFound": "无匹配",
+      "toggle": "十六进制视图",
+      "modeHex": "HEX",
+      "modeText": "文本"
     }
   },
   "terminal": {

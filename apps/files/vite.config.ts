@@ -1,4 +1,6 @@
+import { icons as logos } from "@iconify-json/logos"
 import { icons as lucide } from "@iconify-json/lucide"
+import { icons as materialIcons } from "@iconify-json/material-icon-theme"
 import { icons as simpleIcons } from "@iconify-json/simple-icons"
 import adapter from "@sveltejs/adapter-static"
 import { sveltekit } from "@sveltejs/kit/vite"
@@ -9,7 +11,7 @@ import { iconifySubset } from "vite-plugin-iconify-subset"
 export default defineConfig({
   plugins: [
     iconifySubset({
-      collections: [lucide, simpleIcons],
+      collections: [lucide, simpleIcons, materialIcons, logos],
       scan: [
         "src",
         "../../packages/ui/src",

@@ -55,15 +55,6 @@
       value: $t(prefs.preview ? "explorer.setup.done.on" : "explorer.setup.done.off"),
     },
     {
-      icon: "lucide:shapes",
-      label: $t("explorer.setup.done.icons"),
-      value: $t(
-        prefs.iconStyle === "ide"
-          ? "explorer.settings.decor.iconIde"
-          : "explorer.settings.decor.iconSystem",
-      ),
-    },
-    {
       icon: "lucide:trash-2",
       label: $t("explorer.setup.done.cleanup"),
       value: prefs.cleanup

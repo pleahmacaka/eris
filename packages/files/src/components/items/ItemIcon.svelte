@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { ideIcon, isBrand } from "../../fileicons"
+  import { customIcon } from "../../fileicons"
   import type { ClassValue } from "svelte/elements"
   import {
     forgetSample,
@@ -11,7 +11,6 @@
     isShortcut,
   } from "../../items"
   import { shellImage } from "../../native"
-  import { prefs } from "../../store/prefs.svelte"
   import { isMarked } from "../../store/privacy.svelte"
 
   let {
@@ -35,9 +34,7 @@
   const marked = $derived(item !== null && isMarked(item.path))
 
   const glyph = $derived(
-    item && prefs.iconStyle === "ide" && !(thumbnail && hasThumbnail(item))
-      ? ideIcon(item)
-      : null,
+    item && !(thumbnail && hasThumbnail(item)) ? customIcon(item) : null,
   )
 
   const linked = $derived(item?.link ?? false)
@@ -48,7 +45,7 @@
     }
 
     if (item.link) {
-      return glyph ? null : "lucide:link-2"
+      return "lucide:link-2"
     }
 
     return isShortcut(item) ? "lucide:arrow-up-right" : null
@@ -63,14 +60,7 @@
 
 <span class={["relative inline-flex items-center justify-center", className]}>
   {#if glyph}
-    <Icon
-      icon={glyph}
-      class={[
-        rem > 2 ? "size-2/3" : "size-full",
-        isBrand(glyph) && "scale-90",
-        linked ? "text-info" : "text-base-content/70",
-      ]}
-    />
+    <Icon icon={glyph} class={rem > 2 ? "size-2/3" : "size-full"} />
   {:else if !url || broken === url}
     <Icon
       icon={item && !item.dir ? "lucide:file" : "lucide:folder"}

@@ -47,6 +47,8 @@ mod preview;
 mod privacy;
 #[cfg(desktop)]
 mod properties;
+#[cfg(desktop)]
+mod scripts;
 mod share;
 
 pub use share::endpoint_id;
@@ -170,6 +172,8 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             #[cfg(desktop)]
             verbs::run_shell_verb,
             #[cfg(desktop)]
+            thumbs::generic_icons,
+            #[cfg(desktop)]
             ops::transfer_items,
             #[cfg(desktop)]
             ops::delete_items,
@@ -188,6 +192,10 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             #[cfg(desktop)]
             preview::preview_text,
             #[cfg(desktop)]
+            preview::read_bytes,
+            #[cfg(desktop)]
+            preview::find_bytes,
+            #[cfg(desktop)]
             preview::model_files,
             #[cfg(desktop)]
             preview::is_mujoco,
@@ -200,6 +208,10 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             inspect::identical_files,
             #[cfg(desktop)]
             inspect::probe_dirs,
+            #[cfg(desktop)]
+            scripts::package_scripts,
+            #[cfg(desktop)]
+            scripts::package_managers,
             #[cfg(desktop)]
             cleanup::installers,
             #[cfg(desktop)]

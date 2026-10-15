@@ -207,6 +207,19 @@ export type Stat = {
 export const statItems = (paths: string[]) =>
   call<Stat[]>("stat_items", { paths })
 
+export const genericIcons = (extensions: string[]) =>
+  call<string[]>("generic_icons", { extensions })
+
+export type PackageScripts = {
+  scripts: { name: string; command: string }[]
+  manager: string | null
+}
+
+export const packageScripts = (dir: string) =>
+  call<PackageScripts | null>("package_scripts", { dir })
+
+export const packageManagers = () => call<string[]>("package_managers")
+
 export const randomToken = () => crypto.getRandomValues(new Uint32Array(1))[0]
 
 export const watchDir = (slot: string, path: string | null) =>
@@ -319,6 +332,14 @@ export const allowPreview = (path: string) =>
 
 export const previewText = (path: string) =>
   call<string>("preview_text", { path })
+
+export const readBytes = (path: string, offset: number, length: number) =>
+  call<ArrayBuffer>("read_bytes", { path, offset, length }).then(
+    buffer => new Uint8Array(buffer),
+  )
+
+export const findBytes = (path: string, needle: number[], from: number) =>
+  call<number | null>("find_bytes", { path, needle, from })
 
 export const modelFiles = (path: string) => call<Model>("model_files", { path })
 

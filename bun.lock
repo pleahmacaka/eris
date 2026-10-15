@@ -12,7 +12,7 @@
     },
     "apps/desktop": {
       "name": "eris",
-      "version": "0.3.13",
+      "version": "0.3.15",
       "dependencies": {
         "@eris/auth": "workspace:*",
         "@eris/bridge": "workspace:*",
@@ -26,7 +26,9 @@
         "@eris/sync": "workspace:*",
         "@eris/terminal": "workspace:*",
         "@eris/ui": "workspace:*",
+        "@iconify-json/logos": "^1.2.16",
         "@iconify-json/lucide": "^1.2.143",
+        "@iconify-json/material-icon-theme": "^1.2.72",
         "@iconify-json/simple-icons": "^1.2.100",
         "@iconify/svelte": "^5.2.2",
         "@ssgoi/svelte": "^7.4.1",
@@ -66,13 +68,15 @@
     },
     "apps/files": {
       "name": "eris-files",
-      "version": "0.3.13",
+      "version": "0.3.15",
       "dependencies": {
         "@eris/files": "workspace:*",
         "@eris/i18n": "workspace:*",
         "@eris/terminal": "workspace:*",
         "@eris/ui": "workspace:*",
+        "@iconify-json/logos": "^1.2.16",
         "@iconify-json/lucide": "^1.2.143",
+        "@iconify-json/material-icon-theme": "^1.2.72",
         "@iconify-json/simple-icons": "^1.2.100",
         "@iconify/svelte": "^5.2.2",
         "@tauri-apps/api": "^2.12.3",
@@ -97,7 +101,7 @@
     },
     "apps/installer": {
       "name": "eris-installer",
-      "version": "0.3.13",
+      "version": "0.3.15",
       "dependencies": {
         "@eris/i18n": "workspace:*",
         "@eris/settings": "workspace:*",
@@ -126,12 +130,15 @@
     },
     "apps/terminal": {
       "name": "eris-terminal",
-      "version": "0.3.13",
+      "version": "0.3.15",
       "dependencies": {
         "@eris/i18n": "workspace:*",
         "@eris/terminal": "workspace:*",
         "@eris/ui": "workspace:*",
+        "@iconify-json/logos": "^1.2.16",
         "@iconify-json/lucide": "^1.2.143",
+        "@iconify-json/material-icon-theme": "^1.2.72",
+        "@iconify-json/simple-icons": "^1.2.100",
         "@iconify/svelte": "^5.2.2",
         "@tauri-apps/api": "^2.12.3",
         "@tauri-apps/plugin-clipboard-manager": "^2.4.2",
@@ -599,7 +606,11 @@
 
     "@formatjs/intl-localematcher": ["@formatjs/intl-localematcher@0.6.2", "", { "dependencies": { "tslib": "^2.8.0" } }, "sha512-XOMO2Hupl0wdd172Y06h6kLpBz6Dv+J4okPLl4LPtzbr8f66WbIoy4ev98EBuZ6ZK4h5ydTN6XneT4QVpD7cdA=="],
 
+    "@iconify-json/logos": ["@iconify-json/logos@1.2.16", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-J7uewTzmJchaWkc8f/SW3aS14Y6H1bnLihMZaVccDao3TRsWFJvGfAhbkTzErKjSSbRJG8uzjY4yzMbGMELPIw=="],
+
     "@iconify-json/lucide": ["@iconify-json/lucide@1.2.143", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-YSggiBVmSY5IvLoKS5pUBoNYkon5g5bac0/JvYCIaFbhTfsTfkIHG2nCXWSk03tu5C4IEmyZ4qwfwbO9CXqLag=="],
+
+    "@iconify-json/material-icon-theme": ["@iconify-json/material-icon-theme@1.2.72", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-zNe7VGXvUGMeexC8DTSa+NNF2ng5gLAgQL8GQgEBLfqnG7W52dfL/X8cwNx5OmhaZkA+fuKZ6DFVrDdg5vqp/Q=="],
 
     "@iconify-json/simple-icons": ["@iconify-json/simple-icons@1.2.100", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-536pN2RCEQyy5bYwzayrs4e9egr8cmtVcbdSHLaQl/ULUsihzn1eZ0+Hhn50zgz9cbEotiynKsKQSEjFJ7qKmw=="],
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from "@iconify/svelte"
   import { currentLocale } from "@eris/i18n"
   import { untrack } from "svelte"
   import { Splitter } from "@eris/ui"
@@ -8,6 +9,7 @@
   import DocumentPeek from "./DocumentPeek.svelte"
   import FolderPane from "./FolderPane.svelte"
   import FolderPeek from "./FolderPeek.svelte"
+  import HexView from "./HexView.svelte"
   import TensorPeek from "./TensorPeek.svelte"
   import ZoomImage from "./ZoomImage.svelte"
   import { formatBytes, formatDate } from "../../format"
@@ -34,16 +36,18 @@
     | { kind: null }
     | { kind: "folder" | "archive"; children: Item[] }
     | { kind: "text"; text: string }
+    | { kind: "hex" }
     | { kind: "tensors"; tensors: Tensors }
     | { kind: Exclude<FileView, "text" | "tensors">; url: string }
 
-  type Shown = Content & { key: string }
+  type Shown = Content & { key: string; source?: string }
 
   const NOTHING: Content = { kind: null }
 
   let { item, tab }: { item: Item | null; tab: Tab } = $props()
 
   let shown = $state.raw<Shown | null>(null)
+  let hexView = $state(false)
 
   const version = $derived(
     item ? `${item.key}\0${item.modified}\0${item.size}` : null,
@@ -73,7 +77,7 @@
     return fromArchive(target.path, target.path, "", await archiveListing(target.path, false))
   }
 
-  const load = async (target: Item): Promise<Content> => {
+  const load = async (target: Item): Promise<Content & { source?: string }> => {
     if (!(await confirmPrivate(target.path, parentOf(target.path) ?? ""))) {
       return NOTHING
     }
@@ -83,32 +87,34 @@
     }
 
     const kind = previewKind(target)
+    const path = target.packed ? await extractEntry(target.packed, packedEntry(target)) : target.path
+    const hex = { kind: "hex" as const, source: path }
 
     if (!kind) {
-      return NOTHING
+      return target.size > 0 ? hex : NOTHING
     }
-
-    const path = target.packed ? await extractEntry(target.packed, packedEntry(target)) : target.path
 
     if (kind === "text") {
       const text = await previewText(path).catch(() => "")
 
-      return text ? { kind, text } : NOTHING
+      return text ? { kind, text, source: path } : target.size > 0 ? hex : NOTHING
     }
 
     if (kind === "tensors") {
       const tensors = await inspectTensors(path).catch(() => null)
 
-      return tensors ? { kind, tensors } : NOTHING
+      return tensors ? { kind, tensors, source: path } : hex
     }
 
     await allowPreview(path)
 
-    return { kind, url: assetUrl(path) }
+    return { kind, url: assetUrl(path), source: path }
   }
 
   $effect(() => {
     const target = version ? untrack(() => item) : null
+
+    hexView = false
 
     if (!target || isVirtual(target.path)) {
       shown = null
@@ -173,11 +179,31 @@
   {:else}
     <div
       class={[
-        "flex min-h-0 grow items-center justify-center overflow-hidden",
+        "relative flex min-h-0 grow items-center justify-center overflow-hidden",
         "rounded-box bg-base-content/5",
       ]}
     >
-      {#if current?.kind === "folder" || current?.kind === "archive"}
+      {#if current?.source && current.kind !== "hex"}
+        <button
+          type="button"
+          class={[
+            "btn btn-square btn-xs absolute top-2 right-2 z-10",
+            hexView ? "btn-primary" : "btn-ghost bg-base-100/70",
+          ]}
+          aria-label={$t("explorer.hex.toggle")}
+          title={$t("explorer.hex.toggle")}
+          aria-pressed={hexView}
+          onclick={() => (hexView = !hexView)}
+        >
+          <Icon icon="lucide:binary" class="size-3.5" />
+        </button>
+      {/if}
+
+      {#if current?.source && (current.kind === "hex" || hexView)}
+        {#key current.source}
+          <HexView path={current.source} size={item.size} />
+        {/key}
+      {:else if current?.kind === "folder" || current?.kind === "archive"}
         <FolderPeek
           items={current.children}
           label={$t(current.kind === "folder" ? "explorer.peek.items" : "explorer.peek.archive", {

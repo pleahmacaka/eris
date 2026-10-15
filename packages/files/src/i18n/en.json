@@ -264,9 +264,6 @@
       "previewPaneHint": "Previews the selected file on the right.",
       "decor": {
         "title": "File display",
-        "iconStyle": "Icon style",
-        "iconSystem": "System",
-        "iconIde": "IDE",
         "duplicates": "Highlight duplicates",
         "duplicatesHint": "Files with identical content share a background color.",
         "gitColors": "Git status colors",
@@ -450,7 +447,6 @@
         "compact": "Collapsed",
         "on": "On",
         "off": "Off",
-        "icons": "Icons",
         "cleanup": "Installer cleanup"
       },
       "tidy": {
@@ -511,7 +507,8 @@
       "git": "Git",
       "readme": "README",
       "rendered": "Rendered",
-      "raw": "Raw"
+      "raw": "Raw",
+      "scripts": "Scripts"
     },
     "clipboard": {
       "copied": "{count, plural, one {Copied # item} other {Copied # items}}",
@@ -540,6 +537,20 @@
       "free": "Free space",
       "total": "Capacity",
       "close": "Close"
+    },
+    "scripts": {
+      "detected": "Runs with {manager}",
+      "fallback": "No package manager detected, runs with {manager}",
+      "empty": "No scripts",
+      "manager": "Default package manager",
+      "managerHint": "Used when a project names none and has no lockfile"
+    },
+    "hex": {
+      "search": "Search hex or text",
+      "notFound": "No match",
+      "toggle": "Hex view",
+      "modeHex": "Hex",
+      "modeText": "Text"
     }
   },
   "terminal": {

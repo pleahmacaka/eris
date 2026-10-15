@@ -2,10 +2,17 @@
   import { Row, Section, Segmented } from "@eris/ui"
   import { defaultShell, loadShells, session } from "@eris/terminal"
   import { t } from "svelte-i18n"
-  import { terminal, terminalPrefs } from "../../store/terminal.svelte"
+  import {
+    fallbackManager,
+    loadManagers,
+    managers,
+    terminal,
+    terminalPrefs,
+  } from "../../store/terminal.svelte"
 
   $effect(() => {
     loadShells()
+    loadManagers()
   })
 </script>
 
@@ -39,6 +46,24 @@
       {/each}
     </select>
   </Row>
+
+  {#if managers.installed.length > 0}
+    <Row
+      label={$t("explorer.scripts.manager")}
+      hint={$t("explorer.scripts.managerHint")}
+    >
+      <select
+        class="select select-sm w-44"
+        aria-label={$t("explorer.scripts.manager")}
+        value={fallbackManager()}
+        onchange={e => (terminalPrefs.packageManager = e.currentTarget.value)}
+      >
+        {#each managers.installed as name (name)}
+          <option value={name}>{name}</option>
+        {/each}
+      </select>
+    </Row>
+  {/if}
 
   <Row
     label={$t("terminal.settings.font")}

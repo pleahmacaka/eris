@@ -264,9 +264,6 @@
       "previewPaneHint": "선택한 파일을 오른쪽에서 미리 봅니다.",
       "decor": {
         "title": "파일 표시",
-        "iconStyle": "아이콘 스타일",
-        "iconSystem": "시스템",
-        "iconIde": "IDE",
         "duplicates": "중복 파일 강조",
         "duplicatesHint": "내용이 같은 파일을 같은 배경색으로 표시합니다.",
         "gitColors": "Git 상태 색상",
@@ -450,7 +447,6 @@
         "compact": "접힘",
         "on": "사용",
         "off": "사용 안 함",
-        "icons": "아이콘",
         "cleanup": "설치 파일 정리"
       },
       "tidy": {
@@ -511,7 +507,8 @@
       "git": "Git",
       "readme": "README",
       "rendered": "렌더링",
-      "raw": "원문"
+      "raw": "원문",
+      "scripts": "스크립트"
     },
     "clipboard": {
       "copied": "항목 {count}개 복사됨",
@@ -540,6 +537,20 @@
       "free": "사용 가능한 공간",
       "total": "용량",
       "close": "닫기"
+    },
+    "scripts": {
+      "detected": "{manager} 사용",
+      "fallback": "감지된 패키지 매니저 없음, 기본값 {manager} 사용",
+      "empty": "스크립트 없음",
+      "manager": "기본 패키지 매니저",
+      "managerHint": "프로젝트에 lockfile이나 packageManager 필드가 없을 때 사용합니다."
+    },
+    "hex": {
+      "search": "HEX 또는 텍스트 검색",
+      "notFound": "검색 결과 없음",
+      "toggle": "HEX 보기",
+      "modeHex": "HEX",
+      "modeText": "텍스트"
     }
   },
   "terminal": {

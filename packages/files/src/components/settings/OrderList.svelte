@@ -25,7 +25,14 @@
 
   let list = $state<HTMLElement>()
   let dragging = $state<T | null>(null)
+  let target = $state(0)
   let pressed: { id: T; y: number } | null = null
+
+  const others = $derived(arrangement.order.filter(id => id !== dragging))
+
+  const landing = $derived(
+    dragging === null ? undefined : (others[target] ?? null),
+  )
 
   const move = (id: T, to: number) => {
     const order = arrangement.order.filter(entry => entry !== id)
@@ -70,7 +77,15 @@
     }
 
     dragging = pressed.id
-    move(dragging, indexAt(dragging, e.clientY))
+    target = indexAt(dragging, e.clientY)
+  }
+
+  const drop = () => {
+    if (dragging !== null) {
+      move(dragging, target)
+    }
+
+    release()
   }
 
   const release = () => {
@@ -96,7 +111,7 @@
   aria-label={label}
   class="flex flex-col rounded-box border border-base-content/10 p-1"
   {onpointermove}
-  onpointerup={release}
+  onpointerup={drop}
   onpointercancel={release}
   onlostpointercapture={release}
 >
@@ -107,12 +122,18 @@
     <li
       id="{uid}-row-{id}"
       class={[
-        "flex touch-none items-center gap-2 rounded-field px-2 py-1.5 select-none",
-        "transition-colors duration-120 hover:bg-base-content/6",
+        "relative flex touch-none items-center gap-2 rounded-field px-2 py-1.5",
+        "transition-colors duration-120 select-none hover:bg-base-content/6",
         "has-focus-visible:bg-base-content/8",
+        "before:absolute before:inset-x-1 before:h-0.5 before:rounded-full",
+        "before:bg-primary before:opacity-0",
         dragging === id
-          ? "cursor-grabbing bg-base-content/10"
+          ? "cursor-grabbing bg-base-content/10 opacity-50"
           : "cursor-grab",
+        landing === id && "before:-top-0.25 before:opacity-100",
+        landing === null &&
+          id === others.at(-1) &&
+          "before:-bottom-0.25 before:opacity-100",
       ]}
       onpointerdown={e => onpointerdown(e, id)}
     >

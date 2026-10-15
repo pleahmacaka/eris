@@ -13,10 +13,10 @@ use windows::Win32::Graphics::Gdi::{
     DeleteObject, GetDC, GetDIBits, GetObjectW, ReleaseDC, BITMAP, BITMAPINFO, BITMAPINFOHEADER,
     BI_RGB, DIB_RGB_COLORS, HBITMAP, HGDIOBJ,
 };
-use windows::Win32::Storage::FileSystem::FILE_FLAGS_AND_ATTRIBUTES;
+use windows::Win32::Storage::FileSystem::{FILE_ATTRIBUTE_NORMAL, FILE_FLAGS_AND_ATTRIBUTES};
 use windows::Win32::UI::Shell::{
-    IShellItemImageFactory, SHGetFileInfoW, SHFILEINFOW, SHGFI_PIDL, SHGFI_SYSICONINDEX, SIIGBF,
-    SIIGBF_BIGGERSIZEOK, SIIGBF_ICONONLY, SIIGBF_RESIZETOFIT,
+    IShellItemImageFactory, SHGetFileInfoW, SHFILEINFOW, SHGFI_PIDL, SHGFI_SYSICONINDEX,
+    SHGFI_USEFILEATTRIBUTES, SIIGBF, SIIGBF_BIGGERSIZEOK, SIIGBF_ICONONLY, SIIGBF_RESIZETOFIT,
 };
 
 use crate::{com, listing};
@@ -200,6 +200,35 @@ fn lane(kind: Kind) -> &'static Lane {
         Kind::Thumb => &thumbs().thumbs,
         Kind::Icon | Kind::Item => &thumbs().icons,
     }
+}
+
+#[tauri::command]
+pub async fn generic_icons(extensions: Vec<String>) -> crate::error::Result<Vec<String>> {
+    com::sta(move || {
+        let generic = type_icon(".eris-unregistered");
+
+        extensions
+            .into_iter()
+            .filter(|extension| type_icon(extension) == generic)
+            .collect()
+    })
+    .await
+}
+
+fn type_icon(extension: &str) -> i32 {
+    let mut info = SHFILEINFOW::default();
+
+    unsafe {
+        SHGetFileInfoW(
+            &HSTRING::from(format!("file{extension}")),
+            FILE_ATTRIBUTE_NORMAL,
+            Some(&mut info),
+            std::mem::size_of::<SHFILEINFOW>() as u32,
+            SHGFI_SYSICONINDEX | SHGFI_USEFILEATTRIBUTES,
+        );
+    }
+
+    info.iIcon
 }
 
 // a virtual parsing name such as "::{CLSID}" resolves to the generic folder slot, so only real paths and pidls share

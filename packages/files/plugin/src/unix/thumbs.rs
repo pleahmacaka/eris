@@ -63,3 +63,8 @@ pub fn serve(
 
     responder.respond(reply);
 }
+
+#[tauri::command]
+pub async fn generic_icons(extensions: Vec<String>) -> crate::error::Result<Vec<String>> {
+    Ok(extensions)
+}

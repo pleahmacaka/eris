@@ -44,17 +44,6 @@
 {/snippet}
 
 <Section title={$t("explorer.settings.decor.title")}>
-  <Row label={$t("explorer.settings.decor.iconStyle")}>
-    <Segmented
-      bind:value={prefs.iconStyle}
-      label={$t("explorer.settings.decor.iconStyle")}
-      options={[
-        { value: "system", label: $t("explorer.settings.decor.iconSystem"), icon: "lucide:monitor" },
-        { value: "ide", label: $t("explorer.settings.decor.iconIde"), icon: "lucide:code-xml" },
-      ]}
-    />
-  </Row>
-
   {@render switchRow("duplicates")}
   {@render switchRow("gitColors")}
   {@render switchRow("emptyFolders")}
