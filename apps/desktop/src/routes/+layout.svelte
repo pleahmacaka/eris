@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { addCollection } from "@iconify/svelte"
   import { logoSvg } from "@eris/ui/logo"
-  import icons from "virtual:iconify-subset"
+  import "virtual:iconify-subset"
   import { setupI18n } from "@eris/i18n"
   import {
     type Appearance,
@@ -27,10 +26,6 @@
   import "./layout.css"
 
   let { children } = $props()
-
-  for (const collection of icons) {
-    addCollection(collection)
-  }
 
   const WINDOWS: Record<string, WindowSurface> = {
     "": "launcher",

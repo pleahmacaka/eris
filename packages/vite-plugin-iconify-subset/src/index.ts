@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync } from "node:fs"
-import { join, resolve } from "node:path"
+import { extname, isAbsolute, join, relative, resolve } from "node:path"
 import type { IconifyJSON } from "@iconify/types"
 import { getIcons } from "@iconify/utils"
 import type { Plugin, ViteDevServer } from "vite"
@@ -8,6 +8,7 @@ export type IconifySubsetOptions = {
   collections: IconifyJSON[]
   scan: string[]
   extensions?: string[]
+  runtime?: string | false
 }
 
 const ID = "virtual:iconify-subset"
@@ -15,6 +16,47 @@ const ID = "virtual:iconify-subset"
 const RESOLVED = `\0${ID}`
 
 const DEFAULT_EXTENSIONS = [".svelte", ".ts", ".js", ".tsx", ".jsx", ".vue"]
+
+const RUNTIMES = [
+  "@iconify/svelte",
+  "@iconify/vue",
+  "@iconify/react",
+  "@iconify/solid",
+  "iconify-icon",
+]
+
+const declaredRuntime = (root: string) => {
+  try {
+    const manifest = JSON.parse(
+      readFileSync(join(root, "package.json"), "utf8"),
+    )
+    const declared = {
+      ...manifest.dependencies,
+      ...manifest.devDependencies,
+      ...manifest.peerDependencies,
+    }
+
+    return RUNTIMES.find(name => name in declared) ?? null
+  } catch {
+    return null
+  }
+}
+
+const moduleCode = (collections: IconifyJSON[], runtime: string | null) => {
+  const lines = [
+    `const collections = ${JSON.stringify(collections)}`,
+    "export default collections",
+  ]
+
+  if (runtime) {
+    lines.unshift(`import { addCollection } from ${JSON.stringify(runtime)}`)
+    lines.push(
+      "for (const collection of collections) addCollection(collection)",
+    )
+  }
+
+  return lines.join(";")
+}
 
 const filesIn = (root: string, extensions: string[]) =>
   readdirSync(root, { recursive: true, withFileTypes: true })
@@ -44,17 +86,30 @@ export const iconifySubset = ({
   collections,
   scan,
   extensions = DEFAULT_EXTENSIONS,
+  runtime,
 }: IconifySubsetOptions): Plugin => {
   const prefixes = collections.map(collection => collection.prefix)
   const byFile = new Map<string, Set<string>>()
   let roots: string[] = []
+  let register: string | null = null
   let server: ViteDevServer | undefined
+
+  const scanned = (file: string) =>
+    extensions.includes(extname(file)) &&
+    !file.includes("node_modules") &&
+    roots.some(root => {
+      const inside = relative(root, file)
+
+      return !!inside && !inside.startsWith("..") && !isAbsolute(inside)
+    })
 
   const read = (file: string) => {
     byFile.set(file, namesIn(readFileSync(file, "utf8"), prefixes))
   }
 
   const used = () => new Set([...byFile.values()].flatMap(names => [...names]))
+
+  const signature = () => [...used()].sort().join(",")
 
   const build = () =>
     collections.flatMap(collection => {
@@ -77,6 +132,8 @@ export const iconifySubset = ({
 
     configResolved(config) {
       roots = scan.map(root => resolve(config.root, root))
+      register =
+        runtime === false ? null : (runtime ?? declaredRuntime(config.root))
     },
 
     buildStart() {
@@ -92,20 +149,32 @@ export const iconifySubset = ({
     configureServer(dev) {
       server = dev
 
-      dev.watcher.on("change", file => {
-        if (!byFile.has(file)) {
-          return
-        }
+      const refresh = (update: () => void) => {
+        const before = signature()
 
-        const before = used().size
-
-        read(file)
+        update()
 
         const module = server?.moduleGraph.getModuleById(RESOLVED)
 
-        if (module && used().size !== before) {
+        if (module && signature() !== before) {
           server?.moduleGraph.invalidateModule(module)
           server?.ws.send({ type: "full-reload" })
+        }
+      }
+
+      dev.watcher.add(roots)
+
+      for (const event of ["add", "change"] as const) {
+        dev.watcher.on(event, file => {
+          if (scanned(resolve(file))) {
+            refresh(() => read(resolve(file)))
+          }
+        })
+      }
+
+      dev.watcher.on("unlink", file => {
+        if (byFile.has(resolve(file))) {
+          refresh(() => byFile.delete(resolve(file)))
         }
       })
     },
@@ -115,9 +184,7 @@ export const iconifySubset = ({
     },
 
     load(id) {
-      return id === RESOLVED
-        ? `export default ${JSON.stringify(build())}`
-        : undefined
+      return id === RESOLVED ? moduleCode(build(), register) : undefined
     },
   }
 }
