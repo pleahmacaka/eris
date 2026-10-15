@@ -12,7 +12,7 @@
     },
     "apps/desktop": {
       "name": "eris",
-      "version": "0.3.15",
+      "version": "0.3.17",
       "dependencies": {
         "@eris/auth": "workspace:*",
         "@eris/bridge": "workspace:*",
@@ -68,7 +68,7 @@
     },
     "apps/files": {
       "name": "eris-files",
-      "version": "0.3.15",
+      "version": "0.3.17",
       "dependencies": {
         "@eris/files": "workspace:*",
         "@eris/i18n": "workspace:*",
@@ -101,7 +101,7 @@
     },
     "apps/installer": {
       "name": "eris-installer",
-      "version": "0.3.15",
+      "version": "0.3.17",
       "dependencies": {
         "@eris/i18n": "workspace:*",
         "@eris/settings": "workspace:*",
@@ -130,7 +130,7 @@
     },
     "apps/terminal": {
       "name": "eris-terminal",
-      "version": "0.3.15",
+      "version": "0.3.17",
       "dependencies": {
         "@eris/i18n": "workspace:*",
         "@eris/terminal": "workspace:*",
