@@ -86,6 +86,7 @@ mod win {
     const NIF_STATE: u32 = 0x08;
     const NIF_GUID: u32 = 0x20;
     const NIS_HIDDEN: u32 = 0x01;
+    const SHELL_VOLUME: &str = "{7820ae73-23e3-4229-82c1-e41cb67d5b9c}";
 
     static APP: OnceLock<AppHandle> = OnceLock::new();
     static ENTRIES: Mutex<Vec<Entry>> = Mutex::new(Vec::new());
@@ -146,7 +147,12 @@ mod win {
                 state: self.state,
                 state_mask: self.state_mask,
                 version: self.version,
-                guid: self.guid,
+                // WinForms leaves stack garbage in guidItem without NIF_GUID, so each call looked like a new icon
+                guid: if self.flags & NIF_GUID != 0 {
+                    self.guid
+                } else {
+                    [0; 16]
+                },
             }
         }
     }
@@ -224,6 +230,11 @@ mod win {
     }
 
     fn apply(action: u32, incoming: Incoming) {
+        // explorer's legacy volume icon has no callback on Win11, so it is dead next to the dock's own volume
+        if guid_text(&incoming.guid) == SHELL_VOLUME {
+            return;
+        }
+
         let mut entries = ENTRIES.lock().unwrap();
         let key = key_of(incoming.hwnd, incoming.id, &incoming.guid);
         let found = entries.iter().position(|entry| entry.key() == key);
