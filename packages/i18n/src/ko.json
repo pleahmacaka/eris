@@ -959,6 +959,7 @@
       "pin": "독에 고정",
       "unpin": "독에서 고정 해제",
       "newWindow": "새 창 열기",
+      "endTask": "작업 끝내기",
       "closeAll": "모두 닫기",
       "openLocation": "파일 위치 열기"
     },

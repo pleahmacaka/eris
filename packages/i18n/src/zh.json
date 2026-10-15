@@ -959,6 +959,7 @@
       "pin": "固定到程序坞",
       "unpin": "从程序坞取消固定",
       "newWindow": "打开新窗口",
+      "endTask": "结束任务",
       "closeAll": "全部关闭",
       "openLocation": "打开文件位置"
     },

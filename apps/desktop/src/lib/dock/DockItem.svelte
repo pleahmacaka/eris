@@ -200,6 +200,12 @@
         ? ([
             "separator",
             {
+              label: $t("dock.menu.endTask"),
+              icon: "lucide:circle-slash",
+              action: () =>
+                native.endTask(group.windows.map(w => w.hwnd)).catch(() => undefined),
+            },
+            {
               label: $t("dock.menu.closeAll"),
               icon: "lucide:x",
               action: closeAll,

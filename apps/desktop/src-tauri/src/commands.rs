@@ -18,6 +18,7 @@ pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
         desktop::list_windows,
         desktop::activate_window,
         desktop::close_window,
+        desktop::end_task,
         desktop::minimize_window,
         preview::preview_show,
         preview::preview_hide,

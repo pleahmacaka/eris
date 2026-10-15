@@ -30,6 +30,9 @@ export const activateWindow = (hwnd: number) =>
 export const closeWindow = (hwnd: number) =>
   invoke<void>("close_window", { hwnd })
 
+export const endTask = (windows: number[]) =>
+  invoke<void>("end_task", { windows })
+
 export const minimizeWindow = (hwnd: number) =>
   invoke<void>("minimize_window", { hwnd })
 

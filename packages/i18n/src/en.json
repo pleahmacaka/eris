@@ -959,6 +959,7 @@
       "pin": "Pin to dock",
       "unpin": "Unpin from dock",
       "newWindow": "Open new window",
+      "endTask": "End task",
       "closeAll": "Close all",
       "openLocation": "Open file location"
     },

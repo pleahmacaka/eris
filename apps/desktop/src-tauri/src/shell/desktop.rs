@@ -42,6 +42,11 @@ pub fn close_window(hwnd: isize) {
     win::close(hwnd);
 }
 
+#[tauri::command(async)]
+pub fn end_task(windows: Vec<isize>) {
+    win::end_task(&windows);
+}
+
 #[tauri::command]
 pub fn minimize_window(hwnd: isize) {
     win::minimize(hwnd);
@@ -78,8 +83,8 @@ mod win {
     };
     use windows::Win32::System::Threading::{
         AttachThreadInput, GetCurrentThreadId, GetProcessTimes, OpenProcess,
-        QueryFullProcessImageNameW, WaitForSingleObject, PROCESS_NAME_WIN32,
-        PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_SYNCHRONIZE,
+        QueryFullProcessImageNameW, TerminateProcess, WaitForSingleObject, PROCESS_NAME_WIN32,
+        PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_SYNCHRONIZE, PROCESS_TERMINATE,
     };
     use windows::Win32::UI::Accessibility::{SetWinEventHook, HWINEVENTHOOK};
     use windows::Win32::UI::Input::KeyboardAndMouse::SetFocus;
@@ -514,6 +519,31 @@ mod win {
     pub fn close(raw: isize) {
         unsafe {
             let _ = PostMessageW(Some(HWND(raw as _)), WM_CLOSE, WPARAM(0), LPARAM(0));
+        }
+    }
+
+    // the owning process comes from the window itself, never from the caller, and Eris never ends itself
+    pub fn end_task(windows: &[isize]) {
+        let own = std::process::id();
+        let pids: HashSet<u32> = windows
+            .iter()
+            .map(|raw| {
+                let mut pid = 0;
+
+                unsafe { GetWindowThreadProcessId(HWND(*raw as _), Some(&mut pid)) };
+
+                pid
+            })
+            .filter(|pid| *pid != 0 && *pid != own)
+            .collect();
+
+        for pid in pids {
+            if let Ok(process) = unsafe { OpenProcess(PROCESS_TERMINATE, false, pid) } {
+                unsafe {
+                    let _ = TerminateProcess(process, 1);
+                    let _ = CloseHandle(process);
+                }
+            }
         }
     }
 
