@@ -5,6 +5,7 @@ export type Pane = {
   title: string
   name?: string
   pty: number | null
+  run?: string
 }
 
 export type Split = {

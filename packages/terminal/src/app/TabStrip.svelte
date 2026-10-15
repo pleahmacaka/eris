@@ -5,6 +5,7 @@
   import {
     drag,
     justDragged,
+    onTabDrop,
     pressTab,
     SLOP,
     springTo,
@@ -18,6 +19,7 @@
     closePane,
     closeTab,
     detachPane,
+    moveTab,
     openTab,
     paneLabel,
     session,
@@ -31,6 +33,8 @@
   let ports = $state<SerialPort[]>([])
   let flip = $state(false)
   let pulling = $state<number | null>(null)
+  let pullSlot = $state<number | null>(null)
+  let strip = $state<HTMLElement>()
   let pulled = false
 
   const groupName = (tab: Tab) => tab.name || $t("terminal.tabs.workspace")
@@ -73,6 +77,65 @@
     }
   }
 
+  const slots = () => [...(strip?.querySelectorAll<HTMLElement>(":scope > [data-tab]") ?? [])]
+
+  const slotAt = (x: number, y: number) => {
+    const box = strip?.getBoundingClientRect()
+
+    if (!box || x < box.left || x > box.right || y < box.top || y > box.bottom) {
+      return null
+    }
+
+    const index = slots().findIndex(item => {
+      const edge = item.getBoundingClientRect()
+
+      return x < edge.left + edge.width / 2
+    })
+
+    return index < 0 ? session.tabs.length : index
+  }
+
+  const lineAt = (slot: number | null) => {
+    const items = slots()
+    const box = strip?.getBoundingClientRect()
+
+    if (slot === null || !box || items.length === 0) {
+      return null
+    }
+
+    const edge =
+      slot < items.length
+        ? items[slot].getBoundingClientRect().left
+        : items[items.length - 1].getBoundingClientRect().right
+
+    return edge - box.left
+  }
+
+  const tabSlot = $derived.by(() => {
+    if (drag.tab === null) {
+      return null
+    }
+
+    const slot = slotAt(drag.x, drag.y)
+    const from = session.tabs.findIndex(tab => tab.id === drag.tab)
+
+    return slot === null || slot === from || slot === from + 1 ? null : slot
+  })
+
+  const line = $derived(lineAt(tabSlot ?? pullSlot))
+
+  $effect(() =>
+    onTabDrop(tab => {
+      if (tabSlot === null) {
+        return false
+      }
+
+      moveTab(tab, tabSlot)
+
+      return true
+    }),
+  )
+
   const pressPane = (e: PointerEvent, pane: Pane) => {
     if (e.button !== 0) {
       return
@@ -86,6 +149,15 @@
       if (pulling === null && Math.hypot(m.clientX - startX, m.clientY - startY) >= SLOP) {
         pulling = pane.id
       }
+
+      if (pulling === null) {
+        return
+      }
+
+      const inside = group?.contains(document.elementFromPoint(m.clientX, m.clientY))
+      const home = session.tabs.findIndex(tab => panesOf(tab.root).some(entry => entry.id === pane.id))
+
+      pullSlot = inside ? null : (slotAt(m.clientX, m.clientY) ?? home + 1)
     }
 
     const up = (u: PointerEvent) => {
@@ -96,14 +168,17 @@
         return
       }
 
+      const slot = pullSlot
+
       pulling = null
+      pullSlot = null
       pulled = true
       setTimeout(() => {
         pulled = false
       })
 
-      if (!group?.contains(document.elementFromPoint(u.clientX, u.clientY))) {
-        detachPane(pane.id)
+      if (slot !== null && !group?.contains(document.elementFromPoint(u.clientX, u.clientY))) {
+        detachPane(pane.id, slot)
       }
     }
 
@@ -186,9 +261,10 @@
 {/snippet}
 
 <div
+  bind:this={strip}
   role="tablist"
   aria-label={$t("terminal.tabs.list")}
-  class="flex min-w-0 items-end gap-0.5 overflow-hidden pt-1.5 pl-1"
+  class="relative flex min-w-0 items-end gap-0.5 overflow-hidden pt-1.5 pl-1"
 >
   {#each session.tabs as tab, index (tab.id)}
     {@const active = index === session.active}
@@ -198,6 +274,7 @@
       {@const pane = panes[0]}
 
       <div
+        data-tab
         role="tab"
         tabindex="-1"
         aria-selected={active}
@@ -244,6 +321,7 @@
       </div>
     {:else}
       <div
+        data-tab
         data-group
         role="group"
         aria-label={$t("terminal.tabs.group", { values: { name: groupName(tab) } })}
@@ -364,6 +442,16 @@
       </div>
     {/if}
   {/each}
+
+  {#if line !== null}
+    <span
+      class={[
+        "pointer-events-none absolute top-1.5 bottom-0 z-10 w-0.5",
+        "-translate-x-1/2 rounded-full bg-primary",
+      ]}
+      style:left="{line}px"
+    ></span>
+  {/if}
 </div>
 
 <div class="flex items-center gap-0.5 px-1">

@@ -10,6 +10,7 @@
     shell: string
     cwd?: string | null
     pty?: number | null
+    run?: string
     fontFamily?: string
     fontSize?: number
     active?: boolean
@@ -25,6 +26,7 @@
     shell,
     cwd = null,
     pty = null,
+    run,
     fontFamily = DEFAULT_FONT,
     fontSize = 14,
     active = true,
@@ -50,14 +52,25 @@
     term.clearSelection()
   }
 
+  // an image clipboard has no text; Claude Code reads it on Alt+V under Windows and on Ctrl+V elsewhere, WSL included
+  const imagePasteKey = () =>
+    navigator.userAgent.includes("Windows") && !shell.startsWith("wsl:")
+      ? "\x1bv"
+      : "\x16"
+
+  // ConPTY reads a lone ESC byte as the start of a sequence and merges it with the next key, so Escape goes as the win32-input-mode record Windows Terminal sends
+  const ESCAPE_RECORD = "\x1b[27;1;27;1;0;1_\x1b[27;1;27;0;0;1_"
+
+  const conpty = () =>
+    navigator.userAgent.includes("Windows") && !shell.startsWith("serial:")
+
   const paste = async () => {
     const text = await readText().catch(() => "")
 
     if (text) {
       term?.paste(text.replaceAll("\r\n", "\r").replaceAll("\n", "\r"))
     } else {
-      // an image or file clipboard has no text; TUIs read it themselves on Ctrl+V
-      term?.input("\x16", true)
+      term?.input(imagePasteKey(), true)
     }
   }
 
@@ -73,6 +86,13 @@
 
   const keys = (e: KeyboardEvent) => {
     const ctrl = e.ctrlKey && !e.altKey && !e.metaKey
+    const bare = !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey
+
+    if (e.key === "Escape" && bare && conpty()) {
+      term?.input(ESCAPE_RECORD, true)
+
+      return true
+    }
 
     if (ctrl && e.code === "KeyV") {
       paste()
@@ -124,7 +144,7 @@
     }
 
     let disposed = false
-    const start = untrack(() => ({ shell, cwd, pty, fontFamily, fontSize }))
+    const start = untrack(() => ({ shell, cwd, pty, run, fontFamily, fontSize }))
 
     const open = async () => {
       await prepare(start.fontFamily, start.fontSize)
@@ -203,6 +223,10 @@
       })
       screen.onResize(size => resize(id, size.cols, size.rows))
       attached.flow()
+
+      if (start.pty === null && start.run) {
+        write(id, `${start.run}\r`)
+      }
     }
 
     open()

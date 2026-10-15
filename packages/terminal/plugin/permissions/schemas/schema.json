@@ -343,6 +343,18 @@
           "markdownDescription": "Denies the new_window command without any pre-configured scope."
         },
         {
+          "description": "Enables the register_host command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-register-host",
+          "markdownDescription": "Enables the register_host command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the register_host command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-register-host",
+          "markdownDescription": "Denies the register_host command without any pre-configured scope."
+        },
+        {
           "description": "Enables the resize command without any pre-configured scope.",
           "type": "string",
           "const": "allow-resize",
@@ -403,6 +415,18 @@
           "markdownDescription": "Denies the take_intent command without any pre-configured scope."
         },
         {
+          "description": "Enables the tear_off command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-tear-off",
+          "markdownDescription": "Enables the tear_off command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the tear_off command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-tear-off",
+          "markdownDescription": "Denies the tear_off command without any pre-configured scope."
+        },
+        {
           "description": "Enables the write command without any pre-configured scope.",
           "type": "string",
           "const": "allow-write",
@@ -415,10 +439,10 @@
           "markdownDescription": "Denies the write command without any pre-configured scope."
         },
         {
-          "description": "Run shells in pseudo consoles and stream their output.\n#### This default permission set includes:\n\n- `allow-spawn`\n- `allow-write`\n- `allow-resize`\n- `allow-kill`\n- `allow-attach`\n- `allow-detach`\n- `allow-shells`\n- `allow-take-intent`\n- `allow-new-window`",
+          "description": "Run shells in pseudo consoles and stream their output.\n#### This default permission set includes:\n\n- `allow-spawn`\n- `allow-write`\n- `allow-resize`\n- `allow-kill`\n- `allow-attach`\n- `allow-detach`\n- `allow-shells`\n- `allow-serial-ports`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-register-host`\n- `allow-tear-off`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Run shells in pseudo consoles and stream their output.\n#### This default permission set includes:\n\n- `allow-spawn`\n- `allow-write`\n- `allow-resize`\n- `allow-kill`\n- `allow-attach`\n- `allow-detach`\n- `allow-shells`\n- `allow-take-intent`\n- `allow-new-window`"
+          "markdownDescription": "Run shells in pseudo consoles and stream their output.\n#### This default permission set includes:\n\n- `allow-spawn`\n- `allow-write`\n- `allow-resize`\n- `allow-kill`\n- `allow-attach`\n- `allow-detach`\n- `allow-shells`\n- `allow-serial-ports`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-register-host`\n- `allow-tear-off`"
         }
       ]
     }

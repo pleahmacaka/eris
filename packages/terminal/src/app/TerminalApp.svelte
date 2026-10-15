@@ -5,7 +5,7 @@
   import SettingsDialog from "./SettingsDialog.svelte"
   import { adoptTab, loadShells, openTab, session } from "./tabs.svelte"
   import TitleBar from "./TitleBar.svelte"
-  import { newWindow, takeIntent } from "./windows"
+  import { acceptTabs, newWindow, takeIntent } from "./windows"
 
   let { standalone = false }: { standalone?: boolean } = $props()
 
@@ -51,6 +51,8 @@
   $effect(() => {
     savePrefs(JSON.stringify(prefs))
   })
+
+  $effect(() => acceptTabs(adoptTab))
 </script>
 
 <svelte:window {onkeydowncapture} />

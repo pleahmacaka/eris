@@ -1,5 +1,5 @@
 diff --git a/dist/ghostty-web.js b/dist/ghostty-web.js
-index bb02e76ebacbb954d2a4f006caece5c15dad95ac..70115a63cdda42b2afab20131deb464c0232c0d3 100644
+index bb02e76ebacbb954d2a4f006caece5c15dad95ac..5d5162c40f84a2fc45aa0cd294e442f1b2c11b62 100644
 --- a/dist/ghostty-web.js
 +++ b/dist/ghostty-web.js
 @@ -914,8 +914,13 @@ const X = {
@@ -139,7 +139,17 @@ index bb02e76ebacbb954d2a4f006caece5c15dad95ac..70115a63cdda42b2afab20131deb464c
        const t = I + this.metrics.baseline + 2;
        this.ctx.strokeStyle = this.ctx.fillStyle, this.ctx.lineWidth = 1, this.ctx.beginPath(), this.ctx.moveTo(C, t), this.ctx.lineTo(C + D, t), this.ctx.stroke();
      }
-@@ -2557,7 +2611,9 @@ class iA {
+@@ -2091,6 +2145,9 @@ const l = class n {
+       let N = "";
+       for (let k = s; k <= h; k++) {
+         const t = o[k];
++        // the second cell of a wide character carries no text; copying it as a space splits Hangul and CJK apart
++        if (t && t.width === 0)
++          continue;
+         if (t && t.codepoint !== 0) {
+           let a;
+           if (t.grapheme_len > 0)
+@@ -2557,7 +2614,9 @@ class iA {
        N && (N.activate(g), (g.ctrlKey || g.metaKey) && g.preventDefault());
      }, this.handleWheel = (g) => {
        var C, I, D;
@@ -150,7 +160,7 @@ index bb02e76ebacbb954d2a4f006caece5c15dad95ac..70115a63cdda42b2afab20131deb464c
          return;
        if (((C = this.wasmTerm) == null ? void 0 : C.isAlternateScreen()) ?? !1) {
          const o = g.deltaY > 0 ? "down" : "up", w = Math.min(Math.abs(Math.round(g.deltaY / 33)), 5);
-@@ -2732,8 +2788,15 @@ class iA {
+@@ -2732,8 +2791,18 @@ class iA {
          o.target === A && o.preventDefault();
        }), A.setAttribute("role", "textbox"), A.setAttribute("aria-label", "Terminal input"), A.setAttribute("aria-multiline", "true");
        const Q = this.buildWasmConfig();
@@ -159,15 +169,18 @@ index bb02e76ebacbb954d2a4f006caece5c15dad95ac..70115a63cdda42b2afab20131deb464c
        const g = this.textarea;
 +      A.addEventListener("focus", (o) => {
 +        o.target === A && g.focus();
++      }), g.addEventListener("compositionstart", () => {
++        this.composingText = !0;
 +      }), g.addEventListener("compositionupdate", (o) => this.showComposition(o.data)), g.addEventListener("compositionend", () => {
-+        this.showComposition(""), setTimeout(() => {
-+          g.value = "";
++        this.composingText = !1, this.showComposition(""), setTimeout(() => {
++          // Hangul commits one syllable and composes the next at once; clearing then desyncs the IME and leaves a stray jamo
++          this.composingText || (g.value = "");
 +        }, 0);
 +      });
        this.canvas.addEventListener("mousedown", (o) => {
          o.preventDefault(), g.focus();
        }), this.canvas.addEventListener("touchend", (o) => {
-@@ -2866,16 +2929,16 @@ class iA {
+@@ -2866,16 +2935,16 @@ class iA {
     * Focus terminal input
     */
    focus() {
@@ -187,7 +200,7 @@ index bb02e76ebacbb954d2a4f006caece5c15dad95ac..70115a63cdda42b2afab20131deb464c
    }
    /**
     * Load an addon
-@@ -3063,6 +3126,37 @@ class iA {
+@@ -3063,6 +3132,37 @@ class iA {
    // ==========================================================================
    // Private Methods
    // ==========================================================================
@@ -225,7 +238,7 @@ index bb02e76ebacbb954d2a4f006caece5c15dad95ac..70115a63cdda42b2afab20131deb464c
    /**
     * Cancel the render loop
     */
-@@ -3086,7 +3180,7 @@ class iA {
+@@ -3086,7 +3186,7 @@ class iA {
        return;
      const A = () => {
        if (!this.isDisposed && this.isOpen) {

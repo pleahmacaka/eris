@@ -96,9 +96,13 @@
 
   $effect(() =>
     onTabDrop(tab => {
-      if (target) {
-        dropTab(tab, target.pane, target.side)
+      if (!target) {
+        return false
       }
+
+      dropTab(tab, target.pane, target.side)
+
+      return true
     }),
   )
 
@@ -213,6 +217,7 @@
         shell={item.pane.shell}
         cwd={item.pane.cwd}
         pty={item.pane.pty}
+        run={item.pane.run}
         {fontFamily}
         {fontSize}
         active={visible && shown && focused}

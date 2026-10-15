@@ -9,6 +9,8 @@ const COMMANDS: &[&str] = &[
     "serial_ports",
     "take_intent",
     "new_window",
+    "register_host",
+    "tear_off",
 ];
 
 fn main() {

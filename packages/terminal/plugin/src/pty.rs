@@ -112,6 +112,16 @@ impl Sessions {
         self.open.lock().unwrap().remove(&id)
     }
 
+    pub fn hand_over(&self, ids: &[u32], label: &str) {
+        let mut open = self.open.lock().unwrap();
+
+        for id in ids {
+            if let Some(session) = open.get_mut(id) {
+                session.window = label.to_string();
+            }
+        }
+    }
+
     pub fn close_window(&self, label: &str) {
         let closing: Vec<Session> = {
             let mut open = self.open.lock().unwrap();

@@ -11,4 +11,6 @@ permissions = [
   "allow-serial-ports",
   "allow-take-intent",
   "allow-new-window",
+  "allow-register-host",
+  "allow-tear-off",
 ]

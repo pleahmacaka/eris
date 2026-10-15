@@ -1,18 +1,20 @@
+import { session, tearOff } from "./tabs.svelte"
+
 export const SLOP = 6
 
 export const drag = $state({ tab: null as number | null, x: 0, y: 0 })
 
-let landing: ((tab: number) => void) | null = null
+const landings = new Set<(tab: number) => boolean>()
 
 let settled = true
 
 let spring: ReturnType<typeof setTimeout> | undefined
 
-export const onTabDrop = (handler: (tab: number) => void) => {
-  landing = handler
+export const onTabDrop = (handler: (tab: number) => boolean) => {
+  landings.add(handler)
 
   return () => {
-    landing = null
+    landings.delete(handler)
   }
 }
 
@@ -35,6 +37,27 @@ export const pressTab = (e: PointerEvent, tab: number) => {
 
   const startX = e.clientX
   const startY = e.clientY
+  let lifted = false
+
+  // the area shows the active tab, so dragging that tab needs a neighbor underneath to split
+  const lift = () => {
+    const index = session.tabs.findIndex(entry => entry.id === tab)
+
+    if (index === session.active && session.tabs.length > 1) {
+      lifted = true
+      session.active = index < session.tabs.length - 1 ? index + 1 : index - 1
+    }
+  }
+
+  const putBack = () => {
+    if (lifted) {
+      const index = session.tabs.findIndex(entry => entry.id === tab)
+
+      if (index >= 0) {
+        session.active = index
+      }
+    }
+  }
 
   const move = (m: PointerEvent) => {
     const far = Math.hypot(m.clientX - startX, m.clientY - startY) >= SLOP
@@ -43,12 +66,22 @@ export const pressTab = (e: PointerEvent, tab: number) => {
       return
     }
 
+    if (drag.tab === null) {
+      lift()
+    }
+
     drag.tab = tab
     drag.x = m.clientX
     drag.y = m.clientY
   }
 
-  const finish = (land: boolean) => {
+  const outside = (u: PointerEvent) =>
+    u.clientX < 0 ||
+    u.clientY < 0 ||
+    u.clientX > window.innerWidth ||
+    u.clientY > window.innerHeight
+
+  const finish = (land: boolean, u?: PointerEvent) => {
     window.removeEventListener("pointermove", move)
     window.removeEventListener("pointerup", up)
     window.removeEventListener("keydown", cancel, true)
@@ -58,8 +91,10 @@ export const pressTab = (e: PointerEvent, tab: number) => {
       return
     }
 
-    if (land) {
-      landing?.(drag.tab)
+    if (land && u && outside(u)) {
+      tearOff(drag.tab).catch(() => undefined)
+    } else if (!land || ![...landings].some(handler => handler(tab))) {
+      putBack()
     }
 
     drag.tab = null
@@ -69,7 +104,7 @@ export const pressTab = (e: PointerEvent, tab: number) => {
     })
   }
 
-  const up = () => finish(true)
+  const up = (u: PointerEvent) => finish(true, u)
 
   const cancel = (k: KeyboardEvent) => {
     if (k.key === "Escape") {

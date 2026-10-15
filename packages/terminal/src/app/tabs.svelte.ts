@@ -15,7 +15,7 @@ import {
   type Side,
 } from "./layout"
 import { prefs } from "./prefs.svelte"
-import { newWindow } from "./windows"
+import { newWindow, tearOffTab } from "./windows"
 
 export type Tab = {
   id: number
@@ -64,12 +64,13 @@ export const loadShells = async () => {
 export const shellName = (id: string) =>
   session.shells.find(shell => shell.id === id)?.name ?? serialTarget(id) ?? id
 
-const newPane = (shell: string, cwd: string | null): Pane => ({
+const newPane = (shell: string, cwd: string | null, run?: string): Pane => ({
   id: newId(),
   shell,
   cwd,
   pty: null,
   title: shellName(shell),
+  run,
 })
 
 const killPanes = (root: Layout) => {
@@ -98,6 +99,7 @@ export const bindPty = (paneId: number, pty: number) => {
 
   if (pane) {
     pane.pty = pty
+    pane.run = undefined
   } else {
     kill(pty)
   }
@@ -119,18 +121,34 @@ const pushTab = (root: Layout, name?: string) => {
 export const openTab = ({
   shell = host.shell(),
   cwd = host.cwd(),
+  run,
 }: {
   shell?: string
   cwd?: string | null
+  run?: string
 } = {}) => {
-  pushTab(newPane(shell, cwd))
+  pushTab(newPane(shell, cwd, run))
 }
 
 export const adoptTab = ({ root, name }: Handoff) => {
   pushTab(renumber(root), name)
 }
 
-export const detachPane = (paneId: number) => {
+export const moveTab = (tabId: number, slot: number) => {
+  const from = session.tabs.findIndex(tab => tab.id === tabId)
+
+  if (from < 0) {
+    return
+  }
+
+  const [tab] = session.tabs.splice(from, 1)
+  const to = slot > from ? slot - 1 : slot
+
+  session.tabs.splice(to, 0, tab)
+  session.active = to
+}
+
+export const detachPane = (paneId: number, slot?: number) => {
   const tab = tabOf(paneId)
   const pane = tab && panesOf(tab.root).find(entry => entry.id === paneId)
   const left = tab && remove(tab.root, paneId)
@@ -147,8 +165,10 @@ export const detachPane = (paneId: number) => {
     tab.focus = panesOf(left)[0].id
   }
 
-  session.tabs.splice(index + 1, 0, tabFor(pane))
-  session.active = index + 1
+  const at = slot ?? index + 1
+
+  session.tabs.splice(at, 0, tabFor(pane))
+  session.active = at
 }
 
 export const ungroup = (tab: Tab) => {
@@ -196,6 +216,23 @@ export const popOut = async () => {
 
     throw reason
   })
+}
+
+export const tearOff = async (tabId: number) => {
+  const index = session.tabs.findIndex(tab => tab.id === tabId)
+  const tab = session.tabs[index]
+
+  if (!tab) {
+    return
+  }
+
+  const handoff: Handoff = $state.snapshot({ root: tab.root, name: tab.name })
+  const ptys = panesOf(tab.root).flatMap(pane =>
+    pane.pty === null ? [] : [pane.pty],
+  )
+
+  await tearOffTab(handoff, ptys)
+  removeTab(session.tabs.indexOf(tab))
 }
 
 export const cycleTab = (step: number) => {

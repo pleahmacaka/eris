@@ -23,11 +23,14 @@ pub fn init<R: Runtime>(route: &str) -> TauriPlugin<R> {
             serial::serial_ports,
             windows::take_intent,
             windows::new_window,
+            windows::register_host,
+            windows::tear_off,
         ])
         .setup(move |app, _| {
             app.manage(pty::Sessions::default());
             app.manage(eris_window_kit::Intents::<windows::Intent>::default());
             app.manage(windows::Host { route });
+            app.manage(windows::Hosts::default());
 
             Ok(())
         })
@@ -37,6 +40,7 @@ pub fn init<R: Runtime>(route: &str) -> TauriPlugin<R> {
 
             window.on_window_event(move |event| {
                 if let WindowEvent::Destroyed = event {
+                    app.state::<windows::Hosts>().forget(&label);
                     app.state::<pty::Sessions>().close_window(&label);
                 }
             });

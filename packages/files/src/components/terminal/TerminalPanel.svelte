@@ -1,6 +1,8 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import {
+    acceptTabs,
+    adoptTab,
     defaultShell,
     PaneArea,
     popOut,
@@ -25,6 +27,13 @@
     cwd: () => (explorer.filesystem ? explorer.tab.location : null),
     empty: () => (terminal.open = false),
   })
+
+  $effect(() =>
+    acceptTabs(handoff => {
+      terminal.open = true
+      adoptTab(handoff)
+    }),
+  )
 
   const onkeydowncapture = (e: KeyboardEvent) => {
     if (sessionShortcut(e)) {
