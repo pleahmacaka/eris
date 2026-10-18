@@ -1,7 +1,8 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { locale, t } from "svelte-i18n"
-  import WindowControls from "./components/window/WindowControls.svelte"
+  import { WindowControls } from "@eris/ui"
+  import { windowLabels } from "./components/window/labels"
   import { baseName } from "./locations"
   import { assetUrl, modelFiles, takeIntent } from "./native"
 
@@ -41,7 +42,7 @@
 
     <div data-tauri-drag-region class="h-full grow"></div>
 
-    <WindowControls />
+    <WindowControls labels={windowLabels($t)} />
   </header>
 
   <main class="relative min-h-0 grow bg-base-100/70">

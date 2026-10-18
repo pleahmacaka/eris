@@ -3,7 +3,8 @@
   import { t } from "svelte-i18n"
   import ItemIcon from "../items/ItemIcon.svelte"
   import type { Explorer } from "../../store/explorer.svelte"
-  import WindowControls from "./WindowControls.svelte"
+  import { WindowControls } from "@eris/ui"
+  import { windowLabels } from "./labels"
 
   let { explorer }: { explorer: Explorer } = $props()
 </script>
@@ -76,5 +77,5 @@
 
   <div data-tauri-drag-region class="grow"></div>
 
-  <WindowControls />
+  <WindowControls labels={windowLabels($t)} />
 </header>

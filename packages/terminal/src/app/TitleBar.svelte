@@ -1,10 +1,9 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { Logo } from "@eris/ui"
+  import { Logo, WindowControls } from "@eris/ui"
   import { t } from "svelte-i18n"
   import TabStrip from "./TabStrip.svelte"
   import { session } from "./tabs.svelte"
-  import WindowControls from "./WindowControls.svelte"
 </script>
 
 <header
@@ -29,5 +28,12 @@
     <Icon icon="lucide:settings" class="size-4" />
   </button>
 
-  <WindowControls />
+  <WindowControls
+    labels={{
+      minimize: $t("terminal.window.minimize"),
+      maximize: $t("terminal.window.maximize"),
+      restore: $t("terminal.window.restore"),
+      close: $t("terminal.window.close"),
+    }}
+  />
 </header>

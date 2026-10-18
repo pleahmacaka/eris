@@ -27,6 +27,10 @@ export {
   type SetupStep,
 } from "./lib/components/preferences/SetupFlow.svelte"
 export {
+  default as WindowControls,
+  type WindowLabels,
+} from "./lib/components/window/WindowControls.svelte"
+export {
   type Resize,
   resizeHandle,
   rootRem,
