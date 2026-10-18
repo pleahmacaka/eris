@@ -2,7 +2,7 @@
   import Icon from "@iconify/svelte"
   import { onDestroy } from "svelte"
   import { t } from "svelte-i18n"
-  import { isAction, type MenuItem } from "../../menus/menu"
+  import { isAction, isGroup, type MenuAction, type MenuItem } from "../../menus/menu"
 
   type Props = {
     items: MenuItem[]
@@ -46,6 +46,7 @@
   let top = $state(0)
   let viewportWidth = $state(0)
   let viewportHeight = $state(0)
+  let flip = $state(false)
 
   const floating = $derived(x !== undefined && (y !== undefined || bottom !== undefined))
 
@@ -159,6 +160,8 @@
       }
     }
 
+    flip = left + list.getBoundingClientRect().width * 2 > viewportWidth - EDGE
+
     requestAnimationFrame(() => {
       if (open && list) {
         onsize?.(list.getBoundingClientRect())
@@ -193,26 +196,66 @@
     style:left={floating ? `${left}px` : undefined}
     style:top={floating ? `${top}px` : undefined}
   >
+    {#snippet action(item: MenuAction, active: boolean, onhover: () => void)}
+      <li role="none" class={[item.disabled && "menu-disabled"]}>
+        <button
+          role="menuitem"
+          type="button"
+          class={[
+            "rounded-field text-sm",
+            dense ? "min-h-7 gap-2 px-2.5 py-1" : "min-h-9 gap-2.5 px-3 py-2",
+            active && !item.disabled && "menu-active",
+          ]}
+          disabled={item.disabled}
+          tabindex="-1"
+          onmousemove={onhover}
+          onclick={() => run(item)}
+        >
+          {#if item.icon}
+            <Icon
+              icon={item.icon}
+              class={[dense ? "size-3.5" : "size-4", "shrink-0 text-base-content/60"]}
+            />
+          {/if}
+
+          <span class="truncate">{item.label}</span>
+
+          {#if item.hint}
+            <span
+              class={["ml-auto shrink-0 text-xs text-base-content/40", dense && "pl-6"]}
+            >
+              {item.hint}
+            </span>
+          {/if}
+        </button>
+      </li>
+    {/snippet}
+
+    {#snippet separator()}
+      <li
+        class={["mx-1 border-t border-base-content/10", dense ? "my-1" : "my-1.5"]}
+        role="separator"
+      ></li>
+    {/snippet}
+
     {#each items as item, index (index)}
       {#if item === "separator"}
-        <li
-          class={["mx-1 border-t border-base-content/10", dense ? "my-1" : "my-1.5"]}
-          role="separator"
-        ></li>
-      {:else}
-        <li role="none" class={[item.disabled && "menu-disabled"]}>
+        {@render separator()}
+      {:else if isGroup(item)}
+        {@const empty = !item.items.some(i => isAction(i) && !i.disabled)}
+
+        <li role="none" class={["group/sub relative", empty && "menu-disabled"]}>
           <button
             role="menuitem"
             type="button"
+            aria-haspopup="menu"
             class={[
               "rounded-field text-sm",
               dense ? "min-h-7 gap-2 px-2.5 py-1" : "min-h-9 gap-2.5 px-3 py-2",
-              index === cursor && !item.disabled && "menu-active",
             ]}
-            disabled={item.disabled}
+            disabled={empty}
             tabindex="-1"
             onmousemove={() => (cursor = index)}
-            onclick={() => run(item)}
           >
             {#if item.icon}
               <Icon
@@ -223,18 +266,31 @@
 
             <span class="truncate">{item.label}</span>
 
-            {#if item.hint}
-              <span
-                class={[
-                  "ml-auto shrink-0 text-xs text-base-content/40",
-                  dense && "pl-6",
-                ]}
-              >
-                {item.hint}
-              </span>
-            {/if}
+            <Icon icon="lucide:chevron-right" class="ml-auto size-3.5 shrink-0 text-base-content/40" />
           </button>
+
+          {#if !empty}
+            <ul
+              role="menu"
+              aria-label={item.label}
+              class={[
+                "menu eris-card absolute top-0 z-50 ms-0 hidden w-max min-w-48 flex-col ps-0 before:hidden group-hover/sub:flex",
+                dense ? "gap-0 p-1" : "gap-0.5 p-2",
+                flip ? "right-full" : "left-full",
+              ]}
+            >
+              {#each item.items as child, at (at)}
+                {#if child === "separator"}
+                  {@render separator()}
+                {:else if isAction(child)}
+                  {@render action(child, false, () => undefined)}
+                {/if}
+              {/each}
+            </ul>
+          {/if}
         </li>
+      {:else}
+        {@render action(item, index === cursor, () => (cursor = index))}
       {/if}
     {/each}
   </ul>

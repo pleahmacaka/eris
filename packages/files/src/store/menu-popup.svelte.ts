@@ -2,6 +2,7 @@ import {
   type ContextMenuRequest,
   closeContextMenu,
   contextMenu,
+  flattenGroups,
   isAction,
   type MenuItem,
   type MenuPresenter,
@@ -43,7 +44,7 @@ const serialize = (item: MenuItem): PopupEntry =>
         hint: item.hint ?? null,
         disabled: item.disabled ?? false,
       }
-    : item
+    : "separator"
 
 class Popup implements MenuPresenter {
   ready = $state(false)
@@ -87,7 +88,7 @@ class Popup implements MenuPresenter {
       this.#seq += 1
     }
 
-    this.#items = [...request.items]
+    this.#items = flattenGroups(request.items)
 
     const payload: PopupRequest = {
       seq: this.#seq,

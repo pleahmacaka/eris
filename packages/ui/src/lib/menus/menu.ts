@@ -7,7 +7,19 @@ export type MenuAction = {
   hint?: string
 }
 
-export type MenuItem = MenuAction | "separator"
+export type MenuGroup = {
+  label: string
+  icon?: string
+  items: MenuItem[]
+}
+
+export type MenuItem = MenuAction | MenuGroup | "separator"
 
 export const isAction = (item: MenuItem): item is MenuAction =>
-  item !== "separator"
+  typeof item === "object" && "action" in item
+
+export const isGroup = (item: MenuItem): item is MenuGroup =>
+  typeof item === "object" && "items" in item
+
+export const flattenGroups = (items: MenuItem[]): MenuItem[] =>
+  items.flatMap(item => (isGroup(item) ? flattenGroups(item.items) : [item]))

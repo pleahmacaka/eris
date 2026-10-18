@@ -37,7 +37,14 @@ export {
   snapRem,
   track,
 } from "./lib/layout/pointer"
-export { isAction, type MenuAction, type MenuItem } from "./lib/menus/menu"
+export {
+  flattenGroups,
+  isAction,
+  isGroup,
+  type MenuAction,
+  type MenuGroup,
+  type MenuItem,
+} from "./lib/menus/menu"
 export {
   type ContextMenuRequest,
   closeContextMenu,
