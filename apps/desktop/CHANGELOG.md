@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.19](https://github.com/pleahmacaka/eris/compare/0.3.18...0.3.19) (2026-10-18)
+
+
+### Features
+
+* **ui:** open grouped menu items as hover submenus ([80fc714](https://github.com/pleahmacaka/eris/commit/80fc714301af3f64e4d3b327708c4d5572f01a5c))
+
+
+### Bug Fixes
+
+* **files:** hide popup menu off the main thread ([5777f7d](https://github.com/pleahmacaka/eris/commit/5777f7d3a88a8d15be4325cf0ef39e30f63b16a7))
+
 ## [0.3.18](https://github.com/pleahmacaka/eris/compare/0.3.17...0.3.18) (2026-10-15)
 
 
