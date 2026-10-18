@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{BufReader, Read};
+use std::io::{BufReader, Cursor, Read};
 
 use zip::ZipArchive;
 
@@ -37,77 +37,60 @@ pub fn array(file: File, name: String) -> Option<Summary> {
 }
 
 fn header(mut reader: impl Read) -> Option<(String, Vec<u64>)> {
-    let mut magic = [0; 8];
-    reader.read_exact(&mut magic).ok()?;
+    let mut prefix = [0; 8];
+    reader.read_exact(&mut prefix).ok()?;
 
-    if &magic[..6] != b"\x93NUMPY" {
+    if &prefix[..6] != b"\x93NUMPY" {
         return None;
     }
 
-    let length = if magic[6] == 1 {
-        let mut length = [0; 2];
-        reader.read_exact(&mut length).ok()?;
-        usize::from(u16::from_le_bytes(length))
+    let length_size = if prefix[6] == 1 { 2 } else { 4 };
+    let mut length_bytes = [0; 4];
+    reader.read_exact(&mut length_bytes[..length_size]).ok()?;
+    let header_length = if length_size == 2 {
+        usize::from(u16::from_le_bytes([length_bytes[0], length_bytes[1]]))
     } else {
-        let mut length = [0; 4];
-        reader.read_exact(&mut length).ok()?;
-        usize::try_from(u32::from_le_bytes(length)).ok()?
+        usize::try_from(u32::from_le_bytes(length_bytes)).ok()?
     };
 
-    if length > HEADER_LIMIT {
+    if header_length > HEADER_LIMIT {
         return None;
     }
 
-    let mut text = vec![0; length];
-    reader.read_exact(&mut text).ok()?;
-    let text = String::from_utf8_lossy(&text);
+    // Keep the existing allocation limit before handing the header to the parser.
+    let mut preamble = Vec::with_capacity(8 + length_size);
+    preamble.extend_from_slice(&prefix);
+    preamble.extend_from_slice(&length_bytes[..length_size]);
+    let header = npyz::NpyHeader::from_reader(Cursor::new(preamble).chain(reader)).ok()?;
 
-    Some((
-        dtype(field(&text, "descr")?),
-        shape(field(&text, "shape")?)?,
-    ))
+    Some((dtype(header.dtype()), header.shape().to_vec()))
 }
 
-fn field<'a>(text: &'a str, key: &str) -> Option<&'a str> {
-    let quoted = format!("'{key}'");
-    let start = text.find(&quoted)? + quoted.len();
-
-    Some(text[start..].trim_start_matches([':', ' ']))
-}
-
-fn dtype(value: &str) -> String {
-    let Some(quoted) = value.strip_prefix('\'') else {
+fn dtype(value: npyz::DType) -> String {
+    let npyz::DType::Plain(value) = value else {
         return "structured".into();
     };
 
-    let code = quoted
-        .split('\'')
-        .next()
-        .unwrap_or_default()
-        .trim_start_matches(['<', '>', '|', '=']);
+    let fallback = || {
+        value
+            .to_string()
+            .trim_start_matches(['<', '>', '|', '='])
+            .to_string()
+    };
 
-    let mut chars = code.chars();
-    let kind = chars.next();
-    let bits = chars.as_str().parse::<u32>().ok().map(|bytes| bytes * 8);
-
-    match (kind, bits) {
-        (Some('b'), _) => "bool".into(),
-        (Some('f'), Some(bits)) => format!("float{bits}"),
-        (Some('i'), Some(bits)) => format!("int{bits}"),
-        (Some('u'), Some(bits)) => format!("uint{bits}"),
-        (Some('c'), Some(bits)) => format!("complex{bits}"),
-        _ => code.to_string(),
+    if value.type_char() == npyz::TypeChar::Bool {
+        return "bool".into();
     }
-}
 
-fn shape(value: &str) -> Option<Vec<u64>> {
-    let inner = value.strip_prefix('(')?;
-    let inner = &inner[..inner.find(')')?];
+    let Some(bits) = value.size_field().checked_mul(8) else {
+        return fallback();
+    };
 
-    inner
-        .split(',')
-        .map(str::trim)
-        .filter(|dim| !dim.is_empty())
-        .map(|dim| dim.parse().ok())
-        .collect()
+    match value.type_char() {
+        npyz::TypeChar::Float => format!("float{bits}"),
+        npyz::TypeChar::Int => format!("int{bits}"),
+        npyz::TypeChar::Uint => format!("uint{bits}"),
+        npyz::TypeChar::Complex => format!("complex{bits}"),
+        _ => fallback(),
+    }
 }
