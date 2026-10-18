@@ -212,8 +212,9 @@ fn show(window: &WebviewWindow, placed: &Placed) -> Result<()> {
     Ok(())
 }
 
+// a sync command runs on the main thread under tauri's plugin lock, and SW_HIDE re-enters the event loop
 #[tauri::command]
-pub fn menu_hide(window: WebviewWindow) -> Result<()> {
+pub async fn menu_hide(window: WebviewWindow) -> Result<()> {
     let _ = unsafe { ShowWindow(window.hwnd()?, SW_HIDE) };
 
     Ok(())
