@@ -4,26 +4,6 @@ export type ObjScan = {
   libraries: string[]
 }
 
-export const scanObj = (text: string): ObjScan => {
-  let vertices = 0
-  let faces = 0
-  const libraries: string[] = []
-
-  for (const raw of text.split("\n")) {
-    const line = raw.trim()
-
-    if (line.startsWith("v ") || line.startsWith("v\t")) {
-      vertices++
-    } else if (line.startsWith("f ") || line.startsWith("f\t")) {
-      faces++
-    } else if (line.startsWith("mtllib ")) {
-      libraries.push(line.slice("mtllib ".length).trim())
-    }
-  }
-
-  return { vertices, faces, libraries }
-}
-
 export const baseName = (path: string) =>
   path.slice(Math.max(path.lastIndexOf("/"), path.lastIndexOf("\\")) + 1)
 

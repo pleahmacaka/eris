@@ -19,7 +19,7 @@ import {
 import { MTLLoader } from "three/examples/jsm/loaders/MTLLoader.js"
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js"
 import { toCreasedNormals } from "three/examples/jsm/utils/BufferGeometryUtils.js"
-import { type ObjScan, scanObj } from "./model"
+import type { ObjScan } from "./model"
 
 type Kind = "mesh" | "line" | "points"
 
@@ -69,8 +69,13 @@ const kindOf = (object: Drawable): Kind => {
 
 export const parseObj = (text: string): Parsed => {
   const parts: Part[] = []
+  let vertices = 0
+  let faces = 0
+  const parsed = new OBJLoader().parse(text) as Group & {
+    materialLibraries: string[]
+  }
 
-  for (const object of new OBJLoader().parse(text).children) {
+  for (const object of parsed.children) {
     if (
       !(
         object instanceof Mesh ||
@@ -86,6 +91,14 @@ export const parseObj = (text: string): Parsed => {
       kind === "mesh" && !object.geometry.hasAttribute("normal")
         ? toCreasedNormals(object.geometry)
         : object.geometry
+    const position = geometry.getAttribute("position")
+
+    // OBJLoader emits render vertices after triangulating polygon faces.
+    vertices += position?.count ?? 0
+
+    if (kind === "mesh" && position) {
+      faces += position.count / 3
+    }
 
     parts.push({
       kind,
@@ -101,7 +114,10 @@ export const parseObj = (text: string): Parsed => {
     })
   }
 
-  return { parts, scan: scanObj(text) }
+  return {
+    parts,
+    scan: { vertices, faces, libraries: parsed.materialLibraries },
+  }
 }
 
 const fallbackFor = (kind: Kind, vertexColors: boolean): Material => {
