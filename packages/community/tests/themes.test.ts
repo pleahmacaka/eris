@@ -33,7 +33,9 @@ describe("community themes", () => {
       expect(theme.swatch).toHaveLength(3)
       expect(theme.swatch.every(isHex)).toBe(true)
       expect(theme.tags.length).toBeLessThanOrEqual(6)
-      expect(theme.tags.every(tag => [...tag].every(c => SLUG.has(c)))).toBe(true)
+      expect(theme.tags.every(tag => [...tag].every(c => SLUG.has(c)))).toBe(
+        true,
+      )
 
       const entries = Object.entries(theme.appearance)
 
@@ -85,12 +87,25 @@ describe("supported tools", () => {
 
   test("browse searches, filters and sorts", () => {
     const list = [
-      theme({ mode: "light", accentHue: 80 }, { id: "a", name: "Paper", likes: 1, tags: ["warm"] }),
-      theme({ mode: "dark", accentHue: 230 }, { id: "b", name: "Night", likes: 5 }),
+      theme(
+        { mode: "light", accentHue: 80 },
+        { id: "a", name: "Paper", likes: 1, tags: ["warm"] },
+      ),
+      theme(
+        { mode: "dark", accentHue: 230 },
+        { id: "b", name: "Night", likes: 5 },
+      ),
       theme({ dockBlur: 1.5 }, { id: "c", name: "Dock", downloads: 2 }),
     ]
     const ids = (query: Partial<Parameters<typeof browse>[1]>) =>
-      browse(list, { q: "", sort: "popular", tool: "", mode: "", tag: "", ...query }).map(t => t.id)
+      browse(list, {
+        q: "",
+        sort: "popular",
+        tool: "",
+        mode: "",
+        tag: "",
+        ...query,
+      }).map(t => t.id)
 
     expect(ids({})).toEqual(["b", "a", "c"])
     expect(ids({ mode: "light" })).toEqual(["a", "c"])

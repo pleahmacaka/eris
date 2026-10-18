@@ -15,7 +15,7 @@
     "build:dev": "ERIS_DEV_CHANNEL=1 bun run --cwd apps/desktop tauri build --config src-tauri/tauri.dev.conf.json && ERIS_DEV_CHANNEL=1 bun run --cwd apps/files tauri build --config src-tauri/tauri.dev.conf.json && ERIS_DEV_CHANNEL=1 bun run --cwd apps/terminal tauri build --config src-tauri/tauri.dev.conf.json",
     "check": "bun run check:scripts && bun run --filter '*' check",
     "check:native": "cargo check --locked --manifest-path apps/desktop/src-tauri/Cargo.toml && cargo check --locked --manifest-path apps/files/src-tauri/Cargo.toml && cargo check --locked --manifest-path apps/terminal/src-tauri/Cargo.toml && cargo check --locked --manifest-path apps/installer/src-tauri/Cargo.toml && cargo check --locked --manifest-path apps/cli/Cargo.toml",
-    "check:scripts": "tsc --noEmit --target esnext --module esnext --moduleResolution bundler --types bun --skipLibCheck scripts/*.ts",
+    "check:scripts": "tsc --noEmit --target esnext --module esnext --moduleResolution bundler --types bun --skipLibCheck scripts/*.ts tests/scripts/*.ts",
     "test": "bun test",
     "test:native": "cargo test --locked --manifest-path apps/desktop/src-tauri/Cargo.toml --lib && cargo test --locked --manifest-path apps/desktop/src-tauri/Cargo.toml -p eris-p2p --lib && cargo test --locked --manifest-path apps/cli/Cargo.toml",
     "lint": "biome check .",

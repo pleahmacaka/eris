@@ -11,5 +11,5 @@
     "noEmit": true,
     "types": ["bun", "vite/client"]
   },
-  "include": ["src"]
+  "include": ["src", "tests"]
 }
