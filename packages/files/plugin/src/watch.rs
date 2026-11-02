@@ -60,23 +60,36 @@ fn spawn(app: AppHandle, label: String, slot: String, path: String, stop: Arc<St
             | FILE_NOTIFY_CHANGE_LAST_WRITE
             | FILE_NOTIFY_CHANGE_ATTRIBUTES;
 
-        let Ok(handle) =
-            (unsafe { FindFirstChangeNotificationW(&HSTRING::from(path), false, filter) })
-        else {
-            return;
-        };
+        let folder = HSTRING::from(path);
+        let mut missed = false;
 
-        while stop.changed(handle) {
-            std::thread::sleep(Duration::from_millis(150));
+        while !stop.wait(Duration::ZERO) {
+            let Ok(handle) = (unsafe { FindFirstChangeNotificationW(&folder, false, filter) })
+            else {
+                if stop.wait(Duration::from_secs(5)) {
+                    break;
+                }
 
-            let _ = app.emit_to(label.as_str(), "dir-changed", &slot);
+                continue;
+            };
 
-            if unsafe { FindNextChangeNotification(handle) }.is_err() {
-                break;
+            if missed {
+                let _ = app.emit_to(label.as_str(), "dir-changed", &slot);
             }
-        }
 
-        let _ = unsafe { FindCloseChangeNotification(handle) };
+            while stop.changed(handle) {
+                std::thread::sleep(Duration::from_millis(150));
+
+                let _ = app.emit_to(label.as_str(), "dir-changed", &slot);
+
+                if unsafe { FindNextChangeNotification(handle) }.is_err() {
+                    break;
+                }
+            }
+
+            let _ = unsafe { FindCloseChangeNotification(handle) };
+            missed = true;
+        }
     });
 }
 
