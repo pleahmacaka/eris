@@ -44,6 +44,14 @@
     "panes": {
       "sync": "Input sync",
       "resize": "Resize split"
+    },
+    "drop": {
+      "left": "Split left",
+      "right": "Split right",
+      "top": "Split up",
+      "bottom": "Split down",
+      "center": "Swap",
+      "panes": "{count} terminals"
     }
   }
 }

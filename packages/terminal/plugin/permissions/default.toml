@@ -13,4 +13,5 @@ permissions = [
   "allow-new-window",
   "allow-register-host",
   "allow-tear-off",
+  "allow-drag-hover",
 ]

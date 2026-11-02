@@ -1,9 +1,11 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
+  import { fade } from "svelte/transition"
   import { write } from "../pty"
   import Terminal from "../Terminal.svelte"
   import { drag, onTabDrop } from "./drag.svelte"
+  import DragGhost from "./DragGhost.svelte"
   import {
     type Divider,
     isSplit,
@@ -29,6 +31,13 @@
 
   const MIN_PANE = 80
   const CORNER = { x: 120, y: 80 }
+  const DROP_ICONS: Record<Side | "center", string> = {
+    left: "lucide:panel-left",
+    right: "lucide:panel-right",
+    top: "lucide:panel-top",
+    bottom: "lucide:panel-bottom",
+    center: "lucide:arrow-left-right",
+  }
   const ESC = "\u001b"
 
   let area = $state<HTMLElement>()
@@ -263,14 +272,41 @@
     </div>
   {/each}
 
-  {#if preview}
+  {#if target && preview}
     <div
-      class="pointer-events-none absolute z-20 rounded-box border-2 border-primary/60 bg-primary/15 transition-all duration-100"
+      class="pointer-events-none absolute z-20 bg-base-300/50 transition-all duration-150 ease-out"
+      style:left="{target.rect.x * 100}%"
+      style:top="{target.rect.y * 100}%"
+      style:width="{target.rect.w * 100}%"
+      style:height="{target.rect.h * 100}%"
+      transition:fade={{ duration: 120 }}
+    ></div>
+
+    <div
+      class="pointer-events-none absolute z-20 p-1.5 transition-all duration-150 ease-out"
       style:left="{preview.x * 100}%"
       style:top="{preview.y * 100}%"
       style:width="{preview.w * 100}%"
       style:height="{preview.h * 100}%"
-    ></div>
+      transition:fade={{ duration: 120 }}
+    >
+      <div
+        class={[
+          "flex size-full items-center justify-center rounded-box border-2",
+          "border-primary/70 bg-primary/15 shadow-lg shadow-primary/20 backdrop-blur-sm",
+        ]}
+      >
+        <span
+          class={[
+            "flex items-center gap-1.5 rounded-full bg-primary px-3 py-1",
+            "text-xs font-medium text-primary-content shadow-md",
+          ]}
+        >
+          <Icon icon={DROP_ICONS[target.side]} class="size-3.5" />
+          {$t(`terminal.drop.${target.side}`)}
+        </span>
+      </div>
+    </div>
   {/if}
 
   {#if current}
@@ -292,3 +328,5 @@
     </button>
   {/if}
 </main>
+
+<DragGhost />

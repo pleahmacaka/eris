@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core"
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow"
+import type { Card } from "./drag.svelte"
 import type { Handoff } from "./tabs.svelte"
 
 export type Intent = { cwd: string | null; handoff: Handoff | null }
@@ -15,15 +15,8 @@ export const newWindow = (
 export const tearOffTab = (handoff: Handoff, ptys: number[]) =>
   invoke<void>("plugin:eris-terminal|tear_off", { handoff, ptys })
 
-export const acceptTabs = (adopt: (handoff: Handoff) => void) => {
-  const stop = getCurrentWebviewWindow().listen<Handoff>(
-    "eris-terminal:adopt",
-    e => adopt(e.payload),
-  )
+export const hoverTab = (active: boolean, card: Card | null) =>
+  invoke<void>("plugin:eris-terminal|drag_hover", { active, card })
 
-  invoke("plugin:eris-terminal|register_host").catch(() => undefined)
-
-  return () => {
-    stop.then(unlisten => unlisten())
-  }
-}
+export const registerHost = () =>
+  invoke<void>("plugin:eris-terminal|register_host")

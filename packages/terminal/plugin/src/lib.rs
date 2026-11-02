@@ -25,6 +25,7 @@ pub fn init<R: Runtime>(route: &str) -> TauriPlugin<R> {
             windows::new_window,
             windows::register_host,
             windows::tear_off,
+            windows::drag_hover,
         ])
         .setup(move |app, _| {
             app.manage(pty::Sessions::default());

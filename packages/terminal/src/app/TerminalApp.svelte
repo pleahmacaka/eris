@@ -3,9 +3,10 @@
   import PaneArea from "./PaneArea.svelte"
   import { prefs, savePrefs } from "./prefs.svelte"
   import SettingsDialog from "./SettingsDialog.svelte"
+  import { acceptTabs } from "./drag.svelte"
   import { adoptTab, loadShells, openTab, session } from "./tabs.svelte"
   import TitleBar from "./TitleBar.svelte"
-  import { acceptTabs, newWindow, takeIntent } from "./windows"
+  import { newWindow, takeIntent } from "./windows"
 
   let { standalone = false }: { standalone?: boolean } = $props()
 

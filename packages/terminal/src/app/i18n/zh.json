@@ -44,6 +44,14 @@
     "panes": {
       "sync": "输入同步",
       "resize": "调整分屏大小"
+    },
+    "drop": {
+      "left": "向左拆分",
+      "right": "向右拆分",
+      "top": "向上拆分",
+      "bottom": "向下拆分",
+      "center": "交换位置",
+      "panes": "{count} 个终端"
     }
   }
 }

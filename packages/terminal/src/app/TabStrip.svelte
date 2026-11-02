@@ -119,6 +119,10 @@
     const slot = slotAt(drag.x, drag.y)
     const from = session.tabs.findIndex(tab => tab.id === drag.tab)
 
+    if (from < 0) {
+      return slot
+    }
+
     return slot === null || slot === from || slot === from + 1 ? null : slot
   })
 
@@ -446,11 +450,14 @@
   {#if line !== null}
     <span
       class={[
-        "pointer-events-none absolute top-1.5 bottom-0 z-10 w-0.5",
-        "-translate-x-1/2 rounded-full bg-primary",
+        "pointer-events-none absolute top-1 bottom-0 z-10 flex w-2 -translate-x-1/2",
+        "flex-col items-center transition-all duration-150 ease-out",
       ]}
       style:left="{line}px"
-    ></span>
+    >
+      <span class="size-2 shrink-0 rounded-full bg-primary shadow-md shadow-primary/60"></span>
+      <span class="w-0.5 grow rounded-full bg-primary shadow-md shadow-primary/60"></span>
+    </span>
   {/if}
 </div>
 

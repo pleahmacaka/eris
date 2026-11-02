@@ -11,6 +11,7 @@ const COMMANDS: &[&str] = &[
     "new_window",
     "register_host",
     "tear_off",
+    "drag_hover",
 ];
 
 fn main() {

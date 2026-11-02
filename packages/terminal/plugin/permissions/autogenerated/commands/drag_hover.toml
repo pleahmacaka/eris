@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-drag-hover"
+description = "Enables the drag_hover command without any pre-configured scope."
+commands.allow = ["drag_hover"]
+
+[[permission]]
+identifier = "deny-drag-hover"
+description = "Denies the drag_hover command without any pre-configured scope."
+commands.deny = ["drag_hover"]

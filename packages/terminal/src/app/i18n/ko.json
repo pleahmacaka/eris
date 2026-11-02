@@ -44,6 +44,14 @@
     "panes": {
       "sync": "입력 동기화",
       "resize": "분할 크기 조절"
+    },
+    "drop": {
+      "left": "왼쪽 분할",
+      "right": "오른쪽 분할",
+      "top": "위쪽 분할",
+      "bottom": "아래쪽 분할",
+      "center": "위치 교체",
+      "panes": "터미널 {count}개"
     }
   }
 }

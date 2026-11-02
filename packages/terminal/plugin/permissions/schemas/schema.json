@@ -319,6 +319,18 @@
           "markdownDescription": "Denies the detach command without any pre-configured scope."
         },
         {
+          "description": "Enables the drag_hover command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-drag-hover",
+          "markdownDescription": "Enables the drag_hover command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the drag_hover command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-drag-hover",
+          "markdownDescription": "Denies the drag_hover command without any pre-configured scope."
+        },
+        {
           "description": "Enables the kill command without any pre-configured scope.",
           "type": "string",
           "const": "allow-kill",
@@ -439,10 +451,10 @@
           "markdownDescription": "Denies the write command without any pre-configured scope."
         },
         {
-          "description": "Run shells in pseudo consoles and stream their output.\n#### This default permission set includes:\n\n- `allow-spawn`\n- `allow-write`\n- `allow-resize`\n- `allow-kill`\n- `allow-attach`\n- `allow-detach`\n- `allow-shells`\n- `allow-serial-ports`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-register-host`\n- `allow-tear-off`",
+          "description": "Run shells in pseudo consoles and stream their output.\n#### This default permission set includes:\n\n- `allow-spawn`\n- `allow-write`\n- `allow-resize`\n- `allow-kill`\n- `allow-attach`\n- `allow-detach`\n- `allow-shells`\n- `allow-serial-ports`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-register-host`\n- `allow-tear-off`\n- `allow-drag-hover`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Run shells in pseudo consoles and stream their output.\n#### This default permission set includes:\n\n- `allow-spawn`\n- `allow-write`\n- `allow-resize`\n- `allow-kill`\n- `allow-attach`\n- `allow-detach`\n- `allow-shells`\n- `allow-serial-ports`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-register-host`\n- `allow-tear-off`"
+          "markdownDescription": "Run shells in pseudo consoles and stream their output.\n#### This default permission set includes:\n\n- `allow-spawn`\n- `allow-write`\n- `allow-resize`\n- `allow-kill`\n- `allow-attach`\n- `allow-detach`\n- `allow-shells`\n- `allow-serial-ports`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-register-host`\n- `allow-tear-off`\n- `allow-drag-hover`"
         }
       ]
     }

@@ -10,12 +10,67 @@ use crate::pty::Sessions;
 
 pub const ADOPT: &str = "eris-terminal:adopt";
 
+pub const HOVER: &str = "eris-terminal:hover";
+
 #[derive(Default)]
-pub struct Hosts(Mutex<HashSet<String>>);
+pub struct Hosts {
+    labels: Mutex<HashSet<String>>,
+    hovered: Mutex<Option<String>>,
+}
+
+#[derive(Clone, Serialize)]
+struct Point {
+    x: f64,
+    y: f64,
+    card: Option<Value>,
+}
 
 impl Hosts {
     pub fn forget(&self, label: &str) {
-        self.0.lock().unwrap().remove(label);
+        self.labels.lock().unwrap().remove(label);
+
+        let mut hovered = self.hovered.lock().unwrap();
+
+        if hovered.as_deref() == Some(label) {
+            *hovered = None;
+        }
+    }
+
+    fn under<R: Runtime>(
+        &self,
+        app: &AppHandle<R>,
+        source: &str,
+        point: PhysicalPosition<f64>,
+    ) -> Option<WebviewWindow<R>> {
+        self.labels
+            .lock()
+            .unwrap()
+            .iter()
+            .filter(|label| *label != source)
+            .filter_map(|label| app.get_webview_window(label))
+            .find(|host| contains(host, point))
+    }
+
+    fn hover<R: Runtime>(
+        &self,
+        app: &AppHandle<R>,
+        target: Option<(&WebviewWindow<R>, PhysicalPosition<f64>)>,
+        card: Option<Value>,
+    ) {
+        let mut hovered = self.hovered.lock().unwrap();
+        let next = target.map(|(host, _)| host.label().to_string());
+
+        if let Some(previous) = hovered.as_deref() {
+            if Some(previous) != next.as_deref() {
+                let _ = app.emit_to(previous, HOVER, None::<Point>);
+            }
+        }
+
+        if let Some((host, point)) = target {
+            let _ = host.emit_to(host.label(), HOVER, client_point(host, point, card));
+        }
+
+        *hovered = next;
     }
 }
 
@@ -70,7 +125,11 @@ pub(crate) fn new_window<R: Runtime>(
 
 #[tauri::command]
 pub(crate) fn register_host<R: Runtime>(window: WebviewWindow<R>, hosts: State<'_, Hosts>) {
-    hosts.0.lock().unwrap().insert(window.label().to_string());
+    hosts
+        .labels
+        .lock()
+        .unwrap()
+        .insert(window.label().to_string());
 }
 
 fn contains<R: Runtime>(window: &WebviewWindow<R>, point: PhysicalPosition<f64>) -> bool {
@@ -86,6 +145,43 @@ fn contains<R: Runtime>(window: &WebviewWindow<R>, point: PhysicalPosition<f64>)
         && point.y < (origin.y + size.height as i32) as f64
 }
 
+fn client_point<R: Runtime>(
+    host: &WebviewWindow<R>,
+    point: PhysicalPosition<f64>,
+    card: Option<Value>,
+) -> Option<Point> {
+    let origin = host.inner_position().ok()?;
+    let scale = host.scale_factor().ok()?;
+
+    Some(Point {
+        x: (point.x - origin.x as f64) / scale,
+        y: (point.y - origin.y as f64) / scale,
+        card,
+    })
+}
+
+#[tauri::command]
+pub(crate) fn drag_hover<R: Runtime>(
+    app: AppHandle<R>,
+    window: WebviewWindow<R>,
+    hosts: State<'_, Hosts>,
+    active: bool,
+    card: Option<Value>,
+) {
+    let point = active.then(|| app.cursor_position().ok()).flatten();
+    let target = point.and_then(|point| {
+        hosts
+            .under(&app, window.label(), point)
+            .map(|host| (host, point))
+    });
+
+    hosts.hover(
+        &app,
+        target.as_ref().map(|(host, point)| (host, *point)),
+        card,
+    );
+}
+
 // the dragged tab's sessions move to the target first, so closing an emptied source window cannot kill them
 #[tauri::command(async)]
 pub(crate) fn tear_off<R: Runtime>(
@@ -97,17 +193,13 @@ pub(crate) fn tear_off<R: Runtime>(
     ptys: Vec<u32>,
 ) -> Result<(), String> {
     let point = app.cursor_position().map_err(|e| e.to_string())?;
-    let target = hosts
-        .0
-        .lock()
-        .unwrap()
-        .iter()
-        .filter(|label| *label != window.label())
-        .filter_map(|label| app.get_webview_window(label))
-        .find(|host| contains(host, point));
+    let target = hosts.under(&app, window.label(), point);
+
+    hosts.hover(&app, target.as_ref().map(|host| (host, point)), None);
 
     if let Some(host) = target {
         sessions.hand_over(&ptys, host.label());
+        *hosts.hovered.lock().unwrap() = None;
 
         return host
             .emit_to(host.label(), ADOPT, handoff)
