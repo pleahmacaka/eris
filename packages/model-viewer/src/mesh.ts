@@ -29,6 +29,7 @@ export type Part = {
   kind: Kind
   name: string
   attributes: Record<string, { array: TypedArray; itemSize: number }>
+  index?: Uint32Array
   groups: BufferGeometry["groups"]
   materials: string[]
 }
@@ -139,9 +140,12 @@ const fallbackFor = (kind: Kind, vertexColors: boolean): Material => {
   return new MeshStandardMaterial({
     color,
     vertexColors,
-    roughness: 0.6,
-    metalness: 0,
+    roughness: 0.55,
+    metalness: 0.05,
     side: DoubleSide,
+    polygonOffset: true,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 1,
   })
 }
 
@@ -162,6 +166,10 @@ export const buildModel = (parts: Part[]): Model => {
 
     for (const [key, { array, itemSize }] of Object.entries(part.attributes)) {
       geometry.setAttribute(key, new BufferAttribute(array, itemSize))
+    }
+
+    if (part.index) {
+      geometry.setIndex(new BufferAttribute(part.index, 1))
     }
 
     for (const { start, count, materialIndex } of part.groups) {

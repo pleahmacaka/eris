@@ -2,12 +2,17 @@ import axios from "axios"
 import { buildModel, type Parsed } from "./mesh"
 import { fileName } from "./model"
 import ParseWorker from "./parse.worker?worker"
+import StepWorker from "./step.worker?worker"
 
 type Reply = Parsed | { error: string }
 
-const parseOffThread = (buffer: ArrayBuffer, signal: AbortSignal) =>
+const parseOffThread = (
+  Parser: new () => Worker,
+  buffer: ArrayBuffer,
+  signal: AbortSignal,
+) =>
   new Promise<Parsed>((resolve, reject) => {
-    const worker = new ParseWorker()
+    const worker = new Parser()
 
     const finish = () => {
       worker.terminate()
@@ -39,7 +44,8 @@ const parseOffThread = (buffer: ArrayBuffer, signal: AbortSignal) =>
     worker.postMessage(buffer, [buffer])
   })
 
-export const loadObj = async (
+const loadMesh = async (
+  Parser: new () => Worker,
   url: string,
   signal: AbortSignal,
   onProgress: (ratio: number | null) => void,
@@ -53,25 +59,30 @@ export const loadObj = async (
   onProgress(null)
 
   const bytes = data.byteLength
-  const { parts, scan } = await parseOffThread(data, signal)
+  const { parts, scan } = await parseOffThread(Parser, data, signal)
 
   return { model: buildModel(parts), scan, bytes }
 }
 
-const isMujoco = (url: string) => {
-  const name = fileName(url).toLowerCase()
-
-  return name.endsWith(".xml") || name.endsWith(".mjb")
-}
+const extensionOf = (url: string) =>
+  fileName(url).toLowerCase().split(".").at(-1)
 
 export const loadModel = (
   url: string,
   signal: AbortSignal,
   onProgress: (ratio: number | null) => void,
-) =>
-  isMujoco(url)
-    ? import("./mjcf").then(mjcf => mjcf.loadMjcf(url, signal))
-    : loadObj(url, signal, onProgress)
+) => {
+  switch (extensionOf(url)) {
+    case "xml":
+    case "mjb":
+      return import("./mjcf").then(mjcf => mjcf.loadMjcf(url, signal))
+    case "step":
+    case "stp":
+      return loadMesh(StepWorker, url, signal, onProgress)
+    default:
+      return loadMesh(ParseWorker, url, signal, onProgress)
+  }
+}
 
 export const fetchText = async (url: string, signal: AbortSignal) => {
   const { data } = await axios.get<string>(url, {

@@ -19,6 +19,7 @@
     "@threlte/core": "^8.6.1",
     "@threlte/extras": "^9.22.0",
     "axios": "^1.20.0",
+    "occt-import-js": "^0.0.23",
     "three": "^0.186.1"
   },
   "devDependencies": {

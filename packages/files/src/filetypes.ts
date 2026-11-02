@@ -35,7 +35,7 @@ const KINDS: Record<FileKind, string[]> = {
     ".weba",
   ],
   pdf: [".pdf"],
-  model: [".obj", ".mjb"],
+  model: [".obj", ".mjb", ".step", ".stp"],
   tensors: [
     ".safetensors",
     ".pt",

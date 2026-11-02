@@ -86,8 +86,12 @@ pub fn model_files(app: AppHandle, path: String) -> Result<Model> {
             .allow_directory(folder, is_mujoco_file(obj))?;
     }
 
+    let is_obj = obj
+        .extension()
+        .is_some_and(|extension| extension.eq_ignore_ascii_case("obj"));
+
     Ok(Model {
-        mtl: material(obj),
+        mtl: is_obj.then(|| material(obj)).flatten(),
         obj: path,
     })
 }
