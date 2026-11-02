@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.20](https://github.com/pleahmacaka/eris/compare/0.3.19...0.3.20) (2026-11-02)
+
+
+### Features
+
+* **files:** log panics and main thread stalls ([7dc3aca](https://github.com/pleahmacaka/eris/commit/7dc3aca0d52a0541c14a2dbb02553e8b01927273))
+* **model-viewer:** open step files ([cc0f6bb](https://github.com/pleahmacaka/eris/commit/cc0f6bb7626dabf626a11cd51dc54180151e5bcf))
+* **terminal:** drag tabs between windows with drop hints ([26b5608](https://github.com/pleahmacaka/eris/commit/26b560849bcc1c4e01113b558b2518dd8dcca766))
+
+
+### Bug Fixes
+
+* **files:** open items on every double click ([fa62a2c](https://github.com/pleahmacaka/eris/commit/fa62a2c7f7a2486cc2325cdd395ec4bf1c47a2b0))
+* **files:** rewatch folders after the watch handle closes ([00ad340](https://github.com/pleahmacaka/eris/commit/00ad340d6ef4f9cd0715004536a8dc84a1713e86))
+
 ## [0.3.19](https://github.com/pleahmacaka/eris/compare/0.3.18...0.3.19) (2026-10-18)
 
 
