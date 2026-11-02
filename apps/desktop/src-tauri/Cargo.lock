@@ -7945,6 +7945,7 @@ dependencies = [
  "iroh-blobs",
  "is-screen-sharing",
  "keyring",
+ "log",
  "memchr",
  "n0-future",
  "notify",

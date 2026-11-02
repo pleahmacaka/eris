@@ -3,13 +3,34 @@ use windows::Win32::UI::WindowsAndMessaging::{AllowSetForegroundWindow, ASFW_ANY
 
 pub use tauri_plugin_eris_files::default_app;
 
+const QUIET_LOGS: [&str; 5] = ["iroh", "iroh_quinn", "iroh_relay", "netwatch", "portmapper"];
+
+fn logger() -> tauri::plugin::TauriPlugin<tauri::Wry> {
+    QUIET_LOGS
+        .iter()
+        .fold(
+            tauri_plugin_log::Builder::new()
+                .level(log::LevelFilter::Warn)
+                .level_for("files_lib", log::LevelFilter::Info),
+            |builder, target| builder.level_for(*target, log::LevelFilter::Error),
+        )
+        .timezone_strategy(tauri_plugin_log::TimezoneStrategy::UseLocal)
+        .max_file_size(1_000_000)
+        .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepOne)
+        .build()
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // the instance that receives forwarded arguments may only raise its window with this grant
     #[cfg(windows)]
     let _ = unsafe { AllowSetForegroundWindow(ASFW_ANY) };
 
-    let builder = tauri::Builder::default().plugin(eris_window_kit::development());
+    tauri_plugin_eris_files::log_panics();
+
+    let builder = tauri::Builder::default()
+        .plugin(logger())
+        .plugin(eris_window_kit::development());
 
     #[cfg(desktop)]
     let builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
@@ -41,6 +62,13 @@ pub fn run() {
             tauri_plugin_eris_files::STANDALONE,
         ))
         .setup(|app| {
+            log::info!(
+                "Eris Files {} started on {} {}",
+                app.package_info().version,
+                std::env::consts::OS,
+                std::env::consts::ARCH
+            );
+
             #[cfg(windows)]
             eris_style::watch(app.handle().clone());
 

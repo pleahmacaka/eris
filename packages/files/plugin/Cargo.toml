@@ -14,6 +14,7 @@ image = { version = "0.25.10", default-features = false, features = ["png"] }
 iroh = "1.3"
 iroh-blobs = { version = "0.103", default-features = false, features = ["fs-store"] }
 is-screen-sharing = { version = "0.1.0", path = "../../is-screen-sharing/core" }
+log = "0.4.34"
 memchr = "2.8.3"
 n0-future = "0.3"
 npyz = "0.9.1"

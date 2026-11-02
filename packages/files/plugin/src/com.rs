@@ -129,7 +129,8 @@ pub async fn ui<T: Send + 'static>(
     let (sender, receiver) = oneshot::channel();
 
     app.run_on_main_thread(move || {
-        let _ = sender.send(work());
+        let done = crate::diagnostics::on_main(std::any::type_name_of_val(&work), work);
+        let _ = sender.send(done);
     })?;
 
     receiver

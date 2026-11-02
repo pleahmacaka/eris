@@ -1,6 +1,7 @@
 [default]
 description = "Browse, preview, share and manage files."
 permissions = [
+  "allow-log-file",
   "allow-list-dir",
   "allow-list-shell",
   "allow-search-dir",

@@ -8,6 +8,7 @@
     Row,
     Section,
     StandaloneTheme,
+    toast,
   } from "@eris/ui"
   import { locale, t } from "svelte-i18n"
   import TranscribeSettings from "../audio/TranscribeSettings.svelte"
@@ -17,6 +18,8 @@
   import DefaultAppRows from "./DefaultAppRows.svelte"
   import MenuSettings from "./MenuSettings.svelte"
   import SidebarSettings from "./SidebarSettings.svelte"
+  import { parentOf } from "../../locations"
+  import { logFile } from "../../native"
   import { archives } from "../../store/archive.svelte"
   import type { Explorer } from "../../store/explorer.svelte"
   import { prefs, resetPrefs } from "../../store/prefs.svelte"
@@ -73,6 +76,20 @@
       dialog.close()
     }
   })
+
+  const showLog = async () => {
+    const file = await logFile().catch(() => null)
+    const folder = file && parentOf(file)
+
+    if (!file || !folder) {
+      toast($t("explorer.settings.noLog"), "info")
+
+      return
+    }
+
+    open = false
+    explorer.go(folder, file)
+  }
 
   const rerunSetup = () => {
     open = false
@@ -167,6 +184,12 @@
             )}
           >
             <span></span>
+          </Row>
+
+          <Row label={$t("explorer.settings.log")} hint={$t("explorer.settings.logHint")}>
+            <button type="button" class="btn btn-soft btn-sm" onclick={showLog}>
+              {$t("explorer.settings.showLog")}
+            </button>
           </Row>
 
           {#if standalone}

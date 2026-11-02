@@ -265,6 +265,8 @@ export const disconnectNetworkDrive = () =>
 
 export const addNetworkLocation = () => call<void>("add_network_location")
 
+export const logFile = () => call<string | null>("log_file")
+
 export const openItem = (item: string) =>
   call<string | null>("open_item", { item })
 

@@ -20,6 +20,7 @@ mod cleanup;
 #[cfg(windows)]
 mod com;
 pub mod default_app;
+mod diagnostics;
 pub mod error;
 #[cfg(desktop)]
 mod git;
@@ -51,6 +52,7 @@ mod properties;
 mod scripts;
 mod share;
 
+pub use diagnostics::log_panics;
 pub use share::endpoint_id;
 #[cfg(desktop)]
 mod tensors;
@@ -111,7 +113,8 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
     let builder = builder.register_asynchronous_uri_scheme_protocol("shell", thumbs::serve);
 
     builder
-        .invoke_handler(tauri::generate_handler![
+        .invoke_handler(diagnostics::timed(tauri::generate_handler![
+            diagnostics::log_file,
             #[cfg(desktop)]
             listing::list_dir,
             #[cfg(desktop)]
@@ -299,7 +302,7 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             share::commands::sync_pause,
             share::commands::sync_now,
             share::commands::sync_remove,
-        ])
+        ]))
         .setup(move |app, _| {
             // an empty card reader or a dead network drive otherwise raises the shell's "insert a disk" dialog
             #[cfg(windows)]
@@ -311,6 +314,7 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             #[cfg(desktop)]
             app.manage(eris_window_kit::Intents::<launch::Intent>::default());
             share::start(app);
+            diagnostics::watch_main_thread(app.clone());
             #[cfg(desktop)]
             std::thread::spawn(archive::prune_scratch);
             #[cfg(desktop)]

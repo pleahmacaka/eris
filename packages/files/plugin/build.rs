@@ -1,4 +1,5 @@
 const COMMANDS: &[&str] = &[
+    "log_file",
     "list_dir",
     "list_shell",
     "search_dir",

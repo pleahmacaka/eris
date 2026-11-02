@@ -106,6 +106,8 @@ fn logger() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 }
 
 pub fn run() {
+    tauri_plugin_eris_files::log_panics();
+
     let args: Vec<String> = std::env::args().skip(1).collect();
 
     if let Some(code) = tauri_plugin_eris_files::default_app::cli(&files::HOST, &args) {
