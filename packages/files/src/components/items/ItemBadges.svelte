@@ -40,7 +40,6 @@
       values: { hours: hoursLeft(item) },
     })}
     onpointerdown={e => e.stopPropagation()}
-    ondblclick={e => e.stopPropagation()}
     onclick={e => {
       e.stopPropagation()
       openCleanupMenu(explorer, e.currentTarget, item)

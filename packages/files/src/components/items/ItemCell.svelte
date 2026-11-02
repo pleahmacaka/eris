@@ -120,7 +120,12 @@
     e.stopPropagation()
     onpress(item, e)
   }}
-  ondblclick={() => explorer.open(item)}
+  onclick={e => {
+    // click counts keep climbing past 2 on fast repeats, so dblclick alone drops every second open
+    if (e.detail >= 2 && e.detail % 2 === 0) {
+      explorer.open(item)
+    }
+  }}
   oncontextmenu={e => {
     e.stopPropagation()
     openMenu(explorer, e, item)

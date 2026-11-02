@@ -121,7 +121,6 @@
     ]}
     title={title ?? web}
     onpointerdown={e => e.stopPropagation()}
-    ondblclick={e => e.stopPropagation()}
     onclick={open}
   >
     {@render content()}

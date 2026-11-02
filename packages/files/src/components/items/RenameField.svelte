@@ -62,7 +62,7 @@
     onblur={() => finish(true)}
     {onkeydown}
     onpointerdown={e => e.stopPropagation()}
-    ondblclick={e => e.stopPropagation()}
+    onclick={e => e.stopPropagation()}
   ></textarea>
 {:else}
   <input
@@ -73,6 +73,6 @@
     onblur={() => finish(true)}
     {onkeydown}
     onpointerdown={e => e.stopPropagation()}
-    ondblclick={e => e.stopPropagation()}
+    onclick={e => e.stopPropagation()}
   />
 {/if}
