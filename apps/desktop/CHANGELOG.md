@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.0](https://github.com/pleahmacaka/eris/compare/0.3.20...0.4.0) (2026-11-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove supabase accounts and the theme backend
+
+### Features
+
+* **dock:** center island cluster and pick windows on click ([4cad587](https://github.com/pleahmacaka/eris/commit/4cad587651663948a1e50e7866ab356a72461e8c))
+* **notices:** group notices and open at panel position ([50d6403](https://github.com/pleahmacaka/eris/commit/50d6403f795c3e8b9cca1e7b1eddaefc453d36e4))
+* remove supabase accounts and the theme backend ([373f51f](https://github.com/pleahmacaka/eris/commit/373f51f9834af875791d396892c516779acb3f0a))
+* **terminal:** add opt-in claude code chat view ([a3ac62f](https://github.com/pleahmacaka/eris/commit/a3ac62f430eaf4ef635a4e6d69016346b1fea6db))
+
 ## [0.3.20](https://github.com/pleahmacaka/eris/compare/0.3.19...0.3.20) (2026-11-02)
 
 
