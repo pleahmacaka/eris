@@ -7,6 +7,7 @@ const LEAVE_GRACE = 260
 let openTimer: ReturnType<typeof setTimeout> | undefined
 let closeTimer: ReturnType<typeof setTimeout> | undefined
 let listening = false
+let clicked = false
 
 export const previewHover = $state({ over: false })
 
@@ -36,6 +37,7 @@ const watchPreview = () => {
     }),
     listen("preview-hidden", () => {
       previewHover.over = false
+      clicked = false
     }),
   ]).catch(() => {
     listening = false
@@ -55,6 +57,20 @@ export const openPreview = (windows: number[], center: number) => {
   }, HOVER_DELAY)
 }
 
+export const togglePreview = (windows: number[], center: number) => {
+  watchPreview()
+
+  if (clicked) {
+    dismissPreview()
+
+    return
+  }
+
+  stopTimers()
+  clicked = true
+  native.previewShow(windows, center).catch(() => undefined)
+}
+
 export const closePreview = () => {
   stopTimers()
 
@@ -69,6 +85,7 @@ export const closePreview = () => {
 
 export const dismissPreview = () => {
   stopTimers()
+  clicked = false
   previewHover.over = false
   native.previewHide().catch(() => undefined)
 }

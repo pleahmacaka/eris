@@ -4,6 +4,7 @@
   import type { DockWidget } from "@eris/settings"
   import { EditSpot, editing } from "#lib/edit/index.js"
   import type { DockLayout } from "./layout.svelte"
+  import { rem } from "./rem.svelte"
 
   let {
     layout,
@@ -111,7 +112,7 @@
 
     <div
       class="relative flex h-6 shrink-0 items-center justify-center rounded-field border border-dashed border-primary/50 bg-primary/5"
-      style:width="{widget.size}px"
+      style:width={rem(widget.size)}
       role="presentation"
     >
       <button
@@ -126,5 +127,5 @@
     </div>
   </EditSpot>
 {:else}
-  <div class="h-full shrink-0" style:width="{widget.size}px" aria-hidden="true"></div>
+  <div class="h-full shrink-0" style:width={rem(widget.size)} aria-hidden="true"></div>
 {/if}

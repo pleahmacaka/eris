@@ -11,6 +11,7 @@
   import EditOptions from "./EditOptions.svelte"
   import type { DockLayout } from "./layout.svelte"
   import { dropTarget } from "./order"
+  import { rem } from "./rem.svelte"
 
   type Props = {
     layout: DockLayout
@@ -136,7 +137,7 @@
       <div class="relative">
         <button
           class="btn btn-ghost btn-square"
-          style:--size="{device.dockIconSize + 16}px"
+          style:--size={rem(device.dockIconSize + 16)}
           title={$t("dock.more", { values: { count: layout.spilled.length } })}
           aria-label={$t("dock.more", { values: { count: layout.spilled.length } })}
           aria-haspopup="menu"

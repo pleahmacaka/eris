@@ -3,7 +3,7 @@
   import { t } from "svelte-i18n"
   import { ContextMenu, Logo } from "@eris/ui"
   import type { MenuItem } from "@eris/ui"
-  import { EditSpot, startEdit } from "#lib/edit/index.js"
+  import { EditSpot, editing, startEdit } from "#lib/edit/index.js"
   import * as native from "#lib/native/index.js"
   import AppsStrip from "./AppsStrip.svelte"
   import DockSpacer from "./DockSpacer.svelte"
@@ -11,6 +11,7 @@
   import type { DockWidget } from "@eris/settings"
   import type { DockLayout } from "./layout.svelte"
   import LeadWidgets from "./LeadWidgets.svelte"
+  import { rem } from "./rem.svelte"
   import Tray from "./Tray.svelte"
 
   type Props = {
@@ -31,6 +32,27 @@
   let barMenuX = $state(0)
 
   const islands = $derived(device.dockIslands)
+
+  let leadContent = $state(0)
+
+  const leadClass = $derived(
+    leadContent === 0 && !layout.centered && !editing.on
+      ? `${sideClass} absolute! invisible`
+      : sideClass,
+  )
+
+  const tint = "bg-linear-to-b from-dock-tint to-dock-tint"
+
+  const fill = [
+    "bg-card inset-ring inset-ring-base-content/10 borderless:inset-ring-0",
+    tint,
+  ]
+
+  const island = [
+    "dock-island h-dock-content rounded-full px-3 empty:hidden",
+    "gathering:*:animate-dock-gather-content",
+    fill,
+  ]
 
   const barClaim = $derived(layout.claimFor("bar"))
   const launcherSpot = $derived(layout.claimFor("spot-launcher"))
@@ -99,19 +121,33 @@
   {/if}
 {/snippet}
 
-{#snippet launcherButton()}
-  <EditSpot id="launcher" label={$t("edit.spots.launcher")} placement={layout.spotPlacement} onmenu={launcherSpot}>
+{#snippet launcherButton(round: boolean)}
+  <EditSpot
+    id="launcher"
+    label={$t("edit.spots.launcher")}
+    placement={layout.spotPlacement}
+    class={round ? "size-full justify-center" : ""}
+    onmenu={launcherSpot}
+  >
     {#snippet options()}
       <EditOptions {layout} kind="launcher" />
     {/snippet}
 
     <button
-      class="btn btn-ghost btn-square btn-sm"
+      class={["btn btn-ghost btn-square", round && "size-full"]}
+      style:width={round ? undefined : rem(device.dockIconSize + 16)}
+      style:height={round ? undefined : rem(device.dockIconSize + 16)}
       title={$t("dock.launcher")}
       aria-label={$t("dock.openLauncher")}
       onclick={() => native.toggleWindow("main")}
     >
-      {@render mark("size-4")}
+      <span
+        class="grid place-items-center"
+        style:width={rem(device.dockIconSize)}
+        style:height={rem(device.dockIconSize)}
+      >
+        {@render mark("size-full")}
+      </span>
     </button>
   </EditSpot>
 {/snippet}
@@ -149,25 +185,34 @@
   <div
     aria-hidden="true"
     class={[
-      "dock-pill pointer-events-none absolute left-1/2 z-20 grid -translate-x-1/2 place-items-center",
-      islands && "island-fill rounded-full",
+      "pointer-events-none absolute left-1/2 z-20 grid -translate-x-1/2",
+      "top-band-top bottom-band-bottom aspect-square place-items-center",
+      "opacity-0 gathering:animate-dock-gather-pill",
+      islands && ["rounded-full", fill],
     ]}
   >
     {@render mark("size-1/2")}
   </div>
 
   {#if layout.collapsed || layout.dockHidden}
-    <div class="h-full w-full" aria-hidden="true"></div>
+    <div class="size-full" aria-hidden="true"></div>
   {:else}
     <nav
       class={[
-        "dock-nav flex shrink-0 items-center border-base-content/10",
-        islands ? "islands" : "gap-1",
-        layout.mac ? "rounded-[var(--shell-radius)] px-3" : "px-2",
-        !islands && (layout.mac ? "border" : device.dockEdge === "top" ? "border-b" : "border-t"),
+        "flex shrink-0 items-center border-base-content/10",
+        "borderless:border-transparent",
+        layout.mac ? "rounded-shell px-3" : "px-2",
+        layout.packed &&
+          (device.dockAlign === "center" ? "justify-center" : "justify-start"),
+        !islands && [
+          "gap-1 gathering:*:animate-dock-gather-content",
+          tint,
+          "solid:bg-base-100 solid:bg-none",
+          layout.mac ? "border" : device.dockEdge === "top" ? "border-b" : "border-t",
+        ],
       ]}
-      style:height="{layout.barHeight}px"
-      style:gap={islands ? `${device.dockIslandGap}px` : undefined}
+      style:height={rem(layout.barHeight)}
+      style:gap={islands ? rem(device.dockIslandGap) : undefined}
       aria-label={$t("dock.dockAria")}
       bind:offsetWidth={layout.navWidth}
       oncontextmenu={openBarMenu}
@@ -179,7 +224,7 @@
             label={$t("edit.spots.widgets")}
             placement={layout.spotPlacement}
             align="start"
-            class={sideClass}
+            class={leadClass}
             onmenu={layout.claimFor(`spot-${widget.id}`)}
             dragKey={widget.id}
             ondropped={layout.moveWidgetTo}
@@ -189,10 +234,12 @@
             {/snippet}
 
             <div class={["flex items-center", layout.centered && "flex-1"]}>
-              <div class={["flex items-center", islands && "dock-island"]} bind:clientWidth={layout.leadWidth}>
-                {#if !device.topBar}
-                  <LeadWidgets {layout} />
-                {/if}
+              <div class={["flex items-center", islands && leadContent > 0 && island]} bind:clientWidth={layout.leadWidth}>
+                <div class="flex items-center" bind:clientWidth={leadContent}>
+                  {#if !device.topBar}
+                    <LeadWidgets {layout} />
+                  {/if}
+                </div>
               </div>
             </div>
           </EditSpot>
@@ -201,7 +248,7 @@
             id={`widget-${widget.id}`}
             label={$t("edit.spots.apps")}
             placement={layout.spotPlacement}
-            class={layout.centered ? "" : "flex-1"}
+            class={layout.centered || layout.packed ? "" : "flex-1"}
             onmenu={layout.claimFor(`spot-${widget.id}`)}
             dragKey={widget.id}
             ondropped={layout.moveWidgetTo}
@@ -213,16 +260,30 @@
             <div
               class={[
                 "flex min-w-0 items-center",
-                !layout.centered && "flex-1",
+                !layout.centered && !layout.packed && "flex-1",
                 device.dockAlign === "center" ? "justify-center" : "justify-start",
               ]}
             >
-              <div class={["flex min-w-0 items-center gap-0.5", islands && "dock-island"]}>
-                {#if device.showLauncherButton && device.features.launcher}
-                  {@render launcherButton()}
+              {#if layout.launcherIsland}
+                <div
+                  class={[
+                    "dock-island flex h-dock-content shrink-0 aspect-square",
+                    "items-center justify-center rounded-full",
+                    "gathering:*:animate-dock-gather-content",
+                    fill,
+                  ]}
+                  style:margin-inline-end={rem(device.dockIslandGap)}
+                >
+                  {@render launcherButton(true)}
+                </div>
+              {/if}
+
+              <div class={["flex min-w-0 items-center gap-0.5", islands && island]}>
+                {#if layout.launcherShown && !islands}
+                  {@render launcherButton(false)}
 
                   {#if device.dockSeparators}
-                    <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
+                    <div class="mx-1.5 h-6 w-0.25 bg-base-content/10"></div>
                   {/if}
                 {/if}
 
@@ -246,10 +307,10 @@
             {/snippet}
 
             <div class={["flex items-center justify-end", layout.centered && "flex-1"]}>
-              <div class={["flex items-center", islands && "dock-island"]} bind:clientWidth={layout.trailWidth}>
+              <div class={["flex items-center", islands && island]} bind:clientWidth={layout.trailWidth}>
                 {#if !device.topBar}
                   {#if device.dockSeparators && !islands}
-                    <div class="mx-1.5 h-6 w-px bg-base-content/10"></div>
+                    <div class="mx-1.5 h-6 w-0.25 bg-base-content/10"></div>
                   {/if}
 
                   <EditSpot id="tray" label={$t("edit.spots.tray")} placement={layout.spotPlacement} align="end" onmenu={traySpot}>
@@ -283,66 +344,3 @@
     </nav>
   {/if}
 </div>
-
-<style>
-  :global(.siri-aura) {
-    mask-image: none;
-  }
-
-  :global(:root[data-edge="bottom"] .siri-aura) {
-    top: auto;
-    height: var(--dock-height);
-  }
-
-  :global(:root[data-edge="top"] .siri-aura) {
-    bottom: auto;
-    height: var(--dock-height);
-  }
-
-  :global(:root[data-background="solid"] .siri-shell),
-  :global(:root[data-background="glass"] .siri-shell) {
-    background: transparent;
-    box-shadow: none;
-  }
-
-  :global(:root[data-background="solid"]) nav:not(.islands) {
-    background: var(--color-base-100);
-  }
-
-  nav:not(.islands),
-  .dock-island,
-  .island-fill {
-    background-image: linear-gradient(
-      oklch(62% calc(var(--vividness) + 0.08) var(--accent-hue) / var(--dock-tint, 0)),
-      oklch(62% calc(var(--vividness) + 0.08) var(--accent-hue) / var(--dock-tint, 0))
-    );
-  }
-
-  :global(:root[data-dock-border="false"]) nav {
-    border-color: transparent;
-  }
-
-  .dock-island {
-    height: var(--dock-content-height);
-    padding-inline: 0.5rem;
-    border-radius: 9999px;
-  }
-
-  .dock-island:empty {
-    display: none;
-  }
-
-  .dock-island :global([data-media] > [role="group"]) {
-    border-color: transparent;
-  }
-
-  .dock-island,
-  .island-fill {
-    background-color: var(--card-bg);
-    box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--color-base-content) 10%, transparent);
-  }
-
-  :global(:root[data-dock-border="false"]) :is(.dock-island, .island-fill) {
-    box-shadow: none;
-  }
-</style>

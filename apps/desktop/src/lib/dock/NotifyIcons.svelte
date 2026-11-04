@@ -313,7 +313,7 @@
 
 {#if icons.length > 0}
   <div
-    class={["relative flex items-center gap-px", flat && "flex-wrap justify-end"]}
+    class={["relative flex items-center gap-0.25", flat && "flex-wrap justify-end"]}
     role="list"
     bind:this={row}
     ondragover={e => e.preventDefault()}

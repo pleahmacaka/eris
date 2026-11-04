@@ -11,7 +11,8 @@
   import * as native from "#lib/native/index.js"
   import type { DockEdge } from "@eris/settings"
   import { ContextMenu } from "@eris/ui"
-  import { closePreview, dismissPreview, openPreview } from "./preview.svelte"
+  import { closePreview, dismissPreview, openPreview, togglePreview } from "./preview.svelte"
+  import { rem } from "./rem.svelte"
   import type { MenuItem } from "@eris/ui"
   import {
     type DockGroup,
@@ -108,6 +109,17 @@
 
     if (!first) {
       return launch()
+    }
+
+    const box = root?.getBoundingClientRect()
+
+    if (group.windows.length > 1 && box) {
+      togglePreview(
+        group.windows.map(w => w.hwnd),
+        box.left + box.width / 2,
+      )
+
+      return
     }
 
     dismissPreview()
@@ -246,9 +258,9 @@
         : "btn btn-ghost btn-square transition-transform duration-100",
       !mac && active && "bg-base-content/10",
     ]}
-    style:--size="{size + 16}px"
-    style:width={mac ? `${size + 16}px` : undefined}
-    style:height={mac ? `${size + 16}px` : undefined}
+    style:--size={rem(size + 16)}
+    style:width={mac ? rem(size + 16) : undefined}
+    style:height={mac ? rem(size + 16) : undefined}
     style:transform={magnify === 1 ? undefined : `scale(${magnify})`}
     title={running ? undefined : group.name}
     aria-label={group.name}
@@ -266,8 +278,8 @@
         alt=""
         draggable="false"
         class={[mac && "transition duration-100 group-hover:brightness-125"]}
-        style:width="{size}px"
-        style:height="{size}px"
+        style:width={rem(size)}
+        style:height={rem(size)}
       />
     {:else}
       <span
@@ -275,8 +287,8 @@
           "text-base-content/70",
           mac && "transition duration-100 group-hover:brightness-125",
         ]}
-        style:width="{size}px"
-        style:height="{size}px"
+        style:width={rem(size)}
+        style:height={rem(size)}
       >
         <Icon icon="lucide:app-window" class="size-full" />
       </span>

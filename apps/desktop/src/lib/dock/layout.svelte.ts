@@ -14,9 +14,11 @@ import { barHeightFor } from "./bar"
 import { MAGNIFY_BOOST } from "./DockItem.svelte"
 import { type DockGroup, dock, groupWindows, resolvePins } from "./dock.svelte"
 import { DockOrdering, isDockPinned, moveGroup } from "./order"
+import { rem, rootFontSize } from "./rem.svelte"
 
 const STRIP = 6
 const GROW_SLOTS = 6
+const ISLAND_PADDING = 24
 
 export const TOPBAR_H = 34
 
@@ -66,7 +68,9 @@ export class DockLayout {
 
   mac = $derived(this.device.dockStyle === "mac")
 
-  centered = $derived(!this.mac && this.device.dockAlign === "center")
+  packed = $derived(this.mac && this.device.dockIslands)
+
+  centered = $derived(!this.packed && this.device.dockAlign === "center")
 
   desktop = $derived(this.mac && this.device.dockDesktop)
 
@@ -95,12 +99,20 @@ export class DockLayout {
     this.device.showLauncherButton && this.device.features.launcher,
   )
 
+  launcherIsland = $derived(this.launcherShown && this.device.dockIslands)
+
   chrome = $derived(
     (this.mac ? 34 : 24) +
-      (this.launcherShown ? 36 : 0) +
-      (this.launcherShown && this.device.dockSeparators ? 25 : 0) +
+      (this.launcherShown ? this.device.dockIconSize + 20 : 0) +
+      (this.launcherShown &&
+      this.device.dockSeparators &&
+      !this.device.dockIslands
+        ? 25
+        : 0) +
       (this.device.dockIslands
-        ? 16 + (this.device.dockIslandGap - 4) * this.device.dockWidgets.length
+        ? ISLAND_PADDING * (this.launcherIsland ? 2 : 1) +
+          (this.device.dockIslandGap - 4) * this.device.dockWidgets.length +
+          (this.launcherIsland ? this.device.dockIslandGap : 0)
         : 0),
   )
 
@@ -219,6 +231,7 @@ export class DockLayout {
       this.device.dockMonitor,
       this.collapsed,
       this.edgeOnly,
+      rootFontSize(),
     ].join("|"),
   )
 
@@ -395,8 +408,8 @@ export class DockLayout {
     if (this.surface === "topbar") {
       root.dataset.dock = "windows"
       root.dataset.edge = "top"
-      root.style.setProperty("--dock-height", `${TOPBAR_H}px`)
-      root.style.setProperty("--dock-content-height", `${TOPBAR_H}px`)
+      root.style.setProperty("--dock-height", rem(TOPBAR_H))
+      root.style.setProperty("--dock-content-height", rem(TOPBAR_H))
 
       return native
         .applyTopbar({
@@ -414,11 +427,8 @@ export class DockLayout {
 
     root.dataset.dock = this.device.dockStyle
     root.dataset.edge = this.device.dockEdge
-    root.style.setProperty("--dock-height", `${this.barHeight}px`)
-    root.style.setProperty(
-      "--dock-content-height",
-      `${this.device.dockHeight}px`,
-    )
+    root.style.setProperty("--dock-height", rem(this.barHeight))
+    root.style.setProperty("--dock-content-height", rem(this.device.dockHeight))
 
     return native
       .applyTaskbar({
