@@ -89,10 +89,7 @@
 
   let bellMenu = $state(false)
 
-  const openNotices = (e: MouseEvent) => {
-    const box = (e.currentTarget as HTMLElement).getBoundingClientRect()
-    status.openNotices(box)
-  }
+  const openNotices = () => status.openNotices()
 
   let leaveTimer: ReturnType<typeof setTimeout> | undefined
 

@@ -31,34 +31,6 @@ static AWAITING: LazyLock<Mutex<HashSet<String>>> = LazyLock::new(|| Mutex::new(
 static PENDING_INTENT: LazyLock<Mutex<HashMap<String, String>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 
-static ANCHORS: LazyLock<Mutex<HashMap<String, [i32; 4]>>> =
-    LazyLock::new(|| Mutex::new(HashMap::new()));
-
-pub fn set_anchor(label: &str, caller: &WebviewWindow, rect: Option<[f64; 4]>) {
-    let screen = rect.and_then(|rect| {
-        let origin = caller.inner_position().ok()?;
-        let [left, top, right, bottom] = region::physical(rect, caller.scale_factor().ok()?);
-
-        Some([
-            origin.x + left,
-            origin.y + top,
-            origin.x + right,
-            origin.y + bottom,
-        ])
-    });
-
-    let mut anchors = ANCHORS.lock().unwrap();
-
-    match screen {
-        Some(screen) => anchors.insert(label.to_string(), screen),
-        None => anchors.remove(label),
-    };
-}
-
-fn anchor_of(label: &str) -> Option<[i32; 4]> {
-    ANCHORS.lock().unwrap().get(label).copied()
-}
-
 #[tauri::command]
 pub fn show_window(app: AppHandle, label: String) {
     show(&app, &label);
@@ -376,11 +348,7 @@ fn show_now(app: &AppHandle, label: &str) {
         "main" | "settings" | "note" | "onboarding" | "studio" => {
             geometry::center_on_cursor_monitor(&window)
         }
-        "panel" => geometry::dock_panel(app, &window),
-        "notices" => match anchor_of(label) {
-            Some(anchor) => geometry::anchor_panel(&window, anchor),
-            None => geometry::dock_panel(app, &window),
-        },
+        "panel" | "notices" => geometry::dock_panel(app, &window),
         _ => Ok(()),
     };
 

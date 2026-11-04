@@ -99,45 +99,6 @@ pub(super) fn dock_panel(app: &AppHandle, window: &WebviewWindow) -> tauri::Resu
     window.set_position(PhysicalPosition::new(x, y))
 }
 
-pub(super) fn anchor_panel(window: &WebviewWindow, anchor: [i32; 4]) -> tauri::Result<()> {
-    let [left, top, right, bottom] = anchor;
-    let center_x = (left + right) / 2;
-    let center_y = (top + bottom) / 2;
-
-    let Some(monitor) = window.monitor_from_point(f64::from(center_x), f64::from(center_y))? else {
-        return window.center();
-    };
-
-    let [band_top, band_bottom] = ["taskbar", "topbar"]
-        .into_iter()
-        .filter_map(appbar::bar_frame)
-        .find(|[x, y, width, height]| {
-            (*x..x + width).contains(&center_x) && (*y..y + height).contains(&center_y)
-        })
-        .map_or([top, bottom], |[_, y, _, height]| [y, y + height]);
-
-    let scale = monitor.scale_factor();
-    let gap = (8.0 * scale).round() as i32;
-    let (width, height) = physical_size_on(window, scale)?;
-    let screen_left = monitor.position().x;
-    let screen_top = monitor.position().y;
-    let screen_right = screen_left + monitor.size().width as i32;
-    let screen_bottom = screen_top + monitor.size().height as i32;
-
-    let opens_up = center_y > screen_top + monitor.size().height as i32 / 2;
-    let y = if opens_up {
-        band_top - gap - height
-    } else {
-        band_bottom + gap
-    };
-    let x = center_x - width / 2;
-
-    let x = x.min(screen_right - gap - width).max(screen_left + gap);
-    let y = y.min(screen_bottom - gap - height).max(screen_top + gap);
-
-    window.set_position(PhysicalPosition::new(x, y))
-}
-
 fn stored_panel_position(app: &AppHandle) -> String {
     app.store("settings.json")
         .ok()

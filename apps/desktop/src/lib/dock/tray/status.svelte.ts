@@ -39,11 +39,9 @@ export class TrayStatus {
     this.unseen = await native.noticesUnseen().catch(() => this.unseen)
   }
 
-  openNotices(box: DOMRect) {
+  openNotices() {
     this.unseen = 0
-    native
-      .noticesOpenPanel([box.left, box.top, box.right, box.bottom])
-      .catch(() => undefined)
+    native.noticesOpenPanel().catch(() => undefined)
   }
 
   toggleMute = () => {

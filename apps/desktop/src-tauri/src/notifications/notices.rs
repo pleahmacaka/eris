@@ -3,7 +3,7 @@ use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::Serialize;
-use tauri::{AppHandle, Emitter, WebviewWindow};
+use tauri::{AppHandle, Emitter};
 
 use crate::apps::launcher;
 use crate::shell::windowing;
@@ -67,12 +67,11 @@ pub fn notices_dismiss(app: AppHandle, ids: Vec<i64>) {
 }
 
 #[tauri::command]
-pub fn notices_open_panel(app: AppHandle, window: WebviewWindow, anchor: Option<[f64; 4]>) {
+pub fn notices_open_panel(app: AppHandle) {
     if windowing::just_hidden("notices") {
         return;
     }
 
-    windowing::set_anchor("notices", &window, anchor);
     windowing::toggle(&app, "notices");
 }
 
