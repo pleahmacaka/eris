@@ -1639,7 +1639,6 @@ dependencies = [
  "tauri-plugin-clipboard-manager",
  "tauri-plugin-deep-link",
  "tauri-plugin-dialog",
- "tauri-plugin-eris-auth",
  "tauri-plugin-eris-files",
  "tauri-plugin-eris-terminal",
  "tauri-plugin-log",
@@ -7156,19 +7155,6 @@ dependencies = [
  "tauri-plugin-fs",
  "thiserror 2.0.21",
  "url",
-]
-
-[[package]]
-name = "tauri-plugin-eris-auth"
-version = "0.1.0"
-dependencies = [
- "eris-window-kit",
- "keyring",
- "open",
- "tauri",
- "tauri-plugin",
- "tauri-plugin-deep-link",
- "windows",
 ]
 
 [[package]]

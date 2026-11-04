@@ -7,7 +7,6 @@ export type SectionId =
   | "calendar"
   | "note"
   | "sync"
-  | "account"
   | "data"
   | "about"
   | "experimental"
@@ -38,7 +37,6 @@ export const sections: NavSection[] = [
   { id: "calendar", icon: "lucide:calendar-check", group: "features" },
   { id: "note", icon: "lucide:notebook-pen", group: "features" },
   { id: "sync", icon: "lucide:refresh-cw", group: "system" },
-  { id: "account", icon: "lucide:circle-user", group: "system" },
   { id: "data", icon: "lucide:database", group: "system" },
   { id: "about", icon: "lucide:info", group: "system" },
   { id: "experimental", icon: "lucide:flask-conical", group: "system" },

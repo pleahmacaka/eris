@@ -12,7 +12,7 @@
     ".": {
       "component": "eris",
       "changelog-path": "apps/desktop/CHANGELOG.md",
-      "exclude-paths": ["apps/web", "packages/community", "supabase"],
+      "exclude-paths": ["apps/web", "packages/community"],
       "extra-files": [
         {
           "type": "json",

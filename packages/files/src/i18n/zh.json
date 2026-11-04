@@ -233,7 +233,6 @@
       "version": "版本",
       "windowsDefaults": "Windows 默认应用",
       "windowsDefaultsHint": "请在 Windows 设置中选择打开 3D 模型的应用。",
-      "account": "账号",
       "compactToolbar": "折叠工具栏",
       "compactToolbarHint": "将预览和查看更多移到地址栏旁。",
       "pages": {
@@ -244,7 +243,6 @@
         "terminal": "终端",
         "transcribe": "转写",
         "devices": "设备",
-        "account": "账户",
         "about": "关于",
         "decor": "文件显示",
         "contextMenu": "右键菜单"

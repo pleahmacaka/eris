@@ -25,7 +25,6 @@
     "clipboard-manager:allow-read-text",
     "clipboard-manager:allow-write-text",
     "eris-terminal:default",
-    "eris-files:default",
-    "eris-auth:default"
+    "eris-files:default"
   ]
 }

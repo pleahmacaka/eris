@@ -40,9 +40,7 @@ pub fn run() {
     let builder = builder.plugin(tauri_plugin_deep_link::init());
 
     #[cfg(desktop)]
-    let builder = builder
-        .plugin(tauri_plugin_eris_auth::init("eris-files"))
-        .plugin(tauri_plugin_eris_terminal::init("/terminal"));
+    let builder = builder.plugin(tauri_plugin_eris_terminal::init("/terminal"));
 
     let builder = builder
         .plugin(tauri_plugin_clipboard_manager::init())

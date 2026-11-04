@@ -3,7 +3,6 @@ import type { Handle } from "@sveltejs/kit/hooks"
 const KOREAN: Record<string, string> = {
   "/": "ko/",
   "/themes": "../ko/themes/",
-  "/login": "../ko/login/",
 }
 
 export const handle: Handle = ({ event, resolve }) => {

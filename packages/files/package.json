@@ -15,7 +15,6 @@
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
-    "@eris/auth": "workspace:*",
     "@eris/doc-preview": "workspace:*",
     "@eris/i18n": "workspace:*",
     "@eris/markdown": "workspace:*",

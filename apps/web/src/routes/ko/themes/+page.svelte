@@ -7,7 +7,6 @@
   lang="ko"
   studio={STUDIO}
   home="../"
-  login="../login/"
   languages={[
     { code: "en", label: "English", href: "../../themes/" },
     { code: "ko", label: "한국어", href: "./" },

@@ -75,10 +75,6 @@
         "label": "About",
         "blurb": "Version and updates"
       },
-      "account": {
-        "label": "Account",
-        "blurb": "Sign in once to use the same Eris account in every Eris app."
-      },
       "note": {
         "label": "Note",
         "blurb": "Connect ArixLab Note for calendar, style, and page references"

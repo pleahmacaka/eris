@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { LazyDesktopAccount } from "@eris/auth"
   import { getVersion } from "@tauri-apps/api/app"
   import {
     Confirm,
@@ -10,7 +9,7 @@
     StandaloneTheme,
     toast,
   } from "@eris/ui"
-  import { locale, t } from "svelte-i18n"
+  import { t } from "svelte-i18n"
   import TranscribeSettings from "../audio/TranscribeSettings.svelte"
   import DeviceSettings from "../share/DeviceSettings.svelte"
   import TerminalSettings from "../terminal/TerminalSettings.svelte"
@@ -47,7 +46,6 @@
     ["terminal", "lucide:square-terminal"],
     ["transcribe", "lucide:audio-lines"],
     ["devices", "lucide:share-2"],
-    ["account", "lucide:circle-user-round"],
     ["about", "lucide:info"],
   ]
 
@@ -163,12 +161,6 @@
         <TranscribeSettings />
       {:else if page === "devices"}
         <DeviceSettings />
-      {:else if page === "account"}
-        <Section title={$t("explorer.settings.account")}>
-          <div class="px-4 py-4">
-            <LazyDesktopAccount lang={$locale} />
-          </div>
-        </Section>
       {:else}
         <Section title="Eris Files">
           <Row label={$t("explorer.settings.version")} value={version}>

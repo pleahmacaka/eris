@@ -233,7 +233,6 @@
       "version": "버전",
       "windowsDefaults": "Windows 기본 앱",
       "windowsDefaultsHint": "3D 모델을 여는 앱은 Windows 설정에서 지정하세요.",
-      "account": "계정",
       "compactToolbar": "도구 상자 접기",
       "compactToolbarHint": "미리 보기와 더 보기를 주소 줄로 옮깁니다.",
       "pages": {
@@ -244,7 +243,6 @@
         "terminal": "터미널",
         "transcribe": "받아쓰기",
         "devices": "기기",
-        "account": "계정",
         "about": "정보",
         "decor": "파일 표시",
         "contextMenu": "컨텍스트 메뉴"

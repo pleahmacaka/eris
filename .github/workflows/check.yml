@@ -65,7 +65,6 @@ jobs:
           cargo fmt --manifest-path apps/cli/Cargo.toml -- --check
           cargo fmt --manifest-path packages/files/plugin/Cargo.toml -- --check
           cargo fmt --manifest-path packages/terminal/plugin/Cargo.toml -- --check
-          cargo fmt --manifest-path packages/auth/plugin/Cargo.toml -- --check
           cargo fmt --manifest-path packages/window-kit/Cargo.toml -- --check
           cargo fmt --manifest-path packages/eris-style/Cargo.toml -- --check
           cargo fmt --manifest-path packages/is-screen-sharing/core/Cargo.toml -- --check

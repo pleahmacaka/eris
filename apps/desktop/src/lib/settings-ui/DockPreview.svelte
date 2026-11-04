@@ -67,7 +67,7 @@
       <span class="flex h-full items-center gap-0.5">
         {@render launcher()}
 
-        <span class="mx-0.5 h-3/5 w-px bg-base-content/15"></span>
+        <span class="mx-0.5 h-3/5 w-0.25 bg-base-content/15"></span>
 
         {@render apps(APPS)}
       </span>

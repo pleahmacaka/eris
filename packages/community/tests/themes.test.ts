@@ -57,17 +57,12 @@ describe("supported tools", () => {
     extra: Partial<CommunityTheme> = {},
   ): CommunityTheme => ({
     id: "probe",
-    slug: "probe",
-    owner: null,
     name: "Probe",
     author: "Eris",
     description: "Probe",
     swatch: ["#000000", "#000000", "#000000"],
     appearance,
     tags: [],
-    likes: 0,
-    downloads: 0,
-    created_at: "",
     ...extra,
   })
 
@@ -85,33 +80,28 @@ describe("supported tools", () => {
     ])
   })
 
-  test("browse searches, filters and sorts", () => {
+  test("browse searches, filters and sorts by name", () => {
     const list = [
       theme(
         { mode: "light", accentHue: 80 },
-        { id: "a", name: "Paper", likes: 1, tags: ["warm"] },
+        { id: "a", name: "Paper", tags: ["warm"] },
       ),
-      theme(
-        { mode: "dark", accentHue: 230 },
-        { id: "b", name: "Night", likes: 5 },
-      ),
-      theme({ dockBlur: 1.5 }, { id: "c", name: "Dock", downloads: 2 }),
+      theme({ mode: "dark", accentHue: 230 }, { id: "b", name: "Night" }),
+      theme({ dockBlur: 1.5 }, { id: "c", name: "Dock" }),
     ]
     const ids = (query: Partial<Parameters<typeof browse>[1]>) =>
       browse(list, {
         q: "",
-        sort: "popular",
         tool: "",
         mode: "",
         tag: "",
         ...query,
       }).map(t => t.id)
 
-    expect(ids({})).toEqual(["b", "a", "c"])
-    expect(ids({ mode: "light" })).toEqual(["a", "c"])
+    expect(ids({})).toEqual(["c", "b", "a"])
+    expect(ids({ mode: "light" })).toEqual(["c", "a"])
     expect(ids({ tool: "files" })).toEqual(["b", "a"])
     expect(ids({ tag: "warm" })).toEqual(["a"])
     expect(ids({ q: "nig" })).toEqual(["b"])
-    expect(ids({ sort: "name" })).toEqual(["c", "b", "a"])
   })
 })

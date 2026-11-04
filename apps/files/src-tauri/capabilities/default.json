@@ -24,8 +24,7 @@
     "dialog:allow-open",
     "log:default",
     "eris-terminal:default",
-    "eris-files:default",
-    "eris-auth:default"
+    "eris-files:default"
   ],
   "platforms": [
     "windows",

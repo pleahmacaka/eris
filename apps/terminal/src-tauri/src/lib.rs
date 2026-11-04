@@ -4,12 +4,9 @@ pub fn run() {
     let builder = tauri::Builder::default()
         .plugin(eris_window_kit::development())
         .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
-            if !tauri_plugin_eris_auth::claims(&args) {
-                launch::forward(app, &args, &cwd);
-            }
+            launch::forward(app, &args, &cwd);
         }))
         .plugin(tauri_plugin_deep_link::init())
-        .plugin(tauri_plugin_eris_auth::init("eris-terminal"))
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_eris_terminal::init("/"));
 

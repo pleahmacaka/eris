@@ -30,7 +30,6 @@
   } from "@eris/settings"
   import {
     AboutSection,
-    AccountSection,
     AppearanceSection,
     CalendarSection,
     DataSection,
@@ -132,6 +131,24 @@
       ?.scrollIntoView({ block: "start", behavior: "smooth" })
   }
 
+  const flash = (row: HTMLElement) => {
+    if (document.documentElement.dataset.motion === "false") {
+      return
+    }
+
+    const primary = getComputedStyle(row).getPropertyValue("--color-primary")
+    const lit = `color-mix(in oklch, ${primary} 22%, transparent)`
+
+    row.animate(
+      [
+        { backgroundColor: lit, easing: "ease-out" },
+        { backgroundColor: lit, offset: 0.55, easing: "ease-out" },
+        { backgroundColor: "transparent" },
+      ],
+      { duration: 400 },
+    )
+  }
+
   const jump = async (entry: SearchEntry) => {
     section = entry.section
     await tick()
@@ -147,8 +164,7 @@
     revealSection(row.closest<HTMLElement>("section[data-group]")?.dataset.group ?? "")
     await tick()
     row.scrollIntoView({ block: "center", behavior: "smooth" })
-    row.classList.add("row-flash")
-    setTimeout(() => row.classList.remove("row-flash"), 1400)
+    flash(row)
   }
 
   const message = (error: unknown) =>
@@ -445,8 +461,6 @@
                     <NoteSection bind:device />
                   {:else if section === "sync"}
                     <SyncPanel bind:device />
-                  {:else if section === "account"}
-                    <AccountSection />
                   {:else if section === "data"}
                     <DataSection bind:device bind:profile />
                   {:else if section === "about"}
@@ -477,23 +491,3 @@
 />
 
 <Toasts />
-
-<style>
-  :global(.row-flash) {
-    animation: -global-row-flash 0.4s ease-out;
-  }
-
-  @keyframes -global-row-flash {
-    0%,
-    55% {
-      background-color: color-mix(
-        in oklch,
-        var(--color-primary) 22%,
-        transparent
-      );
-    }
-    100% {
-      background-color: transparent;
-    }
-  }
-</style>

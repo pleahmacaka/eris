@@ -75,10 +75,6 @@
         "label": "정보",
         "blurb": "버전을 확인하고 업데이트를 설치합니다."
       },
-      "account": {
-        "label": "계정",
-        "blurb": "한 번 로그인하면 모든 Eris 앱에서 같은 계정을 사용합니다."
-      },
       "note": {
         "label": "Note",
         "blurb": "ArixLab Note와 캘린더, 스타일, 페이지 참조를 연결합니다."

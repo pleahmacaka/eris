@@ -75,10 +75,6 @@
         "label": "关于",
         "blurb": "查看版本并安装更新"
       },
-      "account": {
-        "label": "账号",
-        "blurb": "登录一次即可在所有 Eris 应用中使用同一账号。"
-      },
       "note": {
         "label": "Note",
         "blurb": "将 ArixLab Note 与日历、样式和页面引用相连"

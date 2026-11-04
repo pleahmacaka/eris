@@ -30,7 +30,6 @@
     "vite-plugin-iconify-subset": "workspace:*"
   },
   "dependencies": {
-    "@eris/auth": "workspace:*",
     "@eris/bridge": "workspace:*",
     "@eris/data": "workspace:*",
     "@eris/files": "workspace:*",

@@ -11,17 +11,6 @@ export const ko: Copy = {
   languages: "언어",
   themesLink: "테마",
 
-  account: {
-    link: "로그인",
-    signedIn: "계정",
-    title: "Eris 계정",
-    blurb: "Eris 사이트와 모든 Eris 앱에서 같은 계정을 사용합니다.",
-    home: "홈으로 이동",
-    finishing: "로그인 처리 중",
-    failed: "로그인 실패",
-    retry: "다시 로그인",
-  },
-
   hero: {
     eyebrow: "Windows 데스크톱 셸",
     tagline: "작업 표시줄을 대체하는 독, 런처, 패널.",

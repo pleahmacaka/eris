@@ -1,5 +1,0 @@
-export { default as AccountPanel } from "./AccountPanel.svelte"
-export * from "./account.svelte"
-export * from "./copy"
-export { default as LazyDesktopAccount } from "./lib/components/account/LazyDesktopAccount.svelte"
-export * from "./web"

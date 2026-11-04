@@ -11,7 +11,6 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
-    "@eris/auth": "workspace:*",
     "@eris/community": "workspace:*",
     "@eris/settings": "workspace:*",
     "@eris/ui": "workspace:*",

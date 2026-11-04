@@ -1,7 +1,7 @@
 @import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 @import "tailwindcss";
+@source "../app.html";
 @source "../../../../packages/ui/src";
-@source "../../../../packages/auth/src";
 @source "../../../../packages/community/src";
 @plugin "daisyui" {
   themes: false;
@@ -76,21 +76,6 @@
 }
 
 @layer base {
-  html {
-    background-color: var(--color-base-100);
-    font-synthesis-weight: none;
-    text-rendering: optimizeLegibility;
-  }
-
-  :lang(ko) {
-    word-break: keep-all;
-  }
-
-  ::selection {
-    background-color: var(--color-primary);
-    color: var(--color-primary-content);
-  }
-
   :focus-visible {
     outline: 0.125rem solid var(--color-primary);
     outline-offset: 0.125rem;

@@ -233,7 +233,6 @@
       "version": "バージョン",
       "windowsDefaults": "Windows の既定のアプリ",
       "windowsDefaultsHint": "3D モデルを開くアプリは Windows の設定で選択してください。",
-      "account": "アカウント",
       "compactToolbar": "ツールバーを折りたたむ",
       "compactToolbarHint": "プレビューともっと見るをアドレスバーの横に移します。",
       "pages": {
@@ -244,7 +243,6 @@
         "terminal": "ターミナル",
         "transcribe": "文字起こし",
         "devices": "デバイス",
-        "account": "アカウント",
         "about": "情報",
         "decor": "ファイル表示",
         "contextMenu": "コンテキストメニュー"

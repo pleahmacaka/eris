@@ -71,11 +71,17 @@
   } = $props()
 
   let width = $state(0)
+  let rem = $state(16)
   let mounted = $state(false)
 
   onMount(() => {
+    rem =
+      Number.parseFloat(getComputedStyle(document.documentElement).fontSize) ||
+      16
     mounted = true
   })
+
+  const percent = (part: number, whole: number) => `${(part / whole) * 100}%`
 
   const scale = $derived(width / SCREEN.width)
 
@@ -89,15 +95,30 @@
 </script>
 
 <div
-  class="stage relative aspect-video w-full overflow-hidden"
+  class="relative aspect-video w-full overflow-hidden bg-base-300"
   bind:clientWidth={width}
 >
+  <div
+    aria-hidden="true"
+    class={[
+      "absolute inset-0 bg-radial-[60%_50%_at_20%_10%]",
+      "from-primary/22 to-transparent to-70%",
+    ]}
+  ></div>
+  <div
+    aria-hidden="true"
+    class={[
+      "absolute inset-0 bg-radial-[50%_60%_at_90%_90%]",
+      "from-secondary/16 to-transparent to-70%",
+    ]}
+  ></div>
+
   {#if studio && mounted}
     <div
       class={["absolute top-0 left-0 origin-top-left", still && "pointer-events-none"]}
       inert={still}
-      style:width="{SCREEN.width}px"
-      style:height="{SCREEN.height}px"
+      style:width="{SCREEN.width / rem}rem"
+      style:height="{SCREEN.height / rem}rem"
       style:transform="scale({scale})"
     >
       {#each frames as frame (frame.path)}
@@ -107,11 +128,11 @@
           <iframe
             {title}
             {src}
-            class="absolute"
-            style:top="{frame.top}px"
-            style:left="{frame.left}px"
-            style:width="{frame.width}px"
-            style:height="{frame.height}px"
+            class="absolute scheme-normal"
+            style:top={percent(frame.top, SCREEN.height)}
+            style:left={percent(frame.left, SCREEN.width)}
+            style:width={percent(frame.width, SCREEN.width)}
+            style:height={percent(frame.height, SCREEN.height)}
             loading="lazy"
           ></iframe>
         {/key}
@@ -125,26 +146,3 @@
     </p>
   {/if}
 </div>
-
-<style>
-  .stage {
-    background-color: var(--color-base-300);
-    background-image:
-      radial-gradient(
-        60% 50% at 20% 10%,
-        color-mix(in oklch, var(--color-primary) 22%, transparent),
-        transparent 70%
-      ),
-      radial-gradient(
-        50% 60% at 90% 90%,
-        color-mix(in oklch, var(--color-secondary) 16%, transparent),
-        transparent 70%
-      );
-  }
-
-  iframe {
-    border: 0;
-    background: transparent;
-    color-scheme: normal;
-  }
-</style>

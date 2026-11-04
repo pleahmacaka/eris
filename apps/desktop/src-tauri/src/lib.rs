@@ -140,10 +140,6 @@ pub fn run() {
     let builder = tauri::Builder::default()
         .plugin(eris_window_kit::development())
         .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
-            if tauri_plugin_eris_auth::claims(&args) {
-                return;
-            }
-
             if let Some(link) = theme_link::link(&args) {
                 theme_link::accept(app, link);
 
@@ -179,7 +175,6 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_eris_terminal::init("/terminal"))
         .plugin(tauri_plugin_deep_link::init())
-        .plugin(tauri_plugin_eris_auth::init("eris"))
         .plugin(tauri_plugin_eris_files::init(files::HOST))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())

@@ -26,5 +26,3 @@ target
 
 # Verification scratch
 .verify-tmp/
-
-supabase/.temp

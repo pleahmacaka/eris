@@ -9,17 +9,6 @@ export const en = {
   languages: "Language",
   themesLink: "Themes",
 
-  account: {
-    link: "Sign in",
-    signedIn: "Account",
-    title: "Eris account",
-    blurb: "One account for the Eris site and every Eris app.",
-    home: "Back to home",
-    finishing: "Finishing sign-in",
-    failed: "Sign-in failed",
-    retry: "Try again",
-  },
-
   hero: {
     eyebrow: "A desktop shell for Windows",
     tagline: "A dock, launcher and panel that replace the taskbar.",
