@@ -18,7 +18,10 @@
 </script>
 
 <div
-  class="absolute inset-0 z-20 flex items-center justify-center rounded-box bg-black/45 p-4 backdrop-blur-[2px]"
+  class={[
+    "absolute inset-0 z-20 flex items-center justify-center p-4",
+    "rounded-box bg-black/45 backdrop-blur-[0.125rem]",
+  ]}
   role="presentation"
   onpointerdown={e => {
     if (e.target === e.currentTarget) {

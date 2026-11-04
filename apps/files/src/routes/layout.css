@@ -1,7 +1,7 @@
 @import "pretendard/dist/web/variable/pretendardvariable.css";
 @import "tailwindcss";
+@source "../app.html";
 @source "../../../../packages/ui/src";
-@source "../../../../packages/auth/src";
 @source "../../../../packages/model-viewer/src";
 @source "../../../../packages/files/src";
 @source "../../../../packages/terminal/src";

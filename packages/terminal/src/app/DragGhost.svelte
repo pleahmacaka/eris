@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { rootRem } from "@eris/ui"
   import Icon from "@iconify/svelte"
   import { scale } from "svelte/transition"
   import { shellIcon } from "../shell-icons"
@@ -31,8 +32,8 @@
       "rounded-field border border-primary/40 bg-base-200/90 px-3 py-1.5 text-sm",
       "shadow-xl shadow-primary/10 backdrop-blur-md",
     ]}
-    style:left="{left}px"
-    style:top="{top}px"
+    style:left="{left / rootRem()}rem"
+    style:top="{top / rootRem()}rem"
     bind:clientWidth={width}
     bind:clientHeight={height}
     transition:scale={{ start: 0.9, duration: 120 }}

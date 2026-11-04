@@ -386,10 +386,10 @@
     <div
       aria-hidden="true"
       class="pointer-events-none absolute z-20 rounded-sm border border-primary/60 bg-primary/15"
-      style:left="{band.left}px"
-      style:top="{band.top}px"
-      style:width="{band.width}px"
-      style:height="{band.height}px"
+      style:left="{band.left / rem}rem"
+      style:top="{band.top / rem}rem"
+      style:width="{band.width / rem}rem"
+      style:height="{band.height / rem}rem"
     ></div>
   {/if}
 
@@ -428,7 +428,7 @@
 
           <span class="shrink-0 tabular-nums">{line.section.items.length}</span>
 
-          <span class="mb-1.5 h-px grow bg-base-content/10"></span>
+          <span class="mb-1.5 h-0.25 grow bg-base-content/10"></span>
         </div>
       {:else}
         <div

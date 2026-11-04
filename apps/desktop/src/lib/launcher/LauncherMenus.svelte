@@ -57,7 +57,7 @@
 {#if launcher.menu}
   <ul
     data-menu
-    class="menu eris-card absolute z-50 p-1"
+    class="menu eris-card absolute z-50 w-52 p-1"
     style={launcher.menuStyle}
   >
     {#each launcher.menuItems as action, k (action.label)}

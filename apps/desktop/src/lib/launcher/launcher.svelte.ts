@@ -6,6 +6,7 @@ import {
   defaultProfile,
   type Profile,
 } from "@eris/settings"
+import { rootRem } from "@eris/ui"
 import { fromStore } from "svelte/store"
 import { t } from "svelte-i18n"
 import { saveProfileSynced } from "#lib/data/index.js"
@@ -22,7 +23,7 @@ import { buildGroups, RECENT } from "./groups"
 import { alignApps, mergeApps } from "./providers"
 import type { Timer } from "./timers"
 
-export const MENU_WIDTH = 208
+export const MENU_WIDTH = 13
 
 const APPS_STALE = 300_000
 
@@ -140,12 +141,14 @@ export class Launcher {
       return ""
     }
 
-    const maxLeft = window.innerWidth - MENU_WIDTH - 8
-    const maxTop = window.innerHeight - (this.menuItems.length * 36 + 16) - 8
-    const left = Math.max(8, Math.min(this.menu.x, maxLeft))
-    const top = Math.max(8, Math.min(this.menu.y, maxTop))
+    const rem = rootRem()
+    const height = this.menuItems.length * 2.25 + 1
+    const maxLeft = window.innerWidth / rem - MENU_WIDTH - 0.5
+    const maxTop = window.innerHeight / rem - height - 0.5
+    const left = Math.max(0.5, Math.min(this.menu.x / rem, maxLeft))
+    const top = Math.max(0.5, Math.min(this.menu.y / rem, maxTop))
 
-    return `left:${left}px; top:${top}px; width:${MENU_WIDTH}px`
+    return `left:${left}rem; top:${top}rem`
   })
 
   reset() {

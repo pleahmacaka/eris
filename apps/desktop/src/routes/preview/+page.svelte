@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { rootRem } from "@eris/ui"
   import { emit, listen } from "@tauri-apps/api/event"
   import { t } from "svelte-i18n"
   import * as native from "#lib/native/index.js"
@@ -16,12 +17,14 @@
 
   let slots = $state<Slot[]>([])
   let hovered = $state<number | null>(null)
+  let rem = $state(rootRem())
 
   $effect(() => {
     document.documentElement.dataset.surface = "overlay"
 
     const stops = [
       listen<Slot[]>("preview-shown", e => {
+        rem = rootRem()
         slots = e.payload
       }),
       listen("preview-hidden", () => {
@@ -72,10 +75,10 @@
         "absolute rounded-field transition-colors duration-100",
         active ? "bg-base-content/10" : "bg-transparent",
       ]}
-      style:left="{slot.x}px"
-      style:top="{slot.y}px"
-      style:width="{slot.width}px"
-      style:height="{slot.height}px"
+      style:left="{slot.x / rem}rem"
+      style:top="{slot.y / rem}rem"
+      style:width="{slot.width / rem}rem"
+      style:height="{slot.height / rem}rem"
       role="group"
       onmouseenter={() => (hovered = slot.hwnd)}
       onmouseleave={() => (hovered = null)}
@@ -89,7 +92,7 @@
 
       <div
         class="pointer-events-none relative flex items-center gap-2 pr-1 pl-2"
-        style:height="{slot.header}px"
+        style:height="{slot.header / rem}rem"
       >
         <span class="min-w-0 flex-1 truncate text-xs text-base-content/80">{slot.title}</span>
 

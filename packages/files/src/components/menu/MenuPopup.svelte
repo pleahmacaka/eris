@@ -9,7 +9,18 @@
 
   const MARGIN = 12
 
+  const POPUP_SURFACE = [
+    "bg-transparent!",
+    "*:bg-transparent!",
+    "[&_.siri-shell]:bg-transparent!",
+    "[&_.siri-shell]:opacity-100",
+    "[&_.siri-aura]:hidden",
+    "[&_.eris-card[role=menu]]:bg-base-100",
+    "[&_.eris-card[role=menu]]:backdrop-filter-none",
+  ]
+
   document.documentElement.dataset.surface = "popup"
+  document.documentElement.classList.add(...POPUP_SURFACE)
 
   const current = getCurrentWebviewWindow()
 
@@ -117,24 +128,3 @@
     onclose={closed}
   />
 {/if}
-
-<style>
-  :global(:root[data-surface="popup"]),
-  :global(:root[data-surface="popup"] body),
-  :global(:root[data-surface="popup"] .siri-shell) {
-    background: transparent !important;
-  }
-
-  :global(:root[data-surface="popup"] .siri-shell) {
-    opacity: 1;
-  }
-
-  :global(:root[data-surface="popup"] .siri-aura) {
-    display: none;
-  }
-
-  :global(:root[data-surface="popup"] [role="menu"].eris-card) {
-    background-color: var(--color-base-100);
-    backdrop-filter: none;
-  }
-</style>

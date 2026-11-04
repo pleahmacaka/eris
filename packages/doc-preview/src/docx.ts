@@ -1,4 +1,5 @@
 import { renderAsync } from "docx-preview"
+import { rem } from "./rem"
 
 const CLASS = "eris-docx"
 
@@ -13,7 +14,7 @@ const STYLE = `
 }
 .${CLASS}-wrapper > section.${CLASS} {
   margin-bottom: 0;
-  box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 12%, transparent), 0 0.25rem 1rem rgb(0 0 0 / 0.12);
+  box-shadow: 0 0 0 0.0625rem color-mix(in srgb, currentColor 12%, transparent), 0 0.25rem 1rem rgb(0 0 0 / 0.12);
 }
 .${CLASS}-thumb { height: 100%; overflow: hidden; }
 .${CLASS}-thumb .${CLASS}-wrapper { padding: 0; }
@@ -88,8 +89,8 @@ export const docxThumbnail = async (
     const scale = width / pageWidth
 
     wrapper.style.zoom = String(scale)
-    shell.style.width = `${width}px`
-    shell.style.height = `${pageHeight * scale}px`
+    shell.style.width = rem(width)
+    shell.style.height = rem(pageHeight * scale)
   }
 
   return () => host.replaceChildren()

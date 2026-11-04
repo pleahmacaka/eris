@@ -16,13 +16,10 @@
   })
 </script>
 
-<div class="qr size-44 shrink-0 rounded-box bg-white p-1.5" role="img" aria-label={label}>
+<div
+  class="size-44 shrink-0 rounded-box bg-white p-1.5 *:size-full"
+  role="img"
+  aria-label={label}
+>
   {@html svg}
 </div>
-
-<style>
-  .qr :global(svg) {
-    width: 100%;
-    height: 100%;
-  }
-</style>

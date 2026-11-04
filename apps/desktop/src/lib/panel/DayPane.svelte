@@ -194,7 +194,12 @@
       ondragend={reset}
     >
       {#if target === "before" || target === "after"}
-        <span class={["drop-line", target === "after" && "is-after"]}></span>
+        <span
+          class={[
+            "absolute inset-x-1 z-10 h-0.5 rounded-full bg-primary",
+            target === "after" ? "-bottom-0.25" : "-top-0.25",
+          ]}
+        ></span>
       {/if}
 
       <div
@@ -403,21 +408,3 @@
     {/if}
   </div>
 </section>
-
-<style>
-  .drop-line {
-    position: absolute;
-    left: 0.25rem;
-    right: 0.25rem;
-    top: -1px;
-    height: 2px;
-    border-radius: 9999px;
-    background: var(--color-primary);
-    z-index: 10;
-  }
-
-  .drop-line.is-after {
-    top: auto;
-    bottom: -1px;
-  }
-</style>

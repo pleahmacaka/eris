@@ -194,7 +194,22 @@
 
         <input
           type="range"
-          class="hue w-full"
+          class={[
+            "h-3 w-full appearance-none rounded-full outline-none",
+            "transition-opacity duration-120 disabled:opacity-35",
+            "bg-[linear-gradient(to_right,oklch(70%_0.15_0),oklch(70%_0.15_60),oklch(70%_0.15_120),oklch(70%_0.15_180),oklch(70%_0.15_240),oklch(70%_0.15_300),oklch(70%_0.15_360))]",
+            "[&::-webkit-slider-thumb]:size-4.5",
+            "[&::-webkit-slider-thumb]:appearance-none",
+            "[&::-webkit-slider-thumb]:cursor-pointer",
+            "[&::-webkit-slider-thumb]:rounded-full",
+            "[&::-webkit-slider-thumb]:border-2",
+            "[&::-webkit-slider-thumb]:border-base-100",
+            "[&::-webkit-slider-thumb]:bg-[oklch(70%_0.15_var(--hue))]",
+            "[&::-webkit-slider-thumb]:ring-1",
+            "[&::-webkit-slider-thumb]:ring-base-content/25",
+            "focus-visible:[&::-webkit-slider-thumb]:ring-3",
+            "focus-visible:[&::-webkit-slider-thumb]:ring-primary/50",
+          ]}
           min="0"
           max="360"
           step="1"
@@ -317,42 +332,3 @@
     {/if}
   </Section>
 {/if}
-
-<style>
-  .hue {
-    appearance: none;
-    height: 0.75rem;
-    border-radius: 9999px;
-    background: linear-gradient(
-      to right,
-      oklch(70% 0.15 0),
-      oklch(70% 0.15 60),
-      oklch(70% 0.15 120),
-      oklch(70% 0.15 180),
-      oklch(70% 0.15 240),
-      oklch(70% 0.15 300),
-      oklch(70% 0.15 360)
-    );
-    outline: none;
-    transition: opacity 120ms;
-  }
-
-  .hue:disabled {
-    opacity: 0.35;
-  }
-
-  .hue::-webkit-slider-thumb {
-    appearance: none;
-    width: 1.125rem;
-    height: 1.125rem;
-    border-radius: 50%;
-    background: oklch(70% 0.15 var(--hue));
-    border: 2px solid var(--color-base-100);
-    box-shadow: 0 0 0 1px color-mix(in oklch, var(--color-base-content) 25%, transparent);
-    cursor: pointer;
-  }
-
-  .hue:focus-visible::-webkit-slider-thumb {
-    box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-primary) 50%, transparent);
-  }
-</style>

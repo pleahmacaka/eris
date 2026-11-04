@@ -114,7 +114,7 @@
   <section class="min-h-0 grow overflow-y-auto px-8 py-2">
     {#if ready}
       {#key at}
-        <div class="step flex h-full flex-col">
+        <div class="flex h-full animate-rise flex-col">
           {@render step(steps[at].id)}
         </div>
       {/key}
@@ -171,16 +171,3 @@
     </div>
   </footer>
 </div>
-
-<style>
-  .step {
-    animation: rise 120ms ease-out;
-  }
-
-  @keyframes rise {
-    from {
-      opacity: 0;
-      transform: translateY(0.5rem);
-    }
-  }
-</style>

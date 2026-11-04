@@ -1,5 +1,6 @@
 @import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 @import "tailwindcss";
+@source "../app.html";
 @source "../../../../packages/ui/src";
 @plugin "daisyui" {
   themes: false;

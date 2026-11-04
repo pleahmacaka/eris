@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { rootRem } from "@eris/ui"
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
   import type { Explorer } from "../../store/explorer.svelte"
@@ -17,8 +18,8 @@
       "pointer-events-none fixed z-50 flex max-w-72 items-center gap-2 rounded-field",
       "border border-base-content/10 bg-base-100/95 px-2.5 py-1.5 text-sm shadow-lg",
     ]}
-    style:left="{hint.x + OFFSET}px"
-    style:top="{hint.y + OFFSET}px"
+    style:left="{(hint.x + OFFSET) / rootRem()}rem"
+    style:top="{(hint.y + OFFSET) / rootRem()}rem"
     role="status"
   >
     <span

@@ -24,7 +24,7 @@
   <div
     class={[
       "bg-base-content/10 transition-colors group-hover:bg-primary/50",
-      vertical ? "h-full w-px group-hover:w-0.5" : "h-px w-full group-hover:h-0.5",
+      vertical ? "h-full w-0.25 group-hover:w-0.5" : "h-0.25 w-full group-hover:h-0.5",
     ]}
   ></div>
 </div>

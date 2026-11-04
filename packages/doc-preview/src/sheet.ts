@@ -1,4 +1,5 @@
 import { type CellObject, read, utils, type WorkSheet } from "@e965/xlsx"
+import { rem } from "./rem"
 
 const CLASS = "eris-sheet"
 
@@ -21,7 +22,7 @@ const STYLE = `
   gap: 0.25rem;
   padding: 0.375rem;
   overflow-x: auto;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 0.0625rem solid var(--line);
   flex: none;
 }
 .${CLASS}-tabs button {
@@ -29,7 +30,7 @@ const STYLE = `
   font-size: 0.8125rem;
   color: inherit;
   background: transparent;
-  border: 1px solid transparent;
+  border: 0.0625rem solid transparent;
   border-radius: 0.375rem;
   padding: 0.25rem 0.625rem;
   white-space: nowrap;
@@ -49,8 +50,8 @@ const STYLE = `
   font-size: 0.8125rem;
 }
 .${CLASS} th, .${CLASS} td {
-  border-right: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  border-right: 0.0625rem solid var(--line);
+  border-bottom: 0.0625rem solid var(--line);
   padding: 0.125rem 0.5rem;
   max-width: 20rem;
   overflow: hidden;
@@ -72,7 +73,7 @@ const STYLE = `
   flex: none;
   padding: 0.375rem 0.75rem;
   font-size: 0.75rem;
-  border-top: 1px solid var(--line);
+  border-top: 0.0625rem solid var(--line);
   opacity: 0.7;
 }
 .${CLASS}-empty { padding: 1rem; font-size: 0.875rem; opacity: 0.55; }
@@ -255,7 +256,7 @@ export const sheetThumbnail = async (
   const [first] = visibleSheets(bytes, 20)
   const root = styled(`${CLASS} ${CLASS}-thumb`)
 
-  root.style.width = `${width}px`
+  root.style.width = rem(width)
 
   if (first) {
     root.append(buildTable(first.sheet, 20, 8).table)

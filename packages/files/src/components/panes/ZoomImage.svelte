@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { rootRem } from "@eris/ui"
+
   let { src, alt }: { src: string; alt: string } = $props()
 
   const MAX_PERCENT = 800
@@ -23,6 +25,12 @@
   const percent = $derived(Math.round((scale / natural()) * 100))
 
   const pannable = $derived(scale > 1)
+
+  const transform = $derived.by(() => {
+    const rem = rootRem()
+
+    return `translate(${x / rem}rem, ${y / rem}rem) scale(${scale})`
+  })
 
   const clamp = (offset: number, size: number, bounds: number) => {
     const room = Math.max(0, (size * scale - bounds) / 2)
@@ -113,7 +121,7 @@
     {alt}
     draggable="false"
     class="max-h-full max-w-full object-contain select-none"
-    style:transform="translate({x}px, {y}px) scale({scale})"
+    style:transform={transform}
   />
 
   {#if scale !== 1}

@@ -20,16 +20,16 @@
     {#if panel.detailOpen}
       {@const key = view.kind === "event" ? `${view.id}@${view.date}` : "new"}
       {#key key}
-        <div class="pane" data-ssgoi-transition="/event/{key}">
+        <div class="absolute inset-0 flex flex-col" data-ssgoi-transition="/event/{key}">
           <EventDetail {panel} />
         </div>
       {/key}
     {:else if view.kind === "notes"}
-      <div class="pane" data-ssgoi-transition="/notes">
+      <div class="absolute inset-0 flex flex-col" data-ssgoi-transition="/notes">
         <NotesPane items={panel.noteLive.items} back={panel.close} />
       </div>
     {:else}
-      <div class="pane" data-ssgoi-transition="/day">
+      <div class="absolute inset-0 flex flex-col" data-ssgoi-transition="/day">
         <DayPane {panel} />
       </div>
     {/if}
@@ -44,12 +44,3 @@
     />
   {/if}
 </aside>
-
-<style>
-  .pane {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-  }
-</style>

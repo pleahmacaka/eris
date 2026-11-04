@@ -131,8 +131,10 @@
   </section>
 
   <nav
-    class="grid grid-cols-4 border-t border-base-content/10"
-    style:padding-bottom="env(safe-area-inset-bottom)"
+    class={[
+      "grid grid-cols-4 border-t border-base-content/10",
+      "pb-[env(safe-area-inset-bottom)]",
+    ]}
   >
     {#each TABS as item (item.id)}
       <button

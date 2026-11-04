@@ -26,7 +26,7 @@
     updateDevice,
     withProfileDefaults,
   } from "@eris/settings"
-  import { Confirm, Logo, Segmented } from "@eris/ui"
+  import { Confirm, Logo, rootRem, Segmented } from "@eris/ui"
   import { t } from "svelte-i18n"
 
   const root = resolve("")
@@ -380,36 +380,39 @@
     reload()
   }
 
+  const rem = (px: number) => `${px / rootRem()}rem`
+
   const region = (bar: Bar) => {
     const [left, top, right, bottom] = bar.hole ?? []
+    const [l, r] = [rem(left), rem(right)]
 
     if (bar.edge === "top") {
       const band = bar.height + bar.reach
-      const reach = Math.max(band, bottom ?? band)
+      const [b, reach] = [rem(band), rem(Math.max(band, bottom ?? band))]
 
       return bar.hole
-        ? `polygon(0 0, 100% 0, 100% ${band}px, ${right}px ${band}px, ${right}px ${reach}px, ${left}px ${reach}px, ${left}px ${band}px, 0 ${band}px)`
-        : `inset(0 0 calc(100% - ${band}px) 0)`
+        ? `polygon(0 0, 100% 0, 100% ${b}, ${r} ${b}, ${r} ${reach}, ${l} ${reach}, ${l} ${b}, 0 ${b})`
+        : `inset(0 0 calc(100% - ${b}) 0)`
     }
 
     const band = MENU_SPACE - bar.reach
-    const reach = Math.min(band, top ?? band)
+    const [b, reach] = [rem(band), rem(Math.min(band, top ?? band))]
 
     return bar.hole
-      ? `polygon(0 ${band}px, ${left}px ${band}px, ${left}px ${reach}px, ${right}px ${reach}px, ${right}px ${band}px, 100% ${band}px, 100% 100%, 0 100%)`
-      : `inset(${band}px 0 0 0)`
+      ? `polygon(0 ${b}, ${l} ${b}, ${l} ${reach}, ${r} ${reach}, ${r} ${b}, 100% ${b}, 100% 100%, 0 100%)`
+      : `inset(${b} 0 0 0)`
   }
 
   const barStyle = (bar: Bar) => {
     const clip = region(bar)
     const margin = bar.floating ? FLOAT_MARGIN : 0
-    const left = bar.floating ? `calc(50% - ${bar.width / 2}px)` : "0"
+    const left = bar.floating ? `calc(50% - ${rem(bar.width / 2)})` : "0"
 
     return [
       `left: ${left}`,
-      `width: ${bar.floating ? `${bar.width}px` : "100%"}`,
-      `height: ${bar.height + MENU_SPACE}px`,
-      `${bar.edge}: ${margin}px`,
+      `width: ${bar.floating ? rem(bar.width) : "100%"}`,
+      `height: ${rem(bar.height + MENU_SPACE)}`,
+      `${bar.edge}: ${rem(margin)}`,
       `clip-path: ${clip}`,
     ].join("; ")
   }
@@ -541,22 +544,28 @@
       {/if}
     </nav>
 
-    <main class="desktop relative min-h-0 min-w-0 grow overflow-hidden">
+    <main
+      class={[
+        "relative min-h-0 min-w-0 grow overflow-hidden bg-base-300",
+        "bg-[image:radial-gradient(60%_50%_at_20%_10%,color-mix(in_oklch,var(--color-primary)_22%,transparent),transparent_70%),radial-gradient(50%_60%_at_90%_90%,color-mix(in_oklch,var(--color-secondary)_16%,transparent),transparent_70%),linear-gradient(to_right,color-mix(in_oklch,var(--color-base-content)_5%,transparent)_0.0625rem,transparent_0.0625rem),linear-gradient(to_bottom,color-mix(in_oklch,var(--color-base-content)_5%,transparent)_0.0625rem,transparent_0.0625rem)]",
+        "bg-size-[100%_100%,100%_100%,4rem_4rem,4rem_4rem]",
+      ]}
+    >
       {#key generation}
         {#if ready}
           <div
             class="absolute inset-x-0 flex overflow-auto p-4"
-            style:top="{insetTop}px"
-            style:bottom="{insetBottom}px"
+            style:top={rem(insetTop)}
+            style:bottom={rem(insetBottom)}
           >
             {#if selected}
               {#key selected.label}
                 <iframe
                   title={nameOf(selected.label)}
                   src="{root}{selected.url}"
-                  class="m-auto shrink-0"
-                  style:width="{width}px"
-                  style:height="{height}px"
+                  class="m-auto shrink-0 scheme-normal"
+                  style:width={rem(width)}
+                  style:height={rem(height)}
                 ></iframe>
               {/key}
             {:else}
@@ -567,14 +576,17 @@
           <iframe
             title={nameOf("topbar")}
             src="{root}/topbar"
-            class={["absolute z-10", !top.on && "invisible"]}
+            class={[
+              "absolute z-10 scheme-normal",
+              !top.on && "invisible",
+            ]}
             style={barStyle(top)}
           ></iframe>
 
           <iframe
             title={nameOf("taskbar")}
             src="{root}/taskbar"
-            class="absolute z-10"
+            class="absolute z-10 scheme-normal"
             style={barStyle(dock)}
           ></iframe>
         {/if}
@@ -598,8 +610,8 @@
       "relative flex shrink-0 flex-col bg-base-100",
       bottom ? "border-t border-base-content/10" : "border-l border-base-content/10",
     ]}
-    style:height={bottom ? `${logSize}px` : undefined}
-    style:width={bottom ? undefined : `${logSize}px`}
+    style:height={bottom ? rem(logSize) : undefined}
+    style:width={bottom ? undefined : rem(logSize)}
   >
     <div
       role="separator"
@@ -630,41 +642,3 @@
   cancel={$t("common.cancel")}
   onconfirm={apply}
 />
-
-<style>
-  .desktop {
-    background-color: var(--color-base-300);
-    background-image:
-      radial-gradient(
-        60% 50% at 20% 10%,
-        color-mix(in oklch, var(--color-primary) 22%, transparent),
-        transparent 70%
-      ),
-      radial-gradient(
-        50% 60% at 90% 90%,
-        color-mix(in oklch, var(--color-secondary) 16%, transparent),
-        transparent 70%
-      ),
-      linear-gradient(
-        to right,
-        color-mix(in oklch, var(--color-base-content) 5%, transparent) 0.0625rem,
-        transparent 0.0625rem
-      ),
-      linear-gradient(
-        to bottom,
-        color-mix(in oklch, var(--color-base-content) 5%, transparent) 0.0625rem,
-        transparent 0.0625rem
-      );
-    background-size:
-      100% 100%,
-      100% 100%,
-      4rem 4rem,
-      4rem 4rem;
-  }
-
-  iframe {
-    border: 0;
-    background: transparent;
-    color-scheme: normal;
-  }
-</style>

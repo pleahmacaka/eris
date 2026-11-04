@@ -88,13 +88,13 @@
 }
 
 .markdown :is(th, td) {
-  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent);
+  border: 0.0625rem solid color-mix(in oklch, var(--color-base-content) 15%, transparent);
   padding: 0.25em 0.6em;
 }
 
 .markdown hr {
   border: 0;
-  border-top: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent);
+  border-top: 0.0625rem solid color-mix(in oklch, var(--color-base-content) 15%, transparent);
   margin: 1em 0;
 }
 
@@ -108,7 +108,7 @@
   display: inline-flex;
   align-items: baseline;
   gap: 0.25em;
-  border-radius: 9999px;
+  border-radius: calc(infinity * 1rem);
   background: color-mix(in oklch, var(--color-primary) 15%, transparent);
   padding: 0 0.5em;
   font-size: 0.9em;

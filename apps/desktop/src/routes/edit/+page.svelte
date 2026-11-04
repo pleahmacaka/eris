@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { loadDevice, onDevice } from "@eris/settings"
+  import { rootRem } from "@eris/ui"
   import { getCurrentWindow } from "@tauri-apps/api/window"
   import { t } from "svelte-i18n"
   import EditOptions from "#lib/dock/EditOptions.svelte"
@@ -9,7 +10,7 @@
   import * as native from "#lib/native/index.js"
   import { listMonitors, type MonitorInfo } from "#lib/native/windows.js"
 
-  const GAP = 64
+  const GAP = 4
 
   document.documentElement.dataset.surface = "edit"
 
@@ -31,13 +32,13 @@
       return null
     }
 
-    const ratio = window.devicePixelRatio || 1
+    const scale = (window.devicePixelRatio || 1) * rootRem()
 
     return {
-      left: (target.x - origin.x) / ratio,
-      top: (target.y - origin.y) / ratio,
-      width: target.width / ratio,
-      height: target.height / ratio,
+      left: (target.x - origin.x) / scale,
+      top: (target.y - origin.y) / scale,
+      width: target.width / scale,
+      height: target.height / scale,
     }
   })
 
@@ -89,13 +90,15 @@
       role="dialog"
       aria-label={$t("edit.title")}
       tabindex="-1"
-      class="eris-card absolute flex w-[44rem] max-w-[calc(100vw-2rem)] flex-col gap-3 p-4"
-      style:left="{home.left + home.width / 2}px"
-      style:top={device.dockEdge === "top" ? undefined : `${home.top + GAP}px`}
+      class={[
+        "absolute -translate-x-1/2 w-176 max-w-[calc(100vw-2rem)]",
+        "eris-card flex flex-col gap-3 p-4",
+      ]}
+      style:left="{home.left + home.width / 2}rem"
+      style:top={device.dockEdge === "top" ? undefined : `${home.top + GAP}rem`}
       style:bottom={device.dockEdge === "top"
-        ? `${innerHeight - (home.top + home.height) + GAP}px`
+        ? `${innerHeight / rootRem() - (home.top + home.height) + GAP}rem`
         : undefined}
-      style:translate="-50% 0"
       onclick={e => e.stopPropagation()}
       onkeydown={e => e.stopPropagation()}
     >

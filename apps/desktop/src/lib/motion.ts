@@ -50,7 +50,7 @@ const crossfade = ({ from, to }: AnimationFactoryArgs<object>) => {
   const into = new WebAnimation({
     element: to,
     integrator: quick,
-    style: t => ({ opacity: t, transform: `translateY(${(1 - t) * 4}px)` }),
+    style: t => ({ opacity: t, transform: `translateY(${(1 - t) * 0.25}rem)` }),
     onComplete: () => {
       to.style.opacity = ""
       into.releaseFill()

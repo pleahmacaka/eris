@@ -11,11 +11,11 @@
 <div
   aria-hidden="true"
   class={[
-    "flex aspect-[16/10] flex-col overflow-hidden rounded-box border border-base-content/10 bg-base-100 shadow-lg",
+    "flex aspect-16/10 flex-col overflow-hidden rounded-box border border-base-content/10 bg-base-100 shadow-lg",
     className,
   ]}
 >
-  <div class="flex h-[8%] shrink-0 items-center gap-1 bg-base-200 px-2">
+  <div class="flex h-2/25 shrink-0 items-center gap-1 bg-base-200 px-2">
     <span class="h-1/2 w-1/5 rounded-sm bg-base-content/15"></span>
     <span class="grow"></span>
     <span class="size-1.5 rounded-full bg-base-content/25"></span>
@@ -23,7 +23,7 @@
     <span class="size-1.5 rounded-full bg-base-content/25"></span>
   </div>
 
-  <div class="flex h-[9%] shrink-0 items-center gap-1.5 px-2">
+  <div class="flex h-9/100 shrink-0 items-center gap-1.5 px-2">
     <span class="size-2 rounded-sm bg-base-content/25"></span>
     <span class="size-2 rounded-sm bg-base-content/25"></span>
     <span class="h-1/2 grow rounded-field bg-base-content/10"></span>
@@ -37,7 +37,7 @@
   </div>
 
   {#if !compact}
-    <div class="flex h-[8%] shrink-0 items-center gap-1.5 border-b border-base-content/10 px-2">
+    <div class="flex h-2/25 shrink-0 items-center gap-1.5 border-b border-base-content/10 px-2">
       {#each [0, 1, 2, 3, 4] as index (index)}
         <span class="size-2 rounded-sm bg-base-content/20"></span>
       {/each}

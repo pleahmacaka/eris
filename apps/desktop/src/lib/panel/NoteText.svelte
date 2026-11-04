@@ -1,14 +1,15 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import type { NoteLink } from "@eris/settings"
+  import { rootRem } from "@eris/ui"
   import { t } from "svelte-i18n"
   import { noteLinkable, notePreview, openUrl } from "#lib/native/index.js"
   import { openWithIntent } from "#lib/native/windows.js"
 
   const EXCERPT_LINES = 14
-  const GAP = 8
-  const WIDTH = 320
-  const HEIGHT = 260
+  const GAP = 0.5
+  const WIDTH = 20
+  const HEIGHT = 16.25
 
   type Hover = { path: string; title: string; left: number; top: number }
 
@@ -58,15 +59,19 @@
       return
     }
 
+    const rem = rootRem()
     const box = cite.getBoundingClientRect()
-    const below = box.bottom + GAP + HEIGHT <= innerHeight
+    const left = box.left / rem
+    const top = box.top / rem
+    const bottom = box.bottom / rem
+    const below = bottom + GAP + HEIGHT <= innerHeight / rem
 
     load(path)
     hover = {
       path,
       title: cite.textContent ?? path,
-      left: Math.max(GAP, Math.min(box.left, innerWidth - WIDTH - GAP)),
-      top: below ? box.bottom + GAP : Math.max(GAP, box.top - GAP - HEIGHT),
+      left: Math.max(GAP, Math.min(left, innerWidth / rem - WIDTH - GAP)),
+      top: below ? bottom + GAP : Math.max(GAP, top - GAP - HEIGHT),
     }
   }
 
@@ -112,7 +117,13 @@
 
 <div
   role="presentation"
-  class={["markdown text-sm text-base-content/85", !references && "cites-off"]}
+  class={[
+    "markdown text-sm text-base-content/85",
+    !references && [
+      "[&_a.note-cite]:pointer-events-none [&_a.note-cite]:p-0!",
+      "[&_a.note-cite]:bg-transparent! [&_a.note-cite]:text-inherit!",
+    ],
+  ]}
   {onclick}
   {onpointerover}
   {onpointerout}
@@ -125,11 +136,12 @@
 
   <section
     role="tooltip"
-    class="eris-card pointer-events-none fixed z-50 flex flex-col gap-2 overflow-hidden p-3"
-    style:left="{hover.left}px"
-    style:top="{hover.top}px"
-    style:width="{WIDTH}px"
-    style:max-height="{HEIGHT}px"
+    class={[
+      "eris-card pointer-events-none fixed z-50 flex w-80 max-h-65 flex-col",
+      "gap-2 overflow-hidden p-3",
+    ]}
+    style:left="{hover.left}rem"
+    style:top="{hover.top}rem"
   >
     <header class="flex items-center gap-2">
       <Icon icon="lucide:file-text" class="size-4 shrink-0 text-primary" />
@@ -148,12 +160,3 @@
     {/if}
   </section>
 {/if}
-
-<style>
-  .cites-off :global(a.note-cite) {
-    pointer-events: none;
-    background: none;
-    padding: 0;
-    color: inherit;
-  }
-</style>

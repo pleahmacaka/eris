@@ -117,7 +117,7 @@
 {#if !panel.calendarOn}
   <main
     {@attach morph.card}
-    class="panel-surface absolute inset-0 flex min-h-0 flex-col"
+    class="panel-surface flex min-h-0 flex-col"
   >
     <header class="flex items-center justify-end px-3 py-2">
       <button
@@ -146,14 +146,17 @@
 {:else}
   <div
     class={[
-      "compact absolute flex gap-3 select-none",
+      "absolute flex gap-3 select-none [&_.siri-aura]:mask-none",
+      "transition-opacity ease-[ease-out]",
       panel.anchorTop ? "top-0 items-start" : "bottom-0 items-end",
       position === "left"
         ? "left-0"
         : position === "center"
           ? "left-1/2 -translate-x-1/2"
           : "right-0",
-      morph.expanded && "folded",
+      morph.expanded
+        ? "pointer-events-none opacity-0 duration-140"
+        : "duration-200 delay-160",
     ]}
     inert={morph.expanded}
   >
@@ -161,7 +164,16 @@
   </div>
 
   <div
-    class={["full absolute inset-0 select-none", !morph.expanded && "folded"]}
+    class={[
+      "absolute inset-0 select-none [&_.siri-aura]:mask-none",
+      "transition-[clip-path,opacity]",
+      morph.expanded
+        ? "duration-[380ms,120ms] ease-[cubic-bezier(0.2,0.9,0.1,1),ease-out]"
+        : [
+            "pointer-events-none opacity-0 duration-[380ms,140ms]",
+            "ease-[cubic-bezier(0.2,0.9,0.1,1),ease-in] delay-[0ms,240ms]",
+          ],
+    ]}
     style:clip-path={morph.clipPath}
     inert={!morph.expanded}
     ontransitionend={morph.settle}
@@ -169,7 +181,8 @@
     <div
       {@attach morph.fullCard}
       class={[
-        "absolute inset-x-0 grid h-[38rem] max-h-full grid-cols-[minmax(0,1fr)_22rem] gap-3",
+        "absolute inset-x-0 h-152 max-h-full",
+        "grid grid-cols-[minmax(0,1fr)_22rem] gap-3",
         panel.anchorTop ? "top-0" : "bottom-0",
       ]}
     >
@@ -187,33 +200,3 @@
 
   </div>
 {/if}
-
-<style>
-  :global(.siri-aura) {
-    mask-image: none;
-  }
-
-  .compact {
-    transition: opacity 200ms ease-out 160ms;
-  }
-
-  .compact:global(.folded) {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 140ms ease-out;
-  }
-
-  .full {
-    transition:
-      clip-path 380ms cubic-bezier(0.2, 0.9, 0.1, 1),
-      opacity 120ms ease-out;
-  }
-
-  .full:global(.folded) {
-    opacity: 0;
-    pointer-events: none;
-    transition:
-      clip-path 380ms cubic-bezier(0.2, 0.9, 0.1, 1),
-      opacity 140ms ease-in 240ms;
-  }
-</style>

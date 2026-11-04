@@ -1,5 +1,6 @@
 import "@fontsource-variable/jetbrains-mono"
 import nerdSymbols from "@azurity/pure-nerd-font/PureNerdFont.woff2?url"
+import { rootRem } from "@eris/ui"
 import pretendard from "pretendard/dist/web/variable/woff2/PretendardVariable.woff2?url"
 
 export const DEFAULT_FONT = "JetBrains Mono Variable"
@@ -43,7 +44,9 @@ export const loadFont = async (family: string, size: number) => {
   fallbacks ??= register()
 
   await Promise.all([fallbacks, loadFaces(family.trim())])
-  await document.fonts.load(`${size}px ${fontStack(family)}`).catch(() => [])
+  await document.fonts
+    .load(`${size / rootRem()}rem ${fontStack(family)}`)
+    .catch(() => [])
 }
 
 export const prepare = (family: string, size: number) => {

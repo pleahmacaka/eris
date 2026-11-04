@@ -1,4 +1,5 @@
 import JSZip from "jszip"
+import { rem } from "./rem"
 
 const CLASS = "eris-slides"
 
@@ -36,7 +37,7 @@ const STYLE = `
   font: inherit;
 }
 .${CLASS}-card {
-  border: 1px solid var(--line);
+  border: 0.0625rem solid var(--line);
   border-radius: 0.5rem;
   padding: 1rem 1.25rem;
   display: flex;
@@ -282,8 +283,8 @@ export const slidesThumbnail = async (
   const root = mount(host, `${CLASS} ${CLASS}-thumb`)
   const urls: string[] = []
 
-  root.style.width = `${width}px`
-  root.style.setProperty("--thumb-font", `${width / 28}px`)
+  root.style.width = rem(width)
+  root.style.setProperty("--thumb-font", rem(width / 28))
 
   if (slides[0]) {
     const first = card(slides[0], 0, urls)

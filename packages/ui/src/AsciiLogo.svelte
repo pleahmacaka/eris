@@ -143,5 +143,9 @@
 </script>
 
 <div bind:clientWidth={width} class={className} role="img" aria-label="Eris">
-  <canvas bind:this={canvas} class="block w-full" style:height="{height}px"></canvas>
+  <canvas
+    bind:this={canvas}
+    class="block w-full"
+    style:aspect-ratio="{cols} / {rows * CELL_ASPECT}"
+  ></canvas>
 </div>

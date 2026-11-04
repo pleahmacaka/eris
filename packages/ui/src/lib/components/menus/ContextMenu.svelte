@@ -2,6 +2,7 @@
   import Icon from "@iconify/svelte"
   import { onDestroy } from "svelte"
   import { t } from "svelte-i18n"
+  import { rootRem } from "../../layout/pointer"
   import { isAction, isGroup, type MenuAction, type MenuItem } from "../../menus/menu"
 
   type Props = {
@@ -192,9 +193,9 @@
           : "absolute top-full mt-2",
       !floating && (align === "end" ? "right-0" : "left-0"),
     ]}
-    style:width={dense ? undefined : `${width}px`}
-    style:left={floating ? `${left}px` : undefined}
-    style:top={floating ? `${top}px` : undefined}
+    style:width={dense ? undefined : `${width / rootRem()}rem`}
+    style:left={floating ? `${left / rootRem()}rem` : undefined}
+    style:top={floating ? `${top / rootRem()}rem` : undefined}
   >
     {#snippet action(item: MenuAction, active: boolean, onhover: () => void)}
       <li role="none" class={[item.disabled && "menu-disabled"]}>

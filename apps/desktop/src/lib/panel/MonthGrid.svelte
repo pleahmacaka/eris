@@ -2,6 +2,7 @@
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
   import { currentLocale } from "@eris/i18n"
+  import { rootRem } from "@eris/ui"
   import { eventSpan, eventTime, longDay } from "#lib/calendar/index.js"
   import {
     type CalendarEvent,
@@ -16,9 +17,9 @@
 
   const CHIPS = 3
   const PREVIEW_DELAY = 350
-  const PREVIEW_WIDTH = 256
-  const PREVIEW_HEIGHT = 160
-  const PREVIEW_GAP = 4
+  const PREVIEW_WIDTH = 16
+  const PREVIEW_HEIGHT = 10
+  const PREVIEW_GAP = 0.25
   const NOTE_LINES = 3
 
   type Preview = { event: CalendarEvent; left: number; top: number }
@@ -37,17 +38,22 @@
 
     clearTimeout(previewTimer)
     previewTimer = setTimeout(() => {
-      const below = box.bottom + PREVIEW_GAP + PREVIEW_HEIGHT <= window.innerHeight
+      const rem = rootRem()
+      const left = box.left / rem
+      const top = box.top / rem
+      const bottom = box.bottom / rem
+      const below =
+        bottom + PREVIEW_GAP + PREVIEW_HEIGHT <= window.innerHeight / rem
 
       preview = {
         event,
         left: Math.max(
           PREVIEW_GAP,
-          Math.min(box.left, window.innerWidth - PREVIEW_WIDTH - PREVIEW_GAP),
+          Math.min(left, window.innerWidth / rem - PREVIEW_WIDTH - PREVIEW_GAP),
         ),
         top: below
-          ? box.bottom + PREVIEW_GAP
-          : Math.max(PREVIEW_GAP, box.top - PREVIEW_GAP - PREVIEW_HEIGHT),
+          ? bottom + PREVIEW_GAP
+          : Math.max(PREVIEW_GAP, top - PREVIEW_GAP - PREVIEW_HEIGHT),
       }
     }, PREVIEW_DELAY)
   }
@@ -74,7 +80,7 @@
   )
 
   const columns = $derived(
-    weekNumbers ? "2rem repeat(7, minmax(0, 1fr))" : undefined,
+    weekNumbers ? "grid-cols-[2rem_repeat(7,minmax(0,1fr))]" : "grid-cols-7",
   )
 
   const isoWeek = (day: Date) => {
@@ -99,7 +105,7 @@
   }
 </script>
 
-<div class="grid grid-cols-7 gap-1" style:grid-template-columns={columns}>
+<div class={["grid gap-1", columns]}>
   {#if weekNumbers}
     <div></div>
   {/if}
@@ -117,10 +123,7 @@
 
 <svelte:window onpointerup={panel.endDrag} onblur={panel.endDrag} />
 
-<div
-  class="grid min-h-0 flex-1 grid-cols-7 grid-rows-6 gap-1 select-none"
-  style:grid-template-columns={columns}
->
+<div class={["grid min-h-0 flex-1 grid-rows-6 gap-1 select-none", columns]}>
   {#each panel.weeks as week (dateKey(week[0]))}
     {#if weekNumbers}
       <div class="flex justify-center p-1">
@@ -245,8 +248,8 @@
       "pointer-events-none fixed z-50 flex w-64 flex-col gap-1.5 rounded-box",
       "border border-base-content/10 bg-base-100 p-3 shadow-lg",
     ]}
-    style:left="{preview.left}px"
-    style:top="{preview.top}px"
+    style:left="{preview.left}rem"
+    style:top="{preview.top}rem"
   >
     <div class="flex min-w-0 items-center gap-2">
       <span class={["size-2 shrink-0 rounded-full", meta.chip]}></span>

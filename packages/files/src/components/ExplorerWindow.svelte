@@ -299,7 +299,12 @@
 
 <svelte:window {onkeydown} {onkeydowncapture} {onmousedown} {onmouseup} />
 
-<div class="flex h-full min-h-0 flex-col select-none">
+<div
+  class={[
+    "flex h-full min-h-0 flex-col select-none",
+    "[:root:has(&)_.toast.toast-bottom]:bottom-9",
+  ]}
+>
   <TitleBar {explorer} />
 
   <div class="flex min-h-0 grow flex-col bg-base-100/70">
@@ -359,9 +364,3 @@
 <PropertiesDialog />
 
 <ShareHost {explorer} />
-
-<style>
-  :global(.toast.toast-bottom) {
-    bottom: calc(var(--spacing) * 9);
-  }
-</style>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
-  import { type MenuItem, openContextMenu } from "@eris/ui"
+  import { type MenuItem, openContextMenu, rootRem } from "@eris/ui"
   import { t } from "svelte-i18n"
   import {
     drag,
@@ -453,7 +453,7 @@
         "pointer-events-none absolute top-1 bottom-0 z-10 flex w-2 -translate-x-1/2",
         "flex-col items-center transition-all duration-150 ease-out",
       ]}
-      style:left="{line}px"
+      style:left="{line / rootRem()}rem"
     >
       <span class="size-2 shrink-0 rounded-full bg-primary shadow-md shadow-primary/60"></span>
       <span class="w-0.5 grow rounded-full bg-primary shadow-md shadow-primary/60"></span>

@@ -1,3 +1,4 @@
+import { rootRem } from "@eris/ui"
 import { flushSync } from "svelte"
 import type { Attachment } from "svelte/attachments"
 import * as native from "#lib/native/index.js"
@@ -85,9 +86,16 @@ export class Morph {
       return FULL_CLIP
     }
 
-    const [left, top, right, bottom] = rectOf(this.month)
+    const rem = rootRem()
+    const [left, top, right, bottom] = rectOf(this.month).map(v => v / rem)
+    const inset = [
+      top,
+      innerWidth / rem - right,
+      innerHeight / rem - bottom,
+      left,
+    ]
 
-    return `inset(${top}px ${innerWidth - right}px ${innerHeight - bottom}px ${left}px round var(--radius-box))`
+    return `inset(${inset.map(v => `${v}rem`).join(" ")} round var(--radius-box))`
   }
 
   // the window region also clips painting, so it must cover both layouts while one morphs into the other

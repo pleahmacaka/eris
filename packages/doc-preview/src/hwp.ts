@@ -1,5 +1,6 @@
 import init, { HwpDocument } from "@rhwp/core"
 import wasmUrl from "@rhwp/core/rhwp_bg.wasm?url"
+import { rem } from "./rem"
 
 let ready: Promise<unknown> | undefined
 
@@ -32,10 +33,10 @@ const pageImage = (svg: string) => {
 const failedPage = () => {
   const box = document.createElement("div")
 
-  box.style.width = "794px"
+  box.style.width = rem(794)
   box.style.maxWidth = "100%"
   box.style.aspectRatio = "210 / 297"
-  box.style.border = "1px dashed currentColor"
+  box.style.border = "0.0625rem dashed currentColor"
   box.style.opacity = "0.4"
 
   return box
@@ -106,7 +107,7 @@ export const hwpThumbnail = async (
   try {
     const img = pageImage(doc.renderPageSvg(0))
 
-    img.style.width = `${width}px`
+    img.style.width = rem(width)
     urls.push(img.src)
     host.replaceChildren(img)
   } finally {

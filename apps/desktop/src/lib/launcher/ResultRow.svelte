@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
+  import { rootRem } from "@eris/ui"
   import { t } from "svelte-i18n"
   import { type Launcher, MENU_WIDTH } from "./launcher.svelte"
   import { kindLabel, type Result } from "@eris/launcher-core"
@@ -89,7 +90,7 @@
 
       const rect = e.currentTarget.getBoundingClientRect()
 
-      launcher.openMenu(index, rect.right - MENU_WIDTH, rect.bottom + 4)
+      launcher.openMenu(index, rect.right - MENU_WIDTH * rootRem(), rect.bottom + 4)
     }}
   >
     <Icon icon="lucide:ellipsis" class="size-4" />

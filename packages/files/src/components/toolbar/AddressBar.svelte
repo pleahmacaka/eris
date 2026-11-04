@@ -199,7 +199,20 @@
   aria-busy={tab.loading || tab.searching}
 >
   {#if tab.loading || tab.searching}
-    <span class="busy pointer-events-none absolute inset-y-0 left-0 -z-10 rounded-field bg-primary/15"></span>
+    <span
+      class={[
+        "pointer-events-none absolute inset-0 -z-10",
+        "transition-opacity delay-200 duration-160 ease-out starting:opacity-0",
+      ]}
+    >
+      <span
+        class={[
+          "block h-full w-23/25 rounded-field bg-primary/15",
+          "transition-all delay-200 duration-12000 starting:w-0",
+          "ease-[cubic-bezier(0.1,0.7,0.3,1)]",
+        ]}
+      ></span>
+    </span>
   {/if}
 
   {#if cloning}
@@ -308,27 +321,3 @@
     ></button>
   {/if}
 </div>
-
-<style>
-  .busy {
-    animation:
-      busy-show 160ms ease-out 200ms both,
-      busy-fill 12s cubic-bezier(0.1, 0.7, 0.3, 1) 200ms both;
-  }
-
-  @keyframes busy-show {
-    from {
-      opacity: 0;
-    }
-  }
-
-  @keyframes busy-fill {
-    from {
-      width: 0%;
-    }
-
-    to {
-      width: 92%;
-    }
-  }
-</style>
