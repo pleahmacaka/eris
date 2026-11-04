@@ -6,10 +6,19 @@
 - Run apps through the root runner, never `tauri dev` directly:
   - `bun run dev` (desktop, windowed)
   - `bun run dev <desktop|files|terminal> --headless`
-- Prefer `--headless` so the released Eris keeps the dock/appbar, notification host, keyboard hook, clipboard watcher and launcher shortcut. Headless runs real native apps and WebViews without visible windows; pages and Tauri commands still execute.
+- Windowed desktop dev takes the dock/appbar, notification host, keyboard hook, clipboard watcher and launcher shortcut from a running released or dev-channel Eris, which hides its dock and takes them back about a second after dev exits or crashes.
+- Prefer `--headless`: it never takes those from released Eris. Headless runs real native apps and WebViews without visible windows; pages and Tauri commands still execute.
 - Dev builds use `.dev` identifiers, separate storage and credentials, and `eris-dev` / `eris-files-dev` / `eris-terminal-dev` deep links. Released Eris can stay running.
 - `--release` and custom build profiles are rejected; the native guards need debug assertions.
 - Stop the dev process when finished.
+
+## Dev channel
+
+- Dev-channel builds are local only. `bun run build:dev` builds the desktop, Files and Terminal NSIS setups with `src-tauri/tauri.dev.conf.json` and `ERIS_DEV_CHANNEL=1`. Nothing publishes them.
+- `bun run install:dev [desktop|files|terminal] [--force]` builds the dev-channel NSIS setup for each app, all three by default, and installs it silently. It skips an app whose sources, workspace dependencies and lockfiles match its last install (stamps in `target/dev-channel-stamps`); `--force` rebuilds anyway. All three share `target/` and build without LTO, so dev-channel binaries are larger and slower than released ones.
+- `ERIS_DEV_CHANNEL` selects `eris_window_kit::CHANNEL`, which names plugin data, credentials and `-dev-channel` deep links, so the dev channel shares nothing with `bun run dev` or stable. It never registers as the default file manager.
+- The overlay sets `.dev-channel` identifiers, `Eris Dev` product names, `-dev` binaries and orange icons from `apps/<app>/app-icon.dev.svg`. It empties the updater endpoints and skips updater artifacts, so a dev build updates only by installing a newer local build.
+- Regenerate icons with `bun x tauri icon app-icon.dev.svg -o src-tauri/icons/dev` inside the app, then keep only the files the overlay lists.
 
 ## Debugging through CDP
 
