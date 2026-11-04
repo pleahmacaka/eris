@@ -307,6 +307,42 @@
           "markdownDescription": "Denies the attach command without any pre-configured scope."
         },
         {
+          "description": "Enables the claude_chat command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-claude-chat",
+          "markdownDescription": "Enables the claude_chat command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the claude_chat command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-claude-chat",
+          "markdownDescription": "Denies the claude_chat command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the claude_commands command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-claude-commands",
+          "markdownDescription": "Enables the claude_commands command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the claude_commands command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-claude-commands",
+          "markdownDescription": "Denies the claude_commands command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the claude_transcript command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-claude-transcript",
+          "markdownDescription": "Enables the claude_transcript command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the claude_transcript command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-claude-transcript",
+          "markdownDescription": "Denies the claude_transcript command without any pre-configured scope."
+        },
+        {
           "description": "Enables the detach command without any pre-configured scope.",
           "type": "string",
           "const": "allow-detach",
@@ -451,10 +487,10 @@
           "markdownDescription": "Denies the write command without any pre-configured scope."
         },
         {
-          "description": "Run shells in pseudo consoles and stream their output.\n#### This default permission set includes:\n\n- `allow-spawn`\n- `allow-write`\n- `allow-resize`\n- `allow-kill`\n- `allow-attach`\n- `allow-detach`\n- `allow-shells`\n- `allow-serial-ports`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-register-host`\n- `allow-tear-off`\n- `allow-drag-hover`",
+          "description": "Run shells in pseudo consoles, stream their output and follow Claude Code sessions inside them.\n#### This default permission set includes:\n\n- `allow-spawn`\n- `allow-write`\n- `allow-resize`\n- `allow-kill`\n- `allow-attach`\n- `allow-detach`\n- `allow-claude-chat`\n- `allow-claude-transcript`\n- `allow-claude-commands`\n- `allow-shells`\n- `allow-serial-ports`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-register-host`\n- `allow-tear-off`\n- `allow-drag-hover`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Run shells in pseudo consoles and stream their output.\n#### This default permission set includes:\n\n- `allow-spawn`\n- `allow-write`\n- `allow-resize`\n- `allow-kill`\n- `allow-attach`\n- `allow-detach`\n- `allow-shells`\n- `allow-serial-ports`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-register-host`\n- `allow-tear-off`\n- `allow-drag-hover`"
+          "markdownDescription": "Run shells in pseudo consoles, stream their output and follow Claude Code sessions inside them.\n#### This default permission set includes:\n\n- `allow-spawn`\n- `allow-write`\n- `allow-resize`\n- `allow-kill`\n- `allow-attach`\n- `allow-detach`\n- `allow-claude-chat`\n- `allow-claude-transcript`\n- `allow-claude-commands`\n- `allow-shells`\n- `allow-serial-ports`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-register-host`\n- `allow-tear-off`\n- `allow-drag-hover`"
         }
       ]
     }

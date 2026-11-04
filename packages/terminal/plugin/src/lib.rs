@@ -1,6 +1,7 @@
 use tauri::plugin::{Builder, TauriPlugin};
 use tauri::{Manager, Runtime, WindowEvent};
 
+mod claude;
 mod pty;
 mod serial;
 mod shells;
@@ -19,6 +20,9 @@ pub fn init<R: Runtime>(route: &str) -> TauriPlugin<R> {
             pty::kill,
             pty::attach,
             pty::detach,
+            claude::claude_chat,
+            claude::claude_transcript,
+            claude::claude_commands,
             shells::shells,
             serial::serial_ports,
             windows::take_intent,

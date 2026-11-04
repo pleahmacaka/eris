@@ -1,5 +1,5 @@
 [default]
-description = "Run shells in pseudo consoles and stream their output."
+description = "Run shells in pseudo consoles, stream their output and follow Claude Code sessions inside them."
 permissions = [
   "allow-spawn",
   "allow-write",
@@ -7,6 +7,9 @@ permissions = [
   "allow-kill",
   "allow-attach",
   "allow-detach",
+  "allow-claude-chat",
+  "allow-claude-transcript",
+  "allow-claude-commands",
   "allow-shells",
   "allow-serial-ports",
   "allow-take-intent",

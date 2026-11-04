@@ -2,6 +2,7 @@
   import { readText, writeText } from "@tauri-apps/plugin-clipboard-manager"
   import type { FitAddon, Terminal as Screen } from "ghostty-web"
   import { untrack } from "svelte"
+  import { conpty, escapeKey } from "./escape"
   import { type Attachment, attach, resize, spawn, write } from "./pty"
   import { DEFAULT_FONT, fontStack, loadFont, prepare } from "./ready"
   import { terminalTheme } from "./theme"
@@ -19,6 +20,7 @@
     onpty?: (id: number) => void
     ontitle?: (title: string) => void
     oninput?: (data: string) => void
+    onscreen?: (text: string) => void
     class?: string
   }
 
@@ -35,8 +37,35 @@
     onpty,
     ontitle,
     oninput,
+    onscreen,
     class: className,
   }: Props = $props()
+
+  const SCREEN_MS = 150
+
+  let screenTimer: ReturnType<typeof setTimeout> | undefined
+
+  const readScreen = (screen: Screen) => {
+    const buffer = screen.buffer.active
+    const lines: string[] = []
+
+    for (let y = Math.max(0, buffer.length - screen.rows); y < buffer.length; y++) {
+      lines.push(buffer.getLine(y)?.translateToString(true) ?? "")
+    }
+
+    return lines.join("\n")
+  }
+
+  const reportScreen = (screen: Screen) => {
+    if (!onscreen || screenTimer) {
+      return
+    }
+
+    screenTimer = setTimeout(() => {
+      screenTimer = undefined
+      onscreen?.(readScreen(screen))
+    }, SCREEN_MS)
+  }
 
   let host = $state<HTMLDivElement>()
   let term = $state.raw<Screen>()
@@ -57,12 +86,6 @@
     navigator.userAgent.includes("Windows") && !shell.startsWith("wsl:")
       ? "\x1bv"
       : "\x16"
-
-  // ConPTY reads a lone ESC byte as the start of a sequence and merges it with the next key, so Escape goes as the win32-input-mode record Windows Terminal sends
-  const ESCAPE_RECORD = "\x1b[27;1;27;1;0;1_\x1b[27;1;27;0;0;1_"
-
-  const conpty = () =>
-    navigator.userAgent.includes("Windows") && !shell.startsWith("serial:")
 
   const paste = async () => {
     const text = await readText().catch(() => "")
@@ -88,8 +111,8 @@
     const ctrl = e.ctrlKey && !e.altKey && !e.metaKey
     const bare = !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey
 
-    if (e.key === "Escape" && bare && conpty()) {
-      term?.input(ESCAPE_RECORD, true)
+    if (e.key === "Escape" && bare && conpty(shell)) {
+      term?.input(escapeKey(shell), true)
 
       return true
     }
@@ -172,7 +195,12 @@
       term = screen
 
       const live = {
-        onData: (data: Uint8Array) => !disposed && screen.write(data),
+        onData: (data: Uint8Array) => {
+          if (!disposed) {
+            screen.write(data)
+            reportScreen(screen)
+          }
+        },
         onExit: (code: number) => !disposed && onexit?.(code),
       }
 

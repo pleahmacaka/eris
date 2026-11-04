@@ -1,11 +1,14 @@
 <script lang="ts">
   import Icon from "@iconify/svelte"
   import { t } from "svelte-i18n"
+  import { SvelteSet } from "svelte/reactivity"
   import { fade } from "svelte/transition"
   import { write } from "../pty"
+  import ClaudeSplit from "../claude/ClaudeSplit.svelte"
   import Terminal from "../Terminal.svelte"
   import { drag, onTabDrop } from "./drag.svelte"
   import DragGhost from "./DragGhost.svelte"
+  import { prefs } from "./prefs.svelte"
   import {
     type Divider,
     isSplit,
@@ -42,6 +45,15 @@
 
   let area = $state<HTMLElement>()
   let near = $state(false)
+
+  const claudePanes = new SvelteSet<number>()
+
+  const terminalPanes = new SvelteSet<number>()
+
+  const toggleView = (pane: number) =>
+    terminalPanes.has(pane)
+      ? terminalPanes.delete(pane)
+      : terminalPanes.add(pane)
 
   const current = $derived(session.tabs[session.active])
 
@@ -222,20 +234,35 @@
       style:height="{item.rect.h * 100}%"
       onpointerdowncapture={() => (item.tab.focus = item.pane.id)}
     >
-      <Terminal
-        shell={item.pane.shell}
-        cwd={item.pane.cwd}
+      <ClaudeSplit
         pty={item.pane.pty}
-        run={item.pane.run}
-        {fontFamily}
-        {fontSize}
-        active={visible && shown && focused}
+        shell={item.pane.shell}
         shown={visible && shown}
-        ontitle={title => (item.pane.title = title || item.pane.title)}
-        oninput={data => share(item.tab, item.pane.id, data)}
-        onexit={() => closePane(item.pane.id)}
-        onpty={id => bindPty(item.pane.id, id)}
-      />
+        active={visible && shown && focused}
+        enabled={prefs.claudeChat && !terminalPanes.has(item.pane.id)}
+        onfound={found =>
+          found
+            ? claudePanes.add(item.pane.id)
+            : claudePanes.delete(item.pane.id)}
+      >
+        {#snippet children(chatting, see)}
+          <Terminal
+            shell={item.pane.shell}
+            cwd={item.pane.cwd}
+            pty={item.pane.pty}
+            run={item.pane.run}
+            {fontFamily}
+            {fontSize}
+            active={visible && shown && focused && !chatting}
+            shown={visible && shown && !chatting}
+            ontitle={title => (item.pane.title = title || item.pane.title)}
+            oninput={data => share(item.tab, item.pane.id, data)}
+            onexit={() => closePane(item.pane.id)}
+            onpty={id => bindPty(item.pane.id, id)}
+            onscreen={see}
+          />
+        {/snippet}
+      </ClaudeSplit>
     </div>
   {/each}
 
@@ -266,7 +293,7 @@
       <span
         class={[
           "bg-base-content/10 transition-colors group-hover:bg-primary/60",
-          row ? "h-full w-px" : "h-px w-full",
+          row ? "h-full w-0.25" : "h-0.25 w-full",
         ]}
       ></span>
     </div>
@@ -310,22 +337,48 @@
   {/if}
 
   {#if current}
-    <button
-      type="button"
+    {@const claude = prefs.claudeChat && claudePanes.has(current.focus)}
+    {@const chat = !terminalPanes.has(current.focus)}
+
+    <div
       class={[
-        "btn btn-circle btn-sm absolute top-2 right-3 z-30 transition-opacity duration-150",
-        current.sync ? "btn-warning" : "btn-ghost bg-base-200/80",
+        "absolute top-2 right-3 z-30 flex items-center gap-1.5",
+        "transition-opacity duration-150",
         near
-          ? "opacity-50 hover:opacity-100 focus-visible:opacity-100"
-          : "pointer-events-none opacity-0 focus-visible:pointer-events-auto focus-visible:opacity-100",
+          ? "opacity-50 hover:opacity-100 focus-within:opacity-100"
+          : "pointer-events-none opacity-0 focus-within:pointer-events-auto focus-within:opacity-100",
       ]}
-      aria-pressed={current.sync}
-      aria-label={$t("terminal.panes.sync")}
-      title={$t("terminal.panes.sync")}
-      onclick={() => (current.sync = !current.sync)}
     >
-      <Icon icon="lucide:radio-tower" class="size-4" />
-    </button>
+      {#if claude}
+        <button
+          type="button"
+          class={[
+            "btn btn-circle btn-sm",
+            chat ? "btn-primary" : "btn-ghost bg-base-200/80",
+          ]}
+          aria-pressed={chat}
+          aria-label={$t("terminal.claude.chatView")}
+          title={$t("terminal.claude.chatView")}
+          onclick={() => toggleView(current.focus)}
+        >
+          <Icon icon="lucide:message-square-text" class="size-4" />
+        </button>
+      {/if}
+
+      <button
+        type="button"
+        class={[
+          "btn btn-circle btn-sm",
+          current.sync ? "btn-warning" : "btn-ghost bg-base-200/80",
+        ]}
+        aria-pressed={current.sync}
+        aria-label={$t("terminal.panes.sync")}
+        title={$t("terminal.panes.sync")}
+        onclick={() => (current.sync = !current.sync)}
+      >
+        <Icon icon="lucide:radio-tower" class="size-4" />
+      </button>
+    </div>
   {/if}
 </main>
 

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { LazyDesktopAccount } from "@eris/auth"
   import {
     Confirm,
     type PrefsPage,
@@ -9,7 +8,7 @@
     StandaloneTheme,
   } from "@eris/ui"
   import { getVersion } from "@tauri-apps/api/app"
-  import { locale, t } from "svelte-i18n"
+  import { t } from "svelte-i18n"
   import { prefs, resetPrefs } from "./prefs.svelte"
   import { defaultShell, session } from "./tabs.svelte"
 
@@ -20,7 +19,6 @@
   const PAGES: [string, string][] = [
     ["general", "lucide:square-terminal"],
     ["appearance", "lucide:palette"],
-    ["account", "lucide:circle-user-round"],
     ["about", "lucide:info"],
   ]
 
@@ -115,6 +113,18 @@
               bind:value={prefs.fontSize}
             />
           </Row>
+
+          <Row
+            label={$t("terminal.settings.claudeChat")}
+            hint={$t("terminal.settings.claudeChatHint")}
+          >
+            <input
+              type="checkbox"
+              class="toggle toggle-primary"
+              aria-label={$t("terminal.settings.claudeChat")}
+              bind:checked={prefs.claudeChat}
+            />
+          </Row>
         </Section>
       {:else if page === "appearance"}
         {#if standalone}
@@ -126,12 +136,6 @@
             </Row>
           </Section>
         {/if}
-      {:else if page === "account"}
-        <Section title={$t("terminal.settings.account")}>
-          <div class="px-4 py-4">
-            <LazyDesktopAccount lang={$locale} />
-          </div>
-        </Section>
       {:else}
         <Section title="Eris Terminal">
           <Row label={$t("terminal.settings.version")} value={version}>

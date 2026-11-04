@@ -8,6 +8,7 @@ export type Prefs = {
   fontFamily: string
   fontSize: number
   followEris: boolean
+  claudeChat: boolean
   mode: ThemeMode
   look: Appearance
 }
@@ -20,6 +21,7 @@ const defaults: Prefs = {
   fontFamily: DEFAULT_FONT,
   fontSize: 14,
   followEris: true,
+  claudeChat: false,
   mode: "system",
   look: standaloneLook,
 }

@@ -90,6 +90,7 @@ enum Device {
     Pty {
         master: Box<dyn MasterPty + Send>,
         killer: Box<dyn ChildKiller + Send + Sync>,
+        pid: Option<u32>,
     },
     Serial(serial::Guard),
 }
@@ -110,6 +111,13 @@ pub struct Sessions {
 impl Sessions {
     fn take(&self, id: u32) -> Option<Session> {
         self.open.lock().unwrap().remove(&id)
+    }
+
+    pub fn shell_pid(&self, id: u32) -> Option<u32> {
+        match self.open.lock().unwrap().get(&id)?.device {
+            Device::Pty { pid, .. } => pid,
+            Device::Serial(_) => None,
+        }
     }
 
     pub fn hand_over(&self, ids: &[u32], label: &str) {
@@ -273,12 +281,14 @@ pub fn spawn<R: Runtime>(
     let reader = pair.master.try_clone_reader().map_err(|e| e.to_string())?;
     let writer = pair.master.take_writer().map_err(|e| e.to_string())?;
     let killer = child.clone_killer();
+    let pid = child.process_id();
     let (id, sink, pumping) = register(
         &window,
         &sessions,
         Device::Pty {
             master: pair.master,
             killer,
+            pid,
         },
         reader,
         writer,

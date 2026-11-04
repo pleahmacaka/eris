@@ -68,3 +68,23 @@ export const attach = async (
     detach: () => invoke(command("detach"), { id, channel: output.id }),
   }
 }
+
+export type ClaudeChat = {
+  session: string
+  transcript: string
+  cwd: string
+  name: string | null
+}
+
+export type TranscriptChunk = { lines: string[]; next: number }
+
+export const claudeChat = (id: number) =>
+  invoke<ClaudeChat | null>(command("claude_chat"), { id })
+
+export const claudeTranscript = (path: string, from: number) =>
+  invoke<TranscriptChunk>(command("claude_transcript"), { path, from })
+
+export type ClaudeCommand = { name: string; description: string }
+
+export const claudeCommands = (cwd: string) =>
+  invoke<ClaudeCommand[]>(command("claude_commands"), { cwd })

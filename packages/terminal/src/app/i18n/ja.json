@@ -30,7 +30,6 @@
       "fontSize": "フォントサイズ",
       "theme": "テーマ",
       "version": "バージョン",
-      "account": "アカウント",
       "appearance": "外観",
       "about": "情報",
       "reset": "設定をリセット",
@@ -39,7 +38,9 @@
       "resetTitle": "設定をリセットしますか?",
       "resetBody": "シェル、フォント、外観の設定が既定値に戻ります。",
       "appearanceHosted": "Eris の外観設定に従います。",
-      "baud": "シリアル通信速度"
+      "baud": "シリアル通信速度",
+      "claudeChat": "Claude チャット表示",
+      "claudeChatHint": "ターミナルで Claude Code を実行すると、会話をチャット画面で表示します。"
     },
     "panes": {
       "sync": "入力の同期",
@@ -52,6 +53,16 @@
       "bottom": "下に分割",
       "center": "入れ替え",
       "panes": "ターミナル {count} 個"
+    },
+    "claude": {
+      "chatView": "チャット表示",
+      "empty": "会話なし",
+      "placeholder": "Claude にメッセージを送信",
+      "send": "送信",
+      "stop": "停止",
+      "working": "処理中",
+      "promptTitle": "確認が必要です",
+      "commands": "コマンド"
     }
   }
 }

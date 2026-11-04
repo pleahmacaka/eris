@@ -30,7 +30,6 @@
       "fontSize": "字号",
       "theme": "主题",
       "version": "版本",
-      "account": "账号",
       "appearance": "外观",
       "about": "关于",
       "reset": "重置设置",
@@ -39,7 +38,9 @@
       "resetTitle": "要重置设置吗?",
       "resetBody": "Shell、字体和外观设置将恢复为默认值。",
       "appearanceHosted": "跟随 Eris 中的外观设置。",
-      "baud": "串口波特率"
+      "baud": "串口波特率",
+      "claudeChat": "Claude 聊天视图",
+      "claudeChatHint": "在终端中运行 Claude Code 时，以聊天界面显示对话。"
     },
     "panes": {
       "sync": "输入同步",
@@ -52,6 +53,16 @@
       "bottom": "向下拆分",
       "center": "交换位置",
       "panes": "{count} 个终端"
+    },
+    "claude": {
+      "chatView": "聊天视图",
+      "empty": "暂无对话",
+      "placeholder": "给 Claude 发送消息",
+      "send": "发送",
+      "stop": "停止",
+      "working": "处理中",
+      "promptTitle": "需要确认",
+      "commands": "命令"
     }
   }
 }

@@ -30,7 +30,6 @@
       "fontSize": "글꼴 크기",
       "theme": "테마",
       "version": "버전",
-      "account": "계정",
       "appearance": "모양",
       "about": "정보",
       "reset": "설정 초기화",
@@ -39,7 +38,9 @@
       "resetTitle": "설정을 초기화할까요?",
       "resetBody": "셸, 글꼴, 모양 설정이 기본값으로 돌아갑니다.",
       "appearanceHosted": "Eris 설정의 모양을 따릅니다.",
-      "baud": "시리얼 통신 속도"
+      "baud": "시리얼 통신 속도",
+      "claudeChat": "Claude 채팅 화면",
+      "claudeChatHint": "터미널에서 Claude Code를 실행하면 대화를 채팅 화면으로 표시합니다."
     },
     "panes": {
       "sync": "입력 동기화",
@@ -52,6 +53,16 @@
       "bottom": "아래쪽 분할",
       "center": "위치 교체",
       "panes": "터미널 {count}개"
+    },
+    "claude": {
+      "chatView": "채팅 화면",
+      "empty": "대화 없음",
+      "placeholder": "Claude에게 메시지 보내기",
+      "send": "보내기",
+      "stop": "중지",
+      "working": "작업 중",
+      "promptTitle": "확인 필요",
+      "commands": "명령어"
     }
   }
 }

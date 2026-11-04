@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-claude-chat"
+description = "Enables the claude_chat command without any pre-configured scope."
+commands.allow = ["claude_chat"]
+
+[[permission]]
+identifier = "deny-claude-chat"
+description = "Denies the claude_chat command without any pre-configured scope."
+commands.deny = ["claude_chat"]

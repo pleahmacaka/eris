@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-claude-transcript"
+description = "Enables the claude_transcript command without any pre-configured scope."
+commands.allow = ["claude_transcript"]
+
+[[permission]]
+identifier = "deny-claude-transcript"
+description = "Denies the claude_transcript command without any pre-configured scope."
+commands.deny = ["claude_transcript"]
