@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.1](https://github.com/pleahmacaka/eris/compare/0.4.0...0.4.1) (2026-11-09)
+
+
+### Features
+
+* **files:** android file explorer, device browsing and disk usage ([89a5d83](https://github.com/pleahmacaka/eris/commit/89a5d8328dec72d0abdad2779a1d869230fd7309))
+
+
+### Bug Fixes
+
+* **desktop:** hide wslg remote desktop tray icons ([1264d33](https://github.com/pleahmacaka/eris/commit/1264d333819617c33ec6b9b7f9b96d9336201548))
+
 ## [0.4.0](https://github.com/pleahmacaka/eris/compare/0.3.20...0.4.0) (2026-11-04)
 
 
