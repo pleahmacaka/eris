@@ -87,6 +87,7 @@ mod win {
     const NIF_GUID: u32 = 0x20;
     const NIS_HIDDEN: u32 = 0x01;
     const SHELL_VOLUME: &str = "{7820ae73-23e3-4229-82c1-e41cb67d5b9c}";
+    const WSLG_CLIENT: &str = r"\wsl\msrdc.exe";
 
     static APP: OnceLock<AppHandle> = OnceLock::new();
     static ENTRIES: Mutex<Vec<Entry>> = Mutex::new(Vec::new());
@@ -254,10 +255,17 @@ mod win {
         let index = match found {
             Some(index) => index,
             None => {
+                let owner = owner_path(incoming.hwnd).to_lowercase();
+
+                // WSLg runs one msrdc per running distro, each with a Remote Desktop icon for sessions the user never opened
+                if owner.ends_with(WSLG_CLIENT) {
+                    return;
+                }
+
                 entries.push(Entry {
                     hwnd: incoming.hwnd,
                     id: incoming.id,
-                    owner: owner_path(incoming.hwnd).to_lowercase(),
+                    owner,
                     guid: incoming.guid,
                     callback: 0,
                     version: 0,
