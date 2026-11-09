@@ -1,6 +1,5 @@
 import { tr } from "@eris/i18n"
 import type { MenuAction } from "@eris/ui"
-import { SHARED } from "../locations"
 import type { Explorer } from "./explorer.svelte"
 import {
   prefs,
@@ -23,7 +22,10 @@ export type Command = {
 
 const selected = (x: Explorer) => x.selected.length > 0
 
-const editable = (x: Explorer) => selected(x) && x.tab.kind !== "archive"
+const local = (x: Explorer) =>
+  x.tab.kind !== "archive" && x.tab.kind !== "device"
+
+const editable = (x: Explorer) => selected(x) && local(x)
 
 const viewCommand = (mode: ViewMode): Command => ({
   label: `explorer.views.${mode}`,
@@ -111,7 +113,7 @@ const BASE = {
     label: "explorer.commands.properties",
     icon: "lucide:info",
     globalKeys: ["Alt+Enter"],
-    enabled: x => x.tab.kind !== "archive",
+    enabled: local,
     run: x => x.properties(),
   },
   open: {
@@ -196,11 +198,6 @@ const BASE = {
     label: "explorer.commands.emptyRecycleBin",
     icon: "lucide:trash",
     run: x => x.emptyBin(),
-  },
-  shared: {
-    label: "explorer.places.shared",
-    icon: "lucide:share-2",
-    run: x => x.go(SHARED),
   },
   settings: {
     label: "explorer.commands.settings",

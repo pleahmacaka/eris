@@ -16,8 +16,6 @@ export const CLEANUP_HOURS = [6, 12, 24, 48, 72]
 
 export const DELAYS = [
   { hours: 1, label: "deleteIn" },
-  { hours: 6, label: "deleteIn" },
-  { hours: 12, label: "deleteIn" },
   { hours: 24, label: "deleteAfterDay" },
   { hours: 168, label: "deleteAfterWeek" },
 ]

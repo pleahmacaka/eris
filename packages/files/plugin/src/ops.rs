@@ -13,8 +13,8 @@ use windows::Win32::System::Memory::{GlobalAlloc, GlobalLock, GlobalUnlock, GMEM
 use windows::Win32::UI::Shell::{
     DragQueryFileW, FileOperation, IFileOperation, IFileOperationProgressSink, DROPFILES,
     FILEOPERATION_FLAGS, FOFX_ADDUNDORECORD, FOFX_RECYCLEONDELETE, FOF_ALLOWUNDO,
-    FOF_NOCONFIRMATION, FOF_NOCONFIRMMKDIR, FOF_NOERRORUI, FOF_RENAMEONCOLLISION, FOF_SILENT,
-    FOF_WANTNUKEWARNING, HDROP,
+    FOF_NOCONFIRMATION, FOF_NOCONFIRMMKDIR, FOF_RENAMEONCOLLISION, FOF_SILENT, FOF_WANTNUKEWARNING,
+    HDROP,
 };
 
 use crate::error::{Error, Result};
@@ -105,19 +105,6 @@ pub async fn transfer_items(
     let owner = com::hwnd(&window);
 
     com::sta(move || transfer(owner, items, &target, cut)).await?
-}
-
-pub fn recycle(items: Vec<String>) -> Result<()> {
-    let flags =
-        FOF_ALLOWUNDO | FOFX_RECYCLEONDELETE | FOF_NOCONFIRMATION | FOF_SILENT | FOF_NOERRORUI;
-
-    com::blocking(move || {
-        let targets = com::items(&items)?;
-
-        operate(0, flags, |operation| unsafe {
-            operation.DeleteItems(&targets)
-        })
-    })?
 }
 
 fn delete(owner: isize, items: Vec<String>, permanent: bool) -> Result<()> {

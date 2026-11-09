@@ -15,7 +15,7 @@
 
   const FEATURES = [
     { id: "tabs", icon: "lucide:panels-top-left" },
-    { id: "share", icon: "lucide:share-2" },
+    { id: "devices", icon: "lucide:monitor-smartphone" },
     { id: "terminal", icon: "lucide:square-terminal" },
   ]
 

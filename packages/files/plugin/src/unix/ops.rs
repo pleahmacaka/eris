@@ -6,15 +6,15 @@ use crate::error::{Error, Result};
 
 static CLIPBOARD: Mutex<Option<(Vec<String>, bool)>> = Mutex::new(None);
 
-fn free_name(parent: &Path, name: &str) -> PathBuf {
+fn free_name(parent: &Path, name: &str, folder: bool) -> PathBuf {
     let (stem, extension) = match name.rsplit_once('.') {
-        Some((stem, extension)) if !stem.is_empty() => (stem, format!(".{extension}")),
+        Some((stem, extension)) if !folder && !stem.is_empty() => (stem, format!(".{extension}")),
         _ => (name, String::new()),
     };
 
-    (1..)
+    (0..)
         .map(|attempt| match attempt {
-            1 => parent.join(name),
+            0 => parent.join(name),
             n => parent.join(format!("{stem} ({n}){extension}")),
         })
         .find(|candidate| !candidate.exists())
@@ -29,7 +29,12 @@ fn copy_tree(from: &Path, to: &Path) -> std::io::Result<()> {
     }
 
     if !meta.is_dir() {
-        return std::fs::copy(from, to).map(|_| ());
+        std::fs::copy(from, to)?;
+
+        return std::fs::File::options()
+            .write(true)
+            .open(to)?
+            .set_modified(meta.modified()?);
     }
 
     std::fs::create_dir_all(to)?;
@@ -62,7 +67,7 @@ fn place(item: &Path, target: &Path, cut: bool) -> Result<PathBuf> {
         return Err(Error::Invalid);
     }
 
-    let destination = free_name(target, &name);
+    let destination = free_name(target, &name, item.is_dir());
 
     if cut {
         match std::fs::rename(item, &destination) {
@@ -72,7 +77,11 @@ fn place(item: &Path, target: &Path, cut: bool) -> Result<PathBuf> {
         }
     }
 
-    copy_tree(item, &destination)?;
+    if let Err(error) = copy_tree(item, &destination) {
+        let _ = remove_tree(&destination);
+
+        return Err(error.into());
+    }
 
     if cut {
         remove_tree(item)?;
@@ -83,13 +92,41 @@ fn place(item: &Path, target: &Path, cut: bool) -> Result<PathBuf> {
 
 fn transfer(items: &[String], target: &str, cut: bool) -> Result<Vec<String>> {
     let target = Path::new(target);
+    let mut landed = Vec::new();
+    let mut failed = None;
 
-    items
-        .iter()
-        .map(|item| {
-            place(Path::new(item), target, cut).map(|landed| landed.to_string_lossy().into_owned())
-        })
-        .collect()
+    for item in items {
+        match place(Path::new(item), target, cut) {
+            Ok(path) => landed.push(path.to_string_lossy().into_owned()),
+            Err(error) => failed = failed.or(Some(error)),
+        }
+    }
+
+    failed.map_or(Ok(landed), Err)
+}
+
+fn valid_name(name: &str) -> Result<&str> {
+    let name = name.trim();
+    let bad = name.is_empty()
+        || name == "."
+        || name == ".."
+        || name.len() > 255
+        || name.contains(['/', '\0']);
+
+    if bad {
+        Err(Error::Invalid)
+    } else {
+        Ok(name)
+    }
+}
+
+fn same_file(a: &Path, b: &Path) -> bool {
+    use std::os::unix::fs::MetadataExt;
+
+    match (std::fs::metadata(a), std::fs::metadata(b)) {
+        (Ok(a), Ok(b)) => a.dev() == b.dev() && a.ino() == b.ino(),
+        _ => false,
+    }
 }
 
 #[tauri::command]
@@ -97,6 +134,7 @@ pub async fn transfer_items(items: Vec<String>, target: String, cut: bool) -> Re
     tauri::async_runtime::spawn_blocking(move || transfer(&items, &target, cut).map(|_| ())).await?
 }
 
+#[cfg(not(target_os = "android"))]
 pub fn recycle(items: Vec<String>) -> Result<()> {
     trash::delete_all(items).map_err(|error| Error::Os(error.to_string()))
 }
@@ -108,15 +146,21 @@ pub async fn delete_items(items: Vec<String>, permanent: bool) -> Result<()> {
     }
 
     tauri::async_runtime::spawn_blocking(move || {
+        // Android has no system trash, so every delete there is permanent
+        #[cfg(not(target_os = "android"))]
         if !permanent {
             return recycle(items);
         }
 
-        for item in items {
-            remove_tree(Path::new(&item))?;
-        }
+        #[cfg(target_os = "android")]
+        let _ = permanent;
 
-        Ok(())
+        let failed = items
+            .iter()
+            .filter_map(|item| remove_tree(Path::new(item)).err())
+            .next();
+
+        failed.map_or(Ok(()), |error| Err(error.into()))
     })
     .await?
 }
@@ -124,13 +168,16 @@ pub async fn delete_items(items: Vec<String>, permanent: bool) -> Result<()> {
 #[tauri::command]
 pub async fn rename_item(item: String, name: String) -> Result<()> {
     let from = PathBuf::from(&item);
-    let to = from.parent().ok_or(Error::Invalid)?.join(name.trim());
+    let to = from
+        .parent()
+        .ok_or(Error::Invalid)?
+        .join(valid_name(&name)?);
 
     if to == from {
         return Ok(());
     }
 
-    if to.exists() {
+    if to.exists() && !same_file(&from, &to) {
         return Err(Error::Busy);
     }
 
@@ -139,7 +186,7 @@ pub async fn rename_item(item: String, name: String) -> Result<()> {
 
 #[tauri::command]
 pub async fn new_folder(parent: String, name: String) -> Result<String> {
-    let created = free_name(Path::new(&parent), &name);
+    let created = free_name(Path::new(&parent), valid_name(&name)?, true);
 
     std::fs::create_dir(&created)?;
 

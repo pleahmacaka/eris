@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-usage-scan"
+description = "Enables the usage_scan command without any pre-configured scope."
+commands.allow = ["usage_scan"]
+
+[[permission]]
+identifier = "deny-usage-scan"
+description = "Denies the usage_scan command without any pre-configured scope."
+commands.deny = ["usage_scan"]

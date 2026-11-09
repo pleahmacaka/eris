@@ -45,6 +45,8 @@ const shellServices = () =>
       emptyRecycleBin: mock(async () => {}),
     },
     confirmAll: mock(async (_paths: string[], _from: string) => true),
+    confirmRemoval: mock(async (_names: string[]) => true),
+    network: () => [],
     refreshPlaces: mock(async () => {}),
     pinnedKey: () => undefined,
     newFolderName: () => "New folder",

@@ -12,7 +12,7 @@ use windows::Win32::UI::Shell::{
     SHMultiFileProperties, SHObjectProperties, SHOpenWithDialog, SetWindowSubclass,
     ShellExecuteExW, CMF_EXTENDEDVERBS, CMF_NORMAL, CMIC_MASK_PTINVOKE, CMINVOKECOMMANDINFO,
     CMINVOKECOMMANDINFOEX, GCS_VERBW, OAIF_ALLOW_REGISTRATION, OAIF_EXEC, OAIF_REGISTER_EXT,
-    OPENASINFO, SEE_MASK_FLAG_NO_UI, SEE_MASK_IDLIST, SEE_MASK_NOASYNC, SEE_MASK_UNICODE,
+    OPENASINFO, SEE_MASK_FLAG_NO_UI, SEE_MASK_INVOKEIDLIST, SEE_MASK_NOASYNC, SEE_MASK_UNICODE,
     SHELLEXECUTEINFOW, SHOP_FILEPATH,
 };
 use windows::Win32::UI::WindowsAndMessaging::{
@@ -67,7 +67,8 @@ pub fn execute(owner: isize, key: &str) -> Result<()> {
 
     let mut info = SHELLEXECUTEINFOW {
         cbSize: std::mem::size_of::<SHELLEXECUTEINFOW>() as u32,
-        fMask: SEE_MASK_IDLIST | SEE_MASK_NOASYNC,
+        // virtual items such as installed programs have no file association, only a default menu verb
+        fMask: SEE_MASK_INVOKEIDLIST | SEE_MASK_NOASYNC,
         hwnd: com::owner(owner),
         lpIDList: list.as_ptr() as *mut _,
         lpDirectory: directory

@@ -2,8 +2,9 @@ import { currentLocale, tr } from "@eris/i18n"
 import { toast } from "@eris/ui"
 import { getCurrentWindow } from "@tauri-apps/api/window"
 import { writeText } from "@tauri-apps/plugin-clipboard-manager"
+import { fetchRemote } from "../components/share/share"
 import { displayName, type Item, packedEntry } from "../items"
-import { baseName, HOME, RECYCLE_BIN } from "../locations"
+import { baseName, HOME, RECYCLE_BIN, splitDevice } from "../locations"
 import * as native from "../native"
 import { isArchive } from "./archive.svelte"
 import { arrange } from "./arrange"
@@ -18,6 +19,7 @@ import {
 } from "./prefs.svelte"
 import { confirmAll, confirmPrivate } from "./privacy.svelte"
 import { openProperties } from "./properties.svelte"
+import { confirmRemoval } from "./removal.svelte"
 import * as renaming from "./rename-commands"
 import * as shell from "./shell-commands"
 import { pinnedEntry } from "./sidebar"
@@ -28,6 +30,36 @@ import { groupKeyOf, viewPlan } from "./view-plan"
 
 export { fail } from "./command-errors"
 
+const FETCH_POLL = 2000
+
+const FETCH_LIMIT = 600_000
+
+const fetchDevice = async (item: Item) => {
+  const device = splitDevice(item.path)
+
+  if (!device?.path) {
+    return null
+  }
+
+  const started = Date.now()
+
+  for (;;) {
+    const saved = await fetchRemote(device.id, device.path)
+
+    if (saved !== null) {
+      toast(tr("remote.saved"), "success")
+
+      return saved
+    }
+
+    if (Date.now() - started > FETCH_LIMIT) {
+      throw "timeout"
+    }
+
+    await new Promise(resolve => setTimeout(resolve, FETCH_POLL))
+  }
+}
+
 // Concrete bindings stay at the reactive boundary. Workflows receive only their
 // domain services and a live context; they never import Explorer or UI stores.
 const openServices: opening.OpenServices = {
@@ -37,6 +69,7 @@ const openServices: opening.OpenServices = {
   confirmPrivate,
   isArchive,
   packedEntry,
+  fetchRemote: fetchDevice,
 }
 
 const transferServices: transferring.TransferServices = {
@@ -67,6 +100,8 @@ const shellServices: shell.ShellServices = {
   fail,
   failed,
   confirmAll,
+  confirmRemoval,
+  network: () => places.network,
   refreshPlaces,
   pinnedKey: location => pinnedEntry(location)?.key,
   newFolderName: () => tr("explorer.commands.newFolder"),
@@ -259,6 +294,10 @@ export class Explorer {
   }
 
   async drag() {
+    if (this.tab.kind === "device") {
+      return
+    }
+
     return transferring.drag(this, transferServices)
   }
 
@@ -371,7 +410,7 @@ export class Explorer {
       return named
     }
 
-    return tab.kind === "virtual"
+    return tab.kind === "virtual" || tab.kind === "device"
       ? tab.shellName || tab.location
       : baseName(tab.location)
   }

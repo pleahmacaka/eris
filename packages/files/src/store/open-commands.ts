@@ -18,6 +18,7 @@ export type OpenServices = CommandErrors & {
   confirmPrivate: (path: string, from: string) => Promise<boolean>
   isArchive: (name: string) => boolean
   packedEntry: (item: Item) => string
+  fetchRemote: (item: Item) => Promise<string | null>
 }
 
 export const openItem = async (
@@ -46,6 +47,19 @@ export const openItem = async (
           key: extracted,
           path: extracted,
           packed: undefined,
+        })
+      : undefined
+  }
+
+  if (plan === "fetch") {
+    const fetched = await services.fetchRemote(item).catch(services.failed)
+
+    return fetched
+      ? context.open({
+          ...item,
+          key: fetched,
+          path: fetched,
+          remote: undefined,
         })
       : undefined
   }

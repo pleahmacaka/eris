@@ -21,7 +21,6 @@
   import StatusBar from "./panes/StatusBar.svelte"
   import SettingsDialog from "./settings/SettingsDialog.svelte"
   import SetupDialog from "./setup/SetupDialog.svelte"
-  import SharedView from "./share/SharedView.svelte"
   import ShareHost from "./share/ShareHost.svelte"
   import NavPane from "./sidebar/NavPane.svelte"
   import TerminalPanel from "./terminal/TerminalPanel.svelte"
@@ -31,6 +30,7 @@
   import CleanupPrompt from "./window/CleanupPrompt.svelte"
   import PropertiesDialog from "./window/PropertiesDialog.svelte"
   import PrivacyPrompt from "./window/PrivacyPrompt.svelte"
+  import RemovalPrompt from "./window/RemovalPrompt.svelte"
   import TitleBar from "./window/TitleBar.svelte"
 
   let { explorer, standalone = false }: { explorer: Explorer; standalone?: boolean } =
@@ -327,13 +327,6 @@
           {#key tab.location}
             <AudioView path={tab.location} />
           {/key}
-        {:else if tab.kind === "shared"}
-          <SharedView
-            folder={tab.history.findLast(
-              entry => !isVirtual(entry) && !isAudio(entry),
-            ) ?? null}
-            reveal={path => explorer.go(parentOf(path) ?? path, path)}
-          />
         {:else}
           <ItemsView bind:this={view} {explorer} />
         {/if}
@@ -359,6 +352,8 @@
 {/if}
 
 <PrivacyPrompt />
+
+<RemovalPrompt />
 <CleanupPrompt />
 
 <PropertiesDialog />

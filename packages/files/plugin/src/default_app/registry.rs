@@ -13,6 +13,7 @@ const WIN_E_CLSID: &str = "{52205fd8-5dfb-447d-801a-d0b52f2e83e1}";
 pub const MODEL_TYPES: [&str; 1] = ["obj"];
 const REGISTERED: &str = r"Software\RegisteredApplications";
 const VENDOR: &str = r"Software\ArixLab";
+const COMPANY: &str = "ArixLab";
 const DESCRIPTION: &str = "File explorer for the Eris desktop shell";
 const MODEL_TYPE_NAME: &str = "3D Object";
 
@@ -223,9 +224,12 @@ fn capabilities(host: &Host) -> String {
 pub fn registered_with<R: Registry>(reg: &R, host: &Host, exe: &Path) -> bool {
     reg.read(REGISTERED, host.app_name).is_some()
         && MODEL_TYPES.iter().all(|extension| {
-            let command = key(&format!(r"{}\shell\open\command", prog_id(host, extension)));
+            let id = prog_id(host, extension);
+            let command = key(&format!(r"{id}\shell\open\command"));
+            let application = key(&format!(r"{id}\Application"));
 
             reg.read(&command, "").as_deref() == Some(opener(host, exe).as_str())
+                && reg.read(&application, "ApplicationName").as_deref() == Some(host.app_name)
         })
 }
 
@@ -247,6 +251,13 @@ pub fn register_with<R: Registry>(reg: &mut R, host: &Host, exe: &Path) -> Resul
         )?;
         reg.write(&key(&id), "", MODEL_TYPE_NAME)?;
         reg.write(&key(&format!(r"{id}\DefaultIcon")), "", &icon)?;
+
+        // Open With names a ProgID handler from the shell MuiCache, which keeps an old build's exe description
+        let application = key(&format!(r"{id}\Application"));
+
+        reg.write(&application, "ApplicationName", host.app_name)?;
+        reg.write(&application, "ApplicationCompany", COMPANY)?;
+        reg.write(&application, "ApplicationIcon", &icon)?;
         reg.write(
             &key(&format!(r"{id}\shell\open\command")),
             "",

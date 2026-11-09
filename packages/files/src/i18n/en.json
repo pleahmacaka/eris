@@ -79,8 +79,7 @@
       "videos": "Videos",
       "folder": "System folder",
       "networkLocation": "Network location",
-      "linuxDistro": "Linux distribution",
-      "shared": "Shared"
+      "linuxDistro": "Linux distribution"
     },
     "drive": {
       "local": "Local Disk",
@@ -199,7 +198,8 @@
       "noPreview": "No preview",
       "selectToPreview": "Select a file to preview.",
       "unreachable": "Network location unavailable",
-      "reconnect": "Reconnect"
+      "reconnect": "Reconnect",
+      "waiting": "Waiting for approval"
     },
     "peek": {
       "items": "{count} items",
@@ -217,7 +217,10 @@
       "notReady": "Device not ready",
       "password": "Password-protected archive",
       "unsupported": "Unsupported format",
-      "unreachable": "Network location unavailable"
+      "unreachable": "Network location unavailable",
+      "timeout": "Timed out",
+      "full": "Not enough storage space.",
+      "invalid": "This name or location cannot be used."
     },
     "settings": {
       "title": "Settings",
@@ -318,7 +321,7 @@
           "open": "Open, open in new tab, open with",
           "shell": "Entries from installed apps, such as Run as administrator",
           "archive": "Compress to ZIP or 7z, extract",
-          "edit": "Cut, copy, share, rename, delete",
+          "edit": "Cut, copy, rename, delete",
           "organize": "Pin, screen sharing check, disconnect",
           "properties": "Properties, show more options"
         },
@@ -344,7 +347,6 @@
       "hide": "Hide from sidebar",
       "hidden": "Hidden",
       "show": "Show",
-      "customize": "Sidebar settings",
       "sections": {
         "home": "Home",
         "pinned": "Quick access",
@@ -352,7 +354,6 @@
         "drives": "This PC drives",
         "network": "Network",
         "linux": "WSL",
-        "shared": "Shared",
         "recycleBin": "Recycle Bin"
       }
     },
@@ -381,6 +382,11 @@
       "drives": "Devices and drives",
       "network": "Network locations",
       "linux": "WSL"
+    },
+    "removePlace": {
+      "title": "Remove network location",
+      "body": "Remove the network location {name}? Only the shortcut moves to the Recycle Bin. Files in the shared folder stay as they are.",
+      "action": "Remove"
     },
     "privacy": {
       "title": "Screen is being shared",
@@ -415,8 +421,8 @@
         "tagline": "Pick a few things and you are ready to go.",
         "tabs": "Tabs and preview",
         "tabsText": "Open folders in tabs and preview files instantly.",
-        "share": "Share between devices",
-        "shareText": "Send files to nearby devices right away.",
+        "devices": "Connected devices",
+        "devicesText": "Browse files on your paired devices right away.",
         "terminal": "Built-in terminal",
         "terminalText": "Open a terminal in the folder you are viewing."
       },
@@ -538,7 +544,9 @@
       "used": "Used space",
       "free": "Free space",
       "total": "Capacity",
-      "close": "Close"
+      "close": "Close",
+      "general": "General",
+      "usage": "Analysis"
     },
     "scripts": {
       "detected": "Runs with {manager}",
@@ -553,6 +561,15 @@
       "toggle": "Hex view",
       "modeHex": "Hex",
       "modeText": "Text"
+    },
+    "usage": {
+      "scanning": "Analyzing folder",
+      "counted": "{files} files, {size}",
+      "failed": "Could not analyze this folder.",
+      "location": "Analysis location",
+      "chart": "Folder size chart",
+      "files": "{count} files",
+      "rest": "Other files"
     }
   },
   "terminal": {
@@ -573,41 +590,7 @@
     "toBottom": "Move to bottom"
   },
   "share": {
-    "action": "Share",
-    "title": "Share",
-    "items": "{count} items",
-    "link": "Share link",
-    "qr": "QR code",
-    "copyLink": "Copy link",
-    "stop": "Stop sharing",
-    "preparing": "Preparing share",
-    "makeLink": "Create link",
-    "toDevice": "Send to device",
-    "noDevices": "No paired devices",
-    "sent": "Sent",
-    "send": "Send",
     "copied": "Copied to clipboard.",
-    "center": "Shares",
-    "inbox": "Received",
-    "sentTab": "Shared",
-    "pasteLink": "Paste a share link",
-    "openLink": "Open",
-    "inboxEmpty": "Nothing received",
-    "sentEmpty": "Nothing shared",
-    "andMore": "{name} and {count} more",
-    "unknownItems": "Checking items",
-    "remove": "Remove from list",
-    "retry": "Retry",
-    "saveDownloads": "Save to Downloads",
-    "saveHere": "Save to current folder",
-    "reveal": "Show location",
-    "linkShare": "Link share",
-    "stages": {
-      "waiting": "Connecting",
-      "offline": "Sender offline",
-      "receiving": "Receiving",
-      "done": "Saved"
-    },
     "errors": {
       "empty": "There are no files to share.",
       "unsupported": "A whole drive cannot be shared.",
@@ -627,51 +610,7 @@
     "files": "Files",
     "up": "Parent folder",
     "filesEmpty": "No files",
-    "expiry": "Expiry",
-    "expiresAt": "Expires {date}",
-    "expiryOptions": {
-      "hour": "1 hour",
-      "day": "1 day",
-      "week": "7 days",
-      "month": "30 days",
-      "never": "No expiry",
-      "custom": "Pick a date"
-    },
-    "defaultExpiry": "Default expiry",
-    "defaultExpiryHint": "Applies to new links and items sent to devices.",
-    "downloads": "Downloaded by",
-    "noDownloads": "No downloads",
-    "sections": {
-      "shared": "Shared items",
-      "received": "Received items",
-      "sync": "Folder sync"
-    },
-    "sync": {
-      "add": "Add folder sync",
-      "menu": "Sync with a device",
-      "device": "Device",
-      "start": "Start sync",
-      "pause": "Pause",
-      "resume": "Resume",
-      "now": "Sync now",
-      "remove": "Stop syncing",
-      "waiting": "Waiting for the other device",
-      "paused": "Paused",
-      "failed": "Sync error",
-      "synced": "Synced {date}",
-      "never": "Not synced yet",
-      "files": "{count, plural, one {# file} other {# files}}",
-      "warning": "Syncing system files or PC-specific settings can break programs.",
-      "warnAppData": "This is an app data folder. Program settings may be overwritten on the other PC.",
-      "confirm": "I understand the risk",
-      "blocked": "The Windows folder, program folders, drive roots and the user folder itself cannot be synced.",
-      "invite": "{device} wants to sync the folder “{name}”.",
-      "accept": "Accept",
-      "decline": "Decline",
-      "noDevices": "Pair a device first in Settings.",
-      "pick": "Choose folder",
-      "noFolder": "No folder selected"
-    }
+    "storageDenied": "Allow all files access in Settings."
   },
   "devices": {
     "title": "Devices",
@@ -726,5 +665,72 @@
       "denied": "Browsing denied",
       "failed": "Connection failed"
     }
+  },
+  "mobile": {
+    "internal": "Internal storage",
+    "location": "Location",
+    "search": "Search",
+    "closeSearch": "Close search",
+    "sortTitle": "Sort",
+    "sort": {
+      "name": "Name",
+      "modified": "Date modified",
+      "size": "Size"
+    },
+    "showHidden": "Show hidden files",
+    "selected": "{count} selected",
+    "selectAll": "Select all",
+    "clearSelection": "Clear selection",
+    "copy": "Copy",
+    "move": "Move",
+    "rename": "Rename",
+    "share": "Share",
+    "details": "Details",
+    "delete": "Delete",
+    "deleteTitle": "Delete permanently",
+    "deleteBody": "Delete {count} items? There is no trash, so this cannot be undone.",
+    "newFolder": "New folder",
+    "cancel": "Cancel",
+    "confirm": "OK",
+    "pasteHere": "Paste here",
+    "copying": "{count} items ready to copy",
+    "moving": "{count} items ready to move",
+    "pasted": "Pasted {count} items.",
+    "restricted": "This folder is restricted.",
+    "allowAccess": "Allow access",
+    "retry": "Retry",
+    "noMatches": "No matches",
+    "path": "Path",
+    "size": "Size",
+    "modified": "Date modified",
+    "close": "Close",
+    "errors": {
+      "failed": "The action could not be completed.",
+      "busy": "An item with this name already exists.",
+      "denied": "Access denied.",
+      "missing": "The item could not be found.",
+      "noApp": "No app can open this file.",
+      "unsupported": "Files in this location cannot be sent to other apps.",
+      "invalid": "This name or location cannot be used.",
+      "full": "Not enough storage space."
+    },
+    "title": "My Files",
+    "storage": "Storage",
+    "usage": "{used} / {total}",
+    "categories": {
+      "download": "Downloads",
+      "documents": "Documents",
+      "camera": "Camera",
+      "pictures": "Images",
+      "videos": "Videos",
+      "music": "Music"
+    },
+    "working": "Working",
+    "refresh": "Refresh",
+    "measuring": "Calculating",
+    "contents": "Contents",
+    "fileCount": "{count} files",
+    "openWith": "Open with",
+    "deleteOne": "Delete {name}? There is no trash, so this cannot be undone."
   }
 }

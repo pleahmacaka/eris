@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-usage-forget"
+description = "Enables the usage_forget command without any pre-configured scope."
+commands.allow = ["usage_forget"]
+
+[[permission]]
+identifier = "deny-usage-forget"
+description = "Denies the usage_forget command without any pre-configured scope."
+commands.deny = ["usage_forget"]

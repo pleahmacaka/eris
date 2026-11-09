@@ -4,7 +4,7 @@ export const THIS_PC = "::{20D04FE0-3AEA-1069-A2D8-08002B30309D}"
 
 export const RECYCLE_BIN = "::{645FF040-5081-101B-9F08-00AA002F954E}"
 
-export const SHARED = "::eris-shared"
+export const DEVICE = "eris-device:"
 
 export const HIDDEN = 0x2
 
@@ -17,7 +17,65 @@ export const WINDOWS =
 
 export const SEP = WINDOWS ? "\\" : "/"
 
-export const pathKey = (path: string) => (WINDOWS ? path.toLowerCase() : path)
+export const isDevice = (location: string) => location.startsWith(DEVICE)
+
+export const pathKey = (path: string) =>
+  WINDOWS && !isDevice(path) ? path.toLowerCase() : path
+
+export const deviceLocation = (id: string, path: string | null = null) =>
+  path === null ? `${DEVICE}${id}` : `${DEVICE}${id}|${path}`
+
+export const splitDevice = (location: string) => {
+  if (!isDevice(location)) {
+    return null
+  }
+
+  const rest = location.slice(DEVICE.length)
+  const bar = rest.indexOf("|")
+
+  return bar < 0
+    ? { id: rest, path: null }
+    : { id: rest.slice(0, bar), path: rest.slice(bar + 1) }
+}
+
+const deviceRoots = new Map<string, Set<string>>()
+
+export const rememberRoots = (id: string, roots: string[]) => {
+  deviceRoots.set(id, new Set(roots))
+}
+
+const remoteParts = (path: string) => {
+  const sep = path.includes("\\") ? "\\" : "/"
+
+  return { sep, parts: path.split(sep).filter(Boolean) }
+}
+
+export const remoteName = (path: string) =>
+  remoteParts(path).parts.at(-1) ?? path
+
+const remoteParent = (path: string) => {
+  const { sep, parts } = remoteParts(path)
+
+  if (sep === "/") {
+    return parts.length ? `/${parts.slice(0, -1).join("/")}` : null
+  }
+
+  if (parts.length < 2) {
+    return null
+  }
+
+  return parts.length === 2 ? `${parts[0]}\\` : parts.slice(0, -1).join("\\")
+}
+
+const deviceParent = (id: string, path: string | null) => {
+  if (path === null) {
+    return THIS_PC
+  }
+
+  const root = deviceRoots.get(id)?.has(path) ?? false
+
+  return deviceLocation(id, root ? null : remoteParent(path))
+}
 
 const trimSlashes = (path: string) => {
   const floor = WINDOWS ? 0 : 1
@@ -51,6 +109,7 @@ export const isControlPanel = (location: string) => {
 
 export const isVirtual = (location: string) =>
   location.startsWith("::") ||
+  isDevice(location) ||
   location.toLowerCase().startsWith("shell:") ||
   isServer(location)
 
@@ -86,6 +145,12 @@ export const sameLocation = (a: string, b: string) =>
   pathKey(normalize(a)) === pathKey(normalize(b))
 
 export const parentOf = (location: string): string | null => {
+  const device = splitDevice(location)
+
+  if (device) {
+    return deviceParent(device.id, device.path)
+  }
+
   if (isVirtual(location)) {
     return null
   }

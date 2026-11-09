@@ -5,15 +5,14 @@ import {
   type MenuItem,
   openContextMenu,
 } from "@eris/ui"
-import { openShare, share } from "../components/share/share.svelte"
 import type { Item } from "../items"
 import {
   baseName,
   extensionOf,
   HOME,
+  isDevice,
   isVirtual,
   RECYCLE_BIN,
-  SHARED,
   THIS_PC,
 } from "../locations"
 import {
@@ -271,6 +270,10 @@ const itemMenu = (x: Explorer): Sections => {
     return archiveTabMenu(x, [commandEntry("open", x)])
   }
 
+  if (x.tab.kind === "device") {
+    return { open: [commandEntry("open", x)] }
+  }
+
   if (x.inBin) {
     return {
       edit: [commandEntry("restore", x), commandEntry("deletePermanently", x)],
@@ -298,14 +301,6 @@ const itemMenu = (x: Explorer): Sections => {
       commandEntry("cut", x),
       commandEntry("copy", x),
       commandEntry("copyPath", x),
-      x.filesystem &&
-        entry("share", () => openShare(selection.map(item => item.path))),
-      folder &&
-        x.filesystem &&
-        entry("syncFolder", () => {
-          share.syncFolder = folder.path
-          x.go(SHARED)
-        }),
       commandEntry("rename", x),
       drive &&
         drive.path in prefs.driveNames &&
@@ -378,6 +373,10 @@ const backgroundMenu = (
 
   if (x.tab.kind === "archive") {
     return archiveTabMenu(x, [...view, refresh])
+  }
+
+  if (x.tab.kind === "device") {
+    return { open: [...view, refresh] }
   }
 
   if (x.inBin) {
@@ -517,19 +516,11 @@ export type Place = {
   hide: "section" | "path" | null
 }
 
-const SINGLE: string[] = [HOME, THIS_PC, RECYCLE_BIN, SHARED]
-
-const customize = (x: Explorer): MenuAction => ({
-  label: tr("explorer.sidebar.customize"),
-  icon: "lucide:settings",
-  action: () => {
-    x.settingsOpen = true
-  },
-})
+const SINGLE: string[] = [HOME, THIS_PC, RECYCLE_BIN]
 
 const placeMenu = (x: Explorer, place: Place): MenuItem[] => {
   const { location, section, hide } = place
-  const own = location !== SHARED
+  const own = !isDevice(location)
   const showNative = async () => {
     const verb = await nativeMenu([location], null, false).catch(() => null)
 
@@ -549,8 +540,9 @@ const placeMenu = (x: Explorer, place: Place): MenuItem[] => {
       !SINGLE.includes(location) &&
         !isVirtual(location) &&
         pinItem(x, location),
-      (section === "network" ||
-        (section === "drives" && location !== THIS_PC)) &&
+      own &&
+        (section === "network" ||
+          (section === "drives" && location !== THIS_PC)) &&
         entry("rename", () => x.renamePlace(location)),
       hide && {
         label: tr("explorer.sidebar.hide"),
@@ -561,19 +553,15 @@ const placeMenu = (x: Explorer, place: Place): MenuItem[] => {
       own && entry("properties", () => x.properties([location])),
       own && moreOptions(showNative),
     ]),
-    "separator",
-    customize(x),
   ]
 }
 
-const sectionsMenu = (x: Explorer): MenuItem[] => [
+const sectionsMenu = (): MenuItem[] => [
   ...SIDEBAR_SECTIONS.map(id => ({
     label: tr(`explorer.sidebar.sections.${id}`),
     icon: sectionShown(id) ? "lucide:eye" : "lucide:eye-off",
     action: () => toggleSection(id),
   })),
-  "separator",
-  customize(x),
 ]
 
 export const openPlaceMenu = (
@@ -588,6 +576,6 @@ export const openPlaceMenu = (
     x: e.clientX,
     y: e.clientY,
     placement: "down",
-    items: place ? placeMenu(x, place) : sectionsMenu(x),
+    items: place ? placeMenu(x, place) : sectionsMenu(),
   })
 }

@@ -79,8 +79,7 @@
       "videos": "동영상",
       "folder": "시스템 폴더",
       "networkLocation": "네트워크 위치",
-      "linuxDistro": "Linux 배포판",
-      "shared": "공유"
+      "linuxDistro": "Linux 배포판"
     },
     "drive": {
       "local": "로컬 디스크",
@@ -199,7 +198,8 @@
       "noPreview": "미리 보기 없음",
       "selectToPreview": "미리 볼 파일을 선택하세요.",
       "unreachable": "네트워크 위치 연결 안 됨",
-      "reconnect": "재연결"
+      "reconnect": "재연결",
+      "waiting": "허용 대기"
     },
     "peek": {
       "items": "항목 {count}개",
@@ -217,7 +217,10 @@
       "notReady": "장치 준비 안 됨",
       "password": "암호가 설정된 압축 파일",
       "unsupported": "지원하지 않는 형식",
-      "unreachable": "네트워크 위치 연결 안 됨"
+      "unreachable": "네트워크 위치 연결 안 됨",
+      "timeout": "응답 시간 초과",
+      "full": "저장공간이 부족합니다.",
+      "invalid": "사용할 수 없는 이름이거나 위치입니다."
     },
     "settings": {
       "title": "설정",
@@ -318,7 +321,7 @@
           "open": "열기, 새 탭에서 열기, 연결 프로그램",
           "shell": "관리자 권한으로 실행 같은 설치된 앱의 항목",
           "archive": "ZIP, 7z 압축과 압축 풀기",
-          "edit": "잘라내기, 복사, 공유, 이름 바꾸기, 삭제",
+          "edit": "잘라내기, 복사, 이름 바꾸기, 삭제",
           "organize": "고정, 화면 공유 시 확인, 연결 해제",
           "properties": "속성, 추가 옵션 표시"
         },
@@ -344,7 +347,6 @@
       "hide": "사이드바에서 숨기기",
       "hidden": "숨김",
       "show": "표시",
-      "customize": "사이드바 설정",
       "sections": {
         "home": "홈",
         "pinned": "즐겨찾기",
@@ -352,7 +354,6 @@
         "drives": "내 PC 드라이브",
         "network": "네트워크",
         "linux": "WSL",
-        "shared": "공유",
         "recycleBin": "휴지통"
       }
     },
@@ -381,6 +382,11 @@
       "drives": "장치 및 드라이브",
       "network": "네트워크 위치",
       "linux": "WSL"
+    },
+    "removePlace": {
+      "title": "네트워크 위치 삭제",
+      "body": "{name} 네트워크 위치를 삭제할까요? 바로가기만 휴지통으로 이동하고, 공유 폴더의 파일은 그대로 유지됩니다.",
+      "action": "삭제"
     },
     "privacy": {
       "title": "화면 공유 중",
@@ -415,8 +421,8 @@
         "tagline": "몇 가지만 고르면 바로 쓸 수 있습니다.",
         "tabs": "탭과 미리 보기",
         "tabsText": "여러 폴더를 탭으로 열고 파일을 바로 미리 봅니다.",
-        "share": "기기 간 공유",
-        "shareText": "가까운 기기와 파일을 바로 주고받습니다.",
+        "devices": "기기 연결",
+        "devicesText": "연결한 기기의 파일을 바로 탐색합니다.",
         "terminal": "내장 터미널",
         "terminalText": "보고 있는 폴더에서 바로 터미널을 엽니다."
       },
@@ -538,7 +544,9 @@
       "used": "사용 중인 공간",
       "free": "사용 가능한 공간",
       "total": "용량",
-      "close": "닫기"
+      "close": "닫기",
+      "general": "일반",
+      "usage": "분석"
     },
     "scripts": {
       "detected": "{manager} 사용",
@@ -553,6 +561,15 @@
       "toggle": "HEX 보기",
       "modeHex": "HEX",
       "modeText": "텍스트"
+    },
+    "usage": {
+      "scanning": "폴더 분석 중",
+      "counted": "파일 {files}개, {size}",
+      "failed": "폴더를 분석할 수 없습니다.",
+      "location": "분석 위치",
+      "chart": "폴더 크기 차트",
+      "files": "파일 {count}개",
+      "rest": "기타 파일"
     }
   },
   "terminal": {
@@ -573,41 +590,7 @@
     "toBottom": "아래로 이동"
   },
   "share": {
-    "action": "공유",
-    "title": "공유",
-    "items": "항목 {count}개",
-    "link": "공유 링크",
-    "qr": "QR 코드",
-    "copyLink": "링크 복사",
-    "stop": "공유 중지",
-    "preparing": "공유 준비 중",
-    "makeLink": "링크 만들기",
-    "toDevice": "장치로 보내기",
-    "noDevices": "연결된 장치 없음",
-    "sent": "전송 완료",
-    "send": "보내기",
     "copied": "클립보드에 복사했습니다.",
-    "center": "공유 센터",
-    "inbox": "받은 공유",
-    "sentTab": "보낸 공유",
-    "pasteLink": "공유 링크 붙여넣기",
-    "openLink": "열기",
-    "inboxEmpty": "받은 공유 없음",
-    "sentEmpty": "보낸 공유 없음",
-    "andMore": "{name} 외 {count}개",
-    "unknownItems": "항목 확인 중",
-    "remove": "목록에서 삭제",
-    "retry": "재시도",
-    "saveDownloads": "다운로드 폴더에 저장",
-    "saveHere": "현재 폴더에 저장",
-    "reveal": "위치 열기",
-    "linkShare": "링크 공유",
-    "stages": {
-      "waiting": "연결 중",
-      "offline": "보낸 장치 오프라인",
-      "receiving": "받는 중",
-      "done": "저장 완료"
-    },
     "errors": {
       "empty": "공유할 파일이 없습니다.",
       "unsupported": "드라이브 전체는 공유할 수 없습니다.",
@@ -627,51 +610,7 @@
     "files": "파일",
     "up": "상위 폴더",
     "filesEmpty": "파일 없음",
-    "expiry": "만료",
-    "expiresAt": "{date} 만료",
-    "expiryOptions": {
-      "hour": "1시간",
-      "day": "1일",
-      "week": "7일",
-      "month": "30일",
-      "never": "만료 없음",
-      "custom": "날짜 지정"
-    },
-    "defaultExpiry": "기본 만료 기간",
-    "defaultExpiryHint": "새 링크와 장치로 보내는 항목에 적용합니다.",
-    "downloads": "내려받은 장치",
-    "noDownloads": "기록 없음",
-    "sections": {
-      "shared": "공유한 항목",
-      "received": "받은 항목",
-      "sync": "폴더 동기화"
-    },
-    "sync": {
-      "add": "폴더 동기화 추가",
-      "menu": "장치와 동기화",
-      "device": "장치",
-      "start": "동기화 시작",
-      "pause": "일시 중지",
-      "resume": "다시 시작",
-      "now": "지금 동기화",
-      "remove": "동기화 해제",
-      "waiting": "상대 장치 수락 대기",
-      "paused": "일시 중지",
-      "failed": "동기화 오류",
-      "synced": "{date} 동기화",
-      "never": "동기화 기록 없음",
-      "files": "파일 {count}개",
-      "warning": "시스템 파일이나 PC 고유 설정을 동기화하면 프로그램이 고장날 수 있습니다.",
-      "warnAppData": "앱 데이터 폴더입니다. 프로그램 설정이 다른 PC에서 덮어써질 수 있습니다.",
-      "confirm": "위험을 확인했습니다",
-      "blocked": "Windows 폴더, 프로그램 폴더, 드라이브 루트, 사용자 폴더 자체는 동기화할 수 없습니다.",
-      "invite": "{device}에서 '{name}' 폴더 동기화를 요청했습니다.",
-      "accept": "수락",
-      "decline": "거절",
-      "noDevices": "설정의 장치에서 먼저 장치를 연결하세요.",
-      "pick": "폴더 선택",
-      "noFolder": "폴더 미선택"
-    }
+    "storageDenied": "설정에서 모든 파일 접근을 허용하세요."
   },
   "devices": {
     "title": "장치",
@@ -726,5 +665,72 @@
       "denied": "열람 거부",
       "failed": "연결 실패"
     }
+  },
+  "mobile": {
+    "internal": "내장 저장공간",
+    "location": "위치",
+    "search": "검색",
+    "closeSearch": "검색 닫기",
+    "sortTitle": "정렬",
+    "sort": {
+      "name": "이름",
+      "modified": "수정한 날짜",
+      "size": "크기"
+    },
+    "showHidden": "숨긴 파일 표시",
+    "selected": "{count}개 선택됨",
+    "selectAll": "모두 선택",
+    "clearSelection": "선택 해제",
+    "copy": "복사",
+    "move": "이동",
+    "rename": "이름 바꾸기",
+    "share": "공유",
+    "details": "정보",
+    "delete": "삭제",
+    "deleteTitle": "영구 삭제",
+    "deleteBody": "항목 {count}개를 삭제할까요? 휴지통이 없어서 되돌릴 수 없습니다.",
+    "newFolder": "새 폴더",
+    "cancel": "취소",
+    "confirm": "확인",
+    "pasteHere": "여기에 붙여넣기",
+    "copying": "항목 {count}개 복사 준비됨",
+    "moving": "항목 {count}개 이동 준비됨",
+    "pasted": "항목 {count}개를 붙여넣었습니다.",
+    "restricted": "접근이 제한된 폴더입니다.",
+    "allowAccess": "접근 허용",
+    "retry": "다시 시도",
+    "noMatches": "검색 결과 없음",
+    "path": "경로",
+    "size": "크기",
+    "modified": "수정한 날짜",
+    "close": "닫기",
+    "errors": {
+      "failed": "작업을 완료하지 못했습니다.",
+      "busy": "같은 이름의 항목이 이미 있습니다.",
+      "denied": "접근 권한이 없습니다.",
+      "missing": "항목을 찾을 수 없습니다.",
+      "noApp": "이 파일을 열 수 있는 앱이 없습니다.",
+      "unsupported": "이 위치의 파일은 다른 앱으로 보낼 수 없습니다.",
+      "invalid": "사용할 수 없는 이름이거나 위치입니다.",
+      "full": "저장공간이 부족합니다."
+    },
+    "title": "내 파일",
+    "storage": "저장공간",
+    "usage": "{used} / {total}",
+    "categories": {
+      "download": "다운로드",
+      "documents": "문서",
+      "camera": "카메라",
+      "pictures": "이미지",
+      "videos": "동영상",
+      "music": "음악"
+    },
+    "working": "작업 중",
+    "refresh": "새로고침",
+    "measuring": "계산 중",
+    "contents": "내용",
+    "fileCount": "파일 {count}개",
+    "openWith": "다른 앱으로 열기",
+    "deleteOne": "{name}을(를) 삭제할까요? 휴지통이 없어서 되돌릴 수 없습니다."
   }
 }

@@ -1,9 +1,10 @@
 <script lang="ts">
   import { t } from "svelte-i18n"
+  import { browsable } from "../share/share.svelte"
   import {
+    deviceLocation,
     HOME,
     RECYCLE_BIN,
-    SHARED,
     sameLocation,
     THIS_PC,
   } from "../../locations"
@@ -46,7 +47,7 @@
     ["drives"],
     ["network"],
     ["linux"],
-    ["shared", "recycleBin"],
+    ["recycleBin"],
   ]
 
   const NAV_MIN = 10
@@ -117,6 +118,17 @@
           nested: true,
           drive,
         })),
+      ...browsable()
+        .map(member => ({ ...member, location: deviceLocation(member.id) }))
+        .filter(member => pathShown(member.location))
+        .map(member => ({
+          label: member.name,
+          location: member.location,
+          section: "drives" as const,
+          hide: "path" as const,
+          nested: true,
+          icon: "lucide:monitor-smartphone",
+        })),
     ],
     network: places.network
       .filter(place => pathShown(place.path))
@@ -134,15 +146,6 @@
         section: "linux",
         hide: "path",
       })),
-    shared: [
-      {
-        label: $t("explorer.places.shared"),
-        location: SHARED,
-        section: "shared",
-        hide: "section",
-        icon: "lucide:share-2",
-      },
-    ],
     recycleBin: [
       {
         label: $t("explorer.places.recycleBin"),

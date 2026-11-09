@@ -1,4 +1,6 @@
 import { tr } from "@eris/i18n"
+import { browseDevice } from "../components/share/share"
+import { memberName } from "../components/share/share.svelte"
 import { isAudio } from "../filetypes"
 import {
   fromArchive,
@@ -6,6 +8,7 @@ import {
   fromFolder,
   fromHit,
   fromListing,
+  fromRemote,
   fromShell,
   type Item,
 } from "../items"
@@ -17,8 +20,10 @@ import {
   normalize,
   parentOf,
   pathKey,
-  SHARED,
+  rememberRoots,
+  remoteName,
   sameLocation,
+  splitDevice,
   THIS_PC,
 } from "../locations"
 import {
@@ -38,7 +43,7 @@ import { takePrefetched } from "./prefetch"
 import { prefs } from "./prefs.svelte"
 import { confirmPrivate } from "./privacy.svelte"
 
-export type TabKind = "folder" | "virtual" | "audio" | "shared" | "archive"
+export type TabKind = "folder" | "virtual" | "audio" | "archive" | "device"
 
 type Loaded = {
   location: string
@@ -151,8 +156,8 @@ const listOnline = (location: string) => {
 }
 
 const kindOf = (location: string): TabKind =>
-  location === SHARED
-    ? "shared"
+  splitDevice(location)
+    ? "device"
     : isVirtual(location)
       ? "virtual"
       : splitArchive(location)
@@ -175,8 +180,29 @@ const load = async (location: string, useCache: boolean): Promise<Loaded> => {
     return { ...plain, location: THIS_PC, items: thisPcItems(), cached }
   }
 
-  if (kind === "shared") {
-    return { ...plain, location: SHARED }
+  const device = splitDevice(location)
+
+  if (device) {
+    const browsed = await browseDevice(device.id, device.path)
+
+    if (browsed.kind !== "listing") {
+      throw browsed.kind === "pending" ? "waiting" : "denied"
+    }
+
+    if (device.path === null) {
+      rememberRoots(
+        device.id,
+        browsed.entries.map(entry => entry.path),
+      )
+    }
+
+    return {
+      ...plain,
+      location,
+      shellName:
+        device.path === null ? memberName(device.id) : remoteName(device.path),
+      items: browsed.entries.map(entry => fromRemote(device.id, entry)),
+    }
   }
 
   if (kind === "virtual") {
@@ -243,6 +269,10 @@ const sameItems = (old: Item[], next: Item[]) =>
 
 const CHANGE_SETTLE = 250
 
+const WAIT_POLL = 2000
+
+const WAIT_LIMIT = 120_000
+
 const SEARCH_PUBLISH = 250
 
 let tabs = 0
@@ -298,6 +328,8 @@ export class Tab {
 
   #stale = false
 
+  #waiting: { location: string; since: number } | null = null
+
   async open(location: string, options: OpenOptions = {}) {
     if (!(await confirmPrivate(location, this.location))) {
       return
@@ -332,6 +364,7 @@ export class Tab {
         this.items = loaded.items
       }
 
+      this.#waiting = null
       this.#record(loaded.location, options.record ?? true)
       this.#watch()
 
@@ -365,6 +398,11 @@ export class Tab {
       this.#record(this.location, options.record ?? true)
       this.#unwatch()
       this.select([])
+
+      if (this.error === "waiting") {
+        this.#retry(this.location)
+      }
+
       whenLate(location, () => {
         const waiting =
           this.error === "unreachable" && sameLocation(this.location, location)
@@ -380,6 +418,23 @@ export class Tab {
         this.loading = false
       }
     }
+  }
+
+  #retry(location: string) {
+    const since =
+      this.#waiting?.location === location ? this.#waiting.since : Date.now()
+
+    this.#waiting = { location, since }
+
+    if (Date.now() - since > WAIT_LIMIT) {
+      return
+    }
+
+    setTimeout(() => {
+      if (this.error === "waiting" && this.location === location) {
+        this.refresh()
+      }
+    }, WAIT_POLL)
   }
 
   #record(location: string, record: boolean) {

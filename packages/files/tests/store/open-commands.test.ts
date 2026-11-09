@@ -22,6 +22,7 @@ const services = () =>
     isArchive: (name: string) => name.endsWith(".zip"),
     packedEntry: (entry: Item) =>
       entry.packed ? entry.path.slice(entry.packed.length + 1) : "",
+    fetchRemote: mock(async (_entry: Item): Promise<string | null> => null),
   }) satisfies OpenServices
 
 const contextFor = (io: OpenServices) => {

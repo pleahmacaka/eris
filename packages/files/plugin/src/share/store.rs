@@ -1,21 +1,16 @@
-use std::collections::HashSet;
-use std::fs::OpenOptions;
+use std::fs::{OpenOptions, TryLockError};
 use std::io::ErrorKind;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::AtomicBool;
 use std::sync::{Mutex, MutexGuard};
 
 use iroh::{EndpointId, SecretKey};
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, Manager};
 use tokio::sync::OnceCell;
-use uuid::Uuid;
 
 use super::browse::{Browse, Member};
-use super::incoming::{Incoming, IncomingView};
-use super::outgoing::Outgoing;
 use super::peers::{default_name, Device};
-use super::sync::{Sync, SyncInvite};
 use super::wire::{self, fail};
 use super::Node;
 use crate::error::{Error, Result};
@@ -26,10 +21,6 @@ pub(super) struct Saved {
     pub(super) key: [u8; 32],
     pub(super) name: String,
     pub(super) devices: Vec<Device>,
-    pub(super) shares: Vec<Outgoing>,
-    pub(super) inbox: Vec<Incoming>,
-    pub(super) syncs: Vec<Sync>,
-    pub(super) sync_invites: Vec<SyncInvite>,
     #[serde(default)]
     pub(super) browse: Browse,
 }
@@ -40,20 +31,12 @@ impl Saved {
             key: SecretKey::generate().to_bytes(),
             name: default_name(),
             devices: Vec::new(),
-            shares: Vec::new(),
-            inbox: Vec::new(),
-            syncs: Vec::new(),
-            sync_invites: Vec::new(),
             browse: Browse::default(),
         }
     }
 
     pub(super) fn knows(&self, peer: &EndpointId) -> bool {
         self.devices.iter().any(|device| device.id == *peer)
-    }
-
-    pub(super) fn share(&self, id: Uuid) -> Option<&Outgoing> {
-        self.shares.iter().find(|share| share.id == id)
     }
 
     pub(super) fn added_at(&self, peer: &EndpointId) -> Option<u64> {
@@ -74,22 +57,10 @@ impl Saved {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ShareView {
-    #[serde(flatten)]
-    share: Outgoing,
-    link: String,
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct State {
     name: String,
     devices: Vec<Device>,
-    shares: Vec<ShareView>,
-    inbox: Vec<IncomingView>,
     pending_pair: Option<String>,
-    syncs: Vec<Sync>,
-    sync_invites: Vec<SyncInvite>,
     senior: bool,
     browse: Browse,
     browse_asks: Vec<Member>,
@@ -114,9 +85,19 @@ fn read_saved(file: &Path) -> Result<Option<Saved>> {
     Ok(None)
 }
 
+// Eris and Eris Files run side by side and each holds its own node, so the desktop host keeps a separate store
+fn node_dir(app: &AppHandle) -> Result<PathBuf> {
+    let base = crate::data_dir(app)?;
+    let embedded = app
+        .try_state::<crate::Host>()
+        .is_some_and(|host| host.marker.is_some());
+
+    Ok(if embedded { base.join("eris") } else { base })
+}
+
 impl Node {
     pub(super) fn load(app: &AppHandle) -> Result<Self> {
-        let dir = crate::data_dir(app)?;
+        let dir = node_dir(app)?;
 
         std::fs::create_dir_all(&dir)?;
 
@@ -126,7 +107,12 @@ impl Node {
             .truncate(false)
             .open(dir.join("share.lock"))?;
 
-        lock.try_lock().map_err(|_| Error::Busy)?;
+        match lock.try_lock() {
+            Ok(()) => {}
+            // std has no file locks on Android, where the store has one app process anyway
+            Err(TryLockError::Error(error)) if error.kind() == ErrorKind::Unsupported => {}
+            Err(_) => return Err(Error::Busy),
+        }
 
         let saved = read_saved(&dir.join("share.json"))?.unwrap_or_else(Saved::fresh);
 
@@ -138,11 +124,7 @@ impl Node {
             invite: Mutex::new(None),
             pending_pair: Mutex::new(None),
             attention: AtomicBool::new(false),
-            fetching: Mutex::new(HashSet::new()),
-            transfers: Mutex::default(),
             net: OnceCell::new(),
-            slots: Mutex::default(),
-            sync_hashes: Mutex::default(),
             gate: Mutex::default(),
             _lock: lock,
         })
@@ -179,18 +161,7 @@ impl Node {
         stored.map(|_| value)
     }
 
-    pub(super) fn view(&self, share: Outgoing) -> ShareView {
-        ShareView {
-            link: wire::share_link(&share.id, &self.id),
-            share,
-        }
-    }
-
     pub(super) fn state(&self) -> State {
-        self.purge();
-
-        let fetching = self.fetching.lock().unwrap().clone();
-        let receiving: HashSet<Uuid> = self.transfers.lock().unwrap().keys().copied().collect();
         let pending_pair = self.pending_pair.lock().unwrap().clone();
         let browse_asks = self.browse_asks();
         let members = self.browse_members();
@@ -199,19 +170,7 @@ impl Node {
         State {
             name: saved.name.clone(),
             devices: saved.devices.clone(),
-            shares: saved
-                .shares
-                .iter()
-                .map(|share| self.view(share.clone()))
-                .collect(),
-            inbox: saved
-                .inbox
-                .iter()
-                .map(|entry| entry.view(&fetching, &receiving))
-                .collect(),
             pending_pair,
-            syncs: saved.syncs.clone(),
-            sync_invites: saved.sync_invites.clone(),
             senior: saved.senior(),
             browse: saved.browse.clone(),
             browse_asks,

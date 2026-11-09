@@ -51,8 +51,6 @@ const LOOKS: Record<string, Look> = {
   copy: command("copy"),
   paste: command("paste"),
   copyPath: command("copyPath"),
-  share: { label: "share.action", icon: "lucide:share-2" },
-  syncFolder: { label: "share.sync.menu", icon: "lucide:folder-sync" },
   rename: command("rename"),
   resetName: {
     label: "explorer.commands.resetName",

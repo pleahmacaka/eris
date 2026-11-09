@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="eris_node_channel">Device connection</string>
+  <string name="eris_node_title">Eris Files is connected</string>
+  <string name="eris_node_text">Paired devices can browse this phone.</string>
+</resources>

@@ -470,7 +470,11 @@
         <Icon icon="lucide:circle-alert" class="size-6" />
         {$t(`explorer.states.${tab.error}`, { default: tab.error })}
 
-        {#if tab.error === "unreachable" || tab.error === "notReady"}
+        {#if tab.error === "waiting"}
+          <span class="text-xs">{$t("remote.waitingHint")}</span>
+        {/if}
+
+        {#if tab.error === "unreachable" || tab.error === "notReady" || tab.error === "waiting"}
           <button
             type="button"
             class="btn btn-sm pointer-events-auto mt-1"

@@ -1,6 +1,5 @@
 import { type Appearance, standaloneLook, type ThemeMode } from "@eris/settings"
 import { cloneDeep } from "es-toolkit"
-import type { ExpiryPreset } from "../components/share/expiry"
 import { known, persisted } from "./persisted.svelte"
 
 export type ViewMode =
@@ -35,7 +34,6 @@ export type SidebarSection =
   | "drives"
   | "network"
   | "linux"
-  | "shared"
   | "recycleBin"
 
 export type Sidebar = {
@@ -95,8 +93,6 @@ export const MENU_ITEMS: Record<MenuSection, string[]> = {
     "copy",
     "paste",
     "copyPath",
-    "share",
-    "syncFolder",
     "rename",
     "resetName",
     "delete",
@@ -144,7 +140,6 @@ export type Prefs = {
   mode: ThemeMode
   look: Appearance
   setupDone: boolean
-  shareExpiry: ExpiryPreset
   sidebar: Sidebar
   driveNames: Record<string, string>
   privatePaths: string[]
@@ -252,7 +247,6 @@ const defaults: Prefs = {
   mode: "system",
   look: standaloneLook,
   setupDone: false,
-  shareExpiry: "day",
   sidebar: { hidden: [], hiddenPaths: [], order: [] },
   driveNames: {},
   privatePaths: [],

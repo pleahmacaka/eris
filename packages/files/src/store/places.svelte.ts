@@ -4,7 +4,6 @@ import {
   HOME,
   isDriveRoot,
   RECYCLE_BIN,
-  SHARED,
   sameLocation,
   THIS_PC,
   WINDOWS,
@@ -71,7 +70,6 @@ export const NAMED_PLACES: [string, string][] = [
   [HOME, "explorer.places.home"],
   [THIS_PC, "explorer.places.thisPc"],
   [RECYCLE_BIN, "explorer.places.recycleBin"],
-  [SHARED, "explorer.places.shared"],
 ]
 
 export const placeName = (

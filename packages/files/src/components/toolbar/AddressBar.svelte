@@ -6,12 +6,16 @@
   import {
     isUnc,
     isVirtual,
+    parentOf,
+    remoteName,
     sameLocation,
     segments,
+    splitDevice,
     THIS_PC,
   } from "../../locations"
   import { openItem, runAddress } from "../../native"
   import { parseRemote } from "../../remote"
+  import { memberName } from "../share/share.svelte"
   import { splitArchive } from "../../store/archive.svelte"
   import { cloneInto } from "../../store/clone"
   import type { Explorer } from "../../store/explorer.svelte"
@@ -43,12 +47,33 @@
 
   const thisPc = $derived(named.find(entry => entry.path === THIS_PC))
 
+  const deviceCrumbs = (location: string) => {
+    const chain: { name: string; path: string }[] = []
+    let at: string | null = location
+    let device = splitDevice(location)
+
+    while (at && device) {
+      chain.unshift({
+        name: device.path === null ? memberName(device.id) : remoteName(device.path),
+        path: at,
+      })
+      at = parentOf(at)
+      device = at ? splitDevice(at) : null
+    }
+
+    return thisPc ? [thisPc, ...chain] : chain
+  }
+
   const crumbs = $derived.by(() => {
     const location = tab.location
     const known = named.find(entry => entry.path === location)
 
     if (known) {
       return [known]
+    }
+
+    if (splitDevice(location)) {
+      return deviceCrumbs(location)
     }
 
     if (isVirtual(location)) {

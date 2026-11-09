@@ -79,8 +79,7 @@
       "videos": "视频",
       "folder": "系统文件夹",
       "networkLocation": "网络位置",
-      "linuxDistro": "Linux 发行版",
-      "shared": "共享"
+      "linuxDistro": "Linux 发行版"
     },
     "drive": {
       "local": "本地磁盘",
@@ -199,7 +198,8 @@
       "noPreview": "无预览",
       "selectToPreview": "选择要预览的文件。",
       "unreachable": "无法连接网络位置",
-      "reconnect": "重新连接"
+      "reconnect": "重新连接",
+      "waiting": "等待允许"
     },
     "peek": {
       "items": "{count} 个项目",
@@ -217,7 +217,10 @@
       "notReady": "设备未就绪",
       "password": "受密码保护的压缩文件",
       "unsupported": "不支持的格式",
-      "unreachable": "无法连接网络位置"
+      "unreachable": "无法连接网络位置",
+      "timeout": "请求超时",
+      "full": "存储空间不足。",
+      "invalid": "无法使用此名称或位置。"
     },
     "settings": {
       "title": "设置",
@@ -318,7 +321,7 @@
           "open": "打开、在新标签页中打开、打开方式",
           "shell": "以管理员身份运行等已安装应用的菜单项",
           "archive": "压缩为 ZIP 或 7z、解压",
-          "edit": "剪切、复制、共享、重命名、删除",
+          "edit": "剪切、复制、重命名、删除",
           "organize": "固定、屏幕共享时确认、断开连接",
           "properties": "属性、显示更多选项"
         },
@@ -344,7 +347,6 @@
       "hide": "从侧边栏隐藏",
       "hidden": "已隐藏",
       "show": "显示",
-      "customize": "侧边栏设置",
       "sections": {
         "home": "主文件夹",
         "pinned": "快速访问",
@@ -352,7 +354,6 @@
         "drives": "此电脑驱动器",
         "network": "网络",
         "linux": "WSL",
-        "shared": "共享",
         "recycleBin": "回收站"
       }
     },
@@ -381,6 +382,11 @@
       "drives": "设备和驱动器",
       "network": "网络位置",
       "linux": "WSL"
+    },
+    "removePlace": {
+      "title": "删除网络位置",
+      "body": "要删除网络位置 {name} 吗？只有快捷方式会移到回收站，共享文件夹中的文件保持不变。",
+      "action": "删除"
     },
     "privacy": {
       "title": "正在共享屏幕",
@@ -415,8 +421,8 @@
         "tagline": "选择几项即可开始使用。",
         "tabs": "标签页与预览",
         "tabsText": "用标签页打开文件夹并即时预览文件。",
-        "share": "设备间共享",
-        "shareText": "立即与附近的设备收发文件。",
+        "devices": "设备连接",
+        "devicesText": "直接浏览已配对设备上的文件。",
         "terminal": "内置终端",
         "terminalText": "在当前文件夹中打开终端。"
       },
@@ -538,7 +544,9 @@
       "used": "已用空间",
       "free": "可用空间",
       "total": "容量",
-      "close": "关闭"
+      "close": "关闭",
+      "general": "常规",
+      "usage": "分析"
     },
     "scripts": {
       "detected": "使用 {manager} 运行",
@@ -553,6 +561,15 @@
       "toggle": "十六进制视图",
       "modeHex": "HEX",
       "modeText": "文本"
+    },
+    "usage": {
+      "scanning": "正在分析文件夹",
+      "counted": "{files} 个文件，{size}",
+      "failed": "无法分析此文件夹。",
+      "location": "分析位置",
+      "chart": "文件夹大小图表",
+      "files": "{count} 个文件",
+      "rest": "其他文件"
     }
   },
   "terminal": {
@@ -573,41 +590,7 @@
     "toBottom": "移到底部"
   },
   "share": {
-    "action": "共享",
-    "title": "共享",
-    "items": "{count} 个项目",
-    "link": "共享链接",
-    "qr": "二维码",
-    "copyLink": "复制链接",
-    "stop": "停止共享",
-    "preparing": "正在准备共享",
-    "makeLink": "创建链接",
-    "toDevice": "发送到设备",
-    "noDevices": "无已配对设备",
-    "sent": "已发送",
-    "send": "发送",
     "copied": "已复制到剪贴板。",
-    "center": "共享中心",
-    "inbox": "收到的共享",
-    "sentTab": "发出的共享",
-    "pasteLink": "粘贴共享链接",
-    "openLink": "打开",
-    "inboxEmpty": "无收到的共享",
-    "sentEmpty": "无发出的共享",
-    "andMore": "{name} 等 {count} 项",
-    "unknownItems": "正在确认项目",
-    "remove": "从列表中删除",
-    "retry": "重试",
-    "saveDownloads": "保存到下载文件夹",
-    "saveHere": "保存到当前文件夹",
-    "reveal": "打开位置",
-    "linkShare": "链接共享",
-    "stages": {
-      "waiting": "正在连接",
-      "offline": "发送设备离线",
-      "receiving": "正在接收",
-      "done": "已保存"
-    },
     "errors": {
       "empty": "没有可共享的文件。",
       "unsupported": "无法共享整个驱动器。",
@@ -627,51 +610,7 @@
     "files": "文件",
     "up": "上级文件夹",
     "filesEmpty": "无文件",
-    "expiry": "有效期",
-    "expiresAt": "{date} 过期",
-    "expiryOptions": {
-      "hour": "1 小时",
-      "day": "1 天",
-      "week": "7 天",
-      "month": "30 天",
-      "never": "永不过期",
-      "custom": "指定日期"
-    },
-    "defaultExpiry": "默认有效期",
-    "defaultExpiryHint": "应用于新链接和发送到设备的项目。",
-    "downloads": "已下载的设备",
-    "noDownloads": "无记录",
-    "sections": {
-      "shared": "共享的项目",
-      "received": "收到的项目",
-      "sync": "文件夹同步"
-    },
-    "sync": {
-      "add": "添加文件夹同步",
-      "menu": "与设备同步",
-      "device": "设备",
-      "start": "开始同步",
-      "pause": "暂停",
-      "resume": "继续",
-      "now": "立即同步",
-      "remove": "取消同步",
-      "waiting": "等待对方设备接受",
-      "paused": "已暂停",
-      "failed": "同步出错",
-      "synced": "{date} 已同步",
-      "never": "尚未同步",
-      "files": "{count} 个文件",
-      "warning": "同步系统文件或电脑专属设置可能导致程序损坏。",
-      "warnAppData": "这是应用数据文件夹。程序设置可能会在另一台电脑上被覆盖。",
-      "confirm": "我已了解风险",
-      "blocked": "Windows 文件夹、程序文件夹、驱动器根目录和用户文件夹本身无法同步。",
-      "invite": "{device} 请求同步文件夹“{name}”。",
-      "accept": "接受",
-      "decline": "拒绝",
-      "noDevices": "请先在设置的设备中连接设备。",
-      "pick": "选择文件夹",
-      "noFolder": "未选择文件夹"
-    }
+    "storageDenied": "请在设置中允许访问所有文件。"
   },
   "devices": {
     "title": "设备",
@@ -726,5 +665,72 @@
       "denied": "已拒绝浏览",
       "failed": "连接失败"
     }
+  },
+  "mobile": {
+    "internal": "内部存储",
+    "location": "位置",
+    "search": "搜索",
+    "closeSearch": "关闭搜索",
+    "sortTitle": "排序",
+    "sort": {
+      "name": "名称",
+      "modified": "修改日期",
+      "size": "大小"
+    },
+    "showHidden": "显示隐藏文件",
+    "selected": "已选择 {count} 项",
+    "selectAll": "全选",
+    "clearSelection": "取消选择",
+    "copy": "复制",
+    "move": "移动",
+    "rename": "重命名",
+    "share": "分享",
+    "details": "详细信息",
+    "delete": "删除",
+    "deleteTitle": "永久删除",
+    "deleteBody": "要删除 {count} 个项目吗？没有回收站，无法撤消。",
+    "newFolder": "新建文件夹",
+    "cancel": "取消",
+    "confirm": "确定",
+    "pasteHere": "粘贴到此处",
+    "copying": "{count} 项待复制",
+    "moving": "{count} 项待移动",
+    "pasted": "已粘贴 {count} 项。",
+    "restricted": "此文件夹受限。",
+    "allowAccess": "允许访问",
+    "retry": "重试",
+    "noMatches": "无匹配项",
+    "path": "路径",
+    "size": "大小",
+    "modified": "修改日期",
+    "close": "关闭",
+    "errors": {
+      "failed": "无法完成操作。",
+      "busy": "已存在同名项目。",
+      "denied": "访问被拒绝。",
+      "missing": "找不到该项目。",
+      "noApp": "没有可打开此文件的应用。",
+      "unsupported": "此位置的文件无法发送到其他应用。",
+      "invalid": "无法使用此名称或位置。",
+      "full": "存储空间不足。"
+    },
+    "title": "我的文件",
+    "storage": "存储",
+    "usage": "{used} / {total}",
+    "categories": {
+      "download": "下载",
+      "documents": "文档",
+      "camera": "相机",
+      "pictures": "图片",
+      "videos": "视频",
+      "music": "音乐"
+    },
+    "working": "处理中",
+    "refresh": "刷新",
+    "measuring": "正在计算",
+    "contents": "内容",
+    "fileCount": "{count} 个文件",
+    "openWith": "用其他应用打开",
+    "deleteOne": "要删除 {name} 吗？没有回收站，无法撤消。"
   }
 }

@@ -79,8 +79,7 @@
       "videos": "ビデオ",
       "folder": "システム フォルダー",
       "networkLocation": "ネットワークの場所",
-      "linuxDistro": "Linux ディストリビューション",
-      "shared": "共有"
+      "linuxDistro": "Linux ディストリビューション"
     },
     "drive": {
       "local": "ローカル ディスク",
@@ -199,7 +198,8 @@
       "noPreview": "プレビューなし",
       "selectToPreview": "プレビューするファイルを選択してください。",
       "unreachable": "ネットワークの場所に接続できません",
-      "reconnect": "再接続"
+      "reconnect": "再接続",
+      "waiting": "許可待ち"
     },
     "peek": {
       "items": "{count}個の項目",
@@ -217,7 +217,10 @@
       "notReady": "デバイスの準備ができていません",
       "password": "パスワード付きの圧縮ファイル",
       "unsupported": "未対応の形式",
-      "unreachable": "ネットワークの場所に接続できません"
+      "unreachable": "ネットワークの場所に接続できません",
+      "timeout": "タイムアウト",
+      "full": "ストレージの空き容量が不足しています。",
+      "invalid": "この名前または場所は使用できません。"
     },
     "settings": {
       "title": "設定",
@@ -318,7 +321,7 @@
           "open": "開く、新しいタブで開く、プログラムから開く",
           "shell": "管理者として実行など、インストール済みアプリの項目",
           "archive": "ZIP、7z への圧縮と展開",
-          "edit": "切り取り、コピー、共有、名前の変更、削除",
+          "edit": "切り取り、コピー、名前の変更、削除",
           "organize": "ピン留め、画面共有時の確認、切断",
           "properties": "プロパティ、その他のオプションを表示"
         },
@@ -344,7 +347,6 @@
       "hide": "サイドバーに表示しない",
       "hidden": "非表示",
       "show": "表示",
-      "customize": "サイドバーの設定",
       "sections": {
         "home": "ホーム",
         "pinned": "クイック アクセス",
@@ -352,7 +354,6 @@
         "drives": "PC のドライブ",
         "network": "ネットワーク",
         "linux": "WSL",
-        "shared": "共有",
         "recycleBin": "ごみ箱"
       }
     },
@@ -381,6 +382,11 @@
       "drives": "デバイスとドライブ",
       "network": "ネットワークの場所",
       "linux": "WSL"
+    },
+    "removePlace": {
+      "title": "ネットワークの場所を削除",
+      "body": "ネットワークの場所 {name} を削除しますか？ショートカットだけがごみ箱に移動し、共有フォルダーのファイルはそのまま残ります。",
+      "action": "削除"
     },
     "privacy": {
       "title": "画面共有中",
@@ -415,8 +421,8 @@
         "tagline": "いくつか選ぶだけですぐに使えます。",
         "tabs": "タブとプレビュー",
         "tabsText": "フォルダーをタブで開き、ファイルをすぐにプレビューします。",
-        "share": "デバイス間の共有",
-        "shareText": "近くのデバイスとすぐにファイルをやり取りします。",
+        "devices": "デバイス接続",
+        "devicesText": "接続したデバイスのファイルをすぐに閲覧します。",
         "terminal": "内蔵ターミナル",
         "terminalText": "表示中のフォルダーでターミナルを開きます。"
       },
@@ -538,7 +544,9 @@
       "used": "使用領域",
       "free": "空き領域",
       "total": "容量",
-      "close": "閉じる"
+      "close": "閉じる",
+      "general": "全般",
+      "usage": "分析"
     },
     "scripts": {
       "detected": "{manager} で実行",
@@ -553,6 +561,15 @@
       "toggle": "HEX 表示",
       "modeHex": "HEX",
       "modeText": "テキスト"
+    },
+    "usage": {
+      "scanning": "フォルダーを分析中",
+      "counted": "ファイル {files} 個、{size}",
+      "failed": "このフォルダーを分析できません。",
+      "location": "分析場所",
+      "chart": "フォルダーサイズのグラフ",
+      "files": "ファイル {count} 個",
+      "rest": "その他のファイル"
     }
   },
   "terminal": {
@@ -573,41 +590,7 @@
     "toBottom": "下へ移動"
   },
   "share": {
-    "action": "共有",
-    "title": "共有",
-    "items": "{count} 個の項目",
-    "link": "共有リンク",
-    "qr": "QR コード",
-    "copyLink": "リンクをコピー",
-    "stop": "共有を停止",
-    "preparing": "共有を準備中",
-    "makeLink": "リンクを作成",
-    "toDevice": "デバイスに送信",
-    "noDevices": "ペアリング済みのデバイスなし",
-    "sent": "送信済み",
-    "send": "送信",
     "copied": "クリップボードにコピーしました。",
-    "center": "共有センター",
-    "inbox": "受信した共有",
-    "sentTab": "送信した共有",
-    "pasteLink": "共有リンクを貼り付け",
-    "openLink": "開く",
-    "inboxEmpty": "受信した共有なし",
-    "sentEmpty": "送信した共有なし",
-    "andMore": "{name} ほか {count} 個",
-    "unknownItems": "項目を確認中",
-    "remove": "一覧から削除",
-    "retry": "再試行",
-    "saveDownloads": "ダウンロード フォルダーに保存",
-    "saveHere": "現在のフォルダーに保存",
-    "reveal": "場所を開く",
-    "linkShare": "リンク共有",
-    "stages": {
-      "waiting": "接続中",
-      "offline": "送信元がオフライン",
-      "receiving": "受信中",
-      "done": "保存済み"
-    },
     "errors": {
       "empty": "共有するファイルがありません。",
       "unsupported": "ドライブ全体は共有できません。",
@@ -627,51 +610,7 @@
     "files": "ファイル",
     "up": "親フォルダー",
     "filesEmpty": "ファイルなし",
-    "expiry": "有効期限",
-    "expiresAt": "{date} に期限切れ",
-    "expiryOptions": {
-      "hour": "1 時間",
-      "day": "1 日",
-      "week": "7 日",
-      "month": "30 日",
-      "never": "期限なし",
-      "custom": "日付を指定"
-    },
-    "defaultExpiry": "既定の有効期限",
-    "defaultExpiryHint": "新しいリンクとデバイスへ送る項目に適用します。",
-    "downloads": "ダウンロードしたデバイス",
-    "noDownloads": "記録なし",
-    "sections": {
-      "shared": "共有した項目",
-      "received": "受け取った項目",
-      "sync": "フォルダー同期"
-    },
-    "sync": {
-      "add": "フォルダー同期を追加",
-      "menu": "デバイスと同期",
-      "device": "デバイス",
-      "start": "同期を開始",
-      "pause": "一時停止",
-      "resume": "再開",
-      "now": "今すぐ同期",
-      "remove": "同期を解除",
-      "waiting": "相手デバイスの承認待ち",
-      "paused": "一時停止中",
-      "failed": "同期エラー",
-      "synced": "{date} に同期",
-      "never": "同期履歴なし",
-      "files": "ファイル {count} 個",
-      "warning": "システムファイルや PC 固有の設定を同期するとプログラムが壊れることがあります。",
-      "warnAppData": "アプリのデータフォルダーです。プログラムの設定が別の PC で上書きされることがあります。",
-      "confirm": "リスクを確認しました",
-      "blocked": "Windows フォルダー、プログラムフォルダー、ドライブのルート、ユーザーフォルダーそのものは同期できません。",
-      "invite": "{device} がフォルダー「{name}」の同期を求めています。",
-      "accept": "承認",
-      "decline": "拒否",
-      "noDevices": "先に設定のデバイスでデバイスを接続してください。",
-      "pick": "フォルダーを選択",
-      "noFolder": "フォルダー未選択"
-    }
+    "storageDenied": "設定ですべてのファイルへのアクセスを許可してください。"
   },
   "devices": {
     "title": "デバイス",
@@ -726,5 +665,72 @@
       "denied": "閲覧拒否",
       "failed": "接続失敗"
     }
+  },
+  "mobile": {
+    "internal": "内部ストレージ",
+    "location": "場所",
+    "search": "検索",
+    "closeSearch": "検索を閉じる",
+    "sortTitle": "並べ替え",
+    "sort": {
+      "name": "名前",
+      "modified": "更新日時",
+      "size": "サイズ"
+    },
+    "showHidden": "隠しファイルを表示",
+    "selected": "{count} 個選択",
+    "selectAll": "すべて選択",
+    "clearSelection": "選択解除",
+    "copy": "コピー",
+    "move": "移動",
+    "rename": "名前の変更",
+    "share": "共有",
+    "details": "詳細",
+    "delete": "削除",
+    "deleteTitle": "完全に削除",
+    "deleteBody": "{count} 個の項目を削除しますか？ごみ箱がないため元に戻せません。",
+    "newFolder": "新しいフォルダー",
+    "cancel": "キャンセル",
+    "confirm": "OK",
+    "pasteHere": "ここに貼り付け",
+    "copying": "{count} 個をコピー準備完了",
+    "moving": "{count} 個を移動準備完了",
+    "pasted": "{count} 個を貼り付けました。",
+    "restricted": "アクセスが制限されたフォルダーです。",
+    "allowAccess": "アクセスを許可",
+    "retry": "再試行",
+    "noMatches": "一致する項目なし",
+    "path": "パス",
+    "size": "サイズ",
+    "modified": "更新日時",
+    "close": "閉じる",
+    "errors": {
+      "failed": "操作を完了できませんでした。",
+      "busy": "同じ名前の項目がすでにあります。",
+      "denied": "アクセスが拒否されました。",
+      "missing": "項目が見つかりません。",
+      "noApp": "このファイルを開けるアプリがありません。",
+      "unsupported": "この場所のファイルは他のアプリに送れません。",
+      "invalid": "この名前または場所は使用できません。",
+      "full": "ストレージの空き容量が不足しています。"
+    },
+    "title": "マイファイル",
+    "storage": "ストレージ",
+    "usage": "{used} / {total}",
+    "categories": {
+      "download": "ダウンロード",
+      "documents": "ドキュメント",
+      "camera": "カメラ",
+      "pictures": "画像",
+      "videos": "動画",
+      "music": "音楽"
+    },
+    "working": "処理中",
+    "refresh": "更新",
+    "measuring": "計算中",
+    "contents": "内容",
+    "fileCount": "ファイル {count} 個",
+    "openWith": "他のアプリで開く",
+    "deleteOne": "{name} を削除しますか？ごみ箱がないため元に戻せません。"
   }
 }

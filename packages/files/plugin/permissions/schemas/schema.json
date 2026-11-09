@@ -691,6 +691,18 @@
           "markdownDescription": "Denies the is_mujoco command without any pre-configured scope."
         },
         {
+          "description": "Enables the keep_alive command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-keep-alive",
+          "markdownDescription": "Enables the keep_alive command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the keep_alive command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-keep-alive",
+          "markdownDescription": "Denies the keep_alive command without any pre-configured scope."
+        },
+        {
           "description": "Enables the known_folders command without any pre-configured scope.",
           "type": "string",
           "const": "allow-known-folders",
@@ -907,6 +919,18 @@
           "markdownDescription": "Denies the open_default_apps command without any pre-configured scope."
         },
         {
+          "description": "Enables the open_file command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-open-file",
+          "markdownDescription": "Enables the open_file command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the open_file command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-open-file",
+          "markdownDescription": "Denies the open_file command without any pre-configured scope."
+        },
+        {
           "description": "Enables the open_item command without any pre-configured scope.",
           "type": "string",
           "const": "allow-open-item",
@@ -1051,6 +1075,18 @@
           "markdownDescription": "Denies the rename_item command without any pre-configured scope."
         },
         {
+          "description": "Enables the request_storage command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-request-storage",
+          "markdownDescription": "Enables the request_storage command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the request_storage command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-request-storage",
+          "markdownDescription": "Denies the request_storage command without any pre-configured scope."
+        },
+        {
           "description": "Enables the run_address command without any pre-configured scope.",
           "type": "string",
           "const": "allow-run-address",
@@ -1087,6 +1123,18 @@
           "markdownDescription": "Denies the save_transcribe_key command without any pre-configured scope."
         },
         {
+          "description": "Enables the scan_files command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-scan-files",
+          "markdownDescription": "Enables the scan_files command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the scan_files command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-scan-files",
+          "markdownDescription": "Denies the scan_files command without any pre-configured scope."
+        },
+        {
           "description": "Enables the screen_sharing command without any pre-configured scope.",
           "type": "string",
           "const": "allow-screen-sharing",
@@ -1109,6 +1157,18 @@
           "type": "string",
           "const": "deny-search-dir",
           "markdownDescription": "Denies the search_dir command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the send_to_back command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-send-to-back",
+          "markdownDescription": "Enables the send_to_back command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the send_to_back command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-send-to-back",
+          "markdownDescription": "Denies the send_to_back command without any pre-configured scope."
         },
         {
           "description": "Enables the set_clipboard command without any pre-configured scope.",
@@ -1195,42 +1255,6 @@
           "markdownDescription": "Denies the share_browse_scope command without any pre-configured scope."
         },
         {
-          "description": "Enables the share_cancel command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-share-cancel",
-          "markdownDescription": "Enables the share_cancel command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the share_cancel command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-share-cancel",
-          "markdownDescription": "Denies the share_cancel command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the share_create command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-share-create",
-          "markdownDescription": "Enables the share_create command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the share_create command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-share-create",
-          "markdownDescription": "Denies the share_create command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the share_dismiss command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-share-dismiss",
-          "markdownDescription": "Enables the share_dismiss command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the share_dismiss command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-share-dismiss",
-          "markdownDescription": "Denies the share_dismiss command without any pre-configured scope."
-        },
-        {
           "description": "Enables the share_dismiss_pair command without any pre-configured scope.",
           "type": "string",
           "const": "allow-share-dismiss-pair",
@@ -1241,30 +1265,6 @@
           "type": "string",
           "const": "deny-share-dismiss-pair",
           "markdownDescription": "Denies the share_dismiss_pair command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the share_download command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-share-download",
-          "markdownDescription": "Enables the share_download command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the share_download command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-share-download",
-          "markdownDescription": "Denies the share_download command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the share_fetch command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-share-fetch",
-          "markdownDescription": "Enables the share_fetch command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the share_fetch command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-share-fetch",
-          "markdownDescription": "Denies the share_fetch command without any pre-configured scope."
         },
         {
           "description": "Enables the share_files command without any pre-configured scope.",
@@ -1303,28 +1303,16 @@
           "markdownDescription": "Denies the share_join command without any pre-configured scope."
         },
         {
-          "description": "Enables the share_offer command without any pre-configured scope.",
+          "description": "Enables the share_local command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-share-offer",
-          "markdownDescription": "Enables the share_offer command without any pre-configured scope."
+          "const": "allow-share-local",
+          "markdownDescription": "Enables the share_local command without any pre-configured scope."
         },
         {
-          "description": "Denies the share_offer command without any pre-configured scope.",
+          "description": "Denies the share_local command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-share-offer",
-          "markdownDescription": "Denies the share_offer command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the share_open command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-share-open",
-          "markdownDescription": "Enables the share_open command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the share_open command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-share-open",
-          "markdownDescription": "Denies the share_open command without any pre-configured scope."
+          "const": "deny-share-local",
+          "markdownDescription": "Denies the share_local command without any pre-configured scope."
         },
         {
           "description": "Enables the share_qr command without any pre-configured scope.",
@@ -1375,18 +1363,6 @@
           "markdownDescription": "Denies the share_rename_self command without any pre-configured scope."
         },
         {
-          "description": "Enables the share_revoke command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-share-revoke",
-          "markdownDescription": "Enables the share_revoke command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the share_revoke command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-share-revoke",
-          "markdownDescription": "Denies the share_revoke command without any pre-configured scope."
-        },
-        {
           "description": "Enables the share_send command without any pre-configured scope.",
           "type": "string",
           "const": "allow-share-send",
@@ -1397,30 +1373,6 @@
           "type": "string",
           "const": "deny-share-send",
           "markdownDescription": "Denies the share_send command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the share_set_expiry command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-share-set-expiry",
-          "markdownDescription": "Enables the share_set_expiry command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the share_set_expiry command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-share-set-expiry",
-          "markdownDescription": "Denies the share_set_expiry command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the share_set_public command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-share-set-public",
-          "markdownDescription": "Enables the share_set_public command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the share_set_public command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-share-set-public",
-          "markdownDescription": "Denies the share_set_public command without any pre-configured scope."
         },
         {
           "description": "Enables the share_state command without any pre-configured scope.",
@@ -1495,88 +1447,28 @@
           "markdownDescription": "Denies the stat_items command without any pre-configured scope."
         },
         {
-          "description": "Enables the sync_accept command without any pre-configured scope.",
+          "description": "Enables the storage_access command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-sync-accept",
-          "markdownDescription": "Enables the sync_accept command without any pre-configured scope."
+          "const": "allow-storage-access",
+          "markdownDescription": "Enables the storage_access command without any pre-configured scope."
         },
         {
-          "description": "Denies the sync_accept command without any pre-configured scope.",
+          "description": "Denies the storage_access command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-sync-accept",
-          "markdownDescription": "Denies the sync_accept command without any pre-configured scope."
+          "const": "deny-storage-access",
+          "markdownDescription": "Denies the storage_access command without any pre-configured scope."
         },
         {
-          "description": "Enables the sync_check command without any pre-configured scope.",
+          "description": "Enables the storage_stats command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-sync-check",
-          "markdownDescription": "Enables the sync_check command without any pre-configured scope."
+          "const": "allow-storage-stats",
+          "markdownDescription": "Enables the storage_stats command without any pre-configured scope."
         },
         {
-          "description": "Denies the sync_check command without any pre-configured scope.",
+          "description": "Denies the storage_stats command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-sync-check",
-          "markdownDescription": "Denies the sync_check command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the sync_create command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-sync-create",
-          "markdownDescription": "Enables the sync_create command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the sync_create command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-sync-create",
-          "markdownDescription": "Denies the sync_create command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the sync_decline command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-sync-decline",
-          "markdownDescription": "Enables the sync_decline command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the sync_decline command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-sync-decline",
-          "markdownDescription": "Denies the sync_decline command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the sync_now command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-sync-now",
-          "markdownDescription": "Enables the sync_now command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the sync_now command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-sync-now",
-          "markdownDescription": "Denies the sync_now command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the sync_pause command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-sync-pause",
-          "markdownDescription": "Enables the sync_pause command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the sync_pause command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-sync-pause",
-          "markdownDescription": "Denies the sync_pause command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the sync_remove command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-sync-remove",
-          "markdownDescription": "Enables the sync_remove command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the sync_remove command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-sync-remove",
-          "markdownDescription": "Denies the sync_remove command without any pre-configured scope."
+          "const": "deny-storage-stats",
+          "markdownDescription": "Denies the storage_stats command without any pre-configured scope."
         },
         {
           "description": "Enables the take_intent command without any pre-configured scope.",
@@ -1601,6 +1493,18 @@
           "type": "string",
           "const": "deny-tally-dirs",
           "markdownDescription": "Denies the tally_dirs command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the thumbnail command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-thumbnail",
+          "markdownDescription": "Enables the thumbnail command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the thumbnail command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-thumbnail",
+          "markdownDescription": "Denies the thumbnail command without any pre-configured scope."
         },
         {
           "description": "Enables the transcribe command without any pre-configured scope.",
@@ -1639,6 +1543,42 @@
           "markdownDescription": "Denies the transfer_items command without any pre-configured scope."
         },
         {
+          "description": "Enables the usage_forget command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-usage-forget",
+          "markdownDescription": "Enables the usage_forget command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the usage_forget command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-usage-forget",
+          "markdownDescription": "Denies the usage_forget command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the usage_scan command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-usage-scan",
+          "markdownDescription": "Enables the usage_scan command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the usage_scan command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-usage-scan",
+          "markdownDescription": "Denies the usage_scan command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the usage_tree command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-usage-tree",
+          "markdownDescription": "Enables the usage_tree command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the usage_tree command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-usage-tree",
+          "markdownDescription": "Denies the usage_tree command without any pre-configured scope."
+        },
+        {
           "description": "Enables the watch_dir command without any pre-configured scope.",
           "type": "string",
           "const": "allow-watch-dir",
@@ -1663,10 +1603,10 @@
           "markdownDescription": "Denies the wsl_distros command without any pre-configured scope."
         },
         {
-          "description": "Browse, preview, share and manage files.\n#### This default permission set includes:\n\n- `allow-log-file`\n- `allow-list-dir`\n- `allow-list-shell`\n- `allow-search-dir`\n- `allow-cancel-search`\n- `allow-measure-dirs`\n- `allow-tally-dirs`\n- `allow-stat-items`\n- `allow-menu-prepare`\n- `allow-menu-ready`\n- `allow-menu-place`\n- `allow-menu-hide`\n- `allow-menu-owner-active`\n- `allow-list-archive`\n- `allow-extract-entry`\n- `allow-bandizip-available`\n- `allow-bandizip-job`\n- `allow-known-folders`\n- `allow-drives`\n- `allow-explorer-settings`\n- `allow-wsl-distros`\n- `allow-screen-sharing`\n- `allow-open-item`\n- `allow-open-with`\n- `allow-show-properties`\n- `allow-empty-recycle-bin`\n- `allow-start-drag`\n- `allow-native-menu`\n- `allow-invoke-verb`\n- `allow-shell-verbs`\n- `allow-run-shell-verb`\n- `allow-generic-icons`\n- `allow-transfer-items`\n- `allow-delete-items`\n- `allow-rename-item`\n- `allow-new-folder`\n- `allow-set-clipboard`\n- `allow-paste-items`\n- `allow-clipboard-has-files`\n- `allow-allow-preview`\n- `allow-preview-text`\n- `allow-read-bytes`\n- `allow-find-bytes`\n- `allow-model-files`\n- `allow-is-mujoco`\n- `allow-open-viewer`\n- `allow-inspect-tensors`\n- `allow-audio-waveform`\n- `allow-identical-files`\n- `allow-probe-dirs`\n- `allow-package-scripts`\n- `allow-package-managers`\n- `allow-installers`\n- `allow-cleanup-plan`\n- `allow-git-status`\n- `allow-git-log`\n- `allow-git-repo`\n- `allow-git-user`\n- `allow-git-stage`\n- `allow-git-unstage`\n- `allow-git-commit`\n- `allow-git-sync`\n- `allow-git-clone`\n- `allow-transcribe`\n- `allow-read-transcript`\n- `allow-transcribe-key-status`\n- `allow-save-transcribe-key`\n- `allow-clear-transcribe-key`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-default-app-status`\n- `allow-set-default-app`\n- `allow-open-default-apps`\n- `allow-watch-dir`\n- `allow-network-places`\n- `allow-reconnect-drive`\n- `allow-disconnect-drive`\n- `allow-map-network-drive`\n- `allow-disconnect-network-drive`\n- `allow-add-network-location`\n- `allow-run-address`\n- `allow-share-state`\n- `allow-share-take-attention`\n- `allow-share-rename-self`\n- `allow-share-invite`\n- `allow-share-join`\n- `allow-share-dismiss-pair`\n- `allow-share-rename-device`\n- `allow-share-remove-device`\n- `allow-share-create`\n- `allow-share-set-public`\n- `allow-share-offer`\n- `allow-share-revoke`\n- `allow-share-open`\n- `allow-share-fetch`\n- `allow-share-download`\n- `allow-share-cancel`\n- `allow-share-dismiss`\n- `allow-share-qr`\n- `allow-share-browse`\n- `allow-share-browse-fetch`\n- `allow-share-browse-answer`\n- `allow-share-browse-revoke`\n- `allow-share-browse-scope`\n- `allow-share-set-expiry`\n- `allow-sync-check`\n- `allow-sync-create`\n- `allow-sync-accept`\n- `allow-sync-decline`\n- `allow-sync-pause`\n- `allow-sync-now`\n- `allow-sync-remove`\n- `allow-share-files`",
+          "description": "Browse, preview, share and manage files.\n#### This default permission set includes:\n\n- `allow-log-file`\n- `allow-list-dir`\n- `allow-list-shell`\n- `allow-search-dir`\n- `allow-cancel-search`\n- `allow-measure-dirs`\n- `allow-tally-dirs`\n- `allow-stat-items`\n- `allow-usage-scan`\n- `allow-usage-tree`\n- `allow-usage-forget`\n- `allow-menu-prepare`\n- `allow-menu-ready`\n- `allow-menu-place`\n- `allow-menu-hide`\n- `allow-menu-owner-active`\n- `allow-list-archive`\n- `allow-extract-entry`\n- `allow-bandizip-available`\n- `allow-bandizip-job`\n- `allow-known-folders`\n- `allow-drives`\n- `allow-explorer-settings`\n- `allow-wsl-distros`\n- `allow-screen-sharing`\n- `allow-open-item`\n- `allow-open-with`\n- `allow-show-properties`\n- `allow-empty-recycle-bin`\n- `allow-start-drag`\n- `allow-native-menu`\n- `allow-invoke-verb`\n- `allow-shell-verbs`\n- `allow-run-shell-verb`\n- `allow-generic-icons`\n- `allow-transfer-items`\n- `allow-delete-items`\n- `allow-rename-item`\n- `allow-new-folder`\n- `allow-set-clipboard`\n- `allow-paste-items`\n- `allow-clipboard-has-files`\n- `allow-allow-preview`\n- `allow-preview-text`\n- `allow-read-bytes`\n- `allow-find-bytes`\n- `allow-model-files`\n- `allow-is-mujoco`\n- `allow-open-viewer`\n- `allow-inspect-tensors`\n- `allow-audio-waveform`\n- `allow-identical-files`\n- `allow-probe-dirs`\n- `allow-package-scripts`\n- `allow-package-managers`\n- `allow-installers`\n- `allow-cleanup-plan`\n- `allow-git-status`\n- `allow-git-log`\n- `allow-git-repo`\n- `allow-git-user`\n- `allow-git-stage`\n- `allow-git-unstage`\n- `allow-git-commit`\n- `allow-git-sync`\n- `allow-git-clone`\n- `allow-transcribe`\n- `allow-read-transcript`\n- `allow-transcribe-key-status`\n- `allow-save-transcribe-key`\n- `allow-clear-transcribe-key`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-default-app-status`\n- `allow-set-default-app`\n- `allow-open-default-apps`\n- `allow-watch-dir`\n- `allow-network-places`\n- `allow-reconnect-drive`\n- `allow-disconnect-drive`\n- `allow-map-network-drive`\n- `allow-disconnect-network-drive`\n- `allow-add-network-location`\n- `allow-run-address`\n- `allow-share-state`\n- `allow-share-take-attention`\n- `allow-share-rename-self`\n- `allow-share-invite`\n- `allow-share-join`\n- `allow-share-dismiss-pair`\n- `allow-share-rename-device`\n- `allow-share-remove-device`\n- `allow-share-qr`\n- `allow-share-browse`\n- `allow-share-browse-fetch`\n- `allow-share-browse-answer`\n- `allow-share-browse-revoke`\n- `allow-share-browse-scope`\n- `allow-share-local`\n- `allow-storage-access`\n- `allow-request-storage`\n- `allow-open-file`\n- `allow-share-files`\n- `allow-scan-files`\n- `allow-storage-stats`\n- `allow-keep-alive`\n- `allow-send-to-back`\n- `allow-thumbnail`\n- `allow-open-with`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Browse, preview, share and manage files.\n#### This default permission set includes:\n\n- `allow-log-file`\n- `allow-list-dir`\n- `allow-list-shell`\n- `allow-search-dir`\n- `allow-cancel-search`\n- `allow-measure-dirs`\n- `allow-tally-dirs`\n- `allow-stat-items`\n- `allow-menu-prepare`\n- `allow-menu-ready`\n- `allow-menu-place`\n- `allow-menu-hide`\n- `allow-menu-owner-active`\n- `allow-list-archive`\n- `allow-extract-entry`\n- `allow-bandizip-available`\n- `allow-bandizip-job`\n- `allow-known-folders`\n- `allow-drives`\n- `allow-explorer-settings`\n- `allow-wsl-distros`\n- `allow-screen-sharing`\n- `allow-open-item`\n- `allow-open-with`\n- `allow-show-properties`\n- `allow-empty-recycle-bin`\n- `allow-start-drag`\n- `allow-native-menu`\n- `allow-invoke-verb`\n- `allow-shell-verbs`\n- `allow-run-shell-verb`\n- `allow-generic-icons`\n- `allow-transfer-items`\n- `allow-delete-items`\n- `allow-rename-item`\n- `allow-new-folder`\n- `allow-set-clipboard`\n- `allow-paste-items`\n- `allow-clipboard-has-files`\n- `allow-allow-preview`\n- `allow-preview-text`\n- `allow-read-bytes`\n- `allow-find-bytes`\n- `allow-model-files`\n- `allow-is-mujoco`\n- `allow-open-viewer`\n- `allow-inspect-tensors`\n- `allow-audio-waveform`\n- `allow-identical-files`\n- `allow-probe-dirs`\n- `allow-package-scripts`\n- `allow-package-managers`\n- `allow-installers`\n- `allow-cleanup-plan`\n- `allow-git-status`\n- `allow-git-log`\n- `allow-git-repo`\n- `allow-git-user`\n- `allow-git-stage`\n- `allow-git-unstage`\n- `allow-git-commit`\n- `allow-git-sync`\n- `allow-git-clone`\n- `allow-transcribe`\n- `allow-read-transcript`\n- `allow-transcribe-key-status`\n- `allow-save-transcribe-key`\n- `allow-clear-transcribe-key`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-default-app-status`\n- `allow-set-default-app`\n- `allow-open-default-apps`\n- `allow-watch-dir`\n- `allow-network-places`\n- `allow-reconnect-drive`\n- `allow-disconnect-drive`\n- `allow-map-network-drive`\n- `allow-disconnect-network-drive`\n- `allow-add-network-location`\n- `allow-run-address`\n- `allow-share-state`\n- `allow-share-take-attention`\n- `allow-share-rename-self`\n- `allow-share-invite`\n- `allow-share-join`\n- `allow-share-dismiss-pair`\n- `allow-share-rename-device`\n- `allow-share-remove-device`\n- `allow-share-create`\n- `allow-share-set-public`\n- `allow-share-offer`\n- `allow-share-revoke`\n- `allow-share-open`\n- `allow-share-fetch`\n- `allow-share-download`\n- `allow-share-cancel`\n- `allow-share-dismiss`\n- `allow-share-qr`\n- `allow-share-browse`\n- `allow-share-browse-fetch`\n- `allow-share-browse-answer`\n- `allow-share-browse-revoke`\n- `allow-share-browse-scope`\n- `allow-share-set-expiry`\n- `allow-sync-check`\n- `allow-sync-create`\n- `allow-sync-accept`\n- `allow-sync-decline`\n- `allow-sync-pause`\n- `allow-sync-now`\n- `allow-sync-remove`\n- `allow-share-files`"
+          "markdownDescription": "Browse, preview, share and manage files.\n#### This default permission set includes:\n\n- `allow-log-file`\n- `allow-list-dir`\n- `allow-list-shell`\n- `allow-search-dir`\n- `allow-cancel-search`\n- `allow-measure-dirs`\n- `allow-tally-dirs`\n- `allow-stat-items`\n- `allow-usage-scan`\n- `allow-usage-tree`\n- `allow-usage-forget`\n- `allow-menu-prepare`\n- `allow-menu-ready`\n- `allow-menu-place`\n- `allow-menu-hide`\n- `allow-menu-owner-active`\n- `allow-list-archive`\n- `allow-extract-entry`\n- `allow-bandizip-available`\n- `allow-bandizip-job`\n- `allow-known-folders`\n- `allow-drives`\n- `allow-explorer-settings`\n- `allow-wsl-distros`\n- `allow-screen-sharing`\n- `allow-open-item`\n- `allow-open-with`\n- `allow-show-properties`\n- `allow-empty-recycle-bin`\n- `allow-start-drag`\n- `allow-native-menu`\n- `allow-invoke-verb`\n- `allow-shell-verbs`\n- `allow-run-shell-verb`\n- `allow-generic-icons`\n- `allow-transfer-items`\n- `allow-delete-items`\n- `allow-rename-item`\n- `allow-new-folder`\n- `allow-set-clipboard`\n- `allow-paste-items`\n- `allow-clipboard-has-files`\n- `allow-allow-preview`\n- `allow-preview-text`\n- `allow-read-bytes`\n- `allow-find-bytes`\n- `allow-model-files`\n- `allow-is-mujoco`\n- `allow-open-viewer`\n- `allow-inspect-tensors`\n- `allow-audio-waveform`\n- `allow-identical-files`\n- `allow-probe-dirs`\n- `allow-package-scripts`\n- `allow-package-managers`\n- `allow-installers`\n- `allow-cleanup-plan`\n- `allow-git-status`\n- `allow-git-log`\n- `allow-git-repo`\n- `allow-git-user`\n- `allow-git-stage`\n- `allow-git-unstage`\n- `allow-git-commit`\n- `allow-git-sync`\n- `allow-git-clone`\n- `allow-transcribe`\n- `allow-read-transcript`\n- `allow-transcribe-key-status`\n- `allow-save-transcribe-key`\n- `allow-clear-transcribe-key`\n- `allow-take-intent`\n- `allow-new-window`\n- `allow-default-app-status`\n- `allow-set-default-app`\n- `allow-open-default-apps`\n- `allow-watch-dir`\n- `allow-network-places`\n- `allow-reconnect-drive`\n- `allow-disconnect-drive`\n- `allow-map-network-drive`\n- `allow-disconnect-network-drive`\n- `allow-add-network-location`\n- `allow-run-address`\n- `allow-share-state`\n- `allow-share-take-attention`\n- `allow-share-rename-self`\n- `allow-share-invite`\n- `allow-share-join`\n- `allow-share-dismiss-pair`\n- `allow-share-rename-device`\n- `allow-share-remove-device`\n- `allow-share-qr`\n- `allow-share-browse`\n- `allow-share-browse-fetch`\n- `allow-share-browse-answer`\n- `allow-share-browse-revoke`\n- `allow-share-browse-scope`\n- `allow-share-local`\n- `allow-storage-access`\n- `allow-request-storage`\n- `allow-open-file`\n- `allow-share-files`\n- `allow-scan-files`\n- `allow-storage-stats`\n- `allow-keep-alive`\n- `allow-send-to-back`\n- `allow-thumbnail`\n- `allow-open-with`"
         }
       ]
     }

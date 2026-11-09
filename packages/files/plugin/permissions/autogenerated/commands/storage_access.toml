@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-storage-access"
+description = "Enables the storage_access command without any pre-configured scope."
+commands.allow = ["storage_access"]
+
+[[permission]]
+identifier = "deny-storage-access"
+description = "Denies the storage_access command without any pre-configured scope."
+commands.deny = ["storage_access"]

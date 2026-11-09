@@ -14,6 +14,7 @@
   import { places } from "../../store/places.svelte"
   import { closeProperties, propertiesView } from "../../store/properties.svelte"
   import ItemIcon from "../items/ItemIcon.svelte"
+  import UsageView from "./UsageView.svelte"
 
   const ATTRIBUTES = [
     ["readonly", 0x1],
@@ -27,6 +28,7 @@
   let stats = $state<Stat[]>([])
   let tally = $state<Tally | null>(null)
   let measuring = $state(false)
+  let view = $state<"general" | "usage">("general")
 
   const paths = $derived(propertiesView.paths)
   const single = $derived(stats.length === 1 ? stats[0] : null)
@@ -89,6 +91,7 @@
     stats = []
     tally = null
     measuring = false
+    view = "general"
 
     statItems(requested)
       .then(found => {
@@ -133,7 +136,7 @@
 {/snippet}
 
 <dialog bind:this={dialog} class="modal" onclose={closeProperties}>
-  <div class="modal-box eris-card flex max-w-md flex-col gap-4">
+  <div class={["modal-box eris-card flex flex-col gap-4", view === "usage" ? "max-w-4xl" : "max-w-md"]}>
     <div class="flex items-center gap-3">
       <ItemIcon source={single?.path ?? paths[0] ?? ""} rem={2.5} />
 
@@ -152,6 +155,33 @@
       </div>
     </div>
 
+    {#if single?.dir}
+      <div role="tablist" class="tabs tabs-border">
+        <button
+          type="button"
+          role="tab"
+          class={["tab", view === "general" && "tab-active"]}
+          aria-selected={view === "general"}
+          onclick={() => (view = "general")}
+        >
+          {$t("explorer.properties.general")}
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          class={["tab", view === "usage" && "tab-active"]}
+          aria-selected={view === "usage"}
+          onclick={() => (view = "usage")}
+        >
+          {$t("explorer.properties.usage")}
+        </button>
+      </div>
+    {/if}
+
+    {#if view === "usage" && single}
+      <UsageView path={single.path} expected={drive ? drive.total - drive.free : 0} />
+    {:else}
     <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm tabular-nums">
       {#if parent && !drive}
         {@render row($t("explorer.properties.location"), parent)}
@@ -220,6 +250,7 @@
         max={drive.total}
         aria-label={$t("explorer.properties.used")}
       ></progress>
+    {/if}
     {/if}
 
     <div class="modal-action mt-0">

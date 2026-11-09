@@ -47,6 +47,7 @@ pub enum Error {
     Revoked,
     Blocked,
     Busy,
+    Full,
     Pending,
     Unpaired,
     Password,
@@ -78,6 +79,7 @@ impl Error {
             Error::Revoked => "revoked",
             Error::Blocked => "blocked",
             Error::Busy => "busy",
+            Error::Full => "full",
             Error::Pending => "pending",
             Error::Unpaired => "unpaired",
             Error::Password => "password",
@@ -154,7 +156,13 @@ impl From<std::io::Error> for Error {
 
         match error.kind() {
             std::io::ErrorKind::NotFound => Error::Missing,
-            std::io::ErrorKind::PermissionDenied => Error::Denied,
+            std::io::ErrorKind::PermissionDenied | std::io::ErrorKind::ReadOnlyFilesystem => {
+                Error::Denied
+            }
+            std::io::ErrorKind::InvalidInput | std::io::ErrorKind::InvalidFilename => {
+                Error::Invalid
+            }
+            std::io::ErrorKind::StorageFull | std::io::ErrorKind::QuotaExceeded => Error::Full,
             _ => Error::Os(error.to_string()),
         }
     }

@@ -2,7 +2,13 @@ import { kindOf } from "../filetypes"
 import type { Item } from "../items"
 import { isVirtual } from "../locations"
 
-export type OpenPlan = "navigate" | "extract" | "viewer" | "probeXml" | "shell"
+export type OpenPlan =
+  | "navigate"
+  | "extract"
+  | "fetch"
+  | "viewer"
+  | "probeXml"
+  | "shell"
 
 // Archive availability is supplied by the reactive archive store, not copied here.
 export const openPlan = (item: Item, archive: boolean): OpenPlan => {
@@ -12,6 +18,10 @@ export const openPlan = (item: Item, archive: boolean): OpenPlan => {
 
   if (item.packed) {
     return "extract"
+  }
+
+  if (item.remote) {
+    return "fetch"
   }
 
   const virtual = isVirtual(item.path)

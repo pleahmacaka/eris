@@ -194,45 +194,13 @@ impl Node {
     fn answer(self: &Arc<Self>, remote: EndpointId, request: Request) -> Reply {
         match request {
             Request::Pair { secret, name } => self.pair(remote, secret, name),
-            Request::Ask { share } => self.manifest_for(&remote, share),
-            Request::Received { share } => self.record_download(remote, share),
             _ if !self.knows(&remote) => Reply::Denied,
-            Request::Offer { share } => self.offered(remote, share),
-            Request::SyncInvite { sync, name } => self.invited(remote, sync, name),
-            Request::SyncIndex { sync } => self.index_reply(&remote, sync),
-            Request::SyncChanged { sync } => self.wake_sync(&remote, sync),
             Request::Evict { device } => self.evicted(remote, &device),
             Request::Browse { .. } | Request::Fetch { .. } | Request::Unknown => Reply::Denied,
         }
     }
 
     fn may_serve(&self, peer: &EndpointId, request: &GetRequest) -> bool {
-        if request.ranges.is_blob() && self.gate.lock().unwrap().holds(peer, &request.hash) {
-            return true;
-        }
-
-        let saved = self.lock();
-
-        let shared = saved
-            .shares
-            .iter()
-            .any(|share| share.hash == request.hash && share.reaches(peer));
-
-        if shared {
-            return true;
-        }
-
-        if !request.ranges.is_blob() || !saved.knows(peer) {
-            return false;
-        }
-
-        let hashes = self.sync_hashes.lock().unwrap();
-
-        saved
-            .syncs
-            .iter()
-            .filter(|sync| !sync.paused && sync.device == *peer)
-            .filter_map(|sync| hashes.get(&sync.id))
-            .any(|held| held.contains(&request.hash))
+        request.ranges.is_blob() && self.gate.lock().unwrap().holds(peer, &request.hash)
     }
 }

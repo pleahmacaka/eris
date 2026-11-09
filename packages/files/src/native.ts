@@ -190,6 +190,24 @@ export type Tally = { bytes: number; files: number; folders: number }
 export const tallyDirs = (paths: string[], token: number) =>
   call<Tally | null>("tally_dirs", { paths, token })
 
+export type Usage = {
+  name: string
+  size: number
+  files: number
+  folder: boolean
+  children: Usage[]
+  rest: number
+}
+
+export const usageScan = (path: string, token: number) =>
+  call<Usage | null>("usage_scan", { path, token })
+
+export const usageTree = (token: number, trail: string[]) =>
+  call<Usage | null>("usage_tree", { token, trail })
+
+export const usageForget = (token: number) =>
+  call<void>("usage_forget", { token })
+
 export type Stat = {
   path: string
   name: string

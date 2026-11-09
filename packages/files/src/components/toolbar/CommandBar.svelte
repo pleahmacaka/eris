@@ -31,7 +31,7 @@
 
   const SELECTION: CommandId[] = ["selectAll", "selectNone", "invertSelection"]
 
-  const OTHERS: CommandId[] = ["properties", "newWindow", "shared", "settings"]
+  const OTHERS: CommandId[] = ["properties", "newWindow", "settings"]
 
   const more = $derived(
     prefs.selectionInMore || compact ? [SELECTION, OTHERS] : [OTHERS],

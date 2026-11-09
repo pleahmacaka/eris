@@ -1,14 +1,10 @@
 mod browse;
 pub mod commands;
-mod incoming;
 mod net;
-mod outgoing;
 mod peers;
 mod store;
-mod sync;
 mod wire;
 
-use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::path::PathBuf;
 use std::sync::atomic::AtomicBool;
@@ -16,18 +12,14 @@ use std::sync::{Arc, Mutex};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use iroh::EndpointId;
-use iroh_blobs::Hash;
-use tauri::async_runtime::JoinHandle;
 use tauri::AppHandle;
 #[cfg(desktop)]
 use tauri::Manager;
 use tokio::sync::OnceCell;
-use uuid::Uuid;
 
 use crate::error::Result;
 use net::Net;
 use store::Saved;
-use sync::Slot;
 
 struct Node {
     id: EndpointId,
@@ -37,11 +29,7 @@ struct Node {
     invite: Mutex<Option<([u8; 32], Instant)>>,
     pending_pair: Mutex<Option<String>>,
     attention: AtomicBool,
-    fetching: Mutex<HashSet<Uuid>>,
-    transfers: Mutex<HashMap<Uuid, JoinHandle<()>>>,
     net: OnceCell<Net>,
-    slots: Mutex<HashMap<Uuid, Slot>>,
-    sync_hashes: Mutex<HashMap<Uuid, HashSet<Hash>>>,
     gate: Mutex<browse::Gate>,
     _lock: File,
 }
@@ -77,26 +65,15 @@ fn node(app: &AppHandle) -> Result<Arc<Node>> {
 
 impl Node {
     fn resume(self: &Arc<Self>) {
-        self.purge();
-
-        let (busy, syncing) = {
-            let saved = self.lock();
-
-            (
-                !saved.shares.is_empty() || !saved.devices.is_empty(),
-                saved.syncs.iter().any(|sync| !sync.paused),
-            )
-        };
-
-        if busy || syncing {
-            let node = self.clone();
-
-            tauri::async_runtime::spawn(async move {
-                if node.net().await.is_ok() {
-                    node.resume_syncs();
-                }
-            });
+        if self.lock().devices.is_empty() {
+            return;
         }
+
+        let node = self.clone();
+
+        tauri::async_runtime::spawn(async move {
+            let _ = node.net().await;
+        });
     }
 }
 
@@ -109,12 +86,29 @@ pub fn start(app: &AppHandle) {
     {
         use tauri_plugin_deep_link::DeepLinkExt;
 
-        let _ = tauri::WebviewWindowBuilder::new(
-            app,
-            "files-mobile",
-            tauri::WebviewUrl::App("mobile".into()),
-        )
-        .build();
+        use tauri::Manager;
+
+        let scope = app.asset_protocol_scope();
+
+        for root in browse::drives() {
+            let _ = scope.allow_directory(root, true);
+        }
+
+        if let Ok(cache) = app.path().app_cache_dir() {
+            let _ = scope.allow_directory(cache, true);
+        }
+
+        let window = app.clone();
+
+        // plugin setup runs while Tauri holds the plugin store lock, and building a webview takes it again
+        tauri::async_runtime::spawn(async move {
+            let _ = tauri::WebviewWindowBuilder::new(
+                &window,
+                "files-mobile",
+                tauri::WebviewUrl::App("mobile".into()),
+            )
+            .build();
+        });
 
         let handle = app.clone();
 
@@ -133,10 +127,8 @@ fn open_links(app: &AppHandle, links: Vec<String>) {
         return;
     };
 
-    for link in links.iter().filter_map(|link| wire::parse_link(link)) {
-        let node = node.clone();
-
-        tauri::async_runtime::spawn(async move { node.open(link).await });
+    for code in links.iter().filter_map(|link| wire::parse_link(link)) {
+        node.prompt_pair(code);
     }
 }
 

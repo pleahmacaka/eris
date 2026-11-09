@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-usage-tree"
+description = "Enables the usage_tree command without any pre-configured scope."
+commands.allow = ["usage_tree"]
+
+[[permission]]
+identifier = "deny-usage-tree"
+description = "Denies the usage_tree command without any pre-configured scope."
+commands.deny = ["usage_tree"]

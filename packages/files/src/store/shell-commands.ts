@@ -1,5 +1,5 @@
 import type { Item } from "../items"
-import { isVirtual, THIS_PC } from "../locations"
+import { isVirtual, sameLocation, THIS_PC } from "../locations"
 import type * as native from "../native"
 import type { CommandErrors } from "./command-errors"
 import type { Tab } from "./tab.svelte"
@@ -24,6 +24,8 @@ export type ShellServices = CommandErrors & {
     | "emptyRecycleBin"
   >
   confirmAll: (paths: string[], from: string) => Promise<boolean>
+  confirmRemoval: (names: string[]) => Promise<boolean>
+  network: () => native.NetworkPlace[]
   refreshPlaces: () => Promise<void>
   pinnedKey: (location: string) => string | undefined
   newFolderName: () => string
@@ -39,12 +41,41 @@ export const remove = async (
   permanent: boolean,
   services: ShellServices,
 ) => {
-  const keys = context.selected.map(item => item.key)
+  const shortcuts = services
+    .network()
+    .filter(place =>
+      context.selected.some(
+        item => item.place && sameLocation(place.path, item.path),
+      ),
+    )
+  const keys = context.selected
+    .filter(
+      item =>
+        !item.place ||
+        !shortcuts.some(place => sameLocation(place.path, item.path)),
+    )
+    .map(item => item.key)
 
   if (keys.length) {
     await services.native
       .deleteItems(keys, permanent || context.inBin)
       .catch(services.fail)
+  }
+
+  if (
+    shortcuts.length &&
+    (await services.confirmRemoval(shortcuts.map(place => place.name)))
+  ) {
+    await services.native
+      .deleteItems(
+        shortcuts.map(place => place.entry),
+        false,
+      )
+      .catch(services.fail)
+    await services.refreshPlaces()
+  }
+
+  if (keys.length || shortcuts.length) {
     await context.tab.refresh()
   }
 }
@@ -75,7 +106,6 @@ export const properties = (
 ) => {
   const paths = keys.length ? keys : [context.tab.location]
   const own =
-    context.filesystem &&
     !context.inBin &&
     paths.every(path => !isVirtual(path) && !path.startsWith("pidl:"))
 

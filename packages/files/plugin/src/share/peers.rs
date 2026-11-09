@@ -5,10 +5,8 @@ use std::time::{Duration, Instant};
 use iroh::{EndpointId, SecretKey};
 use serde::{Deserialize, Serialize};
 use tokio::time::timeout;
-use uuid::Uuid;
 
 use super::net::DIAL_TIMEOUT;
-use super::outgoing::Outgoing;
 use super::wire::{self, Reply, Request};
 use super::{now, Node};
 use crate::error::{Error, Result};
@@ -139,7 +137,7 @@ impl Node {
             }
         };
 
-        self.forget_device(id).await?;
+        self.forget_device(id)?;
 
         let device = wire::encode(id.as_bytes());
 
@@ -173,65 +171,17 @@ impl Node {
             return Reply::Denied;
         }
 
-        let node = self.clone();
-
-        tauri::async_runtime::spawn(async move {
-            let _ = node.forget_device(target).await;
-        });
+        let _ = self.forget_device(target);
 
         Reply::Accepted
     }
 
-    async fn forget_device(self: &Arc<Self>, id: EndpointId) -> Result<()> {
+    fn forget_device(&self, id: EndpointId) -> Result<()> {
         self.gate.lock().unwrap().forget(&id);
 
-        let (orphaned, received) = self.update(|saved| {
-            let received: Vec<Uuid> = saved
-                .inbox
-                .iter()
-                .filter(|entry| entry.from == id)
-                .map(|entry| entry.id)
-                .collect();
-
+        self.update(|saved| {
             saved.devices.retain(|device| device.id != id);
             saved.browse.always.retain(|device| *device != id);
-            saved.sync_invites.retain(|invite| invite.from != id);
-            saved.inbox.retain(|entry| entry.from != id);
-
-            for share in &mut saved.shares {
-                share.devices.retain(|device| *device != id);
-            }
-
-            let (orphaned, kept): (Vec<Outgoing>, Vec<Outgoing>) =
-                std::mem::take(&mut saved.shares)
-                    .into_iter()
-                    .partition(Outgoing::orphaned);
-
-            saved.shares = kept;
-
-            (orphaned, received)
-        })?;
-
-        for share in &orphaned {
-            self.forget(share);
-        }
-
-        for entry in received {
-            self.cancel(entry);
-        }
-
-        let syncs: Vec<Uuid> = self
-            .lock()
-            .syncs
-            .iter()
-            .filter(|sync| sync.device == id)
-            .map(|sync| sync.id)
-            .collect();
-
-        for sync in syncs {
-            self.drop_sync(sync).await?;
-        }
-
-        Ok(())
+        })
     }
 }

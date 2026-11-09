@@ -8,7 +8,6 @@ use iroh_blobs::Hash;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use tauri::Url;
-use uuid::Uuid;
 
 use crate::error::{Error, Result};
 
@@ -26,33 +25,6 @@ const RESERVED: [&str; 22] = [
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Item {
-    pub name: String,
-    pub size: u64,
-    pub files: u64,
-    pub dir: bool,
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Manifest {
-    pub hash: Hash,
-    pub items: Vec<Item>,
-    pub total: u64,
-    pub from: String,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Entry {
-    pub path: String,
-    pub hash: Hash,
-    pub size: u64,
-    pub modified: u64,
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct RemoteEntry {
     pub name: String,
     pub path: String,
@@ -67,25 +39,6 @@ pub enum Request {
     Pair {
         secret: [u8; 32],
         name: String,
-    },
-    Ask {
-        share: Uuid,
-    },
-    Offer {
-        share: Uuid,
-    },
-    Received {
-        share: Uuid,
-    },
-    SyncInvite {
-        sync: Uuid,
-        name: String,
-    },
-    SyncIndex {
-        sync: Uuid,
-    },
-    SyncChanged {
-        sync: Uuid,
     },
     Evict {
         device: String,
@@ -106,12 +59,6 @@ pub enum Reply {
     Welcome {
         name: String,
     },
-    Manifest {
-        manifest: Manifest,
-    },
-    Index {
-        entries: Vec<Entry>,
-    },
     Listing {
         path: Option<String>,
         entries: Vec<RemoteEntry>,
@@ -124,11 +71,6 @@ pub enum Reply {
     Pending,
     Accepted,
     Denied,
-}
-
-pub enum Link {
-    Share { id: Uuid, from: EndpointId },
-    Pair(String),
 }
 
 pub fn fail(error: impl fmt::Display) -> Error {
@@ -151,10 +93,6 @@ pub fn decode_id(text: &str) -> Option<EndpointId> {
     decode(text).and_then(|bytes| EndpointId::from_bytes(&bytes).ok())
 }
 
-pub fn share_link(id: &Uuid, from: &EndpointId) -> String {
-    format!("{SCHEME}://share/{id}?from={}", encode(from.as_bytes()))
-}
-
 pub fn pair_link(code: &str) -> String {
     format!("{SCHEME}://pair/{code}")
 }
@@ -164,43 +102,26 @@ pub fn is_link(text: &str) -> bool {
         .is_some_and(|head| head.eq_ignore_ascii_case(&format!("{SCHEME}:")))
 }
 
-pub fn parse_link(text: &str) -> Option<Link> {
+pub fn parse_link(text: &str) -> Option<String> {
     let url = Url::parse(text.trim()).ok()?;
 
-    if url.scheme() != SCHEME {
+    if url.scheme() != SCHEME || url.host_str()? != "pair" {
         return None;
     }
 
-    let segment = url.path().trim_matches('/');
+    let code = url.path().trim_matches('/');
 
-    match url.host_str()? {
-        "share" => {
-            let id = Uuid::parse_str(segment).ok()?;
-            let from = url
-                .query_pairs()
-                .find(|(key, _)| key == "from")
-                .and_then(|(_, value)| decode_id(&value))?;
-
-            Some(Link::Share { id, from })
-        }
-        "pair" => parse_code(segment)
-            .ok()
-            .map(|_| Link::Pair(segment.to_string())),
-        _ => None,
-    }
+    parse_code(code).ok().map(|_| code.to_string())
 }
 
 pub fn parse_code(text: &str) -> Result<(EndpointId, [u8; 32])> {
-    let text = text.trim();
+    // a pairing QR from another release channel carries that channel's scheme
+    let code = text
+        .trim()
+        .split_once("://pair/")
+        .map_or(text.trim(), |(_, code)| code.trim_end_matches('/'));
 
-    if is_link(text) {
-        return match parse_link(text) {
-            Some(Link::Pair(code)) => parse_code(&code),
-            _ => Err(Error::Invalid),
-        };
-    }
-
-    let (id, secret) = text.split_once('.').ok_or(Error::Invalid)?;
+    let (id, secret) = code.split_once('.').ok_or(Error::Invalid)?;
     let id = decode_id(id).ok_or(Error::Invalid)?;
 
     Ok((id, decode(secret).ok_or(Error::Invalid)?))

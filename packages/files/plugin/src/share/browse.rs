@@ -105,8 +105,17 @@ fn drives() -> Vec<PathBuf> {
 }
 
 #[cfg(target_os = "android")]
-fn drives() -> Vec<PathBuf> {
-    vec![PathBuf::from("/storage/emulated/0")]
+pub(super) fn drives() -> Vec<PathBuf> {
+    let removable = std::fs::read_dir("/storage")
+        .into_iter()
+        .flatten()
+        .flatten()
+        .map(|entry| entry.path())
+        .filter(|path| !path.ends_with("emulated") && !path.ends_with("self") && path.is_dir());
+
+    std::iter::once(PathBuf::from("/storage/emulated/0"))
+        .chain(removable)
+        .collect()
 }
 
 #[cfg(all(unix, not(target_os = "android")))]
@@ -139,10 +148,10 @@ fn millis(meta: &std::fs::Metadata) -> u64 {
         .map_or(0, |since| since.as_millis() as u64)
 }
 
-fn listing(dir: &Path, shown: &Path) -> Result<Vec<RemoteEntry>> {
+fn listing(dir: &Path, shown: &Path, limit: usize) -> Result<Vec<RemoteEntry>> {
     let mut entries = Vec::new();
 
-    for entry in std::fs::read_dir(dir)?.flatten().take(ENTRY_LIMIT) {
+    for entry in std::fs::read_dir(dir)?.flatten() {
         let Ok(meta) = entry.metadata() else {
             continue;
         };
@@ -165,7 +174,49 @@ fn listing(dir: &Path, shown: &Path) -> Result<Vec<RemoteEntry>> {
             .then_with(|| a.name.to_lowercase().cmp(&b.name.to_lowercase()))
     });
 
+    entries.truncate(limit);
+
     Ok(entries)
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LocalDir {
+    path: String,
+    root: String,
+    parent: Option<String>,
+    roots: Vec<String>,
+    entries: Vec<RemoteEntry>,
+}
+
+pub(super) fn local_dir(path: Option<String>) -> Result<LocalDir> {
+    let roots = drives();
+    let first = roots.first().ok_or(Error::Missing)?.clone();
+    let dir = path.map(PathBuf::from).unwrap_or_else(|| first.clone());
+
+    let root = roots
+        .iter()
+        .find(|root| dir.starts_with(root))
+        .unwrap_or(&first)
+        .clone();
+
+    let entries = listing(&dir, &dir, usize::MAX)?;
+
+    let parent = dir
+        .parent()
+        .filter(|_| dir != root)
+        .map(|parent| parent.to_string_lossy().into_owned());
+
+    Ok(LocalDir {
+        path: dir.to_string_lossy().into_owned(),
+        root: root.to_string_lossy().into_owned(),
+        parent,
+        roots: roots
+            .iter()
+            .map(|root| root.to_string_lossy().into_owned())
+            .collect(),
+        entries,
+    })
 }
 
 fn saved_name(name: &str) -> String {
@@ -173,6 +224,13 @@ fn saved_name(name: &str) -> String {
         .filter(|path| path.components().count() == 1)
         .map(|path| path.to_string_lossy().into_owned())
         .unwrap_or_else(|| "file".into())
+}
+
+pub(super) fn received_root(app: &AppHandle) -> Result<PathBuf> {
+    app.path()
+        .download_dir()
+        .or_else(|_| crate::data_dir(app).map(|dir| dir.join("received")))
+        .map_err(Error::from)
 }
 
 pub(super) fn members(app: &AppHandle) -> Vec<(EndpointId, String)> {
@@ -331,7 +389,8 @@ impl Node {
 
         let shown = PathBuf::from(&path);
 
-        match tauri::async_runtime::spawn_blocking(move || listing(&dir, &shown)).await {
+        match tauri::async_runtime::spawn_blocking(move || listing(&dir, &shown, ENTRY_LIMIT)).await
+        {
             Ok(Ok(entries)) => Reply::Listing {
                 path: Some(path),
                 entries,

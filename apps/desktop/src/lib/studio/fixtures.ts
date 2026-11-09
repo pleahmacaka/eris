@@ -321,11 +321,7 @@ export const fixtures: Record<string, (args: Args) => unknown> = {
   "plugin:eris-files|share_state": () => ({
     name: "Studio",
     devices: [],
-    shares: [],
-    inbox: [],
     pendingPair: null,
-    syncs: [],
-    syncInvites: [],
     senior: false,
     browse: { scope: "drives", folders: [], always: [] },
     browseAsks: [],

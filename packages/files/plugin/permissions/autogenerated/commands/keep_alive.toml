@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-keep-alive"
+description = "Enables the keep_alive command without any pre-configured scope."
+commands.allow = ["keep_alive"]
+
+[[permission]]
+identifier = "deny-keep-alive"
+description = "Denies the keep_alive command without any pre-configured scope."
+commands.deny = ["keep_alive"]

@@ -19,3 +19,6 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# ML Kit creates its component registrars by reflection; R8 full mode strips their no-arg constructors
+-keep class * implements com.google.firebase.components.ComponentRegistrar { <init>(); }

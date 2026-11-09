@@ -1,17 +1,13 @@
-use std::path::{Path, PathBuf};
 use std::sync::atomic::Ordering;
 
 use iroh::EndpointId;
 use tauri::AppHandle;
-use uuid::Uuid;
 
-use super::browse::{Answer, Browsed, Scope};
-use super::incoming::{received_files, received_root, LocalEntry};
+use super::browse::{local_dir, received_root, Answer, Browsed, LocalDir, Scope};
 use super::node;
 use super::peers::Invite;
-use super::store::{ShareView, State};
-use super::sync::{safety, target_folder, Safety};
-use super::wire::{self, fail, Reply, Request};
+use super::store::State;
+use super::wire::{fail, Reply, Request};
 use crate::error::{Error, Result};
 
 #[tauri::command(async)]
@@ -68,75 +64,8 @@ pub async fn share_remove_device(app: AppHandle, id: EndpointId) -> Result<()> {
 }
 
 #[tauri::command(async)]
-pub async fn share_create(
-    app: AppHandle,
-    paths: Vec<String>,
-    expires_at: Option<u64>,
-) -> Result<ShareView> {
-    let paths = paths.into_iter().map(PathBuf::from).collect();
-
-    node(&app)?.create(paths, expires_at).await
-}
-
-#[tauri::command(async)]
-pub fn share_set_public(app: AppHandle, id: Uuid, public: bool) -> Result<()> {
-    node(&app)?.set_public(id, public)
-}
-
-#[tauri::command(async)]
-pub async fn share_offer(app: AppHandle, id: Uuid, device: EndpointId) -> Result<()> {
-    node(&app)?.offer(id, device).await
-}
-
-#[tauri::command(async)]
-pub fn share_set_expiry(app: AppHandle, id: Uuid, expires_at: Option<u64>) -> Result<()> {
-    node(&app)?.set_expiry(id, expires_at)
-}
-
-#[tauri::command(async)]
-pub fn share_revoke(app: AppHandle, id: Uuid) -> Result<()> {
-    node(&app)?.revoke(id)
-}
-
-#[tauri::command(async)]
-pub async fn share_open(app: AppHandle, link: String) -> Result<()> {
-    let link = wire::parse_link(&link).ok_or(Error::Invalid)?;
-
-    node(&app)?.open(link).await;
-
-    Ok(())
-}
-
-#[tauri::command(async)]
-pub async fn share_fetch(app: AppHandle, id: Uuid) -> Result<()> {
-    node(&app)?.fetch(id).await
-}
-
-#[tauri::command(async)]
-pub fn share_files(app: AppHandle, sub: Option<String>) -> Result<Vec<LocalEntry>> {
-    received_files(&received_root(&app)?, sub)
-}
-
-#[tauri::command(async)]
-pub fn share_download(app: AppHandle, id: Uuid, folder: Option<String>) -> Result<()> {
-    let folder = match folder {
-        Some(folder) => PathBuf::from(folder),
-        None => received_root(&app)?,
-    };
-
-    node(&app)?.download(id, folder)
-}
-
-#[tauri::command(async)]
-pub fn share_cancel(app: AppHandle, id: Uuid) -> Result<()> {
-    node(&app)?.cancel(id);
-
-    Ok(())
-}
-
-#[tauri::command(async)]
-pub fn share_dismiss(app: AppHandle, id: Uuid) -> Result<()> {
-    node(&app)?.dismiss(id)
+pub fn share_local(path: Option<String>) -> Result<LocalDir> {
+    local_dir(path)
 }
 
 #[tauri::command(async)]
@@ -198,45 +127,4 @@ pub fn share_qr(text: String) -> Result<String> {
         .build();
 
     Ok(svg[svg.find("<svg").unwrap_or_default()..].to_string())
-}
-
-#[tauri::command]
-pub fn sync_check(app: AppHandle, folder: String) -> Safety {
-    safety(&app, Path::new(&folder))
-}
-
-#[tauri::command(async)]
-pub async fn sync_create(app: AppHandle, folder: String, device: EndpointId) -> Result<()> {
-    let path = target_folder(&app, &folder)?;
-
-    node(&app)?.create_sync(path, device).await
-}
-
-#[tauri::command(async)]
-pub fn sync_accept(app: AppHandle, id: Uuid, folder: String) -> Result<()> {
-    let path = target_folder(&app, &folder)?;
-
-    node(&app)?.accept_sync(id, path)
-}
-
-#[tauri::command(async)]
-pub fn sync_decline(app: AppHandle, id: Uuid) -> Result<()> {
-    node(&app)?.decline_sync(id)
-}
-
-#[tauri::command(async)]
-pub async fn sync_pause(app: AppHandle, id: Uuid, paused: bool) -> Result<()> {
-    node(&app)?.pause_sync(id, paused).await
-}
-
-#[tauri::command(async)]
-pub fn sync_now(app: AppHandle, id: Uuid) -> Result<()> {
-    node(&app)?.nudge(id);
-
-    Ok(())
-}
-
-#[tauri::command(async)]
-pub async fn sync_remove(app: AppHandle, id: Uuid) -> Result<()> {
-    node(&app)?.drop_sync(id).await
 }

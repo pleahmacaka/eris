@@ -1,4 +1,5 @@
-import { extensionOf, joinPath, SEP } from "./locations"
+import type { RemoteEntry } from "./components/share/share"
+import { deviceLocation, extensionOf, joinPath, SEP } from "./locations"
 import {
   type ArchiveListing,
   type Drive,
@@ -24,6 +25,7 @@ export type Item = {
   parent: string | null
   drive: Drive | null
   packed?: string
+  remote?: string
   place?: boolean
 }
 
@@ -101,6 +103,22 @@ export const fromArchive = (
   }
 
   return [...found.values()]
+}
+
+export const fromRemote = (device: string, entry: RemoteEntry): Item => {
+  const path = deviceLocation(device, entry.path)
+
+  return {
+    ...blank,
+    key: path,
+    path,
+    name: entry.name,
+    dir: entry.dir,
+    size: entry.size,
+    modified: entry.modified,
+    kind: "",
+    remote: device,
+  }
 }
 
 export const packedEntry = (item: Item) =>
@@ -208,6 +226,11 @@ export const iconSource = (item: Item, pixels: number, thumbnail = false) => {
       ? shellImage("item", pixels, archives.folder)
       : shellImage("icon", pixels, item.path)
   }
+
+  if (item.remote) {
+    return item.dir ? "" : shellImage("icon", pixels, item.name)
+  }
+
   const mode: IconMode =
     item.key.startsWith("pidl:") || item.dir
       ? "item"

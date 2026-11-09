@@ -10,7 +10,6 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
   "drives",
   "network",
   "linux",
-  "shared",
   "recycleBin",
 ]
 

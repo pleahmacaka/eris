@@ -189,6 +189,8 @@ const glyphOf = (name: string) => {
   return NAMES[name] ?? EXTENSIONS[extensionOf(name)]
 }
 
+export const fileGlyph = (name: string) => glyphOf(name.toLowerCase())
+
 export const customIcon = (item: Item) => {
   if (
     item.link ||

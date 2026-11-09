@@ -4,11 +4,11 @@
   import { open } from "@tauri-apps/plugin-dialog"
   import { writeText } from "@tauri-apps/plugin-clipboard-manager"
   import { t } from "svelte-i18n"
+  import BrowseAsks from "./BrowseAsks.svelte"
   import { shareError } from "./errors"
   import Qr from "./Qr.svelte"
   import RemoteBrowser from "./RemoteBrowser.svelte"
   import {
-    answerBrowse,
     type Device,
     dismissPair,
     type Invite,
@@ -143,34 +143,7 @@
     </div>
   {/if}
 
-  {#each share.state.browseAsks as ask (ask.id)}
-    <div class="flex flex-col gap-2 rounded-box border border-primary/30 bg-primary/5 p-3">
-      <span class="text-sm">{$t("devices.browseRequest", { values: { name: ask.name } })}</span>
-      <div class="flex flex-wrap gap-2">
-        <button
-          type="button"
-          class="btn btn-xs btn-primary"
-          onclick={() => answerBrowse(ask.id, "once").catch(() => undefined)}
-        >
-          {$t("devices.allowOnce")}
-        </button>
-        <button
-          type="button"
-          class="btn btn-xs btn-soft"
-          onclick={() => answerBrowse(ask.id, "always").catch(() => undefined)}
-        >
-          {$t("devices.allowAlways")}
-        </button>
-        <button
-          type="button"
-          class="btn btn-xs btn-ghost"
-          onclick={() => answerBrowse(ask.id, "deny").catch(() => undefined)}
-        >
-          {$t("devices.deny")}
-        </button>
-      </div>
-    </div>
-  {/each}
+  <BrowseAsks />
 
   <div class="flex flex-col gap-1">
     <span class="text-xs font-medium text-base-content/60">{$t("devices.paired")}</span>

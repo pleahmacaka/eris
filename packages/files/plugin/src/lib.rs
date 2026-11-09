@@ -37,7 +37,7 @@ mod menu;
 #[cfg(desktop)]
 #[cfg_attr(not(windows), path = "unix/network.rs")]
 mod network;
-#[cfg(desktop)]
+#[cfg(any(desktop, target_os = "android"))]
 #[cfg_attr(not(windows), path = "unix/ops.rs")]
 mod ops;
 #[cfg(desktop)]
@@ -51,6 +51,7 @@ mod properties;
 #[cfg(desktop)]
 mod scripts;
 mod share;
+mod usage;
 
 pub use diagnostics::log_panics;
 pub use share::endpoint_id;
@@ -129,6 +130,9 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             listing::tally_dirs,
             #[cfg(desktop)]
             properties::stat_items,
+            usage::usage_scan,
+            usage::usage_tree,
+            usage::usage_forget,
             #[cfg(desktop)]
             menu::menu_prepare,
             #[cfg(desktop)]
@@ -176,19 +180,19 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             verbs::run_shell_verb,
             #[cfg(desktop)]
             thumbs::generic_icons,
-            #[cfg(desktop)]
+            #[cfg(any(desktop, target_os = "android"))]
             ops::transfer_items,
-            #[cfg(desktop)]
+            #[cfg(any(desktop, target_os = "android"))]
             ops::delete_items,
-            #[cfg(desktop)]
+            #[cfg(any(desktop, target_os = "android"))]
             ops::rename_item,
-            #[cfg(desktop)]
+            #[cfg(any(desktop, target_os = "android"))]
             ops::new_folder,
-            #[cfg(desktop)]
+            #[cfg(any(desktop, target_os = "android"))]
             ops::set_clipboard,
-            #[cfg(desktop)]
+            #[cfg(any(desktop, target_os = "android"))]
             ops::paste_items,
-            #[cfg(desktop)]
+            #[cfg(any(desktop, target_os = "android"))]
             ops::clipboard_has_files,
             #[cfg(desktop)]
             preview::allow_preview,
@@ -278,32 +282,20 @@ pub fn init(host: Host) -> TauriPlugin<Wry> {
             share::commands::share_dismiss_pair,
             share::commands::share_rename_device,
             share::commands::share_remove_device,
-            share::commands::share_create,
-            share::commands::share_set_public,
-            share::commands::share_offer,
-            share::commands::share_set_expiry,
-            share::commands::share_revoke,
-            share::commands::share_open,
-            share::commands::share_fetch,
-            share::commands::share_files,
-            share::commands::share_download,
-            share::commands::share_cancel,
-            share::commands::share_dismiss,
+            share::commands::share_local,
             share::commands::share_qr,
             share::commands::share_browse,
             share::commands::share_browse_fetch,
             share::commands::share_browse_answer,
             share::commands::share_browse_revoke,
             share::commands::share_browse_scope,
-            share::commands::sync_check,
-            share::commands::sync_create,
-            share::commands::sync_accept,
-            share::commands::sync_decline,
-            share::commands::sync_pause,
-            share::commands::sync_now,
-            share::commands::sync_remove,
         ]))
-        .setup(move |app, _| {
+        .setup(move |app, api| {
+            #[cfg(target_os = "android")]
+            api.register_android_plugin("app.eris.files", "FilesPlugin")?;
+            #[cfg(not(target_os = "android"))]
+            let _ = api;
+
             // an empty card reader or a dead network drive otherwise raises the shell's "insert a disk" dialog
             #[cfg(windows)]
             unsafe {
