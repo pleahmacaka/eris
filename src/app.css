@@ -1,0 +1,242 @@
+@import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: false;
+}
+
+@plugin "../tools/theme-plugin.ts";
+
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, sans-serif;
+  --font-mono: var(--font-sans);
+  --color-muted: var(--color-base-content);
+  --color-subtle: var(--color-base-content);
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-md: 0.9375rem;
+  --text-md--line-height: 1.375rem;
+  --text-10xl: 11rem;
+  --text-10xl--line-height: 1;
+  --default-transition-duration: 140ms;
+  --animate-blink: blink 1s steps(1) infinite;
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+}
+
+@utility grid-lines {
+  --grid-line: color-mix(in oklch, var(--color-base-content) 5%, transparent);
+  background-image:
+    linear-gradient(to right, var(--grid-line) 0.0625rem, transparent 0.0625rem),
+    linear-gradient(to bottom, var(--grid-line) 0.0625rem, transparent 0.0625rem);
+  background-size: var(--grid-cell);
+  background-position: center;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
+
+@utility vignette {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 40%,
+    var(--color-base-300) 100%
+  );
+}
+
+@utility panel-surface {
+  background-color: var(--color-base-200);
+  background-image:
+    radial-gradient(
+      100% 16rem at 50% 0%,
+      color-mix(in oklch, var(--color-primary) 10%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(to bottom, transparent 30%, var(--color-base-200) 90%),
+    var(--panel-texture);
+  background-size:
+    auto,
+    auto,
+    var(--panel-texture-size);
+}
+
+@utility safe-area {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@custom-variant short (@media (max-height: 720px));
+
+@utility aura {
+  background:
+    radial-gradient(
+      60% 50% at 8% 0%,
+      color-mix(in oklch, var(--color-primary) 14%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      50% 45% at 96% 100%,
+      color-mix(in oklch, var(--color-secondary) 10%, transparent),
+      transparent 72%
+    );
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+}
+
+@utility banner {
+  background: linear-gradient(
+    120deg,
+    color-mix(in oklch, var(--color-primary) 55%, var(--color-base-300)),
+    color-mix(in oklch, var(--color-secondary) 25%, var(--color-base-300))
+  );
+}
+
+@layer base {
+  :root {
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 0.0625rem;
+    --noise: 0;
+  }
+
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  html {
+    background-color: var(--color-base-100);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  :lang(ko) {
+    word-break: keep-all;
+  }
+
+  :root:lang(ja) {
+    --font-sans: "Noto Sans JP Variable", "Pretendard Variable", sans-serif;
+  }
+
+  :root:lang(zh-Hans) {
+    --font-sans: "Noto Sans SC Variable", "Pretendard Variable", sans-serif;
+  }
+
+  :root:lang(fa) {
+    --font-sans: "Vazirmatn Variable", "Pretendard Variable", sans-serif;
+  }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--color-primary-content);
+  }
+
+  :focus-visible {
+    outline: 0.125rem solid var(--color-primary);
+    outline-offset: 0.125rem;
+  }
+
+  :where(.btn) {
+    --btn-color: var(--color-neutral);
+  }
+
+  :where([popover]) {
+    opacity: 0;
+    translate: 0 -0.25rem;
+    transition:
+      opacity 140ms ease-out,
+      translate 140ms ease-out,
+      display 140ms allow-discrete,
+      overlay 140ms allow-discrete;
+  }
+
+  :where([popover]:popover-open) {
+    opacity: 1;
+    translate: 0 0;
+
+    @starting-style {
+      opacity: 0;
+      translate: 0 -0.25rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation: none !important;
+      transition-duration: 0s !important;
+    }
+  }
+}
+
+.input,
+.select,
+.textarea {
+  &:focus,
+  &:focus-within,
+  &:focus-visible,
+  &:open {
+    outline: none;
+    @apply border-primary;
+  }
+}
+
+.btn {
+  --btn-lift: 0%;
+  outline-color: var(--color-primary);
+
+  @media (hover: hover) {
+    &:hover {
+      --btn-lift: 12%;
+    }
+  }
+
+  &:active {
+    --btn-lift: 8%;
+  }
+
+  &:is(.btn-active, [aria-pressed="true"], [aria-checked="true"]) {
+    --btn-lift: 18%;
+  }
+}
+
+.btn:not(
+    .btn-ghost,
+    .btn-link,
+    .btn-outline,
+    .btn-dash,
+    .btn-soft,
+    .btn-disabled,
+    :disabled,
+    [disabled],
+    [aria-disabled="true"]
+  ) {
+  --btn-lift-ink: color-mix(
+    in oklab,
+    var(--btn-fg) calc(var(--btn-lift-own) * 100%),
+    var(--color-base-content)
+  );
+  --btn-bg: color-mix(
+    in oklab,
+    var(--btn-color),
+    var(--btn-lift-ink) var(--btn-lift)
+  );
+  --btn-border: color-mix(
+    in oklab,
+    var(--btn-bg),
+    var(--btn-lift-ink) 16%
+  );
+}
+
+.btn-ghost {
+  --btn-rest-fg: currentColor;
+  --btn-fg: currentColor;
+  --btn-bg: color-mix(in oklab, currentColor var(--btn-lift), transparent);
+  --btn-border: transparent;
+}
