@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko" data-theme="eris">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<meta name="color-scheme" content="dark light" />
+		<meta name="theme-color" content="#0d0b0f" />
+		<script>
+			if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+				document.documentElement.dataset.motion = "false"
+			}
+		</script>
+		<script>
+			{
+				const THEME_COLORS = {
+					eris: ["#0d0b0f", "#fbf9fc"],
+					awake: ["#0b2cc2", "#ffffff"],
+					pinky: ["#2a1424", "#fff7fa"],
+					dracula: ["#282a36", "#fffbeb"],
+					catppuccin: ["#1e1e2e", "#eff1f5"],
+					"tokyo-night": ["#1a1b26", "#e1e2e7"],
+					gpt: ["#212121", "#ffffff"],
+					excel: ["#292929", "#ffffff"],
+					claude: ["#262624", "#faf9f5"],
+				}
+				const preference = localStorage.getItem("eris.theme")
+				const stored = localStorage.getItem("eris.themeFamily")
+				const family = Object.hasOwn(THEME_COLORS, stored) ? stored : "eris"
+				const dark =
+					preference === "dark" ||
+					(preference !== "light" && matchMedia("(prefers-color-scheme: dark)").matches)
+				const root = document.documentElement
+
+				root.dataset.theme = dark ? family : family + "-light"
+				root.style.colorScheme = dark ? "dark" : "light"
+				document
+					.querySelector('meta[name="theme-color"]')
+					.setAttribute("content", THEME_COLORS[family][dark ? 0 : 1])
+			}
+		</script>
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>
