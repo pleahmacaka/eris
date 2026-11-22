@@ -18,7 +18,7 @@ import { i18n } from "#lib/i18n/i18n.svelte.js"
 <div
   class={[
     "relative flex h-16 shrink-0 items-center overflow-hidden rounded-field border",
-    "border-base-content/10 bg-base-100",
+    "border-base-content/25 bg-base-300 shadow-sm",
   ]}
 >
   {#if preview}

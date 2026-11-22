@@ -178,6 +178,14 @@
 .input,
 .select,
 .textarea {
+  @apply border-base-content/25 bg-base-200;
+
+  @media (hover: hover) {
+    &:hover {
+      @apply border-base-content/40;
+    }
+  }
+
   &:focus,
   &:focus-within,
   &:focus-visible,

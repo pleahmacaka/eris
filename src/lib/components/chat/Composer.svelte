@@ -313,7 +313,7 @@ $effect(() => () => {
 >
   <div
     class={[
-      "relative flex flex-col rounded-box border border-base-content/10 bg-base-200",
+      "relative flex flex-col rounded-box border border-base-content/25 bg-base-200",
       "focus-within:border-primary",
     ]}
   >
@@ -323,7 +323,7 @@ $effect(() => () => {
 
     {#if pending.length > 0}
       <ul
-        class="flex gap-2 overflow-x-auto border-base-content/10 border-b p-2"
+        class="flex gap-2 overflow-x-auto border-base-content/20 border-b p-2"
         aria-label={i18n.t("chat.composer.attachments")}
       >
         {#each pending as item (item.id)}
