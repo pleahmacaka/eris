@@ -56,6 +56,8 @@ jobs:
           java-version: "21"
           cache: gradle
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
       - name: Android NDK
         run: |
           sdkmanager "ndk;29.0.13846066"
