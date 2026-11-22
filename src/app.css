@@ -68,7 +68,7 @@
 
 @custom-variant short (@media (max-height: 720px));
 
-@utility aura {
+@utility backglow {
   background:
     radial-gradient(
       60% 50% at 8% 0%,

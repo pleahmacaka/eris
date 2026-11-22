@@ -89,7 +89,7 @@ $effect(() => {
         {#if !i18n.ready || sessionStore.status === "restoring" || sessionStore.status === "connecting"}
           <Splash />
         {:else if sessionStore.status === "failed"}
-          <main class="aura flex h-full items-center justify-center p-6">
+          <main class="backglow flex h-full items-center justify-center p-6">
             <div
               class={[
                 "flex max-w-md flex-col items-center gap-4 rounded-box border p-8 text-center",
