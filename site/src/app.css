@@ -1,0 +1,240 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: false;
+}
+
+@plugin "../tools/theme-plugin.ts";
+@plugin "../tools/fallback-fonts.ts";
+
+@theme {
+  --font-sans: "Inter Variable", "Inter Arial", "Inter Roboto", sans-serif;
+  --font-mono: var(--font-sans);
+  --font-system: system-ui, sans-serif;
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-10xl: 11rem;
+  --text-10xl--line-height: 1;
+  --default-transition-duration: 140ms;
+}
+
+@utility grid-lines {
+  --grid-line: color-mix(in oklch, var(--color-base-content) 5%, transparent);
+  background-image:
+    linear-gradient(to right, var(--grid-line) 0.0625rem, transparent 0.0625rem),
+    linear-gradient(to bottom, var(--grid-line) 0.0625rem, transparent 0.0625rem);
+  background-size: var(--grid-cell);
+  background-position: center;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
+
+@utility dot-field {
+  background-image:
+    radial-gradient(
+      circle,
+      color-mix(in oklch, var(--color-base-content) 25%, transparent) 0.0625rem,
+      transparent 0.09375rem
+    ),
+    radial-gradient(
+      circle farthest-side,
+      color-mix(in oklch, var(--color-primary) 9%, transparent),
+      transparent
+    );
+  background-size:
+    1.25rem 1.75rem,
+    auto;
+  background-position: center;
+  mask-image: radial-gradient(
+    ellipse farthest-side,
+    black,
+    rgb(0 0 0 / 0.55) 45%,
+    rgb(0 0 0 / 0.28)
+  );
+}
+
+@utility vignette {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 40%,
+    var(--color-base-300) 100%
+  );
+}
+
+@utility panel-surface {
+  background-color: var(--color-base-200);
+  background-image:
+    radial-gradient(
+      100% 16rem at 50% 0%,
+      color-mix(in oklch, var(--color-primary) 10%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(to bottom, transparent 30%, var(--color-base-200) 90%),
+    var(--panel-texture);
+  background-size:
+    auto,
+    auto,
+    var(--panel-texture-size);
+}
+
+@utility backglow {
+  background:
+    radial-gradient(
+      60% 50% at 8% 0%,
+      color-mix(in oklch, var(--color-primary) 14%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      50% 45% at 96% 100%,
+      color-mix(in oklch, var(--color-secondary) 10%, transparent),
+      transparent 72%
+    );
+}
+
+@layer base {
+  :root {
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 0.0625rem;
+    --noise: 0;
+  }
+
+  html {
+    background-color: var(--color-base-300);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  :lang(ko) {
+    word-break: keep-all;
+  }
+
+  :lang(ja) {
+    word-break: auto-phrase;
+  }
+
+  :root[data-font="pretendard"] {
+    --font-sans:
+      "Pretendard Variable", "Pretendard Arial", "Pretendard Roboto",
+      "Pretendard Malgun", "Pretendard Noto", sans-serif;
+  }
+
+  :root[data-font="noto-sans-jp"] {
+    --font-sans: "Noto Sans JP Variable", sans-serif;
+  }
+
+  :root[data-font="noto-sans-sc"] {
+    --font-sans: "Noto Sans SC Variable", sans-serif;
+  }
+
+  :root[data-font="vazirmatn"] {
+    --font-sans: "Vazirmatn Variable", sans-serif;
+    --tracking-tighter: 0em;
+    --tracking-tight: 0em;
+  }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--color-primary-content);
+  }
+
+  :focus-visible {
+    outline: 0.125rem solid var(--color-primary);
+    outline-offset: 0.125rem;
+  }
+
+  :where(.btn) {
+    --btn-color: var(--color-neutral);
+  }
+
+  [data-reveal] {
+    transition:
+      opacity 140ms ease-out,
+      translate 140ms ease-out;
+  }
+
+  [data-reveal="pending"] {
+    opacity: 0;
+    translate: 0 0.75rem;
+  }
+
+  @media print {
+    [data-reveal] {
+      opacity: 1;
+      translate: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation: none !important;
+      transition-duration: 0s !important;
+    }
+  }
+}
+
+.dropdown[popover] {
+  max-inline-size: calc(100vi - 2rem);
+  max-block-size: calc(100dvb - 6rem);
+  overflow-y: auto;
+  transition-duration: var(--default-transition-duration);
+  animation-duration: var(--default-transition-duration);
+
+  @supports (position-area: bottom) {
+    margin-inline-start: 1rem;
+  }
+}
+
+.btn {
+  --btn-lift: 0%;
+  outline-color: var(--color-primary);
+
+  @media (hover: hover) {
+    &:hover {
+      --btn-lift: 12%;
+    }
+  }
+
+  &:active {
+    --btn-lift: 8%;
+  }
+
+  &:is(.btn-active, [aria-pressed="true"], [aria-checked="true"]) {
+    --btn-lift: 18%;
+  }
+}
+
+.btn:not(
+    .btn-ghost,
+    .btn-link,
+    .btn-outline,
+    .btn-dash,
+    .btn-soft,
+    .btn-disabled,
+    :disabled,
+    [disabled],
+    [aria-disabled="true"]
+  ) {
+  --btn-lift-ink: color-mix(
+    in oklab,
+    var(--btn-fg) calc(var(--btn-lift-own) * 100%),
+    var(--color-base-content)
+  );
+  --btn-bg: color-mix(
+    in oklab,
+    var(--btn-color),
+    var(--btn-lift-ink) var(--btn-lift)
+  );
+  --btn-border: color-mix(
+    in oklab,
+    var(--btn-bg),
+    var(--btn-lift-ink) 16%
+  );
+}
+
+.btn-ghost {
+  --btn-rest-fg: currentColor;
+  --btn-fg: currentColor;
+  --btn-bg: color-mix(in oklab, currentColor var(--btn-lift), transparent);
+  --btn-border: transparent;
+}
