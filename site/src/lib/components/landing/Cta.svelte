@@ -17,7 +17,7 @@ let { t }: { t: Copy } = $props()
   <Backdrop />
 
   <div {@attach reveal} class="mx-auto flex max-w-4xl flex-col items-center gap-6">
-    <AsciiArt art={wordmarkArt} class="w-full max-w-2xl" />
+    <AsciiArt art={wordmarkArt} interactive class="w-full max-w-2xl" />
 
     <h2
       id="cta-title"

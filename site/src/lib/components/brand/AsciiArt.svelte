@@ -1,5 +1,6 @@
 <script lang="ts">
 import type { ClassValue } from "svelte/elements"
+import { asciiField } from "#lib/attachments/asciiField.js"
 import {
   type AsciiArt,
   CELL_ASPECT,
@@ -8,9 +9,9 @@ import {
 } from "#lib/brand/ascii.js"
 import { TOKEN_FILL } from "#lib/brand/fill.js"
 
-type Props = { art: AsciiArt; class?: ClassValue }
+type Props = { art: AsciiArt; interactive?: boolean; class?: ClassValue }
 
-let { art, class: className }: Props = $props()
+let { art, interactive = false, class: className }: Props = $props()
 
 const CELL = 10
 const ROW = CELL * CELL_ASPECT
@@ -26,14 +27,7 @@ const lines = $derived(
         return []
       }
 
-      return [
-        {
-          fill: TOKEN_FILL[layer.token],
-          y: (index + 0.5) * ROW,
-          x: glyphs.map(item => item.x).join(" "),
-          text: glyphs.map(item => item.glyph).join(""),
-        },
-      ]
+      return [{ fill: TOKEN_FILL[layer.token], y: (index + 0.5) * ROW, glyphs }]
     }),
   ),
 )
@@ -41,15 +35,37 @@ const lines = $derived(
 
 <svg
   viewBox="0 0 {art.cols * CELL} {art.rows * ROW}"
-  class={["select-none", className]}
+  class={["select-none", interactive && "cursor-crosshair touch-pan-y", className]}
   font-size={ROW * GLYPH_SCALE}
   font-weight={GLYPH_WEIGHT}
   text-anchor="middle"
   aria-hidden="true"
+  {@attach interactive && asciiField}
 >
-  {#each lines as line}
-    <text x={line.x} y={line.y} dominant-baseline="central" class={line.fill}>
-      {line.text}
-    </text>
-  {/each}
+  {#if interactive}
+    <rect width={art.cols * CELL} height={art.rows * ROW} fill="transparent" />
+
+    {#each lines as line}
+      {#each line.glyphs as item}
+        <text
+          x={item.x}
+          y={line.y}
+          data-glyph={item.glyph}
+          dominant-baseline="central"
+          class={line.fill}>{item.glyph}</text
+        >
+      {/each}
+    {/each}
+  {:else}
+    {#each lines as line}
+      <text
+        x={line.glyphs.map(item => item.x).join(" ")}
+        y={line.y}
+        dominant-baseline="central"
+        class={line.fill}
+      >
+        {line.glyphs.map(item => item.glyph).join("")}
+      </text>
+    {/each}
+  {/if}
 </svg>

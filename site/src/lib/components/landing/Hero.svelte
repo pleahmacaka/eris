@@ -4,7 +4,6 @@ import { logoArt } from "#lib/brand/ascii.js"
 import AsciiArt from "#lib/components/brand/AsciiArt.svelte"
 import Backdrop from "#lib/components/brand/Backdrop.svelte"
 import Wordmark from "#lib/components/brand/Wordmark.svelte"
-import Eyebrow from "#lib/components/ui/Eyebrow.svelte"
 import { ARIXLAB, RELEASES, REPO } from "#lib/landing/content.js"
 import { PLATFORM_ICONS } from "#lib/landing/icons.js"
 import type { Copy } from "#lib/server/copy.js"
@@ -26,6 +25,7 @@ let { t }: { t: Copy } = $props()
   >
     <AsciiArt
       art={logoArt}
+      interactive
       class="mx-auto w-full max-w-56 sm:max-w-sm lg:max-w-none"
     />
 
@@ -35,8 +35,6 @@ let { t }: { t: Copy } = $props()
         "lg:items-start lg:text-start",
       ]}
     >
-      <Eyebrow>{t.hero.eyebrow}</Eyebrow>
-
       <h1 id="hero-title" class="my-3 sm:my-4 lg:my-6">
         <span class="sr-only">Eris</span>
         <Wordmark class="h-18 sm:h-24 lg:h-32" />
