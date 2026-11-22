@@ -89,6 +89,27 @@
     );
 }
 
+@utility half-scale {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inline-size: 200%;
+  block-size: 200%;
+  scale: 0.5;
+  transform-origin: top left;
+
+  &:dir(rtl) {
+    transform-origin: top right;
+  }
+}
+
+@utility pb-safe {
+  padding-block-end: max(
+    calc(var(--spacing) * 3),
+    env(safe-area-inset-bottom)
+  );
+}
+
 @layer base {
   :root {
     --size-selector: 0.25rem;
@@ -183,6 +204,30 @@
   @supports (position-area: bottom) {
     margin-inline-start: 1rem;
   }
+}
+
+:root:has(.modal[open]) {
+  scrollbar-gutter: stable;
+}
+
+.modal {
+  transition:
+    overlay var(--default-transition-duration) allow-discrete,
+    visibility var(--default-transition-duration) allow-discrete,
+    background-color var(--default-transition-duration) ease-out,
+    opacity var(--default-transition-duration) ease-out;
+
+  /* visibility must flip at once on open, or showModal() finds nothing to focus */
+  &[open] {
+    transition:
+      visibility 0s allow-discrete,
+      background-color var(--default-transition-duration) ease-out,
+      opacity var(--default-transition-duration) ease-out;
+  }
+}
+
+.modal-box {
+  transition-duration: var(--default-transition-duration);
 }
 
 .btn {

@@ -1,7 +1,6 @@
 import { icons as lucide } from "@iconify-json/lucide"
 import { icons as mdi } from "@iconify-json/mdi"
 import adapter from "@sveltejs/adapter-static"
-import { enhancedImages } from "@sveltejs/enhanced-img"
 import { sveltekit } from "@sveltejs/kit/vite"
 import tailwindcss from "@tailwindcss/vite"
 import { defineConfig } from "vite"
@@ -19,7 +18,6 @@ export default defineConfig({
   plugins: [
     iconifyEmbed({ collections: [lucide, mdi], scan: ["src"] }),
     tailwindcss(),
-    enhancedImages(),
     sveltekit({
       compilerOptions: {
         runes: ({ filename }) =>

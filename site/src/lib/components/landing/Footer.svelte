@@ -11,12 +11,10 @@ import type { Copy } from "#lib/server/copy.js"
 let { locale, t }: { locale: LocaleInfo; t: Copy } = $props()
 
 const sections = $derived([
-  { href: "#preview", label: t.showcase.eyebrow },
-  { href: "#features", label: t.features.eyebrow },
-  { href: "#themes", label: t.themes.eyebrow },
-  { href: "#download", label: t.download.eyebrow },
-  { href: "#matrix", label: t.network.eyebrow },
-  { href: "#faq", label: t.faq.eyebrow },
+  { href: "#preview", label: t.nav.preview },
+  { href: "#themes", label: t.nav.themes },
+  { href: "#download", label: t.nav.download },
+  { href: "#matrix", label: t.nav.matrix },
 ])
 </script>
 

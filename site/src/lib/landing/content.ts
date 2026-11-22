@@ -4,6 +4,8 @@ export const RELEASES = `${REPO}/releases/latest`
 
 export const ARIXLAB = "https://arixlab.com"
 
+export const DEMO_PATH = "demo/"
+
 export const SCREEN_IDS = [
   "chat",
   "voice",
@@ -15,20 +17,6 @@ export const SCREEN_IDS = [
 
 export type ScreenId = (typeof SCREEN_IDS)[number]
 
-export const FEATURE_IDS = [
-  "homeserver",
-  "spaces",
-  "dms",
-  "timeline",
-  "voice",
-  "roles",
-  "themes",
-  "input",
-  "languages",
-] as const
-
-export type FeatureId = (typeof FEATURE_IDS)[number]
-
 export const NETWORK_IDS = [
   "protocol",
   "homeserver",
@@ -37,16 +25,6 @@ export const NETWORK_IDS = [
 ] as const
 
 export type NetworkId = (typeof NETWORK_IDS)[number]
-
-export const FAQ_IDS = [
-  "what",
-  "account",
-  "price",
-  "platforms",
-  "voice",
-  "interop",
-  "encryption",
-] as const
 
 export const INSTALLERS = [
   { id: "windows", name: "Windows", formats: [".msi", ".exe"] },

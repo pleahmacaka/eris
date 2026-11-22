@@ -13,12 +13,7 @@ const CARD = [
 ]
 </script>
 
-<Section
-  id="download"
-  eyebrow={t.download.eyebrow}
-  title={t.download.title}
-  body={t.download.body}
->
+<Section id="download" title={t.download.title} body={t.download.body}>
   <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
     {#each t.installers as platform (platform.id)}
       <li class={CARD}>

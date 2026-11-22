@@ -1,31 +1,19 @@
 import {
+  COLOR_SCHEMES,
+  DEFAULT_THEME_FAMILY,
   THEME_FAMILIES,
   THEME_FAMILY_IDS,
   themeName,
 } from "#lib/brand/themeFamilies.js"
-import { LOCALES, type LocaleTag } from "#lib/i18n/locales.js"
-import {
-  FAQ_IDS,
-  FEATURE_IDS,
-  type FeatureId,
-  INSTALLERS,
-  NETWORK_IDS,
-  SCREEN_IDS,
-} from "#lib/landing/content.js"
+import type { LocaleTag } from "#lib/i18n/locales.js"
+import { INSTALLERS, NETWORK_IDS, SCREEN_IDS } from "#lib/landing/content.js"
 import type { Catalog } from "./i18n/catalogs"
-import { createTranslator, type MessageValues } from "./i18n/translate"
-
-const FEATURE_VALUES: Partial<Record<FeatureId, MessageValues>> = {
-  themes: { count: THEME_FAMILY_IDS.length },
-  languages: { count: LOCALES.length },
-}
+import { createTranslator } from "./i18n/translate"
+import { buildMockCopy } from "./mock"
 
 export const buildCopy = (locale: LocaleTag, catalog: Catalog) => {
   const t = createTranslator(locale, catalog)
-  const ordinal = new Intl.NumberFormat(locale, {
-    minimumIntegerDigits: 2,
-    useGrouping: false,
-  })
+  const mock = buildMockCopy(locale, t)
 
   return {
     meta: {
@@ -37,10 +25,13 @@ export const buildCopy = (locale: LocaleTag, catalog: Catalog) => {
       skip: t("nav.skip"),
       language: t("nav.language"),
       source: t("nav.source"),
+      preview: t("nav.preview"),
+      themes: t("nav.themes"),
+      download: t("nav.download"),
+      matrix: t("nav.matrix"),
     },
 
     hero: {
-      eyebrow: t("hero.eyebrow"),
       tagline: t("hero.tagline"),
       download: t("hero.download"),
       source: t("hero.source"),
@@ -60,10 +51,12 @@ export const buildCopy = (locale: LocaleTag, catalog: Catalog) => {
     },
 
     showcase: {
-      eyebrow: t("showcase.eyebrow"),
       title: t("showcase.title"),
       body: t("showcase.body"),
       tabs: t("showcase.tabs"),
+      expand: t("showcase.expand"),
+      close: t("showcase.close"),
+      demo: t("showcase.demo"),
       screens: SCREEN_IDS.map(id => {
         const name = t(`showcase.${id}.name`)
 
@@ -74,23 +67,31 @@ export const buildCopy = (locale: LocaleTag, catalog: Catalog) => {
           alt: t("showcase.alt", { screen: name }),
         }
       }),
-    },
-
-    features: {
-      eyebrow: t("features.eyebrow"),
-      title: t("features.title"),
-      items: FEATURE_IDS.map((id, index) => ({
-        id,
-        number: ordinal.format(index + 1),
-        title: t(`features.${id}.title`),
-        body: t(`features.${id}.body`, FEATURE_VALUES[id]),
-      })),
+      mock,
     },
 
     themes: {
-      eyebrow: t("themes.eyebrow"),
       title: t("themes.title"),
       body: t("themes.body"),
+      fallback: themeName(DEFAULT_THEME_FAMILY, "dark"),
+      preview: {
+        region: t("themes.preview.region"),
+        mode: t("themes.preview.mode"),
+        reset: t("themes.preview.reset"),
+        schemes: COLOR_SCHEMES.map(id => ({
+          id,
+          label: t(`themes.preview.${id}`),
+        })),
+      },
+      miniature: {
+        channel: mock.channels.general,
+        unread: new Intl.NumberFormat(locale).format(3),
+        rows: mock.threads.general.slice(0, 2).map(line => ({
+          name: line.name,
+          text: line.parts.map(part => part.text).join(""),
+        })),
+        send: t("mock.composer.send"),
+      },
       tiles: THEME_FAMILY_IDS.map(id => {
         const name = THEME_FAMILIES[id].label
 
@@ -98,20 +99,29 @@ export const buildCopy = (locale: LocaleTag, catalog: Catalog) => {
           id,
           name,
           label: t("themes.tile", { name }),
+          status: t("themes.preview.active", { name }),
           dark: themeName(id, "dark"),
           light: themeName(id, "light"),
         }
       }),
     },
 
+    demo: {
+      meta: {
+        title: t("demo.meta.title"),
+        description: t("demo.meta.description"),
+      },
+      title: t("demo.title"),
+      note: t("demo.note"),
+      home: t("demo.home"),
+    },
+
     download: {
-      eyebrow: t("download.eyebrow"),
       title: t("download.title"),
       body: t("download.body"),
     },
 
     network: {
-      eyebrow: t("matrix.eyebrow"),
       title: t("matrix.title"),
       homeserver: t("matrix.diagram.homeserver"),
       network: t("matrix.diagram.network"),
@@ -119,16 +129,6 @@ export const buildCopy = (locale: LocaleTag, catalog: Catalog) => {
         id,
         title: t(`matrix.${id}.title`),
         body: t(`matrix.${id}.body`),
-      })),
-    },
-
-    faq: {
-      eyebrow: t("faq.eyebrow"),
-      title: t("faq.title"),
-      items: FAQ_IDS.map(id => ({
-        id,
-        question: t(`faq.${id}.q`),
-        answer: t(`faq.${id}.a`),
       })),
     },
 

@@ -9,9 +9,9 @@ const openGraphLocale = (tag: LocaleTag) => {
   return `${language}_${region}`
 }
 
-export const buildSeo = (origin: string, tag: LocaleTag) => ({
-  canonical: localeUrl(origin, tag),
-  alternates: alternates(origin),
+export const buildSeo = (origin: string, tag: LocaleTag, path = "") => ({
+  canonical: localeUrl(origin, tag, path),
+  alternates: alternates(origin, path),
   locale: openGraphLocale(tag),
   image: {
     url: `${origin}${OG_IMAGE.path}`,

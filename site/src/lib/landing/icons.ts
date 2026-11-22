@@ -1,4 +1,4 @@
-import type { FeatureId, NetworkId, PlatformId, ScreenId } from "./content"
+import type { NetworkId, PlatformId, ScreenId } from "./content"
 
 export const SCREEN_ICONS: Record<ScreenId, string> = {
   chat: "lucide:messages-square",
@@ -7,18 +7,6 @@ export const SCREEN_ICONS: Record<ScreenId, string> = {
   switcher: "lucide:search",
   roles: "lucide:shield-check",
   login: "lucide:log-in",
-}
-
-export const FEATURE_ICONS: Record<FeatureId, string> = {
-  homeserver: "lucide:server",
-  spaces: "lucide:hash",
-  dms: "lucide:message-circle",
-  timeline: "lucide:paperclip",
-  voice: "lucide:phone",
-  roles: "lucide:shield-check",
-  themes: "lucide:palette",
-  input: "lucide:keyboard",
-  languages: "lucide:languages",
 }
 
 export const NETWORK_ICONS: Record<NetworkId, string> = {

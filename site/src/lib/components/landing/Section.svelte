@@ -1,18 +1,16 @@
 <script lang="ts">
 import type { Snippet } from "svelte"
 import { reveal } from "#lib/attachments/reveal.js"
-import Eyebrow from "#lib/components/ui/Eyebrow.svelte"
 
 type Props = {
   id: string
-  eyebrow: string
   title: string
   body?: string
   split?: boolean
   children: Snippet
 }
 
-let { id, eyebrow, title, body, split = false, children }: Props = $props()
+let { id, title, body, split = false, children }: Props = $props()
 </script>
 
 <section
@@ -27,8 +25,6 @@ let { id, eyebrow, title, body, split = false, children }: Props = $props()
     {@attach reveal}
     class={["flex max-w-2xl flex-col gap-4", split && "lg:col-span-2"]}
   >
-    <Eyebrow>{eyebrow}</Eyebrow>
-
     <h2
       id="{id}-title"
       class={[

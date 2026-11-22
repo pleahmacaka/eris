@@ -109,6 +109,16 @@ const usage = (faces: Face[], text: string) => {
 export const localeFont = (tag: LocaleTag): FontId =>
   LOCALE_FONT[tag] ?? "inter"
 
+export const copyText = (value: unknown): string => {
+  if (typeof value === "string") {
+    return value
+  }
+
+  return value && typeof value === "object"
+    ? Object.values(value).map(copyText).join("")
+    : ""
+}
+
 export const fontHead = (
   tag: LocaleTag,
   firstScreenText: string,

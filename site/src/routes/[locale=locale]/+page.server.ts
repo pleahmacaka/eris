@@ -1,20 +1,10 @@
 import { logoArt } from "#lib/brand/ascii.js"
 import { LOCALES, localeInfo } from "#lib/i18n/locales.js"
 import { buildCopy } from "#lib/server/copy.js"
-import { fontHead } from "#lib/server/fonts.js"
+import { copyText, fontHead } from "#lib/server/fonts.js"
 import { loadCatalog } from "#lib/server/i18n/catalogs.js"
 import { buildSeo } from "#lib/server/seo.js"
 import type { EntryGenerator, PageServerLoad } from "./$types"
-
-const strings = (value: unknown): string[] => {
-  if (typeof value === "string") {
-    return [value]
-  }
-
-  return value && typeof value === "object"
-    ? Object.values(value).flatMap(strings)
-    : []
-}
 
 export const entries: EntryGenerator = () =>
   LOCALES.map(locale => ({ locale: locale.tag }))
@@ -34,7 +24,7 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
   locals.fontHead = fontHead(
     locale.tag,
     firstScreen,
-    firstScreen + strings(copy).join(""),
+    firstScreen + copyText(copy),
   )
 
   return { locale, copy, seo: buildSeo(url.origin, locale.tag) }

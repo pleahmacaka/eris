@@ -3,7 +3,9 @@ import type { ClassValue } from "svelte/elements"
 import { TOKEN_FILL } from "#lib/brand/fill.js"
 import { LOGO_VIEWBOX, logoParts } from "#lib/brand/logo.js"
 
-let { class: className }: { class?: ClassValue } = $props()
+type Props = { class?: ClassValue; mono?: boolean }
+
+let { class: className, mono = false }: Props = $props()
 </script>
 
 <svg
@@ -13,6 +15,6 @@ let { class: className }: { class?: ClassValue } = $props()
   aria-label="Eris"
 >
   {#each logoParts as part (part.part)}
-    <path d={part.d} class={TOKEN_FILL[part.token]} />
+    <path d={part.d} class={mono ? "fill-current" : TOKEN_FILL[part.token]} />
   {/each}
 </svg>

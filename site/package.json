@@ -31,7 +31,6 @@
     "@iconify/types": "^2.0.0",
     "@iconify/utils": "^3.1.7",
     "@sveltejs/adapter-static": "^4.0.1",
-    "@sveltejs/enhanced-img": "^1.0.1",
     "@sveltejs/kit": "^3.4.0",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@tailwindcss/vite": "^4.3.5",

@@ -20,7 +20,7 @@ const BOX = [
 const LINK = "mt-8 h-0.25 min-w-2 flex-1 bg-base-content/20"
 </script>
 
-<Section id="matrix" eyebrow={t.eyebrow} title={t.title}>
+<Section id="matrix" title={t.title}>
   <div class="grid gap-3 lg:grid-cols-5">
     <div
       class={[

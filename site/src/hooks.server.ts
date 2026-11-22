@@ -1,9 +1,12 @@
 import type { Handle } from "@sveltejs/kit/hooks"
 import { THEME_FAMILIES } from "#lib/brand/themeFamilies.js"
+import { themeRestoreScript } from "#lib/brand/themePreview.js"
 import { DEFAULT_LOCALE, localeInfo } from "#lib/i18n/locales.js"
 import { localeFont } from "#lib/server/fonts.js"
 
 const THEME_COLOR = THEME_FAMILIES.eris.dark["base-100"]
+
+const THEME_RESTORE = `<script>${themeRestoreScript}</script>`
 
 export const handle: Handle = ({ event, resolve }) => {
   const locale = localeInfo(event.params.locale ?? DEFAULT_LOCALE)
@@ -15,6 +18,7 @@ export const handle: Handle = ({ event, resolve }) => {
         .replace("%dir%", locale.dir)
         .replace("%font%", localeFont(locale.tag))
         .replace("%fonts%", event.locals.fontHead ?? "")
-        .replace("%theme-color%", THEME_COLOR),
+        .replace("%theme-color%", THEME_COLOR)
+        .replace("%theme-preview%", () => THEME_RESTORE),
   })
 }
