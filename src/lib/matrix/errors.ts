@@ -1,5 +1,6 @@
 import type { MessageKey } from "#lib/i18n/catalogs.js"
 import type { Message } from "#lib/i18n/translate.js"
+import { AUTH_CANCELLED } from "./auth"
 
 export type ErrorLike = { errcode?: string; name?: string; message?: string }
 
@@ -22,6 +23,17 @@ export const loginError = (code: string | undefined) => {
       return RATE_LIMITED
     default:
       return message("errors.login.unreachable")
+  }
+}
+
+export const redirectError = (code: string | undefined) => {
+  switch (code) {
+    case AUTH_CANCELLED:
+      return message("errors.login.cancelled")
+    case "M_LIMIT_EXCEEDED":
+      return RATE_LIMITED
+    default:
+      return message("errors.login.redirect")
   }
 }
 

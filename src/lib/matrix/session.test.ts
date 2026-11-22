@@ -101,6 +101,24 @@ describe("parseSession", () => {
     expect(parseSession(JSON.stringify({ userId: 1 }))).toBeNull()
   })
 
+  test("round-trips OAuth tokens and rejects a broken grant", () => {
+    const storage = memoryStorage()
+    const oauth = {
+      clientId: "CLIENT",
+      issuer: "https://auth.example/",
+      refreshToken: "REFRESH",
+      expiresAt: 1_700_000_000_000,
+      accountUri: null,
+    }
+
+    saveSession(storage, { ...session, oauth })
+
+    expect(loadSession(storage)).toEqual({ ...session, oauth })
+    expect(
+      parseSession(JSON.stringify({ ...session, oauth: { issuer: "x" } })),
+    ).toBeNull()
+  })
+
   test("normalizes the stored homeserver", () => {
     const parsed = parseSession(
       JSON.stringify({ ...session, homeserver: "example.org/" }),

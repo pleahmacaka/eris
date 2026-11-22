@@ -14,7 +14,7 @@ import ContextMenuHost from "#lib/components/ui/ContextMenuHost.svelte"
 import PromptHost from "#lib/components/ui/PromptHost.svelte"
 import { i18n } from "#lib/i18n/i18n.svelte.js"
 import { motionConfig } from "#lib/motion/config.js"
-import { HOME_PATH, LOGIN_PATH } from "#lib/routes.js"
+import { CALLBACK_PATH, HOME_PATH, LOGIN_PATH } from "#lib/routes.js"
 import { audioStore } from "#lib/store/audio.svelte.js"
 import { listPrefsStore } from "#lib/store/listPrefs.svelte.js"
 import { sessionStore } from "#lib/store/session.svelte.js"
@@ -50,7 +50,10 @@ $effect(() => {
   const status = sessionStore.status
   const path = page.url.pathname
 
-  if (status === "signed-out" && !path.startsWith(LOGIN_PATH)) {
+  if (
+    status === "signed-out" &&
+    (!path.startsWith(LOGIN_PATH) || path === CALLBACK_PATH)
+  ) {
     void goto(LOGIN_PATH, { replaceState: true })
   } else if (
     status === "ready" &&

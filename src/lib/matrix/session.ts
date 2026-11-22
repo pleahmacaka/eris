@@ -1,8 +1,17 @@
+export type OAuthGrant = {
+  clientId: string
+  issuer: string
+  refreshToken: string | null
+  expiresAt: number | null
+  accountUri: string | null
+}
+
 export type StoredSession = {
   homeserver: string
   userId: string
   accessToken: string
   deviceId: string
+  oauth?: OAuthGrant
 }
 
 export const SESSION_KEY = "eris.session"
@@ -73,6 +82,31 @@ export const splitUserId = (input: string) => {
   }
 }
 
+const optionalString = (value: unknown) =>
+  typeof value === "string" && value !== "" ? value : null
+
+const parseGrant = (value: unknown): OAuthGrant | null => {
+  if (typeof value !== "object" || value === null) {
+    return null
+  }
+
+  const record = value as Record<string, unknown>
+  const clientId = optionalString(record.clientId)
+  const issuer = optionalString(record.issuer)
+
+  if (!clientId || !issuer) {
+    return null
+  }
+
+  return {
+    clientId,
+    issuer,
+    refreshToken: optionalString(record.refreshToken),
+    expiresAt: typeof record.expiresAt === "number" ? record.expiresAt : null,
+    accountUri: optionalString(record.accountUri),
+  }
+}
+
 export const parseSession = (raw: string | null): StoredSession | null => {
   if (!raw) {
     return null
@@ -99,12 +133,20 @@ export const parseSession = (raw: string | null): StoredSession | null => {
     return null
   }
 
-  return {
+  const session: StoredSession = {
     homeserver: normalizeHomeserver(record.homeserver as string),
     userId: record.userId as string,
     accessToken: record.accessToken as string,
     deviceId: record.deviceId as string,
   }
+
+  if (record.oauth === undefined) {
+    return session
+  }
+
+  const oauth = parseGrant(record.oauth)
+
+  return oauth ? { ...session, oauth } : null
 }
 
 export const loadSession = (storage: SessionStorage) =>

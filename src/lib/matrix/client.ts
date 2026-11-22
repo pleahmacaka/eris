@@ -1,23 +1,23 @@
 import {
+  type AccessTokens,
   ClientEvent,
   createClient,
+  type LoginRequest,
   type MatrixClient,
   SyncState,
+  type ValidatedAuthMetadata,
 } from "matrix-js-sdk"
 import { normalizeHomeserver, type StoredSession } from "./session"
 
 export const DEVICE_NAME = "Eris"
 
-export const loginWithPassword = async (
+const login = async (
   homeserver: string,
-  username: string,
-  password: string,
+  request: LoginRequest,
 ): Promise<StoredSession> => {
   const client = createClient({ baseUrl: homeserver })
   const response = await client.loginRequest({
-    type: "m.login.password",
-    identifier: { type: "m.id.user", user: username },
-    password,
+    ...request,
     initial_device_display_name: DEVICE_NAME,
   })
   const advertised = response.well_known?.["m.homeserver"]?.base_url
@@ -30,16 +30,49 @@ export const loginWithPassword = async (
   }
 }
 
-export const createSessionClient = (session: StoredSession) =>
-  createClient({
+export const loginWithPassword = (
+  homeserver: string,
+  username: string,
+  password: string,
+) =>
+  login(homeserver, {
+    type: "m.login.password",
+    identifier: { type: "m.id.user", user: username },
+    password,
+  })
+
+export const loginWithToken = (homeserver: string, token: string) =>
+  login(homeserver, { type: "m.login.token", token })
+
+export type OAuthBinding = {
+  onTokenRefresh: (tokens: AccessTokens) => void
+  authMetadata: () => Promise<ValidatedAuthMetadata>
+}
+
+export const createSessionClient = (
+  session: StoredSession,
+  binding?: OAuthBinding,
+) => {
+  const oauth = binding ? session.oauth : undefined
+  const client = createClient({
     baseUrl: session.homeserver,
     accessToken: session.accessToken,
     userId: session.userId,
     deviceId: session.deviceId,
+    refreshToken: oauth?.refreshToken ?? undefined,
+    oauthClientId: oauth?.clientId,
+    onTokenRefresh: binding?.onTokenRefresh,
     useAuthorizationHeader: true,
     fallbackICEServerAllowed: true,
     timelineSupport: true,
   })
+
+  if (oauth && binding) {
+    client.http.opts.authMetadataCallback = binding.authMetadata
+  }
+
+  return client
+}
 
 export const startSyncing = (client: MatrixClient) =>
   new Promise<void>((resolve, reject) => {

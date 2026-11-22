@@ -2,6 +2,8 @@ export const HOME_SEGMENT = "@me"
 
 export const LOGIN_PATH = "/login"
 
+export const CALLBACK_PATH = `${LOGIN_PATH}/callback`
+
 export const SETTINGS_PATH = "/settings"
 
 export const HOME_PATH = `/channels/${HOME_SEGMENT}`

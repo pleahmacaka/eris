@@ -1,12 +1,29 @@
-import type { MatrixClient } from "matrix-js-sdk"
+import {
+  type AccessTokens,
+  HttpApiEvent,
+  type MatrixClient,
+  OAuth2HTTPError,
+} from "matrix-js-sdk"
 import type { Message } from "#lib/i18n/translate.js"
+import {
+  type AuthOptions,
+  beginOAuth,
+  beginSso,
+  clearPendingAuth,
+  completeAuth,
+  fetchAuthMetadata,
+  hasPendingAuth,
+  isAuthCallback,
+  refreshExpiringSession,
+} from "#lib/matrix/auth.js"
 import {
   createSessionClient,
   endSession,
   loginWithPassword,
+  type OAuthBinding,
   startSyncing,
 } from "#lib/matrix/client.js"
-import { errorCode, loginError } from "#lib/matrix/errors.js"
+import { errorCode, loginError, redirectError } from "#lib/matrix/errors.js"
 import { AVATAR_LARGE, AVATAR_THUMBNAIL } from "#lib/matrix/media.js"
 import type { Presence } from "#lib/matrix/members.js"
 import { fetchProfile, knownPresence, watchUser } from "#lib/matrix/profile.js"
@@ -17,6 +34,11 @@ import {
   type StoredSession,
   saveSession,
 } from "#lib/matrix/session.js"
+import {
+  type AuthRedirect,
+  type LoopbackPage,
+  prepareAuthRedirect,
+} from "#lib/shell/authRedirect.js"
 import { callStore } from "#lib/store/call.svelte.js"
 import { chatStore } from "#lib/store/chat.svelte.js"
 import { groupCallStore } from "#lib/store/groupCall.svelte.js"
@@ -25,6 +47,7 @@ import { mediaStore } from "#lib/store/media.svelte.js"
 export type SessionStatus =
   | "restoring"
   | "signed-out"
+  | "authorizing"
   | "signing-in"
   | "connecting"
   | "ready"
@@ -40,8 +63,17 @@ class SessionStore {
   error = $state<Message | null>(null)
 
   private unwatchUser: (() => void) | null = null
+  private redirect: AuthRedirect | null = null
 
   async restore() {
+    const href = location.href
+
+    if (hasPendingAuth(sessionStorage) && isAuthCallback(href)) {
+      await this.finishRedirect(href)
+
+      return
+    }
+
     const stored = loadSession(localStorage)
 
     if (!stored) {
@@ -73,6 +105,66 @@ class SessionStore {
     }
   }
 
+  async loginWithRedirect(
+    homeserver: string,
+    options: AuthOptions,
+    page: LoopbackPage,
+    providerId?: string,
+  ) {
+    this.cancelRedirect()
+    this.error = null
+    this.status = "authorizing"
+
+    const base = normalizeHomeserver(homeserver)
+    let redirect: AuthRedirect | null = null
+
+    try {
+      redirect = await prepareAuthRedirect(page)
+      this.redirect = redirect
+
+      const url = options.oauth
+        ? await beginOAuth(base, options.oauth, redirect.target, {
+            clients: localStorage,
+            pending: sessionStorage,
+          })
+        : beginSso(base, redirect.target, sessionStorage, providerId)
+
+      if (this.redirect !== redirect) {
+        return
+      }
+
+      const callback = await redirect.open(url)
+
+      if (this.redirect === redirect) {
+        this.redirect = null
+        await this.finishRedirect(callback)
+      }
+    } catch (error) {
+      if (redirect === null || this.redirect === redirect) {
+        this.redirect = null
+        clearPendingAuth(sessionStorage)
+        this.status = "signed-out"
+        this.error = redirectError(errorCode(error))
+        console.error("redirect sign-in failed", error)
+      }
+    } finally {
+      redirect?.dispose()
+    }
+  }
+
+  cancelRedirect() {
+    const redirect = this.redirect
+
+    if (!redirect) {
+      return
+    }
+
+    this.redirect = null
+    redirect.dispose()
+    clearPendingAuth(sessionStorage)
+    this.status = "signed-out"
+  }
+
   async retry() {
     if (this.session) {
       await this.connect(this.session)
@@ -93,6 +185,77 @@ class SessionStore {
         await this.detach()
       } finally {
         await endSession(client)
+      }
+    }
+  }
+
+  private async finishRedirect(href: string) {
+    this.status = "signing-in"
+
+    try {
+      const session = await completeAuth(href, sessionStorage)
+
+      saveSession(localStorage, session)
+      await this.connect(session)
+    } catch (error) {
+      this.status = "signed-out"
+      this.error = redirectError(errorCode(error))
+      console.error("redirect sign-in failed", error)
+    }
+  }
+
+  private persist(session: StoredSession) {
+    this.session = session
+    saveSession(localStorage, session)
+  }
+
+  private applyRefresh(tokens: AccessTokens) {
+    const session = this.session
+
+    if (!session?.oauth) {
+      return
+    }
+
+    this.persist({
+      ...session,
+      accessToken: tokens.accessToken,
+      oauth: {
+        ...session.oauth,
+        refreshToken: tokens.refreshToken ?? session.oauth.refreshToken,
+        expiresAt: tokens.expiry?.getTime() ?? null,
+      },
+    })
+  }
+
+  private oauthBinding(session: StoredSession): OAuthBinding {
+    return {
+      onTokenRefresh: tokens => this.applyRefresh(tokens),
+      authMetadata: async () => {
+        const metadata = await fetchAuthMetadata(session.homeserver)
+
+        if (!metadata) {
+          throw new Error("auth metadata unavailable")
+        }
+
+        return metadata
+      },
+    }
+  }
+
+  private async expire() {
+    const client = this.client
+
+    this.client = null
+    this.session = null
+    clearSession(localStorage)
+    this.status = "signed-out"
+    this.error = { key: "session.expired" }
+
+    if (client) {
+      try {
+        await this.detach()
+      } finally {
+        client.stopClient()
       }
     }
   }
@@ -176,22 +339,47 @@ class SessionStore {
     this.status = "connecting"
     this.error = null
 
-    const client = createSessionClient(session)
+    let current = session
+
+    try {
+      current = await refreshExpiringSession(session)
+    } catch (error) {
+      if (error instanceof OAuth2HTTPError) {
+        await this.expire()
+
+        return
+      }
+
+      console.warn("token refresh deferred", error)
+    }
+
+    if (current !== session) {
+      this.persist(current)
+    }
+
+    const client = createSessionClient(
+      current,
+      current.oauth ? this.oauthBinding(current) : undefined,
+    )
 
     try {
       await startSyncing(client)
-      await this.loadProfile(client, session.userId)
-      this.attach(client, session.userId)
+      await this.loadProfile(client, current.userId)
+      this.attach(client, current.userId)
+      client.once(HttpApiEvent.SessionLoggedOut, () => {
+        if (this.client === client) {
+          void this.expire()
+        }
+      })
       this.client = client
       this.status = "ready"
     } catch (error) {
       client.stopClient()
 
-      if (errorCode(error) === "M_UNKNOWN_TOKEN") {
-        clearSession(localStorage)
-        this.session = null
-        this.status = "signed-out"
-        this.error = { key: "session.expired" }
+      const code = errorCode(error)
+
+      if (code === "M_UNKNOWN_TOKEN" || code === "TokenRefreshLogoutError") {
+        await this.expire()
       } else {
         this.status = "failed"
         this.error = { key: "session.unreachable" }

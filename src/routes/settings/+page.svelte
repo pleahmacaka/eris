@@ -9,6 +9,7 @@ import VoiceSettings from "#lib/components/settings/VoiceSettings.svelte"
 import type { MessageKey } from "#lib/i18n/catalogs.js"
 import { i18n } from "#lib/i18n/i18n.svelte.js"
 import { HOME_PATH } from "#lib/routes.js"
+import { openExternal } from "#lib/shell/authRedirect.js"
 import { sessionStore } from "#lib/store/session.svelte.js"
 import { titleBarStore } from "#lib/store/titleBar.svelte.js"
 import { goto } from "$app/navigation"
@@ -61,6 +62,7 @@ const groups = $derived<Entry[][]>([
 let chosen = $state<Section | null>(null)
 
 const active = $derived<Section>(chosen ?? "profile")
+const accountUri = $derived(sessionStore.session?.oauth?.accountUri ?? null)
 
 const close = () => {
   if (history.length > 1) {
@@ -173,10 +175,18 @@ const close = () => {
           <section class="flex flex-col gap-3 rounded-box border border-base-content/10 bg-base-100/50 p-6">
             <h2 class="font-bold">{i18n.t("settings.session.title")}</h2>
             <p class="text-muted text-sm">{i18n.t("settings.session.hint")}</p>
-            <button type="button" class="btn btn-error w-fit" onclick={() => sessionStore.logout()}>
-              <Icon icon="lucide:log-out" class="size-4" />
-              {i18n.t("settings.session.signOut")}
-            </button>
+            <div class="flex flex-wrap gap-2">
+              {#if accountUri}
+                <button type="button" class="btn btn-outline w-fit" onclick={() => openExternal(accountUri)}>
+                  <Icon icon="lucide:external-link" class="size-4" />
+                  {i18n.t("settings.session.manageAccount")}
+                </button>
+              {/if}
+              <button type="button" class="btn btn-error w-fit" onclick={() => sessionStore.logout()}>
+                <Icon icon="lucide:log-out" class="size-4" />
+                {i18n.t("settings.session.signOut")}
+              </button>
+            </div>
           </section>
         {/if}
       </div>

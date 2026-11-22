@@ -176,9 +176,16 @@ class MediaStore {
     urlFor: (endpoint: MediaEndpoint) => string,
   ) {
     if (!this.legacy) {
-      const response = await fetch(urlFor("authenticated"), {
-        headers: { Authorization: `Bearer ${client.getAccessToken()}` },
-      })
+      const authenticated = () =>
+        fetch(urlFor("authenticated"), {
+          headers: { Authorization: `Bearer ${client.getAccessToken()}` },
+        })
+      const first = await authenticated()
+      // an SDK request refreshes an expired OAuth access token; raw fetch cannot
+      const response =
+        first.status === 401
+          ? await client.whoami().then(authenticated, () => first)
+          : first
 
       if (response.ok) {
         return response.blob()
