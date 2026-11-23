@@ -25,32 +25,41 @@ const MODES: { value: ThemePreference; label: MessageKey; icon: string }[] = [
   { value: "light", label: "settings.appearance.light", icon: "lucide:sun" },
 ]
 
-let hovered: ThemeFamily | null = null
 let focused = $state<ThemeFamily | null>(null)
 
-const preview = () => themeStore.preview(hovered ?? focused)
+const previewing = $derived(themeStore.previewed)
 
-const hover = (family: ThemeFamily | null) => {
-  hovered = family
-  preview()
+const togglePreview = (family: ThemeFamily) => {
+  themeStore.preview(previewing === family ? null : family)
 }
 
-const focus = (family: ThemeFamily | null) => {
-  focused = family
-  preview()
+const applyPreview = () => {
+  if (previewing) {
+    themeStore.setFamily(previewing)
+  }
+
+  themeStore.preview(null)
+}
+
+const choose = (family: ThemeFamily) => {
+  themeStore.preview(null)
+  themeStore.setFamily(family)
 }
 
 const travel = (event: KeyboardEvent & { currentTarget: HTMLElement }) => {
   const option = event.currentTarget
-  const options = [...(option.parentElement?.children ?? [])].filter(
-    (item): item is HTMLElement => item instanceof HTMLElement,
-  )
-  const firstRow = options[0]?.offsetTop
+  const options = [
+    ...(option
+      .closest("[data-theme-grid]")
+      ?.querySelectorAll<HTMLElement>("[data-theme-option]") ?? []),
+  ]
+  const firstRow = options[0]?.getBoundingClientRect().top
   const target = gridStep(
     event.key,
     options.indexOf(option),
     options.length,
-    options.filter(item => item.offsetTop === firstRow).length,
+    options.filter(item => item.getBoundingClientRect().top === firstRow)
+      .length,
     getComputedStyle(option).direction === "rtl",
   )
 
@@ -143,54 +152,84 @@ onDestroy(() => themeStore.preview(null))
     <p id="appearance-theme" class="font-semibold text-sm">{i18n.t("settings.appearance.theme")}</p>
     <div
       class="-m-1.5 grid grid-cols-2 sm:grid-cols-3"
-      role="listbox"
+      role="group"
       aria-labelledby="appearance-theme"
+      data-theme-grid
     >
       {#each THEME_FAMILY_IDS as family (family)}
         {@const selected = themeStore.family === family}
-        <button
-          type="button"
-          role="option"
-          aria-selected={selected}
-          tabindex={family === (focused ?? themeStore.family) ? 0 : -1}
-          class="group flex cursor-pointer flex-col gap-2 p-1.5 text-start outline-none"
-          onclick={() => themeStore.setFamily(family)}
-          onpointerenter={() => hover(family)}
-          onpointerleave={() => hover(null)}
-          onfocus={() => focus(family)}
-          onblur={() => focus(null)}
-          onkeydown={travel}
-        >
-          <span
-            class={[
-              "block aspect-video w-full overflow-hidden rounded-field border",
-              "group-focus-visible:outline-2 group-focus-visible:outline-offset-2",
-              "group-focus-visible:outline-primary",
-              selected
-                ? "border-primary ring-2 ring-primary/30"
-                : "border-base-content/15",
-            ]}
-            aria-hidden="true"
+        {@const previewed = previewing === family}
+        {@const label = i18n.t(THEME_FAMILIES[family].label)}
+        <div class="relative">
+          <button
+            type="button"
+            aria-pressed={selected}
+            tabindex={family === (focused ?? themeStore.family) ? 0 : -1}
+            class="group flex w-full cursor-pointer flex-col gap-2 p-1.5 text-start outline-none"
+            data-theme-option
+            onclick={() => choose(family)}
+            onfocus={() => (focused = family)}
+            onkeydown={travel}
           >
-            {@render miniature(themeName(family, themeStore.scheme))}
-          </span>
-          <span
+            <span
+              class={[
+                "block aspect-video w-full overflow-hidden rounded-field border",
+                "group-focus-visible:outline-2 group-focus-visible:outline-offset-2",
+                "group-focus-visible:outline-primary",
+                selected
+                  ? "border-primary ring-2 ring-primary/30"
+                  : previewed
+                    ? "border-secondary ring-2 ring-secondary/30"
+                    : "border-base-content/15",
+              ]}
+              aria-hidden="true"
+            >
+              {@render miniature(themeName(family, themeStore.scheme))}
+            </span>
+            <span
+              class={[
+                "flex w-full items-center gap-2 text-sm",
+                selected ? "font-semibold text-base-content" : "text-muted",
+              ]}
+            >
+              <span class="min-w-0 flex-1 truncate">{label}</span>
+              {#if selected}
+                <Icon icon="lucide:check" class="size-4 shrink-0 text-primary" />
+              {/if}
+            </span>
+          </button>
+          <button
+            type="button"
             class={[
-              "flex w-full items-center gap-2 text-sm",
-              selected ? "font-semibold text-base-content" : "text-muted",
+              "btn btn-circle btn-xs absolute end-3 top-3 shadow-sm",
+              previewed ? "btn-secondary" : "bg-base-100/90",
             ]}
+            aria-pressed={previewed}
+            aria-label={`${i18n.t("settings.appearance.preview")}: ${label}`}
+            title={i18n.t("settings.appearance.preview")}
+            onclick={() => togglePreview(family)}
           >
-            <span class="min-w-0 flex-1 truncate">{i18n.t(THEME_FAMILIES[family].label)}</span>
-            {#if selected}
-              <Icon icon="lucide:check" class="size-4 shrink-0 text-primary" />
-            {/if}
-          </span>
-        </button>
+            <Icon icon={previewed ? "lucide:eye-off" : "lucide:eye"} class="size-3.5" />
+          </button>
+        </div>
       {/each}
     </div>
-    <p class="text-muted text-xs">
-      {i18n.t("settings.appearance.previewHint")}
-    </p>
+    {#if previewing}
+      <div class="flex items-center gap-2 rounded-field bg-base-200 px-3 py-2" role="status">
+        <Icon icon="lucide:eye" class="size-4 shrink-0 text-secondary" />
+        <span class="min-w-0 flex-1 truncate text-sm">
+          {i18n.t("settings.appearance.previewing", {
+            theme: i18n.t(THEME_FAMILIES[previewing].label),
+          })}
+        </span>
+        <button type="button" class="btn btn-ghost btn-sm" onclick={() => themeStore.preview(null)}>
+          {i18n.t("ui.cancel")}
+        </button>
+        <button type="button" class="btn btn-primary btn-sm" onclick={applyPreview}>
+          {i18n.t("settings.appearance.apply")}
+        </button>
+      </div>
+    {/if}
   </div>
 
   <div class="flex flex-col gap-3 border-base-content/10 border-t pt-4">

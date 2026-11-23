@@ -92,7 +92,6 @@ $effect(() => {
       </button>
       <LevelMeter level={audioStore.level} />
     </div>
-    <p class="text-muted text-xs">{i18n.t("settings.voice.testHint")}</p>
   </div>
 
   <div class="flex flex-col gap-3 border-base-content/10 border-t pt-4">
