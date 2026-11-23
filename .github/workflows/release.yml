@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    tags: ["v*"]
+    tags: ["[0-9]+.[0-9]+.[0-9]+"]
   workflow_dispatch:
 
 permissions:
@@ -42,7 +42,7 @@ jobs:
           tauriScript: bunx tauri
           tagName: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
           releaseName: Eris ${{ github.ref_name }}
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
 
   android:
